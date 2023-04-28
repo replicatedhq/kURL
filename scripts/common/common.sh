@@ -1340,9 +1340,9 @@ function common_list_images_in_manifest_file() {
 # list and deduplicate the list.
 function common_upgrade_merge_images_list() {
     local images_list=
-    while [ "$1" != "" ]; do
-        images_list="$images_list $1"
-        shift
+    local list=
+    for list in "$@" ; do
+        images_list="$images_list $list"
     done
     echo "$images_list" | tr " " "\n" | sort | uniq | tr "\n" " " | xargs
 }

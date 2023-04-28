@@ -131,6 +131,7 @@ function test_common_list_images_in_manifest_file() {
 
 function test_common_upgrade_merge_images_list() {
     assertEquals "merges two lists" "docker.io/rook/ceph:v1.1.9 docker.io/rook/ceph:v1.2.7 docker.io/rook/ceph:v1.3.11 docker.io/rook/ceph:v1.4.9 docker.io/rook/ceph:v1.9.12" "$(common_upgrade_merge_images_list "docker.io/rook/ceph:v1.1.9 docker.io/rook/ceph:v1.2.7 docker.io/rook/ceph:v1.3.11 docker.io/rook/ceph:v1.4.9" "docker.io/rook/ceph:v1.9.12")"
+    assertEquals "merges two lists first empty" "docker.io/rook/ceph:v1.10.11 docker.io/rook/ceph:v1.9.12"  "$(common_upgrade_merge_images_list "" "docker.io/rook/ceph:v1.10.11 docker.io/rook/ceph:v1.9.12")"
     assertEquals "trims spaces and removes duplicates" "a b c d" "$(common_upgrade_merge_images_list " a   b  c d   " " b  d a c d")"
 }
 
