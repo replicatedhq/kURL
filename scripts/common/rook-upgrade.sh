@@ -313,10 +313,6 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
-            # the last version already included in the airgap bundle
-            if [ "$step" = "$desired_version" ]; then
-                continue
-            fi
             addon_load "rook" "$step"
         done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
