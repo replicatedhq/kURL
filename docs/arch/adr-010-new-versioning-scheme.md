@@ -16,7 +16,11 @@ The solution involves three different entities named _Channels_, _Installers_ an
 
 Our revised versioning scheme entails organising our offering into Channels that align with specific Kubernetes minor versions. As a result, users will be required to select the Channel to which they want their installer assigned.
 
-Although we won't initially provide a Channel for every Kubernetes minor version, we have arbitrarily selected Kubernetes minor version 1.24 as our starting point. At the time of writing, here are the Channels that we will be offering to our users:
+While we recognize the importance of providing our users with access to a wide range of Kubernetes minor versions, we have chosen to focus our efforts on the most recent releases. To this end, we will be offering one Channel for each of the currently supported [Kubernetes releases](https://kubernetes.io/releases/). These releases are maintained by the Kubernetes project and include the most recent three minor versions.
+
+By focusing on the most recent releases, we can ensure that our users have access to the latest features and functionalities of Kubernetes, while also minimizing the risk of compatibility issues and other technical challenges. We believe that this approach strikes the right balance between flexibility and stability, and will provide our users with a high-quality and dependable product.
+
+At the time of writing, the Channels that we will be offering to our users include:
 
 | Channel  | Kubernetes version installed by this Channel    |
 |----------|-------------------------------------------------|
