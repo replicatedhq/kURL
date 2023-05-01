@@ -686,7 +686,7 @@ function cluster_preflights() {
 
         case $kurl_exit_code in
             3)
-                bail "On cluster Preflights have warnings that block the installation."
+                bail "In cluster Preflights have warnings that block the installation."
                 ;;
             2)
                 logWarn "Preflights checks executed on cluster have warnings"
@@ -700,7 +700,7 @@ function cluster_preflights() {
                 return 0
                 ;;
             1)
-                bail "On cluster Preflights checks have failures that block the installation."
+                bail "In cluster Preflights checks have failures that block the installation."
                 ;;
         esac
     fi

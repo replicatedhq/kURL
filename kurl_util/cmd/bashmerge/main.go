@@ -176,6 +176,16 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.Version = strings.TrimLeft(split[1], "v")
+		case "kubernetes-init-ignore-preflight-errors":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.InitIgnorePreflightErrors = split[1]
+		case "kubernetes-upgrade-ignore-preflight-errors":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.UpgradeIgnorePreflightErrors = split[1]
 		case "kurl-install-directory":
 			continue
 		case "installer-spec-file":

@@ -399,6 +399,8 @@ function upgrade_kubeadm() {
     chmod a+rx /usr/bin/kubeadm
 }
 
+KUBERNETES_UPGRADE_IGNORE_PREFLIGHT_ERRORS="${KUBERNETES_UPGRADE_IGNORE_PREFLIGHT_ERRORS:-}"
+
 function upgrade_kubernetes_local_master() {
     local targetK8sVersion="$1"
     local nodeName=
@@ -425,7 +427,7 @@ function upgrade_kubernetes_local_master() {
 
     upgrade_kubeadm "$targetK8sVersion"
 
-    ( set -x; kubeadm upgrade plan "v${targetK8sVersion}" )
+    ( set -x; kubeadm upgrade plan "v${targetK8sVersion}" --ignore-preflight-errors="$KUBERNETES_UPGRADE_IGNORE_PREFLIGHT_ERRORS" )
     printf "%bDrain local node and apply upgrade? %b" "$YELLOW" "$NC"
     confirmY
     kubernetes_drain "$nodeName"

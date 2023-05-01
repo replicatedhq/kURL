@@ -68,9 +68,10 @@ help: ## Display this help
 clean: ## Clean the build directory
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds build/helm
+dist/common.tar.gz: build/kustomize build/manifests build/shared build/krew build/kurlkinds build/helm
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
+	tar cf dist/common.tar -C build manifests
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
 	tar rf dist/common.tar -C build kurlkinds
@@ -414,12 +415,16 @@ build/krew:
 
 build/kurlkinds:
 	mkdir -p build/kurlkinds
-	curl -s -o build/kurlkinds/cluster.kurl.sh_installers.yaml \
+	curl -fs -o build/kurlkinds/cluster.kurl.sh_installers.yaml \
 		https://raw.githubusercontent.com/replicatedhq/kurlkinds/$(KURL_KINDS_VERSION)/config/crds/v1beta1/cluster.kurl.sh_installers.yaml
 
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
+
+build/manifests:
+	mkdir -p build
+	cp -r scripts/manifests build/
 
 build/helm:
 	mkdir -p build/helm
@@ -597,7 +602,7 @@ build/bin/kurl: pkg/cli/commands.go go.mod go.sum
 	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl 2>&1 | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
-code: build/kustomize build/addons ## Build kustomize and addons
+code: build/kustomize build/manifests build/addons ## Build kustomize and addons
 
 .PHONY: scripts
 scripts: build/install.sh build/join.sh build/upgrade.sh build/tasks.sh ## Build scripts (install.sh,join.sh,upgrade.sh,tasks.sh)

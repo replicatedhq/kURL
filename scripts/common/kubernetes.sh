@@ -1162,3 +1162,20 @@ function kubernetes_kustomize_config_migrate() {
        ( cd "$kustomize_dir" && kustomize edit fix )
     fi
 }
+
+# kubernetes_configure_coredns is a workaround to reset the custom nameserver config in the coredns
+# configmap. This runs after kubeadm init or upgrade which will reset the coredns configmap if it
+# finds that it is the default. the issue is that it does a fuzzy match and if only the nameserver
+# is set kubeadm determines that it is the default and it replaces the configmap.
+function kubernetes_configure_coredns() {
+    if [ -z "$NAMESERVER" ]; then
+        return 0
+    fi
+    kubectl -n kube-system get configmap coredns -oyaml > /tmp/Corefile
+    # Example lines to replace from k8s 1.17 and 1.19
+    # "forward . /etc/resolv.conf" => "forward . 8.8.8.8"
+    # "forward . /etc/resolv.conf {" => "forward . 8.8.8.8 {"
+    sed -i "s/forward \. \/etc\/resolv\.conf/forward \. ${NAMESERVER}/" /tmp/Corefile
+    kubectl -n kube-system replace configmap coredns -f /tmp/Corefile
+    kubectl -n kube-system rollout restart deployment/coredns
+}

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kurl-troubleshoot-spec
+  labels:
+    troubleshoot.io/kind: support-bundle
+stringData:
+  support-bundle-spec: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: SupportBundle
+    metadata:
+      name: kurl
+    spec:
+
+      collectors:
+        - configMap:
+            collectorName: coredns
+            name: coredns
+            namespace: kube-system
+            includeAllData: true
