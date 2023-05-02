@@ -119,6 +119,10 @@ function get_patch_yaml() {
                 ;;
             kubernetes-version)
                 ;;
+            kubernetes-init-ignore-preflight-errors)
+                ;;
+            kubernetes-upgrade-ignore-preflight-errors)
+                ;;
             kurl-install-directory)
                 if [ -n "$_value" ]; then
                     KURL_INSTALL_DIRECTORY_FLAG="${_value}"

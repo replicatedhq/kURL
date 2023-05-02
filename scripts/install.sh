@@ -33,20 +33,7 @@ DIR=.
 . $DIR/scripts/common/containerd.sh
 # Magic end
 
-function configure_coredns() {
-    # Runs after kubeadm init which always resets the coredns configmap - no need to check for
-    # and revert a previously set nameserver
-    if [ -z "$NAMESERVER" ]; then
-        return 0
-    fi
-    kubectl -n kube-system get configmap coredns -oyaml > /tmp/Corefile
-    # Example lines to replace from k8s 1.17 and 1.19
-    # "forward . /etc/resolv.conf" => "forward . 8.8.8.8"
-    # "forward . /etc/resolv.conf {" => "forward . 8.8.8.8 {"
-    sed -i "s/forward \. \/etc\/resolv\.conf/forward \. ${NAMESERVER}/" /tmp/Corefile
-    kubectl -n kube-system replace configmap coredns -f /tmp/Corefile
-    kubectl -n kube-system rollout restart deployment/coredns
-}
+KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS="${KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS:-}"
 
 function init() {
     logStep "Initialize Kubernetes"
@@ -240,9 +227,13 @@ function init() {
     cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
     mkdir -p /var/log/apiserver
 
+    if [ -z "$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" ]; then
+        KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
+    fi
+
     set -o pipefail
     cmd_retry 3 kubeadm init \
-        --ignore-preflight-errors=all \
+        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
@@ -343,7 +334,7 @@ function init() {
 
     logSuccess "Cluster Initialized"
 
-    configure_coredns
+    kubernetes_configure_coredns
 
     if commandExists registry_init; then
         registry_init
@@ -354,6 +345,9 @@ function init() {
             spinner_kubernetes_api_healthy
         fi
     fi
+
+    # install the kurl in-cluster troubleshoot supportbundle spec
+    kubectl -n kurl apply -f "$DIR/manifests/troubleshoot.yaml"
 }
 
 function kubeadm_post_init() {

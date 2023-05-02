@@ -553,31 +553,6 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s119_nameserver_collectd_rook_block
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.3
-    docker:
-      version: 19.03.15
-    weave:
-      version: 2.8.1
-    rook:
-      version: 1.9.x
-    registry:
-      version: 2.7.1
-    kotsadm:
-      version: latest
-    kurl:
-      nameserver: 8.8.8.8
-    collectd:
-      version: v5
-    ekco:
-      version: latest
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x and collectd-v5 are not supported on ubuntu 22.04
-  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - rocky-91 # docker is not supported on rhel 9 variants
 - name: k8s119_selinux
   flags: "yes"
   installerSpec:
@@ -1983,3 +1958,62 @@
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep 1.5.12
+- name: "Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins"
+  flags: "yes kubernetes-upgrade-ignore-preflight-errors=CoreDNSUnsupportedPlugins"
+  installerSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: 1.6.19
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.27.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  # add a customization to the coredns configmap
+  # kubeadm upgrade will warn with CoreDNSUnsupportedPlugins
+  postInstallScript: |
+    kubectl -n kube-system get configmap coredns -o yaml | \
+      sed '/prometheus.*/a \ \ \ \ \ \ \ \ rewrite {\n\ \ \ \ \ \ \ \ \ \ \ name regex blah\\.com\\.$ blah.io\n\ \ \ \ \ \ \ \ \ \ \ answer name blah\\.io\\. blah.com\n\ \ \ \ \ \ \ \ }' | \
+      sed -E '/ (uid|resourceVersion|creationTimestamp): /d' | \
+      kubectl replace -f -
+    kubectl -n kube-system rollout restart deployment/coredns
+  # read the coredns configmap and make sure the comment is still there
+  postUpgradeScript: |
+    kubectl -n kube-system get configmap coredns -o yaml | grep -F 'blah.io'
+- name: "CoreDNS preserve kurl.nameserver"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: 1.6.19
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    kurl:
+      nameserver: 8.8.8.8
+  upgradeSpec:
+    kubernetes:
+      version: 1.27.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    kurl:
+      nameserver: 8.8.8.8
+  postInstallScript: |
+    kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
+  postUpgradeScript: |
+    kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'

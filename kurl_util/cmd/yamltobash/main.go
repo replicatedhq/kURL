@@ -234,6 +234,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.SystemReservedResources":              "SYSTEM_RESERVED",
 		"Kubernetes.UseStandardNodePortRange":             "USE_STANDARD_PORT_RANGE",
 		"Kubernetes.Version":                              "KUBERNETES_VERSION",
+		"Kubernetes.InitIgnorePreflightErrors":            "KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS",
+		"Kubernetes.UpgradeIgnorePreflightErrors":         "KUBERNETES_UPGRADE_IGNORE_PREFLIGHT_ERRORS",
 		"Kurl.AdditionalNoProxyAddresses":                 "ADDITIONAL_NO_PROXY_ADDRESSES",
 		"Kurl.Airgap":                                     "AIRGAP",
 		"Kurl.IPv6":                                       "IPV6_ONLY",
