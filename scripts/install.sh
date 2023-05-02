@@ -227,7 +227,6 @@ function init() {
     cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
     mkdir -p /var/log/apiserver
 
-    echo "KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS $KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS"
     if [ -z "$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" ]; then
         KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
     fi
