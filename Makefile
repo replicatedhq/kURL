@@ -71,7 +71,7 @@ clean: ## Clean the build directory
 dist/common.tar.gz: build/kustomize build/manifests build/shared build/krew build/kurlkinds build/helm
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
-	tar cf dist/common.tar -C build manifests
+	tar rf dist/common.tar -C build manifests
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
 	tar rf dist/common.tar -C build kurlkinds
