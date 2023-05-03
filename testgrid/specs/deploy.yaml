@@ -376,3 +376,49 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
+- name: Kubernetes-deprecations
+  installerSpec:
+    kubernetes:
+      version: latest
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  postInstallScript: |
+    # install kubent
+    sh -c "$(curl -sSL https://git.io/install-kubent)"
+    if ! KUBENT_OUTPUT="$(kubent)"; then
+      echo "kubent failed to run!"
+      exit 1
+    elif [ -n "${KUBENT_OUTPUT}" ]; then
+      echo "Deprecated resources found"
+      echo "--------------------------"
+      echo "${KUBENT_OUTPUT}"
+      exit 1
+    fi
+  unsupportedOSIDs: # only run on latest ubuntu for now
+  - amzn-20
+  - centos-79
+  - centos-84
+  - ol-79
+  - ol-8x
+  - rocky-91
+  - ubuntu-2004
