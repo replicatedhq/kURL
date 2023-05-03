@@ -166,6 +166,13 @@ function init() {
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.yaml
     fi
+    if [ -n "$KUBERNETES_MAX_PODS_PER_NODE" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-max-pods.yaml
+
+        render_yaml_file_2 $kustomize_kubeadm_init/patch-kubelet-max-pods.tmpl.yaml > $kustomize_kubeadm_init/patch-kubelet-max-pods.yaml
+    fi
 
     kubernetes_configure_pause_image "$kustomize_kubeadm_init"
 
