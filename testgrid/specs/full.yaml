@@ -1367,7 +1367,10 @@
       version: latest
     ekco:
       version: latest
-  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
+  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights kubernetes-max-pods-per-node=200"
+  postInstallScript: |
+    kubectl get node -oyaml | grep ' gpu: enabled'
+    kubectl get node -oyaml | grep ' pods: "200"'
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:

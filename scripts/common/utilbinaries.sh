@@ -109,6 +109,8 @@ function get_patch_yaml() {
                 ;;
             container-log-max-files)
                 ;;
+            kubernetes-max-pods-per-node)
+                ;;
             kubeadm-token)
                 ;;
             kubeadm-token-ca-hash)

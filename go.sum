@@ -2047,6 +2047,8 @@ github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOe
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
 github.com/replicatedhq/kurlkinds v1.3.5 h1:tAgQIRbTNcrpzs7hSM/7DUryduVz1E7yL/KrwlLRA5I=
 github.com/replicatedhq/kurlkinds v1.3.5/go.mod h1:c5+hoAkuARgftB2Ft3RCyWRZZPhL0clHEaw7XoGDAg4=
+github.com/replicatedhq/kurlkinds v1.3.6 h1:/dhS32cSSZR4yS4vA8EquBvz+VgJCyTqBO9Xw+6eI4M=
+github.com/replicatedhq/kurlkinds v1.3.6/go.mod h1:c5+hoAkuARgftB2Ft3RCyWRZZPhL0clHEaw7XoGDAg4=
 github.com/replicatedhq/plumber/v2 v2.2.0 h1:vjG8hZKO7tvLdPzWFqLBmjfpNtpSXhWrOmYdwTNdQR0=
 github.com/replicatedhq/plumber/v2 v2.2.0/go.mod h1:seRCMUymCb8PPFw+pH1OefvKVSi5EgSo4HEMYpCW6Io=
 github.com/replicatedhq/pvmigrate v0.9.0 h1:p9+Y4RonMAxs1RoDv6ngZnKq9ACNQrGqGa57WnzcyI0=

@@ -129,6 +129,15 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				return errors.Wrap(err, "invalid container-log-max-files value. must be an integer.")
 			}
 			installer.Spec.Kubernetes.ContainerLogMaxFiles = m
+		case "kubernetes-max-pods-per-node":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			m, err := strconv.Atoi(split[1])
+			if err != nil {
+				return errors.Wrap(err, "invalid kubernetes-max-pods-per-node value. must be an integer.")
+			}
+			installer.Spec.Kubernetes.MaxPodsPerNode = m
 		case "kubeadm-token":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}

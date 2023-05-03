@@ -220,6 +220,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.ControlPlane":                         "MASTER",
 		"Kubernetes.ContainerLogMaxSize":                  "CONTAINER_LOG_MAX_SIZE",
 		"Kubernetes.ContainerLogMaxFiles":                 "CONTAINER_LOG_MAX_FILES",
+		"Kubernetes.MaxPodsPerNode":                       "KUBERNETES_MAX_PODS_PER_NODE",
 		"Kubernetes.EvictionThresholdResources":           "EVICTION_THRESHOLD",
 		"Kubernetes.HACluster":                            "HA_CLUSTER",
 		"Kubernetes.KubeadmToken":                         "KUBEADM_TOKEN",
