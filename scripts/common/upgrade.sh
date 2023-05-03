@@ -439,6 +439,9 @@ function upgrade_kubernetes_local_master() {
     ( set -x; kubeadm upgrade apply "v$targetK8sVersion" --yes --force --ignore-preflight-errors=all )
     upgrade_etcd_image_18 "$targetK8sVersion"
 
+    # kubelet command line argument, '--container-runtime', was removed in Kubernetes 1.27
+    upgrade_should_remove_container_runtime_flag "$targetK8sVersion"
+
     kubernetes_install_host_packages "$targetK8sVersion"
     systemctl daemon-reload
     systemctl restart kubelet
@@ -578,5 +581,14 @@ function upgrade_delete_node_flannel() {
 
     if kubectl get ns 2>/dev/null | grep -q kube-flannel; then
         kubectl delete pod -n kube-flannel --field-selector="spec.nodeName=$node"
+    fi
+}
+
+# Kubernetes 1.24 deprecated the '--container-runtime' kubelet argument in 1.24 and removed it in 1.27
+# See: https://kubernetes.io/blog/2023/03/17/upcoming-changes-in-kubernetes-v1-27/#removal-of-container-runtime-command-line-argument
+function upgrade_should_remove_container_runtime_flag() {
+    local k8sVersion=$1
+    if [ "$(kubernetes_version_minor "$k8sVersion")" -ge "27" ]; then
+        sed -i 's/--container-runtime=remote //' "$KUBELET_FLAGS_FILE"
     fi
 }
