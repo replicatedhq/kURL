@@ -403,9 +403,10 @@
     ekco:
       version: latest
   postInstallScript: |
-    # install kubent
-    sh -c "$(curl -sSL https://git.io/install-kubent)"
-    if ! KUBENT_OUTPUT="$(kubent)"; then
+    echo "Running Kube No Trouble (kubent)"
+    kubent_latest_version="$(curl -sL "https://api.github.com/repos/doitintl/kube-no-trouble/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
+    curl -L "https://github.com/doitintl/kube-no-trouble/releases/download/${kubent_latest_version}/kubent-${kubent_latest_version}-linux-amd64.tar.gz" | tar -xz
+    if ! KUBENT_OUTPUT="$(./kubent)"; then
       echo "kubent failed to run!"
       exit 1
     elif [ -n "${KUBENT_OUTPUT}" ]; then
