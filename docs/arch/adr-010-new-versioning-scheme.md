@@ -62,7 +62,7 @@ spec:
 
 In order to maintain greater control over the installation process, we have also decided to modify our approach to add-on selection. Going forward, we will no longer allow users to freely select any add-on on any version of their choosing. Instead, we will provide users with specific groups of add-ons.
 
-Add-on groups are directly related to _Installer Versions_ e _Kubernetes Minor Versions_, meaning that each _Installer Version_ in a given _Kuberntes Minor Version_ will include its own specific group of add-ons. This is a hypothetical example of an add-ons group for `installerVersion` version  `v2023.04.24-0` , _Kuberntes Minor Version_ `v1.24`:
+Add-on groups are directly related to _Installer Versions_ e _Kubernetes Minor Versions_, meaning that each _Installer Version_ in a given _Kubernetes Minor Version_ will include its own specific group of add-ons. This is a hypothetical example of an add-ons group for `installerVersion` version  `v2023.04.24-0` , _Kubernetes Minor Version_ `v1.24`:
 
 | Add-on     | Version              |
 |------------|----------------------|
@@ -140,49 +140,81 @@ Selecting the right add-on groups will be a critical step in this process. It is
 
 ### Upgrade paths
 
-Users are allowed to migrate from any _Kubernetes Minor Version + Installer Version_ to any other _Kubernetes Minor Version + Installer Version_ without restrictions. We plan to upgrade through as many versions as necessary so an upgrade from the _Installer Version_ `v2021.09.01-0` on _Kubernetes Minor Version_ `1.24` to the _Installer Version_ `v2023.05.01-0` on _Kubernetes Minor Version_ `1.27` may end up looking like the following diagram:
+Users are allowed to upgrade from any _Kubernetes Minor Version + Installer Version_ to any other _Kubernetes Minor Version + Installer Version_ without restrictions, downgrades are not supported. We plan to upgrade through as many versions as necessary so an upgrade from the _Installer Version_ `v2021.09.01-0` on _Kubernetes Minor Version_ `1.24` to the _Installer Version_ `v2023.05.01-0` on _Kubernetes Minor Version_ `1.27` may end up looking like the following diagram:
 
 ```
        1.24                     1.25                    1.26                    1.27
  ┌────────────────┐       ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
- │ v2021.09.01-0  ├───────► v2021.09.01-0  │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │ v2022.10.01-0  │       │ v2022.10.01-0│ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │ v2022.11.01-0│ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │ v2022.12.01-0│ │      │ v2022.12.01-0  │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              │ │      │                │      │                │
- │                │       │              ▼ │      │                │      │                │
- │                │       │ v2023.01.01-0  ├──────► v2023.01.01-0  │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │ v2023.02.01-0│ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │ v2023.03.01-0│ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │ v2023.04.01-0│ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              │ │      │                │
- │                │       │                │      │              ▼ │      │                │
- │                │       │                │      │ v2023.05.01-0  ├──────► v2023.05.01-0  │
+ │ v2021.09.01-0  ├───┐   │ v2021.09.01-0  │      │                │      │                │
+ │ v2022.10.01-0  │   │   │ v2022.10.01-0  │      │                │      │                │
+ │                │   │   │ v2022.11.01-0  │      │                │      │                │
+ │                │   │   │ v2022.12.01-0  │      │ v2022.12.01-0  │      │                │
+ │                │   └───► v2023.01.01-0  ├──┐   │ v2023.01.01-0  │      │                │
+ │                │       │                │  │   │ v2023.02.01-0  │      │                │
+ │                │       │                │  │   │ v2023.03.01-0  │      │                │
+ │                │       │                │  │   │ v2023.04.01-0  │      │                │
+ │                │       │                │  └───► v2023.05.01-0  ├──────► v2023.05.01-0  │
  └────────────────┘       └────────────────┘      └────────────────┘      └────────────────┘
 ```
 
-_Upgrade paths are supported on both horizontal and vertical axis, users can migrate from Kubernetes 1.24 to any other version but the upgrade will be executed sequentially._
+Whenever an `installerVersion` is not set the latest version on the selected _Kubernetes Minor Version_ is used. As mentioned above any upgrade is possible when the user pins the `Installer Version`. For example an upgrade from _Installer Version_ `v2021.09.01-0` on _Kubernetes Minor Version_ `1.24` to _Installer Version_ `v2023.01.01-0` on _Kubernetes Minor Version_ `1.26` would look like the following graphs.
 
+```
+       1.24                     1.25                    1.26                    1.27
+ ┌────────────────┐       ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+ │ v2021.09.01-0  ├───┐   │ v2021.09.01-0  │      │                │      │                │
+ │ v2022.10.01-0  │   │   │ v2022.10.01-0  │      │                │      │                │
+ │                │   │   │ v2022.11.01-0  │      │                │      │                │
+ │                │   │   │ v2022.12.01-0  │      │ v2022.12.01-0  │      │                │
+ │                │   └───► v2023.01.01-0  ├──────► v2023.01.01-0  │      │                │
+ │                │       │                │      │ v2023.02.01-0  │      │                │
+ │                │       │                │      │ v2023.03.01-0  │      │                │
+ │                │       │                │      │ v2023.04.01-0  │      │                │
+ │                │       │                │      │ v2023.05.01-0  │      │ v2023.05.01-0  │
+ └────────────────┘       └────────────────┘      └────────────────┘      └────────────────┘
+```
+
+Upgrade attemps like the following two examples below are not allowed as they are considered a downgrade. Users can't upgrade to an older _Kubernetes Minor Version_ **or** to an older _Installer Version_.
+
+```
+       1.24                     1.25                    1.26                    1.27
+ ┌────────────────┐       ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+ │ v2021.09.01-0  ├───┐   │ v2021.09.01-0  │      │                │      │                │
+ │ v2022.10.01-0  │   │   │ v2022.10.01-0  │      │                │      │                │
+ │                │   │   │ v2022.11.01-0  │      │                │      │                │
+ │                │   │   │ v2022.12.01-0  │   ┌──► v2022.12.01-0  │      │                │
+ │                │   └───► v2023.01.01-0  ├───┘  │ v2023.01.01-0  │      │                │
+ │                │       │                │      │ v2023.02.01-0  │      │                │
+ │                │       │                │      │ v2023.03.01-0  │      │                │
+ │                │       │                │      │ v2023.04.01-0  │      │                │
+ │                │       │                │      │ v2023.05.01-0  │      │ v2023.05.01-0  │
+ └────────────────┘       └────────────────┘      └────────────────┘      └────────────────┘
+```
+_Users are not allowed to upgrade to a newer Kubernetes Minor Version but using an older Installer Version._
+
+```
+       1.24                     1.25                    1.26                    1.27
+ ┌────────────────┐       ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+ │ v2021.09.01-0  ├───┐   │ v2021.09.01-0  │      │                │      │                │
+ │ v2022.10.01-0  │   └───► v2022.10.01-0 ┐│      │                │      │                │
+ │ v2022.11.01-0  │       │ v2022.11.01-0 ▼│      │                │      │                │
+ │ v2022.12.01-0  │   ┌───│ v2022.12.01-0  │      │ v2022.12.01-0  │      │                │
+ │ v2023.01.01-0 ◄────┘   │ v2023.01.01-0  │      │ v2023.01.01-0  │      │                │
+ │                │       │                │      │ v2023.02.01-0  │      │                │
+ │                │       │                │      │ v2023.03.01-0  │      │                │
+ │                │       │                │      │ v2023.04.01-0  │      │                │
+ │                │       │                │      │ v2023.05.01-0  │      │ v2023.05.01-0  │
+ └────────────────┘       └────────────────┘      └────────────────┘      └────────────────┘
+```
+_Users can't upgrade to a newer Installer Version using an older Kubernetes Minor Version._
+
+## Questions and Answers
+
+**If I do not pin my Installer Version and my Kubernetes Minor Version falls out of support what is the user experience? Do we use a previous installer version or exit the script with an error?**
+Decision: use the most up to date _Installer Version_ that supports the EOL _Kubernetes Minor Version_.
+
+**How do users know what exactly Kubernetes patch is being installed in an specific Kubernetes Minor Version?**
+Decision: We already have an API that tells you “you will get this set of addons from this spec at this installer version” and we will specify everything through the release notes.
 
 ## Status
 
