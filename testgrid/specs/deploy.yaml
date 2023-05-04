@@ -379,7 +379,7 @@
 - name: Kubernetes-deprecations
   installerSpec:
     kubernetes:
-      version: latest
+      version: 1.27.x
     kurl:
       installerVersion: ""
     containerd:
@@ -406,15 +406,7 @@
     echo "Running Kube No Trouble (kubent)"
     kubent_latest_version="$(curl -sL "https://api.github.com/repos/doitintl/kube-no-trouble/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
     curl -L "https://github.com/doitintl/kube-no-trouble/releases/download/${kubent_latest_version}/kubent-${kubent_latest_version}-linux-amd64.tar.gz" | tar -xz
-    if ! KUBENT_OUTPUT="$(./kubent)"; then
-      echo "kubent failed to run!"
-      exit 1
-    elif [ -n "${KUBENT_OUTPUT}" ]; then
-      echo "Deprecated resources found"
-      echo "--------------------------"
-      echo "${KUBENT_OUTPUT}"
-      exit 1
-    fi
+    ./kubent -e
   unsupportedOSIDs: # only run on latest ubuntu for now
   - amzn-20
   - centos-79
