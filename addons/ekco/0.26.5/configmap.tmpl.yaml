@@ -10,6 +10,7 @@ data:
     min_ready_master_nodes: $EKCO_MIN_READY_MASTER_NODE_COUNT
     min_ready_worker_nodes: $EKCO_MIN_READY_WORKER_NODE_COUNT
     maintain_rook_storage_nodes: $EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES
+    rook_storage_nodes: "$rook_storage_nodes"
     reconcile_rook_mds_placement: $EKCO_RECONCILE_ROOK_MDS_PLACEMENT
     reconcile_ceph_csi_resources: $EKCO_RECONCILE_CEPH_CSI_RESOURCES
     ceph_block_pool: replicapool
@@ -33,16 +34,16 @@ data:
     contour_cert_namespace: projectcontour
     contour_cert_secret: contourcert
     envoy_cert_secret: envoycert
-    rook_priority_class: \"$EKCO_ROOK_PRIORITY_CLASS\"
+    rook_priority_class: "$EKCO_ROOK_PRIORITY_CLASS"
     host_task_image: replicated/ekco:v$EKCO_VERSION
     host_task_namespace: kurl
     enable_internal_load_balancer: $EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL
     internal_load_balancer_haproxy_image: $EKCO_HAPROXY_IMAGE
-    pod_image_overrides: \"$EKCO_POD_IMAGE_OVERRIDES\"
+    pod_image_overrides: "$EKCO_POD_IMAGE_OVERRIDES"
     auto_approve_kubelet_csrs: true
     restart_failed_envoy_pods: $EKCO_RESTART_FAILED_ENVOY_PODS
     envoy_pods_not_ready_duration: $EKCO_ENVOY_PODS_NOT_READY_DURATION
     enable_ha_minio: $EKCO_MAINTAIN_MINIO
-    minio_namespace: "${MINIO_NAMESPACE}"
-    minio_util_image: "${KURL_UTIL_IMAGE}"
+    minio_namespace: "$MINIO_NAMESPACE"
+    minio_util_image: "$KURL_UTIL_IMAGE"
     enable_ha_kotsadm: $EKCO_MAINTAIN_KOTSADM

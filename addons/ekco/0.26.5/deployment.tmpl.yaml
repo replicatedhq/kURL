@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: ekc-operator
+      annotations:
+        ekco.kurl.sh/config-hash: $ekco_config_hash
     spec:
       serviceAccountName: ekco
       restartPolicy: Always

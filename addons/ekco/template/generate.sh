@@ -34,7 +34,7 @@ function generate() {
     cp -r ./base/* "$dir"
 
     sed -i "s/__EKCO_VERSION__/$VERSION/g" "$dir/Manifest"
-    sed -i "s/__EKCO_VERSION__/$VERSION/g" "$dir/deployment.yaml"
+    sed -i "s/__EKCO_VERSION__/$VERSION/g" "$dir/deployment.tmpl.yaml"
     sed -i "s/__HAPROXY_VERSION__/$haproxy_version/g" "$dir/Manifest"
     sed -i "s/__HAPROXY_VERSION__/$haproxy_version/g" "$dir/install.sh"
 }

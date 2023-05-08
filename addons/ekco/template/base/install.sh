@@ -419,11 +419,13 @@ function ekco_change_lb_completed() {
 }
 
 function ekco_create_deployment() {
+    local src="$1"
+    local dst="$2"
+
     cp "$src/kustomization.yaml" "$dst/kustomization.yaml"
     cp "$src/namespace.yaml" "$dst/namespace.yaml"
     cp "$src/rbac.yaml" "$dst/rbac.yaml"
     cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
-    cp "$src/deployment.yaml" "$dst/deployment.yaml"
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
 
     # is rook enabled
@@ -453,8 +455,20 @@ function ekco_create_deployment() {
         render_yaml_file_2 "$src/rolebinding-kotsadm.yaml" >> "$dst/rolebinding.yaml"
     fi
 
-    render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
-    insert_resources "$dst/kustomization.yaml" configmap.yaml
+    local rook_storage_nodes=
+    if [ -n "$ROOK_NODES" ]; then
+        # replace newlines with \n and escape double quotes
+        # configmap.tmpl.yaml makes use of local variable rook_storage_nodes
+        # shellcheck disable=SC2034
+        rook_storage_nodes="$(echo "$ROOK_NODES" | yaml_escape_string_quotes | yaml_newline_to_literal)"
+    fi
+    render_yaml_file_2 "$src/configmap.tmpl.yaml" > "$dst/configmap.yaml"
+
+    local ekco_config_hash=
+    # deployment.tmpl.yaml makes use of local variable ekco_config_hash
+    # shellcheck disable=SC2034
+    ekco_config_hash="$(ekco_generate_config_hash "$dst")"
+    render_yaml_file_2 "$src/deployment.tmpl.yaml" > "$dst/deployment.yaml"
 
     kubectl apply -k "$dst"
     # apply rolebindings separately so as not to override the namespace
@@ -478,4 +492,9 @@ function ekco_load_images() {
     fi
 
     logSuccess "ekco image overrides loaded"
+}
+
+function ekco_generate_config_hash() {
+    local dst="$1"
+    md5sum "$dst/configmap.yaml" | awk '{ print $1 }'
 }
