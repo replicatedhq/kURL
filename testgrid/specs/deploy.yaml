@@ -377,6 +377,7 @@
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
 - name: Kubernetes-deprecations
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.27.x
@@ -391,7 +392,7 @@
     openebs:
       version: latest
       isLocalPVEnabled: true
-      localPVStorageClassName: default
+      localPVStorageClassName: openebs
     minio:
       version: latest
     registry:
@@ -402,6 +403,10 @@
       version: latest
     ekco:
       version: latest
+    prometheus:
+      version: latest
+    rook:
+      version: 1.11.x
   postInstallScript: |
     echo "Running Kube No Trouble (kubent)"
     kubent_latest_version="$(curl -sL "https://api.github.com/repos/doitintl/kube-no-trouble/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
