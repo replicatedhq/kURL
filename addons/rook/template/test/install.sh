@@ -48,6 +48,8 @@ metadata:
   namespace: rook-ceph
 spec:
   storage:
+    useAllNodes: false
+    useAllDevices: false
     nodes:
       - name: node1
         devices:
