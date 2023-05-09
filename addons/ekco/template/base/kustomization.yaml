@@ -3,5 +3,6 @@ namespace: kurl
 resources:
 - namespace.yaml
 - rbac.yaml
+- configmap.yaml
 - deployment.yaml
 - rotate-certs-rbac.yaml

@@ -218,6 +218,9 @@ function rook_cluster_deploy() {
     # patches
     render_yaml_file "$src/patches/tmpl-cluster.yaml" > "$dst/patches/cluster.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
+    if [ -n "$ROOK_NODES" ]; then
+        rook_render_cluster_nodes_tmpl_yaml "$ROOK_NODES" "$src" "$dst"
+    fi
     render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
     render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
@@ -256,6 +259,10 @@ function rook_cluster_deploy_upgrade() {
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
         rook_patch_insecure_clients
+
+        if [ -n "$ROOK_NODES" ]; then
+            rook_patch_cephcluster_nodes
+        fi
 
         rook_cluster_deploy_upgrade_flexvolumes_to_csi
         return 0
@@ -322,6 +329,10 @@ function rook_cluster_deploy_upgrade() {
     fi
 
     rook_patch_insecure_clients
+
+    if [ -n "$ROOK_NODES" ]; then
+        rook_patch_cephcluster_nodes
+    fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-verify-the-updated-cluster
 
@@ -1083,7 +1094,6 @@ function rook_ceph_cluster_ready_spinner() {
     logWarn "Rook CephCluster is not ready"
 }
 
-
 # wait for Rook deployment pods to be running/completed
 function rook_maybe_wait_for_rollout() {
     # wait for Rook CephCluster CR to report Ready
@@ -1095,4 +1105,18 @@ function rook_maybe_wait_for_rollout() {
     if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
         logWarn "Rook-ceph rollout did not complete within the allotted time"
     fi
+}
+
+function rook_render_cluster_nodes_tmpl_yaml() {
+    local rook_nodes="$1"
+    local src="$2"
+    local dst="$3"
+    mkdir -p "$dst/patches"
+    rook_nodes="$(echo "$rook_nodes" | yaml_indent "      ")"
+    render_yaml_file_2 "$src/patches/cluster-nodes.tmpl.yaml" > "$dst/patches/cluster-nodes.yaml"
+    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster-nodes.yaml
+}
+
+function rook_patch_cephcluster_nodes() {
+    kubectl -n rook-ceph patch cephcluster/rook-ceph --type=merge --patch-file="$dst/patches/cluster-nodes.yaml"
 }

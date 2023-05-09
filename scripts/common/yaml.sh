@@ -1,3 +1,4 @@
+#!/bin/bash
 
 function render_yaml() {
     eval "echo \"$(cat $DIR/yaml/$1)\""
@@ -224,4 +225,20 @@ function installer_label_velero_exclude_from_backup() {
     if [ -n "$INSTALLER_ID" ]; then
         kubectl label --overwrite=true installer/"$INSTALLER_ID" velero.io/exclude-from-backup=true
     fi
+}
+
+# yaml_indent indents each line of stdin with the given indent
+function yaml_indent() {
+    local indent=$1
+    sed -e "s/^/$indent/"
+}
+
+# yaml_escape_string_quotes escapes string quotes for use in a yaml file
+function yaml_escape_string_quotes() {
+    sed -e 's/"/\\"/g'
+}
+
+# yaml_newline_to_literal replaces newlines with \n
+function yaml_newline_to_literal() {
+    sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
 }

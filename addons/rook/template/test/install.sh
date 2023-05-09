@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . ./scripts/common/common.sh
+. ./scripts/common/yaml.sh
 . ./addons/rook/template/base/install.sh
 
 function test_rook_should_skip_rook_install() {
@@ -24,6 +25,39 @@ function test_rook_should_auth_allow_insecure_global_id_reclaim() {
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "15.2.11"' "1" "$(rook_should_auth_allow_insecure_global_id_reclaim "15.2.11" >/dev/null; echo $?)"
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "14.2.19"' "0" "$(rook_should_auth_allow_insecure_global_id_reclaim "14.2.19" >/dev/null; echo $?)"
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "14.2.20"' "1" "$(rook_should_auth_allow_insecure_global_id_reclaim "14.2.20" >/dev/null; echo $?)"
+}
+
+function test_rook_render_cluster_nodes_tmpl_yaml() {
+    local tmpdir=
+    tmpdir="$(mktemp -d)"
+    touch "$tmpdir/kustomization.yaml"
+    # shellcheck disable=SC2034
+    local KUBERNETES_TARGET_VERSION_MINOR=27
+    local nodes="- name: node1
+  devices:
+    - name: sda
+- name: node2
+  devices:
+    - name: sda"
+    rook_render_cluster_nodes_tmpl_yaml "$nodes" "addons/rook/template/base/cluster" "$tmpdir"
+    assertEquals "should print rook nodes with proper indentation" "$(cat "$tmpdir/patches/cluster-nodes.yaml")" "---
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      - name: node1
+        devices:
+          - name: sda
+      - name: node2
+        devices:
+          - name: sda"
+    rm -rf "$tmpdir"
 }
 
 . shunit2
