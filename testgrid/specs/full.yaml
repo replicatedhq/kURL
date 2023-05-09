@@ -2047,6 +2047,16 @@
         nodes:
         - name: \"$(hostname | tr '[:upper:]' '[:lower:]')\"
           devices:
+          - name: vdb
+        - name: some-other-node
+          devices:
           - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
+  postInstallScript: |
+    # validate that our custom config is applied
+    kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
+
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
