@@ -21,7 +21,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.65.1
-	github.com/replicatedhq/kurlkinds v1.3.7-0.20230504224733-ac5e07ec5d5b
+	github.com/replicatedhq/kurlkinds v1.3.7
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.9.0
 	github.com/replicatedhq/troubleshoot v0.62.1
