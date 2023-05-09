@@ -225,10 +225,13 @@ function containerd_migrate_from_docker() {
         fi
     fi
 
+    echo "Cordoning node"
+
     local node=
     node="$(get_local_node_name)"
     kubectl "$kubeconfigFlag" cordon "$node" 
 
+    echo "Deleting pods"
     local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
 
     # Drain remaining pods using only the permissions available to kubelet
@@ -243,6 +246,7 @@ function containerd_migrate_from_docker() {
         kubectl "$kubeconfigFlag" delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
     done < <(ls /var/lib/kubelet/pods)
 
+    echo "Stopping kubelet"
     systemctl stop kubelet
 
     if kubectl "$kubeconfigFlag" get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock" ; then
@@ -259,6 +263,7 @@ function containerd_migrate_from_docker() {
 
     systemctl daemon-reload
 
+    echo "Migrated to containerd"
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
 }
 
