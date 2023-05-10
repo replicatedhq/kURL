@@ -246,7 +246,11 @@ function rook_upgrade_addon_fetch_and_load_online() {
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
-            rook_upgrade_addon_fetch_and_load_online_step "rook" "$step"
+            if [ "$step" = "$ROOK_VERSION" ]; then
+                rook_upgrade_addon_fetch_and_load_online_step "rook" "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
+            else
+                rook_upgrade_addon_fetch_and_load_online_step "rook" "$step"
+            fi
         done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
 
@@ -257,8 +261,9 @@ function rook_upgrade_addon_fetch_and_load_online() {
 function rook_upgrade_addon_fetch_and_load_online_step() {
     local addon="$1"
     local version="$2"
+    local s3_override="$3"
 
-    addon_fetch "$addon" "$version"
+    addon_fetch "$addon" "$version" "$s3_override"
     addon_load "$addon" "$version"
 }
 
