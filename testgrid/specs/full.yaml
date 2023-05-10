@@ -2044,13 +2044,13 @@
       name: patch
     spec:
       rook:
-        nodes:
-        - name: \"$(hostname | tr '[:upper:]' '[:lower:]')\"
-          devices:
-          - name: vdb
-        - name: some-other-node
-          devices:
-          - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
+        nodes: |
+          - name: \"$(hostname | tr '[:upper:]' '[:lower:]')\"
+            devices:
+            - name: vdb
+          - name: some-other-node
+            devices:
+            - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
