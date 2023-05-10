@@ -403,7 +403,7 @@
     contour:
       version: 1.7.0
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     fluentd:
@@ -806,7 +806,7 @@
     flannel:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:
@@ -849,7 +849,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     prometheus:
@@ -874,7 +874,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     kotsadm:
@@ -899,7 +899,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1043,7 +1043,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1070,7 +1070,7 @@
     contour:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
     registry:
       version: latest
     prometheus:
@@ -1097,7 +1097,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1122,7 +1122,7 @@
     weave:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     kotsadm:
       version: latest
     docker:
@@ -1335,7 +1335,7 @@
     contour:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:

@@ -103,7 +103,7 @@
     contour:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:
@@ -127,7 +127,7 @@
     contour:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:
@@ -277,7 +277,7 @@
     contour:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:
