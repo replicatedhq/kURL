@@ -55,6 +55,18 @@ spec:
             - name: certificates-dir
               mountPath: /etc/kubernetes/pki
               readOnly: true
+          ports:
+            - containerPort: 8080
+              name: service
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: service
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
       volumes:
         - name: ekco-config
           configMap:
