@@ -376,3 +376,40 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
+- name: install testing all addons setup
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: "latest"
+    rook:
+      version: "1.11.x"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    containerd:
+      version: "latest"
+    velero:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    fluentd:
+      version: "latest"
+    minio:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    metricsServer:
+      version: "latest"
+    sonobuoy:
+      version: "latest"
+    goldpinger:
+      version: "latest"
