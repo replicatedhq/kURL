@@ -9,7 +9,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/chzyer/readline v1.5.1
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/docker/distribution v2.8.1+incompatible
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.9
