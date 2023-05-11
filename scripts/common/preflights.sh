@@ -644,6 +644,11 @@ function cluster_preflights() {
         return
     fi
 
+    if [ ! -f /etc/kubernetes/admin.conf ]; then
+        log "In cluster Preflights will not be executed because /etc/kubernetes/admin.conf is not found"
+        return
+    fi
+
     logStep "Running in cluster Preflights"
     mkdir -p "${DIR}/${IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
 
