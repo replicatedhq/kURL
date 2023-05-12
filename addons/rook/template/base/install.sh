@@ -87,7 +87,7 @@ function rook() {
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
 
-    if [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+    if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         return 0 # do not create a ceph cluster if it should instead be managed by ekco
     fi
 
