@@ -673,6 +673,7 @@ function minio_already_uninstalled() {
     if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         if kubectl get cephcluster -n rook-ceph rook-ceph; then
             if ! kubectl get ns | grep -q "$MINIO_NAMESPACE"; then
+                log "Not reinstalling MinIO as we have already migrated to Rook Ceph"
                 return 0
             fi
         fi
