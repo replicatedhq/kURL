@@ -537,13 +537,6 @@ spec:
               when: "timezone == UTC"
               message: "Timezone is set to UTC"
     - hostOS:
-        checkName: "Collectd Support"
-        exclude: '{{kurl not .Installer.Spec.Collectd.Version}}'
-        outcomes:
-          - fail:
-              when: "ubuntu = 22.04"
-              message: "Collectd addon not supported on ubuntu 22.04"
-    - hostOS:
         checkName: "Docker Support"
         exclude: '{{kurl or (not .Installer.Spec.Docker.Version) (semverCompare ">= 20.10.17" .Installer.Spec.Docker.Version) }}'
         outcomes:

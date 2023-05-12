@@ -2060,3 +2060,34 @@
     validate_read_write_object_store rwtest testfile.txt
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: "1.27 with all metrics and kots"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: "latest"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    collectd:
+      version: "latest"
+    metricsServer:
+      version: "latest"
+    goldpinger:
+      version: "latest"
+    kotsadm:
+      version: "latest"
