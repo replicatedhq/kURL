@@ -218,7 +218,7 @@ Decision: We already have an API that tells you “you will get this set of addo
 
 ## Status
 
-Proposed
+Accepted
 
 ## Questions to be answered in future interactions on this ADR
 
