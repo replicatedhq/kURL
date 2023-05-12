@@ -172,7 +172,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			want: []jsonquery{
 				{
 					query: ".spec.collectors[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
-					value: `"true"`,
+					value: `"false"`,
 				},
 				{
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
