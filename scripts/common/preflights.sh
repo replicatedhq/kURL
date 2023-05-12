@@ -13,7 +13,29 @@ function preflights() {
     cri_preflights
     host_nameservers_reachable
     allow_remove_docker_new_install
+    check_symbolic_link_for_weave
     return 0
+}
+
+function check_symbolic_link_for_weave() {
+   if [ -n "$WEAVE_VERSION" ]; then
+        log "Checking if the paths used by weave are symbolic links"
+        if [ -h /opt/cni ] || [ -h /opt/cni/bin/ ] || [ -h /var/lib/weave ]; then
+            logWarn "Symbolic links were found in one or more paths: /opt/cni, /opt/cni/bin/, /var/lib/weave"
+            logWarn "Using symbolic links with Weave can cause inconsistencies in network interface naming,"
+            logWarn "leading to disruptions in network connectivity. Symbolic links introduce ambiguity, making it "
+            logWarn "difficult for Weave to establish reliable connections. This can result in errors or improper "
+            logWarn "functioning of Weave."
+            log ""
+            logWarn "To avoid networks connective issues, it is recommended to avoid using symbolic links for"
+            logWarn "network-related configurations with Weave."
+            log ""
+            log "Would you like to continue? "
+            if ! confirmN ; then
+                 bail "Installation has been aborted because symbolic links were found for Weave AddOn."
+            fi
+        fi
+    fi
 }
 
 # init_preflights are only run on the first node init.sh
