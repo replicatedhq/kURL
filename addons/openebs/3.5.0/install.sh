@@ -291,9 +291,6 @@ function openebs_should_be_default_storageclass() {
     elif openebs_has_default_storageclass ; then
         # if there is already a default storage class that is not "$storage_class_name"
         return 1
-    elif [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
-        # if dynamic storage is enabled, the default storageclass will be managed by ekco
-        return 1
     elif [ "$storage_class_name" = "default" ]; then
         # if "$storage_class_name" named "default", it should be the default
         return 0
