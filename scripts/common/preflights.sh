@@ -194,12 +194,14 @@ checkFirewalld() {
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
         return
     fi
-    if ! systemctl -q is-active firewalld ; then
+
+    if ! systemctl -q is-enabled firewalld && ! systemctl -q is-active firewalld; then
+        logSuccess "Firewalld is either not enabled or not active."
         return
     fi
 
     if [ "$HARD_FAIL_ON_FIREWALLD" = "1" ]; then
-        printf "${RED}Firewalld is active${NC}\n" 1>&2
+        printf "${RED}Firewalld is currently either enabled or active. Stop (systemctl stop firewalld) and disable Firewalld (systemctl disable firewalld) before proceeding.{NC}\n" 1>&2
         exit 1
     fi
 
@@ -209,14 +211,14 @@ checkFirewalld() {
         return
     fi
    
-    printf "${YELLOW}Firewalld is active, please press Y to disable ${NC}"
+    printf "${YELLOW}Firewalld is currently either enabled or active. To ensure smooth installation and avoid potential issues, it is highly recommended to stop and disable Firewalld. Please press 'Y' to proceed with stopping and disabling Firewalld.${NC}"
     if confirmY ; then
         systemctl stop firewalld
         systemctl disable firewalld
         return
     fi
 
-    printf "${YELLOW}Continue with firewalld active? ${NC}"
+    printf "${YELLOW}Please note that if you choose to continue with Firewalld enabled and active, the installer may encounter unexpected behaviors and may not function properly. Therefore, it is strongly advised to stop and completely disable Firewalld before proceeding.Continue with firewalld enabled and/or active?${NC}"
     if confirmN ; then
         BYPASS_FIREWALLD_WARNING=1
         return
