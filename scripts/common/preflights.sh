@@ -218,7 +218,7 @@ checkFirewalld() {
         return
     fi
 
-    printf "${YELLOW}Please note that if you choose to continue with Firewalld enabled and active, the installer may encounter unexpected behaviors and may not function properly. Therefore, it is strongly advised to stop and completely disable Firewalld before proceeding.Continue with firewalld enabled and/or active?${NC}"
+    printf "${YELLOW}Please note that if you choose to continue with Firewalld enabled and active, the installer may encounter unexpected behaviors and may not function properly. Therefore, it is strongly advised to stop and completely disable Firewalld before proceeding. Continue with firewalld enabled and/or active?${NC}"
     if confirmN ; then
         BYPASS_FIREWALLD_WARNING=1
         return
