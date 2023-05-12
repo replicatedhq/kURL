@@ -502,7 +502,7 @@ function ekco_generate_config_hash() {
 }
 
 function ekco_dynamicstorage() {
-    if [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+    if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         # check if the rook storageclass name exists - if it does we've already migrated and should not recreate/update 'scaling'
         # yes the env var for rook's storage class name is "STORAGE_CLASS" - this is not a typo
         if kubectl get storageclasses.storage.k8s.io "$STORAGE_CLASS" >/dev/null 2>&1; then
