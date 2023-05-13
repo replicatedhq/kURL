@@ -35,6 +35,10 @@ function minio() {
     local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
     local dst="$DIR/kustomize/minio"
 
+    if minio_already_uninstalled; then
+        return 0
+    fi
+
     minio_migrate_fs_backend
 
     local minio_ha_exists=
@@ -87,6 +91,10 @@ function minio() {
 }
 
 function minio_already_applied() {
+    if minio_already_uninstalled; then
+        return 0
+    fi
+
     minio_object_store_output
 
     minio_migrate_from_rgw
@@ -657,4 +665,19 @@ function minio_migrate_fs_backend() {
     # online.
     kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
     minio_enable_minio_svc
+}
+
+# if $ROOK_MINIMUM_NODE_COUNT is set, the rook CephCluster exists and the minio namespace does not, then minio has been uninstalled
+# if it has been uninstalled, we shouldn't install it again
+function minio_already_uninstalled() {
+    if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+        if kubectl get cephcluster -n rook-ceph rook-ceph; then
+            if ! kubectl get ns | grep -q "$MINIO_NAMESPACE"; then
+                log "Not reinstalling MinIO as we have already migrated to Rook Ceph"
+                return 0
+            fi
+        fi
+    fi
+
+    return 1
 }
