@@ -22,13 +22,9 @@ function check_symbolic_link_for_weave() {
         log "Checking if the paths used by weave are symbolic links"
         if [ -h /opt/cni ] || [ -h /opt/cni/bin/ ] || [ -h /var/lib/weave ]; then
             logWarn "Symbolic links were found in one or more paths: /opt/cni, /opt/cni/bin/, /var/lib/weave"
-            logWarn "Using symbolic links with Weave can cause inconsistencies in network interface naming,"
-            logWarn "leading to disruptions in network connectivity. Symbolic links introduce ambiguity, making it "
-            logWarn "difficult for Weave to establish reliable connections. This can result in errors or improper "
-            logWarn "functioning of Weave."
-            log ""
-            logWarn "To avoid networks connective issues, it is recommended to avoid using symbolic links for"
-            logWarn "network-related configurations with Weave."
+            logWarn "The use of symbolic links in conjunction with the Weave Addon could potentially cause inconsistencies, "
+            logWarn "leading to disruptions in network connectivity. To minimize network connectivity issues, it is generally "
+            logWarn "recommended to avoid symbolic links in Weave's network-related configurations. "
             log ""
             log "Would you like to continue? "
             if ! confirmN ; then
