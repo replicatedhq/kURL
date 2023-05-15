@@ -6,6 +6,12 @@ metadata:
 spec:
   collectors:
     - clusterResources: {}
+    - run:
+        collectorName: journalctl-kubelet
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        image: busybox:1
+        command: [ "journalctl" ]
+        args: [ "-u", "kubelet", "--no-pager", "-S", "7 days ago" ]
   analyzers:
     - nodeResources:
         checkName: Node status check
@@ -19,3 +25,18 @@ spec:
               message: "Not all nodes are online."
           - pass:
               message: "All nodes are online."
+    - textAnalyze:
+        checkName: "Check for CNI 'not ready' messages"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        file: run/journalctl-kubelet/journalctl-kubelet.logs
+        ignoreIfNoFiles: true
+        regex: "Container runtime network not ready.*cni plugin not initialized"
+        outcomes:
+          - pass:
+              when: "false"
+              message: "CNI is initialized"
+          - fail:
+              when: "true"
+              message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
+          
+          
