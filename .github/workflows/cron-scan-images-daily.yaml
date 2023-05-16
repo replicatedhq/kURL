@@ -19,8 +19,9 @@ jobs:
       - id: set-matrix
         name: Build image matrix
         run: |
-          OUTPUT=`./bin/scan-images/matrix.js`
-          echo "::set-output name=matrix::$OUTPUT"
+          echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+          ./bin/scan-images/matrix.js >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
   scan-images:
     name: ${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }}
