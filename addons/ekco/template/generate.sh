@@ -89,7 +89,7 @@ function main() {
 
     add_as_only_version
 
-    echo "::set-output name=ekco_version::$VERSION"
+    echo "ekco_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

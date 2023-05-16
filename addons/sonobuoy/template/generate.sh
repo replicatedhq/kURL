@@ -78,7 +78,7 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=sonobuoy_version::$VERSION"
+    echo "sonobuoy_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

@@ -26,7 +26,7 @@ upstreamContourVersionPattern='/projectcontour/contour:v([0-9]+\.[0-9]+\.[0-9]+)
 CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
 
 echo "contour version: $CONTOUR_VERSION"
-echo "::set-output name=contour_version::$CONTOUR_VERSION"    
+echo "contour_version=$CONTOUR_VERSION" >> "$GITHUB_OUTPUT"
 
 # Hack: backported images changes starting at 1.13.1 and don't carry forward
 # Remove this after the next version is released. 

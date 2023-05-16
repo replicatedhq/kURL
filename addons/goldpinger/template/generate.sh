@@ -51,7 +51,7 @@ function main() {
 
     generate
 
-    echo "::set-output name=goldpinger_version::$VERSION-$CHARTVERSION"
+    echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

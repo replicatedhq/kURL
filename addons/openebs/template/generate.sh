@@ -120,7 +120,7 @@ function main() {
     generate
     add_as_latest
 
-    echo "::set-output name=openebs_version::$version"
+    echo "openebs_version=$version" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

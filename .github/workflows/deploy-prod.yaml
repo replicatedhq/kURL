@@ -224,7 +224,7 @@ jobs:
     - name: Get the version
       id: get_tag
       shell: bash
-      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+      run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
 
     - name: Generate Changelog
       run: |
@@ -320,7 +320,7 @@ jobs:
     - name: Get the version
       id: get_tag
       shell: bash
-      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+      run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
 
     - name: Tgrun Queue
       id: queue
@@ -337,5 +337,5 @@ jobs:
             --os-spec ./testgrid/specs/os-latest.yaml \
             --priority 1
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
-        echo "::set-output name=msg::${MSG}"
+        echo "msg=$MSG" >> "$GITHUB_OUTPUT"
         echo "::notice ::${MSG}"
