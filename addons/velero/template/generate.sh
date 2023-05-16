@@ -89,7 +89,7 @@ function main() {
         add_as_latest
     fi
 
-    echo "::set-output name=velero_version::$VELERO_VERSION"
+    echo "velero_version=$VELERO_VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

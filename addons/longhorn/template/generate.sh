@@ -128,7 +128,7 @@ function main() {
 
     generate
 
-    echo "::set-output name=longhorn_version::$VERSION"
+    echo "longhorn_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

@@ -20,7 +20,7 @@ jobs:
           export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
 
           OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
-          echo "::set-output name=matrix::$OUTPUT"
+          echo "matrix=$OUTPUT" >> "$GITHUB_OUTPUT"
 
   build-upload-packages:
     needs: build-matrix

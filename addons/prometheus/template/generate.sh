@@ -134,7 +134,7 @@ function main() {
 
     generate
 
-    echo "::set-output name=prometheus_version::$VERSION-$CHARTVERSION"
+    echo "prometheus_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

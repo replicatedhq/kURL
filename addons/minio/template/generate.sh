@@ -46,7 +46,7 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=minio_version::$VERSION"
+    echo "minio_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

@@ -212,7 +212,7 @@ function main() {
         generate_version_directory "${version}"
         generate_conformance_package "${version}"
     done
-    echo "::set-output name=kubernetes_version::${VERSIONS[*]}"
+    echo "kubernetes_version=${VERSIONS[*]}" >> "$GITHUB_OUTPUT"
 
     update_available_versions
 

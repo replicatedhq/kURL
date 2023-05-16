@@ -94,8 +94,8 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=weave_version::$ADDON_VERSION"
-    echo "::set-output name=weave_major_minor_version::$(echo "$ADDON_VERSION" | awk -F'.' '{ print $1 "." $2 }')"
+    echo "weave_version=$ADDON_VERSION" >> "$GITHUB_OUTPUT"
+    echo "weave_major_minor_version=$(echo "$ADDON_VERSION" | awk -F'.' '{ print $1 "." $2 }')" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"
