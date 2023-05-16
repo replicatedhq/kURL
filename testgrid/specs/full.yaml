@@ -2091,3 +2091,227 @@
       version: "latest"
     kotsadm:
       version: "latest"
+- name: "Weave and Docker addon with symbolic link"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "2.8.x"
+    docker:
+      version: "20.10.x"
+    contour:
+      version: "latest"
+    registry:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    minio:
+      version: "latest"
+    ekco:
+      version: "latest"
+  preInstallScript: |
+    FOLDER=/testsymbolic
+    
+    # create directories
+    mkdir -p $FOLDER/opt/cni
+    mkdir -p $FOLDER/opt/containerd
+    mkdir -p $FOLDER/opt/ekco
+    mkdir -p $FOLDER/opt/replicated
+    mkdir -p $FOLDER/mnt/drivers
+    mkdir -p $FOLDER/mnt/tmpfs
+    mkdir -p $FOLDER/var/lib/cni
+    mkdir -p $FOLDER/var/lib/containerd
+    mkdir -p $FOLDER/var/lib/containers
+    mkdir -p $FOLDER/var/lib/docker
+    mkdir -p $FOLDER/var/lib/dockershim
+    mkdir -p $FOLDER/var/lib/etcd
+    mkdir -p $FOLDER/var/lib/kubelet
+    mkdir -p $FOLDER/var/lib/kurl
+    
+    # create soft links
+    ln -s $FOLDER/opt/cni /opt/cni
+    ln -s $FOLDER/opt/containerd /opt/containerd
+    ln -s $FOLDER/opt/ekco /opt/ekco
+    ln -s $FOLDER/opt/replicated /opt/replicated
+    ln -s $FOLDER/mnt/drivers /mnt/drivers
+    ln -s $FOLDER/mnt/tmpfs /mnt/tmpfs
+    ln -s $FOLDER/var/lib/cni /var/lib/cni
+    ln -s $FOLDER/var/lib/containerd /var/lib/containerd
+    ln -s $FOLDER/var/lib/containers /var/lib/containers
+    ln -s $FOLDER/var/lib/docker /var/lib/docker
+    ln -s $FOLDER/var/lib/dockershim /var/lib/dockershim
+    ln -s $FOLDER/var/lib/etcd /var/lib/etcd
+    ln -s $FOLDER/var/lib/kubelet /var/lib/kubelet
+    ln -s $FOLDER/var/lib/kurl /var/lib/kurl
+    
+    cd /testsymbolic
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - rocky-91 # docker is not supported on rhel 9 variants
+- name: "Weave and Docker addon with symbolic link"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "2.8.x"
+    docker:
+      version: "20.10.x"
+    contour:
+      version: "latest"
+    registry:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    minio:
+      version: "latest"
+    ekco:
+      version: "latest"
+  preInstallScript: |
+    FOLDER=/testsymbolic
+    
+    # create directories
+    mkdir -p $FOLDER/opt/cni
+    mkdir -p $FOLDER/opt/containerd
+    mkdir -p $FOLDER/opt/ekco
+    mkdir -p $FOLDER/opt/replicated
+    mkdir -p $FOLDER/mnt/drivers
+    mkdir -p $FOLDER/mnt/tmpfs
+    mkdir -p $FOLDER/var/lib/cni
+    mkdir -p $FOLDER/var/lib/containerd
+    mkdir -p $FOLDER/var/lib/containers
+    mkdir -p $FOLDER/var/lib/docker
+    mkdir -p $FOLDER/var/lib/dockershim
+    mkdir -p $FOLDER/var/lib/etcd
+    mkdir -p $FOLDER/var/lib/kubelet
+    mkdir -p $FOLDER/var/lib/kurl
+    
+    # create soft links
+    ln -s $FOLDER/opt/cni /opt/cni
+    ln -s $FOLDER/opt/containerd /opt/containerd
+    ln -s $FOLDER/opt/ekco /opt/ekco
+    ln -s $FOLDER/opt/replicated /opt/replicated
+    ln -s $FOLDER/mnt/drivers /mnt/drivers
+    ln -s $FOLDER/mnt/tmpfs /mnt/tmpfs
+    ln -s $FOLDER/var/lib/cni /var/lib/cni
+    ln -s $FOLDER/var/lib/containerd /var/lib/containerd
+    ln -s $FOLDER/var/lib/containers /var/lib/containers
+    ln -s $FOLDER/var/lib/docker /var/lib/docker
+    ln -s $FOLDER/var/lib/dockershim /var/lib/dockershim
+    ln -s $FOLDER/var/lib/etcd /var/lib/etcd
+    ln -s $FOLDER/var/lib/kubelet /var/lib/kubelet
+    ln -s $FOLDER/var/lib/kurl /var/lib/kurl
+    
+    cd /testsymbolic
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - rocky-91 # docker is not supported on rhel 9 variants
+- name: (k8s 1.27) install addons not deprecated less prometheus, goldpinger
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: "latest"
+    rook:
+      version: "1.11.x"
+    contour:
+      version: "latest"
+    registry:
+      version: "latest"
+    containerd:
+      version: "latest"
+    velero:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "latest"
+    fluentd:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    metricsServer:
+      version: "latest"
+    sonobuoy:
+      version: "latest"
+    collectd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+- name: (k8s 1.27) install addons not deprecated less prometheus, goldpinger with symbolic links
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: "latest"
+    rook:
+      version: "1.11.x"
+    contour:
+      version: "latest"
+    registry:
+      version: "latest"
+    containerd:
+      version: "latest"
+    velero:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "latest"
+    fluentd:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    metricsServer:
+      version: "latest"
+    sonobuoy:
+      version: "latest"
+    collectd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+  preInstallScript: |
+    FOLDER=/testsymbolic
+    
+    # create directories
+    mkdir -p $FOLDER/opt/cni
+    mkdir -p $FOLDER/opt/containerd
+    mkdir -p $FOLDER/opt/ekco
+    mkdir -p $FOLDER/opt/replicated
+    mkdir -p $FOLDER/mnt/drivers
+    mkdir -p $FOLDER/mnt/tmpfs
+    mkdir -p $FOLDER/var/lib/cni
+    mkdir -p $FOLDER/var/lib/containerd
+    mkdir -p $FOLDER/var/lib/containers
+    mkdir -p $FOLDER/var/lib/docker
+    mkdir -p $FOLDER/var/lib/dockershim
+    mkdir -p $FOLDER/var/lib/etcd
+    mkdir -p $FOLDER/var/lib/kubelet
+    mkdir -p $FOLDER/var/lib/kurl
+    mkdir -p $FOLDER/var/lib/rook
+    
+    # create soft links
+    ln -s $FOLDER/opt/cni /opt/cni
+    ln -s $FOLDER/opt/containerd /opt/containerd
+    ln -s $FOLDER/opt/ekco /opt/ekco
+    ln -s $FOLDER/opt/replicated /opt/replicated
+    ln -s $FOLDER/mnt/drivers /mnt/drivers
+    ln -s $FOLDER/mnt/tmpfs /mnt/tmpfs
+    ln -s $FOLDER/var/lib/cni /var/lib/cni
+    ln -s $FOLDER/var/lib/containerd /var/lib/containerd
+    ln -s $FOLDER/var/lib/containers /var/lib/containers
+    ln -s $FOLDER/var/lib/docker /var/lib/docker
+    ln -s $FOLDER/var/lib/dockershim /var/lib/dockershim
+    ln -s $FOLDER/var/lib/etcd /var/lib/etcd
+    ln -s $FOLDER/var/lib/kubelet /var/lib/kubelet
+    ln -s $FOLDER/var/lib/kurl /var/lib/kurl
+    ln -s $FOLDER/var/lib/rook /var/lib/rook
+    
+    cd /testsymbolic
