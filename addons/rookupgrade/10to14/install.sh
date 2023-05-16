@@ -6,6 +6,12 @@ function rookupgrade_10to14_upgrade() {
 
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
     if [ "$(common_upgrade_compare_versions "$from_version" "1.1")" != "1" ]; then
+
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+        if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+            logWarn "Rook Ceph has unhealthy Pod(s)"
+        fi
+
         # this will start the rook toolbox if it doesn't already exist
         log "Waiting for rook to be healthy"
         if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
@@ -91,6 +97,11 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.1.9
 
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+        if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+            logWarn "Rook Ceph has unhealthy Pod(s)"
+        fi
+
         log "Waiting for Rook 1.1.9 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.1.9" --timeout=1200 ; then
             logWarn "Timeout waiting for Rook version 1.1.9 rolled out"
@@ -118,6 +129,12 @@ function rookupgrade_10to14_upgrade() {
 
             kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20201116"}}}'
             kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
+
+            log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+            if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+                logWarn "Rook Ceph has unhealthy Pod(s)"
+            fi
+
             if ! "$DIR"/bin/kurl rook wait-for-ceph-version "14.2.5" --timeout=1200 ; then
                 logWarn "Timeout waiting for Ceph version to be rolled out"
                 log "Checking Ceph versions and replicas"
@@ -168,6 +185,11 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.2.7
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.2.7
 
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+        if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+            logWarn "Rook Ceph has unhealthy Pod(s)"
+        fi
+
         log "Waiting for Rook 1.2.7 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.2.7" --timeout=1200 ; then
             logWarn "Timeout waiting for Rook version 1.2.7 rolled out"
@@ -213,6 +235,11 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.3.11
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.3.11
 
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+        if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+            logWarn "Rook Ceph has unhealthy Pod(s)"
+        fi
+
         log "Waiting for Rook 1.3.11 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.3.11" --timeout=1200 ; then
             logWarn "Timeout waiting for Rook version 1.3.11 rolled out"
@@ -251,6 +278,11 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.4.9
         kubectl apply -f "$upgrade_files_path/rook-ceph-tools-14.yaml"
 
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+        if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+            logWarn "Rook Ceph has unhealthy Pod(s)"
+        fi
+
         log "Waiting for Rook 1.4.9 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.4.9" --timeout=1200 ; then
             logWarn "Timeout waiting for Rook version 1.4.9 rolled out"
@@ -286,6 +318,11 @@ function rookupgrade_10to14_upgrade() {
                 bail "Timed out waiting for device_health_metrics pool to be created"
             fi
             rookupgrade_10to14_maybe_scale_pool_device_health_metrics
+
+            log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+            if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+                logWarn "Rook Ceph has unhealthy Pod(s)"
+            fi
 
             if ! "$DIR"/bin/kurl rook wait-for-ceph-version "15.2.8-0" --timeout=1200 ; then
                 logWarn "Timeout waiting for Ceph version 15.2.8-0 rolled out"
