@@ -32,7 +32,7 @@
 - id: rocky-91
   name: Rocky Linux
   version: "9.1"
-  vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base-9.1-20230215.0.x86_64.qcow2
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9.1/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
 - id: ubuntu-2004
   name: Ubuntu
   version: "20.04"
