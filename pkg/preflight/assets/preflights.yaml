@@ -6,6 +6,7 @@ metadata:
 spec:
   collectors:
     - clusterResources: {}
+    - clusterInfo: {}
   analyzers:
     - nodeResources:
         checkName: Node status check
@@ -19,3 +20,12 @@ spec:
               message: "Not all nodes are online."
           - pass:
               message: "All nodes are online."
+    - clusterPodStatuses:
+        checkName: Pods status check
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        outcomes:
+          - warn:
+              when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
+              message: "A Pod, {{ .Name }} into the namespace {{ .Namespace }}, is unhealthy with a status of: {{ .Status.Reason }}. Restarting the pod may fix the issue."
+          - pass:
+              message: "All Pods are OK."
