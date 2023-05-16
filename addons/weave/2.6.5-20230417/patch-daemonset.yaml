@@ -22,3 +22,12 @@ spec:
               value: "kurlsh/weaveexec:2.6.5-20230417-4a9fe55"
         - name: weave-npc
           args: ["--log-level", "info"] # default log level is debug
+      initContainers:
+        - name: weave-init
+          volumeMounts:
+            - name: cni-bin
+              mountPath: /host/opt/cni/bin
+      volumes:
+        - name: cni-bin
+          hostPath:
+            path: /opt/cni/bin
