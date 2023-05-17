@@ -1,17 +1,21 @@
 
 function proxy_bootstrap() {
     if [ -n "$HTTP_PROXY" ]; then
+        log "HTTP proxy has the value: $HTTP_PROXY"
         ENV_PROXY_ADDRESS="$HTTP_PROXY"
         export https_proxy="$HTTP_PROXY"
         printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$http_proxy" ]; then
+        log "HTTP proxy has the value: $http_proxy"
         ENV_PROXY_ADDRESS="$http_proxy"
         export https_proxy="$http_proxy"
         printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$HTTPS_PROXY" ]; then
+        log "HTTP proxy has the value: $HTTPS_PROXY"
         ENV_PROXY_ADDRESS="$HTTPS_PROXY"
         printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$https_proxy" ]; then
+        log "HTTP proxy has the value: $https_proxy"
         ENV_PROXY_ADDRESS="$https_proxy"
         printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$ENV_PROXY_ADDRESS"
     fi
@@ -43,6 +47,7 @@ function proxy_bootstrap() {
     if [ -n "$ENV_PROXY_ADDRESS" ]; then
         export https_proxy="$ENV_PROXY_ADDRESS"
         kubectl_no_proxy
+        log "Bootstrapped proxy address from ENV_PROXY_ADDRESS: $https_proxy"
         return
     fi
 }
@@ -71,6 +76,7 @@ function configure_proxy() {
         return
     fi
     if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
+        log "Not using proxy address"
         return
     fi
     if [ -z "$PROXY_ADDRESS" ]; then
