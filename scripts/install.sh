@@ -376,6 +376,7 @@ function kurl_config() {
     if kubernetes_resource_exists kube-system configmap kurl-config; then
         kubectl -n kube-system delete configmap kurl-config
     fi
+
     kubectl -n kube-system create configmap kurl-config \
         --from-literal=kurl_url="$KURL_URL" \
         --from-literal=installer_id="$INSTALLER_ID" \
@@ -393,6 +394,8 @@ function kurl_config() {
         --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
         --from-literal=additional_no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES" \
         --from-literal=kubernetes_cis_compliance="$KUBERNETES_CIS_COMPLIANCE"
+
+    logSuccess "Kurl installer spec was successfully persisted in the kurl configmap"
 }
 
 function outro() {
