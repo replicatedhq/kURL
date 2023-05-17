@@ -117,8 +117,11 @@ function rookupgrade_10to14_upgrade() {
             bail "Failed to verify the Rook upgrade"
         fi
 
-        # todo make sure that the RGW isn't getting stuck
         log "Rook 1.1.9 has been rolled out throughout the cluster"
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+            bail "Failed to verify the updated cluster, Ceph is not healthy"
+        fi
 
         log "Upgrading CRDs to Rook 1.1"
         kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-crds.yaml"
