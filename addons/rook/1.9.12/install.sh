@@ -293,6 +293,11 @@ function rook_cluster_deploy_upgrade() {
         fi
     fi
 
+    # Allows Ceph Pacific to fix the following error:
+    # "all OSDs are running pacific or later but require_osd_release < pacific"
+    # https://github.com/rook/rook/issues/10084
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd require-osd-release pacific
+
     # 5. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#5-verify-the-updated-cluster
     echo "Awaiting Ceph healthy"
 
