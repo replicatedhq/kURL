@@ -28,12 +28,12 @@ func RookHealth(ctx context.Context, client kubernetes.Interface, ignoreChecks [
 	return health, msg, nil
 }
 
-// WaitForRookHealth waits for rook-ceph to report that it is healthy. Individual checks can be
-// ignored by passing in a list of Ceph health check unique identifiers
+// WaitForRookHealth waits for rook-ceph to report that it is healthy 5 times in a row. Individual
+// checks can be ignored by passing in a list of Ceph health check unique identifiers
 // (https://docs.ceph.com/en/quincy/rados/operations/health-checks/) to ignore.
 func WaitForRookHealth(ctx context.Context, client kubernetes.Interface, ignoreChecks []string) error {
 	out("Waiting for Rook-Ceph to be healthy")
-	errCount := 0
+	errCount, successCount := 0, 0
 	var isHealthy bool
 	var healthMessage string
 	for {
@@ -41,17 +41,22 @@ func WaitForRookHealth(ctx context.Context, client kubernetes.Interface, ignoreC
 		if err != nil {
 			errCount++
 			if errCount >= 5 {
-				return fmt.Errorf("failed to wait for Rook health 5x in a row: %w", err)
+				return fmt.Errorf("failed to wait for rook health 5x in a row: %w", err)
 			}
 		} else {
 			errCount = 0 // only fail for _consecutive_ errors
 
 			isHealthy, healthMessage = isStatusHealthy(cephStatus, ignoreChecks)
 			if isHealthy {
-				return nil
+				successCount++
+				if successCount >= 5 {
+					return nil
+				}
+			} else {
+				successCount = 0
+				// print a status message
+				spinLine(progressMessage(cephStatus))
 			}
-			// print a status message
-			spinLine(progressMessage(cephStatus))
 
 		}
 
