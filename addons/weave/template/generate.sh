@@ -63,7 +63,14 @@ function generate() {
 
     if [ -n "$WEAVE_EXEC_IMAGE_PATCH_VERSION" ]; then
         sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/Manifest"
-        sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset.yaml"
+
+        semverParse "${ADDON_VERSION}"
+        local addon_major_minor_version="${major}.${minor}"
+        if [ "$addon_major_minor_version" == "2.8" ]; then
+            sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset.yaml"
+        else
+            sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset_legacy.yaml"
+        fi
     fi
 }
 
