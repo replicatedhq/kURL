@@ -1076,23 +1076,23 @@ function retag_gcr_images() {
     local image=
     local new_image=
     if [ -n "$DOCKER_VERSION" ]; then
-        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep k8s.gcr.io)
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F k8s.gcr.io || true; })
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
         done
-        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep registry.gcr.io)
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F registry.gcr.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
         done
     else
-        images=$(ctr -n=k8s.io images list --quiet | grep k8s.gcr.io)
+        images=$(ctr -n=k8s.io images list --quiet | { grep -F k8s.gcr.io || true; })
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
         done
-        images=$(ctr -n=k8s.io images list --quiet | grep registry.gcr.io)
+        images=$(ctr -n=k8s.io images list --quiet | { grep -F registry.gcr.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
