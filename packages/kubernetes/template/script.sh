@@ -57,7 +57,7 @@ function generate_version_directory() {
     mv kubeadm /tmp
 
     while read -r image; do
-        # k8s.gcr.io/kube-apiserver:v1.20.2 -> kube-apiserver
+        # registry.k8s.io/kube-apiserver:v1.20.2 -> kube-apiserver
         local name=$(echo "$image" | awk -F':' '{ print $1 }' | awk -F '/' '{ print $2 }')
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
@@ -94,11 +94,11 @@ function generate_conformance_package() {
 
     # add conformance image for sonobuoy to manifest
     # TODO: in the future change this image to registry.k8s.io
-    echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
+    echo "image conformance registry.k8s.io/conformance:v${version}" > "../$version/conformance/Manifest"
 
 
     # --mode quick image
-    local image="$(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
+    local image="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
     local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
     echo "image $name $image" >> "../$version/conformance/Manifest"
 
@@ -107,7 +107,7 @@ function generate_conformance_package() {
     # sonobuoy_pull_images "$version" || true
 
     # local image=
-    # for image in $(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images) ; do
+    # for image in $(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images) ; do
     #     if docker inspect "$image" >/dev/null 2>&1 ; then
     #         local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
     #         echo "image $name $image" >> "../$version/conformance/Manifest"

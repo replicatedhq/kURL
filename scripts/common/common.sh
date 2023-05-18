@@ -1070,17 +1070,31 @@ function pod_count_by_selector() {
 }
 
 # retag_gcr_images takes every k8s.gcr.io image and adds a registry.k8s.io alias if it does not already exist
+# and vice versa
 function retag_gcr_images() {
+    local images=
+    local image=
+    local new_image=
     if [ -n "$DOCKER_VERSION" ]; then
-        local images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep k8s.gcr.io)
-        for image in $images; do
-            local new_image=$(echo "$image" | sed 's/k8s.gcr.io/registry.k8s.io/g')
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep k8s.gcr.io)
+        for image in $images ; do
+            new_image="${image//k8s.gcr.io/registry.k8s.io}"
+            docker tag "$image" "$new_image" 2>/dev/null || true
+        done
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep registry.gcr.io)
+        for image in $images ; do
+            new_image="${image//registry.k8s.io/k8s.gcr.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
         done
     else
-        local images=$(ctr -n=k8s.io images list --quiet | grep k8s.gcr.io)
-        for image in $images; do
-            local new_image=$(echo "$image" | sed 's/k8s.gcr.io/registry.k8s.io/g')
+        images=$(ctr -n=k8s.io images list --quiet | grep k8s.gcr.io)
+        for image in $images ; do
+            new_image="${image//k8s.gcr.io/registry.k8s.io}"
+            ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
+        done
+        images=$(ctr -n=k8s.io images list --quiet | grep registry.gcr.io)
+        for image in $images ; do
+            new_image="${image//registry.k8s.io/k8s.gcr.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
         done
     fi
