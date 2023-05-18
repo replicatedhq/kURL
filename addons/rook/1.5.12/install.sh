@@ -204,10 +204,10 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
-
-    if ! spinner_until 1200 rook_version_deployed ; then
-        logWarn "Timeout awaiting Rook version to be deployed"
+    if ! "$DIR"/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
+        logWarn "Timeout waiting for Rook version rolled out"
         logStep "Checking Rook versions and replicas"
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
         local rook_versions=
@@ -219,16 +219,39 @@ function rook_cluster_deploy_upgrade() {
         fi
     fi
 
-    logStep "Upgrading rook-ceph cluster"
+    # 5. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#5-verify-the-updated-cluster
+    echo "Awaiting Ceph healthy"
 
-    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
+    # CRD changes makes rook to restart and it takes time to reconcile
+    if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
+    logStep "Upgrading rook-ceph cluster"
+
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#1-update-the-main-ceph-daemons
+
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
 
-    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
+    if ! "$DIR"/bin/kurl rook wait-for-ceph-version "${ceph_version}-0" --timeout=1200 ; then
+        logWarn "Timeout waiting for Ceph version to be rolled out"
+        log "Checking Ceph versions and replicas"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
+        local ceph_versions_found=
+        ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
+        # Fail when more than one version is found
+        if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Ceph versions"
+            logWarn "${ceph_versions_found}"
+            logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+        fi
+
+        if [[ "$(echo "${ceph_versions_found}")" == *"${ceph_version}"* ]]; then
+            logWarn "Ceph version found ${ceph_versions_found}. New Ceph version ${ceph_version} failed to deploy"
+        fi
         bail "New Ceph version failed to deploy"
     fi
 
@@ -256,23 +279,6 @@ function rook_ready_spinner() {
 
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
-}
-
-# rook_version_deployed check that there is only one rook-version reported across the cluster
-function rook_version_deployed() {
-    # wait for our version to start reporting
-    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
-        return 1
-    fi
-    # wait for our version to be the only one reporting
-    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
-        return 1
-    fi
-    # sanity check
-    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
-        return 1
-    fi
-    return 0
 }
 
 # rook_ceph_version_deployed check that there is only one ceph-version reported across the cluster
