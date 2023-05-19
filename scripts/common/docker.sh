@@ -170,7 +170,7 @@ docker_configure_proxy() {
         return
     fi
 
-    log "Updating proxy configuration with new changes"
+    log "Updating proxy configuration: HTTP_PROXY=${PROXY_ADDRESS} NO_PROXY=${NO_PROXY_ADDRESSES}"
     mkdir -p /etc/systemd/system/docker.service.d
     local file=/etc/systemd/system/docker.service.d/http-proxy.conf
 
