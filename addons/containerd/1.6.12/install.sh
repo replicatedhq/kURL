@@ -193,7 +193,7 @@ function containerd_configure_proxy() {
         return
     fi
 
-    log "Updating proxy configuration with new changes"
+    log "Updating proxy configuration: HTTP_PROXY=${PROXY_ADDRESS} NO_PROXY=${NO_PROXY_ADDRESSES}"
     mkdir -p /etc/systemd/system/containerd.service.d
     local file=/etc/systemd/system/containerd.service.d/http-proxy.conf
 
@@ -202,7 +202,6 @@ function containerd_configure_proxy() {
 
     echo "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"HTTPS_PROXY=${PROXY_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> $file
 
-    log "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"HTTPS_PROXY=${PROXY_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\""
 
     CONTAINERD_NEEDS_RESTART=1
 }

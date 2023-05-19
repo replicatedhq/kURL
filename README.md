@@ -1,4 +1,4 @@
-<div align="center">
+cd <div align="center">
   <img alt="Kurl-logo" src="https://kurl.sh/kurl_logo@2x.png" />
 </div>
 <br/>
