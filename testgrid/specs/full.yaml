@@ -2257,3 +2257,36 @@
     ln -s $FOLDER/var/lib/rook /var/lib/rook
     
     cd /testsymbolic
+- name: "K8s 1.27x Airgap with invalid proxyAddress"
+  cpu: 6
+  airgap: true
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kurl:
+      proxyAddress: http://10.128.0.70:3128
+      additionalNoProxyAddresses:
+        - .corporate.internal
+      noProxy: false
+    kubernetes:
+      version: 1.27.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
