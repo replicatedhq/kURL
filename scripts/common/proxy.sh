@@ -43,6 +43,7 @@ function proxy_bootstrap() {
     if [ -n "$ENV_PROXY_ADDRESS" ]; then
         export https_proxy="$ENV_PROXY_ADDRESS"
         kubectl_no_proxy
+        log "Bootstrapped proxy address from ENV_PROXY_ADDRESS: $https_proxy"
         return
     fi
 }
@@ -71,6 +72,7 @@ function configure_proxy() {
         return
     fi
     if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
+        log "Not using proxy address"
         return
     fi
     if [ -z "$PROXY_ADDRESS" ]; then
