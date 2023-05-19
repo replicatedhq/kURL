@@ -314,7 +314,7 @@ func validatePodCanScale(pod *corev1.Pod) error {
 	}
 
 	switch ref.Kind {
-	case "StatefulSet", "Deployment":
+	case "StatefulSet", "ReplicaSet":
 		return nil
 	default:
 		return fmt.Errorf("pod %s/%s has unsupported owner %s", pod.Namespace, pod.Name, ref.Kind)
