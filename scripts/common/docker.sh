@@ -164,7 +164,7 @@ docker_configure_proxy() {
     local previous_proxy=$(docker info 2>/dev/null | grep -i 'Http Proxy:' | awk '{ print $NF }')
     local previous_no_proxy=$(docker info 2>/dev/null | grep -i 'No Proxy:' | awk '{ print $NF }')
     log "Previous proxy: ($previous_proxy)"
-    log "Previous no proxy: (previous_no_proxy)"
+    log "Previous no proxy: ($previous_no_proxy)"
     if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
         log "No changes were found. Proxy configuration still the same"
         return
