@@ -1,7 +1,7 @@
 resources:
 - crds.yaml
 
-patchesJson6902:
+patches:
 - target:
     group: "apiextensions.k8s.io"
     version: v1 # apiVersion

@@ -3,7 +3,7 @@ resources:
 patchesStrategicMerge:
 - patches/ceph-cluster-tolerate.yaml
 
-patchesJson6902:
+patches:
 - target:
     group: ceph.rook.io
     version: v1

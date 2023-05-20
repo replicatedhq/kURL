@@ -103,12 +103,12 @@ function insert_patches_json_6902() {
     local name="$6"
     local namespace="$7"
 
-    if ! grep -q "patchesJson6902" "$kustomization_file"; then
-        echo "patchesJson6902:" >> "$kustomization_file"
+    if ! grep -q "patches" "$kustomization_file"; then
+        echo "patches:" >> "$kustomization_file"
     fi
 
 # 'fourspace_' and 'twospace_' are used because spaces at the beginning of each line are stripped
-    sed -i "/patchesJson6902.*/a- target:\n\
+    sed -i "/patches.*/a- target:\n\
 fourspace_ group: $group\n\
 fourspace_ version: $version\n\
 fourspace_ kind: $kind\n\
