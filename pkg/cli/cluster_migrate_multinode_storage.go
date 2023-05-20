@@ -59,7 +59,7 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 			return runStorageMigration(cmd.Context(), opts)
 		},
 	}
-	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting cluster to be ready for the storage migration.")
+	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting for the cluster to be ready for the storage migration.")
 	cmd.Flags().DurationVar(&opts.migrateTimeout, "migrate-timeout", 8*time.Hour, "Timeout waiting for the storage migration to finish.")
 	return cmd
 }
