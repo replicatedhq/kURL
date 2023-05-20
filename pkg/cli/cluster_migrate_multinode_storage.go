@@ -200,7 +200,7 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 	}
 	opts.log.Printf("approving cluster storage migration.")
 	if err := approveStorageMigration(opts); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to approve storage migration: %w", err)
 	}
 	readyfn = func(ctx context.Context) (bool, error) {
 		result, err := getEkcoMigrationStatus(opts)
