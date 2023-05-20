@@ -191,8 +191,8 @@ function main() {
     install_helm
     join
     outro
+    check_proxy_config
     package_cleanup
-
     popd_install_directory
 }
 
