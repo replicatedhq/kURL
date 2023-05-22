@@ -432,3 +432,47 @@ function add_rook_store_object_migration_status() {
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
     export DID_MIGRATE_ROOK_OBJECT_STORE=1
 }
+
+# rook_maybe_migrate_from_openebs may migrate data from OpenEBS to Rook when all the following
+# conditions are met:
+# - Ekco version is >= 0.27.1.
+# - OpenEBS and Rook are selected on the Installer.
+# - Rook's minimum node count is set to a value > 1.
+# - The number of nodes on the cluster is >= than the Rook minimum node count.
+# - The 'scaling' storage class exists.
+function rook_maybe_migrate_from_openebs() {
+    semverCompare "$EKCO_VERSION" "0.27.1"
+    if [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+        return 0
+    fi
+    if [ -z "$ROOK_VERSION" ] || [ -z "$OPENEBS_VERSION" ]; then
+        return 0
+    fi
+    if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -le "1" ]; then
+        return 0
+    fi
+    local num_nodes
+    num_nodes="$(kubectl get nodes --no-headers | wc -l)"
+    if [ "$num_nodes" -lt "$ROOK_MINIMUM_NODE_COUNT" ]; then
+        return 0
+    fi
+    if ! kubectl get sc scaling >/dev/null 2>&1 ; then
+        return 0
+    fi
+    logWarn "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook"
+    logWarn "    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can"
+    logWarn "    choose to run the migration later if preferred."
+    log "Would you like to continue with the migration now? "
+    if ! confirmN; then
+        logWarn "Migration from OpenEBS to Rook skipped."
+        logWarn "If you would like to run the migration later, run the following command:"
+        logWarn "    $DIR/bin/kurl cluster migrate-multinode-storage"
+        return 0
+    fi
+    if ! $DIR/bin/kurl cluster migrate-multinode-storage; then
+        logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
+        logFail "If you would like to run the migration later, run the following command:"
+        logFail "    $DIR/bin/kurl cluster migrate-multinode-storage"
+        return 0
+    fi
+}
