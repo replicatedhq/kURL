@@ -190,8 +190,8 @@ function main() {
     kubernetes_host
     install_helm
     join
-    outro
     check_proxy_config
+    outro
     package_cleanup
     popd_install_directory
 }
