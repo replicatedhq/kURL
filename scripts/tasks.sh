@@ -372,12 +372,13 @@ function join_token() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${docker_registry_ip}")"
-    if [ -n "$additional_no_proxy_addresses" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-    fi
-    if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
-    fi
+
+    local no_proxy_addresses=""
+    [ -n "$additional_no_proxy_addresses" ] && no_proxy_addresses="$additional_no_proxy_addresses"
+    [ -n "$service_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$service_cidr"
+    [ -n "$pod_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$pod_cidr"
+    [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
     common_flags="${common_flags}$(get_remotes_flags)"
     common_flags="${common_flags}$(get_ipv6_flag)"
