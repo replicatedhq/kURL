@@ -411,10 +411,16 @@ function outro() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-    if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-    fi
-    common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+    service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
+    pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+
+    local no_proxy_addresses=""
+
+    [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ] && no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES"
+    [ -n "$service_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$service_cidr"
+    [ -n "$pod_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$pod_cidr"
+    [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
     common_flags="${common_flags}$(get_remotes_flags)"
     common_flags="${common_flags}$(get_ipv6_flag)"
