@@ -293,10 +293,13 @@ function addon_outro() {
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-        if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
-            common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-        fi
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+
+        local no_proxy_addresses=""
+        [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ] && no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES"
+        [ -n "${SERVICE_CIDR}" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}${SERVICE_CIDR}"
+        [ -n "${POD_CIDR}" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}${POD_CIDR}"
+        [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_skip_system_package_install_flag)"
         common_flags="${common_flags}$(get_exclude_builtin_host_preflights_flag)"
