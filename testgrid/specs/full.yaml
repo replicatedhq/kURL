@@ -2269,7 +2269,7 @@
         - .corporate.internal
       noProxy: false
     kubernetes:
-      version: 1.27.x
+      version: 1.26.x
     containerd:
       version: latest
     flannel:
@@ -2290,3 +2290,75 @@
       localPVStorageClassName: default
     minio:
       version: latest
+  postInstallScript: |
+    file="/etc/systemd/system/containerd.service.d/http-proxy.conf"
+    expectedHttpProxy="http://10.128.0.70:3128"
+    expectedHttpsProxy="http://10.128.0.70:3128"
+    expectedNoProxy=".corporate.internal"
+    
+    if [ -f "$file" ]; then
+      echo "Containerd Proxy Config found: $file"
+    else
+      echo "Containerd Proxy Config NOT found: $file"
+      exit 1
+    fi
+    
+    httpProxy=$(grep -oP '(?<=HTTP_PROXY=)[^ ]+' "$file")
+    if [ "$httpProxy" = "$expectedHttpProxy" ]; then
+      echo "HTTP_PROXY is set correctly: $httpProxy"
+    else
+      echo "HTTP_PROXY is set to an unexpected value: $httpProxy"
+      exit 1
+    fi
+    
+    httpsProxy=$(grep -oP '(?<=HTTPS_PROXY=)[^ ]+' "$file")
+    if [ "$httpsProxy" = "$expectedHttpsProxy" ]; then
+      echo "HTTPS_PROXY is set correctly: $httpsProxy"
+    else
+      echo "HTTPS_PROXY is set to an unexpected value: $httpsProxy"
+      exit 1
+    fi
+    
+    noProxy=$(grep -oP '(?<=NO_PROXY=)[^ ]+' "$file")
+    if [[ "$noProxy" == *"$expectedNoProxy"* ]]; then
+      echo "NO_PROXY contains the expected value: $expectedNoProxy"
+    else
+      echo "NO_PROXY does not contain the expected value: $expectedNoProxy"
+      exit 1
+    fi
+  postUpgradeScript: |
+    file="/etc/systemd/system/containerd.service.d/http-proxy.conf"
+    expectedHttpProxy="http://10.128.0.70:3128"
+    expectedHttpsProxy="http://10.128.0.70:3128"
+    expectedNoProxy=".corporate.internal"
+    
+    if [ -f "$file" ]; then
+      echo "Containerd Proxy Config found: $file"
+    else
+      echo "Containerd Proxy Config NOT found: $file"
+      exit 1
+    fi
+    
+    httpProxy=$(grep -oP '(?<=HTTP_PROXY=)[^ ]+' "$file")
+    if [ "$httpProxy" = "$expectedHttpProxy" ]; then
+      echo "HTTP_PROXY is set correctly: $httpProxy"
+    else
+      echo "HTTP_PROXY is set to an unexpected value: $httpProxy"
+      exit 1
+    fi
+    
+    httpsProxy=$(grep -oP '(?<=HTTPS_PROXY=)[^ ]+' "$file")
+    if [ "$httpsProxy" = "$expectedHttpsProxy" ]; then
+      echo "HTTPS_PROXY is set correctly: $httpsProxy"
+    else
+      echo "HTTPS_PROXY is set to an unexpected value: $httpsProxy"
+      exit 1
+    fi
+    
+    noProxy=$(grep -oP '(?<=NO_PROXY=)[^ ]+' "$file")
+    if [[ "$noProxy" == *"$expectedNoProxy"* ]]; then
+      echo "NO_PROXY contains the expected value: $expectedNoProxy"
+    else
+      echo "NO_PROXY does not contain the expected value: $expectedNoProxy"
+      exit 1
+    fi
