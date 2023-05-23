@@ -507,7 +507,13 @@ function upgrade_kubernetes_remote_node() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-    common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${NO_PROXY_ADDRESSES}" "${NO_PROXY_ADDRESSES}")"
+
+    local no_proxy_addresses=""
+    [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ] && no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES"
+    [ -n "$service_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$service_cidr"
+    [ -n "$pod_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$pod_cidr"
+    [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
     common_flags="${common_flags}$(get_remotes_flags)"
 
