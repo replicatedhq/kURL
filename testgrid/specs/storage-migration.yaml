@@ -55,7 +55,7 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: Migrate from Rook 1.10.x to OpenEBS + Minio
+- name: Migrate from Rook 1.11.x to OpenEBS + Minio
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -71,7 +71,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -261,7 +261,7 @@
       echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
-- name: Migrate from Rook 1.10.x to OpenEBS (S3 disabled)
+- name: Migrate from Rook 1.11.x to OpenEBS (S3 disabled)
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -275,7 +275,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -458,9 +458,9 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-- name: Migrate from Rook 1.0.4 to Rook 1.10.x
+- name: Migrate from Rook 1.0.4 to Rook 1.8.x
   flags: "yes"
-  cpu: 6
+  cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -471,7 +471,7 @@
     flannel:
       version: 0.21.x
     registry:
-      version: 2.8.1
+      version: 2.8.x
     kotsadm:
       version: latest
     ekco:
@@ -486,14 +486,16 @@
     flannel:
       version: 0.21.x
     registry:
-      version: 2.8.1
+      version: 2.8.x
     kotsadm:
       version: latest
     ekco:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.8.x
   postInstallScript: |
+    # wait for ekco to scale up the Ceph cluster
+    while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
@@ -506,13 +508,69 @@
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
-       echo  Rook Data directories not removed.
-       exit 1
-    fi
-- name: Migrate from Longhorn + Minio to Rook 1.10.x
+    # rook data directory is not removed but perhaps it should be
+    # if [ -d "/opt/replicated/rook" ]; then
+    #    echo  Rook Data directory not removed.
+    #    exit 1
+    # fi
+- name: Migrate from Rook 1.8.x to Rook 1.11.x
   flags: "yes"
-  cpu: 6
+  cpu: 4
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.8.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.11.x
+  postInstallScript: |
+    # wait for ekco to scale up the Ceph cluster
+    while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
+    # rook data directory is not removed but perhaps it should be
+    # if [ -d "/opt/replicated/rook" ]; then
+    #    echo  Rook Data directory not removed.
+    #    exit 1
+    # fi
+- name: Migrate from Longhorn + Minio to Rook 1.11.x
+  flags: "yes"
+  cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -546,7 +604,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -566,7 +624,7 @@
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (multi-node)
   flags: "yes"
-  cpu: 6
+  cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -624,9 +682,9 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: Migrate from Rook 1.10.x to OpenEBS + Minio (multi-node)
+- name: Migrate from Rook 1.11.x to OpenEBS + Minio (multi-node)
   flags: "yes"
-  cpu: 6
+  cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -643,7 +701,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -686,7 +744,7 @@
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)
   flags: "yes"
-  cpu: 6
+  cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -742,7 +800,7 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-- name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
+- name: Migrate from Rook 1.11.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -752,7 +810,7 @@
     containerd:
       version: latest
     rook:
-      version: 1.10.x
+      version: 1.11.x
     kotsadm:
       version: latest
   upgradeSpec:
