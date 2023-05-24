@@ -267,10 +267,10 @@ EOF
     local ca_key="$(${K8S_DISTRO}_get_server_ca_key)"
 
     log "Generating a private key and a corresponding Certificate Signing Request (CSR) using OpenSSL"
-    openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
-
+    openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -sha256 -config registry.cnf
+    
     log "Generating a self-signed X.509 certificate using OpenSSL"
-    openssl x509 -req -days 365 -in registry.csr -CA "${ca_crt}" -CAkey "${ca_key}" -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
+    openssl x509 -req -days 365 -in registry.csr -CA "${ca_crt}" -CAkey "${ca_key}" -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf -sha256
 
     # rotate the cert and restart the pod every time
     kubectl -n kurl delete secret registry-pki &>/dev/null || true
