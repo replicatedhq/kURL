@@ -11,26 +11,31 @@ function registry() {
         logSuccess "Registry migration complete"
     fi
 
+    logSubstep "Configuring Registry"
     registry_cred_secrets
-
     registry_pki_secret "$DOCKER_REGISTRY_IP"
-
     registry_docker_ca
+    logSuccess "Registry configured successfully"
 
     registry_healthy
 }
 
 function registry_install() {
+    logSubstep "Installing Registry"
     regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
 
     # Only create registry deployment with object store if rook or minio exists IN THE INSTALLER SPEC and the registry pvc
     # doesn't already exist.
+    log "Checking if PVC and Object Store exists"
     if ! registry_pvc_exists && object_store_exists; then
+        log "PVC and Object Store were found. Creating Registry Deployment with Object Store data"
         registry_object_store_bucket
         # shellcheck disable=SC2034  # used in the deployment template
         objectStoreIP=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
         objectStoreHostname=$(echo $OBJECT_STORE_CLUSTER_HOST | sed 's/http:\/\///')
+        log "Object Store IP: $objectStoreIP"
+        log "Object Store Hostname: $objectStoreHostname"
         render_yaml_file "$DIR/addons/registry/__registry_version__/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
 
@@ -39,6 +44,7 @@ function registry_install() {
         render_yaml_file "$DIR/addons/registry/__registry_version__/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
     else
+        log "PVC and Object Store were NOT found. Creating Registry Deployment"
         determine_registry_pvc_size
         cp "$DIR/addons/registry/__registry_version__/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
         render_yaml_file "$DIR/addons/registry/__registry_version__/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
@@ -46,6 +52,7 @@ function registry_install() {
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
     fi
 
+    log "Checking if PVC migration will be required"
     if registry_will_migrate_pvc; then
         logWarn "Registry migration in progres......"
 
@@ -55,6 +62,7 @@ function registry_install() {
         cp "$DIR/addons/registry/__registry_version__/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
     fi
+    logSuccess "Registry installed successfully"
 }
 
 # The regsitry will migrate from object store to pvc is there isn't already a PVC, the object store was remove from the installer, BUT
@@ -107,6 +115,7 @@ function registry_init() {
 }
 
 function regsitry_init_service() {
+    log "Applying resources"
     mkdir -p "$DIR/kustomize/registry"
     cp "$DIR/addons/registry/__registry_version__/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
     
@@ -133,6 +142,7 @@ function registry_join() {
 }
 
 function registry_session_secret() {
+    log "Adding secret"
     if kubernetes_resource_exists kurl secret registry-session-secret; then
         return 0
     fi
@@ -147,26 +157,34 @@ function registry_session_secret() {
 # authentication and the registry-credentials secret in the default namespace for pods to use for
 # image pulls
 function registry_cred_secrets() {
+    log "Checking if secrets exist"
     if kubernetes_resource_exists kurl secret registry-htpasswd && kubernetes_resource_exists default secret registry-creds ; then
+        log "Secrets found. Patching kotsadm labels"
         kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
         kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
         return 0
     fi
+
+    log "Deleting registry-htpasswd and registry-creds secrets"
     kubectl -n kurl delete secret registry-htpasswd &>/dev/null || true
     kubectl -n default delete secret registry-creds &>/dev/null || true
 
+    log "Generating password"
     local user=kurl
     local password=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
 
     # if the registry pod is already running it will pick up changes to the secret without restart
     BIN_HTPASSWD=./bin/htpasswd
     $BIN_HTPASSWD -u "$user" -p "$password" -f htpasswd
+
+    log "Patching password"
     kubectl -n kurl create secret generic registry-htpasswd --from-file=htpasswd
     kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
     rm htpasswd
 
     local server="$DOCKER_REGISTRY_IP"
     if [ "$IPV6_ONLY" = "1" ]; then
+        log "IPV6 is in usage"
         server="registry.kurl.svc.cluster.local"
     fi
 
@@ -175,6 +193,8 @@ function registry_cred_secrets() {
         --docker-username="$user" \
         --docker-password="$password"
     kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
+
+    log "Secrets configured successfully"
 }
 
 function registry_docker_ca() {
@@ -183,6 +203,7 @@ function registry_docker_ca() {
     fi
 
     if [ -n "$DOCKER_VERSION" ]; then
+        log "Gathering CA from server to configure Docker"
         local ca_crt="$(${K8S_DISTRO}_get_server_ca)"
 
         mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
@@ -191,6 +212,7 @@ function registry_docker_ca() {
 }
 
 function registry_pki_secret() {
+    log "Checking Docker Registry: $DOCKER_REGISTRY_IP"
     if [ -z "$DOCKER_REGISTRY_IP" ]; then
         bail "Docker registry address required"
     fi
@@ -231,17 +253,23 @@ IP.1 = $DOCKER_REGISTRY_IP
 EOF
 
     if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
+        log "Publish Registry Port: $REGISTRY_PUBLISH_PORT"
         echo "IP.2 = $PRIVATE_ADDRESS" >> registry.cnf
 
         if [ -n "$PUBLIC_ADDRESS" ]; then
+            log "Publish Address: $PUBLIC_ADDRESS"
             echo "IP.3 = $PUBLIC_ADDRESS" >> registry.cnf
         fi
     fi
 
+    log "Gathering CA from server"
     local ca_crt="$(${K8S_DISTRO}_get_server_ca)"
     local ca_key="$(${K8S_DISTRO}_get_server_ca_key)"
 
+    log "Generating a private key and a corresponding Certificate Signing Request (CSR) using OpenSSL"
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -sha256 -config registry.cnf
+    
+    log "Generating a self-signed X.509 certificate using OpenSSL"
     openssl x509 -req -days 365 -in registry.csr -CA "${ca_crt}" -CAkey "${ca_key}" -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf -sha256
 
     # rotate the cert and restart the pod every time
@@ -267,7 +295,7 @@ function determine_registry_pvc_size() {
     if registry_pvc_exists; then
         registry_pvc_size=$( kubectl get pvc -n kurl registry-pvc -o jsonpath='{.spec.resources.requests.storage}')
     fi
-
+    log "PVC size used is $registry_pvc_size"
     export REGISTRY_PVC_SIZE=$registry_pvc_size
 }
 
@@ -288,6 +316,8 @@ function registry_pvc_migrated() {
 }
 
 function registry_healthy() {
+    logSubstep "Checking if registry is healthy"
     echo "waiting for the registry to start"
     spinner_until 120 deployment_fully_updated kurl registry
+    logSuccess "Registry is healthy"
 }

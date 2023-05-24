@@ -354,7 +354,7 @@ function rook_create_bucket() {
     d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
     local string="PUT\n\n\n${d}\n${acl}\n/${bucket}"
     local sig
-    sig=$(echo -en "${string}" | openssl dgst sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+    sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     curl -X PUT  \
         --noproxy "*" \
