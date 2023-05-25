@@ -599,8 +599,6 @@ function host_preflights() {
     if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
-
-        # TODO: report preflight fail
     else
         set +e
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
@@ -700,7 +698,6 @@ function cluster_preflights() {
     if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
-        # TODO: report preflight fail
     else
         set +e
         "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
