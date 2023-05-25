@@ -2184,6 +2184,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
 - name: (k8s 1.27) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -2219,6 +2221,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
   preInstallScript: |
     FOLDER=/testsymbolic
     
