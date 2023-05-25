@@ -629,7 +629,25 @@ function host_preflights() {
                 ;;
         esac                                       
     fi
-    logStep "Host preflights success"
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+       logWarn "Using host-preflight-ignore flag to disregard any failures during the pre-flight checks"
+
+       case $kurl_exit_code in
+           3)
+               logFail "Host preflights have warnings that should block the installation."
+               return
+               ;;
+           2)
+               logWarn "Host preflights have warnings which is highly recommended to sort out the conditions before proceeding."
+               return
+               ;;
+           1)
+               logFail "Host preflights have failures that should block the installation."
+               return
+               ;;
+       esac
+    fi
+    logSuccess "Host preflights success"
 }
 
 IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR="in-cluster-preflights"
@@ -711,7 +729,24 @@ function cluster_preflights() {
                 ;;
         esac
     fi
-    logStep "On cluster Preflights success"
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+         logWarn "Using host-preflight-ignore flag to disregard any failures during the pre-flight checks"
+         case $kurl_exit_code in
+             3)
+                 logFail "On cluster preflights have warnings that should block the installation."
+                 return
+                 ;;
+             2)
+                 logWarn "On cluster preflights have warnings which is highly recommended to sort out the conditions before proceeding."
+                 return
+                 ;;
+             1)
+                 logFail "On cluster preflights have failures that should block the installation."
+                 return
+                 ;;
+         esac
+    fi
+    logSuccess "On cluster Preflights success"
 }
 
 # host_preflights_mkresults will append cli data to preflight results file
