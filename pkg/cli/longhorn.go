@@ -463,42 +463,49 @@ func getObjectsUsingLonghorn(ctx context.Context, cli client.Client) ([]client.O
 		return nil, fmt.Errorf("error getting pods using longhorn: %w", err)
 	}
 	var objects []client.Object
+	controllers := make(map[string]client.Object)
 	for _, pod := range pods {
 		ctrl := metav1.GetControllerOf(&pod)
 		if ctrl == nil {
 			return nil, fmt.Errorf("pod %s/%s has no owners and can't be migrated", pod.Name, pod.Namespace)
 		}
-		obj, err := getOwnerObject(ctx, cli, pod.Namespace, *ctrl)
+		uid, obj, err := getOwnerObject(ctx, cli, pod.Namespace, *ctrl)
 		if err != nil {
 			return nil, fmt.Errorf("error getting owner object for pod %s/%s: %w", pod.Namespace, pod.Name, err)
 		}
+		controllers[*uid] = obj
+	}
+
+	// convert map to slice
+	for _, obj := range controllers {
 		objects = append(objects, obj)
 	}
+
 	return objects, nil
 }
 
 // getOwnerObject returns the object referred by the provided owner reference. Only deployments, statefulsets,
 // and replicasets are supported (as those are the only types supported by pvmigrate).
-func getOwnerObject(ctx context.Context, cli client.Client, namespace string, owner metav1.OwnerReference) (client.Object, error) {
+func getOwnerObject(ctx context.Context, cli client.Client, namespace string, owner metav1.OwnerReference) (*string, client.Object, error) {
 	switch owner.Kind {
 	case "StatefulSet":
 		nsn := types.NamespacedName{Namespace: namespace, Name: owner.Name}
 		var sset appsv1.StatefulSet
 		if err := cli.Get(ctx, nsn, &sset); err != nil {
-			return nil, fmt.Errorf("error getting statefulset %s: %w", nsn, err)
+			return nil, nil, fmt.Errorf("error getting statefulset %s: %w", nsn, err)
 		}
-		return &sset, nil
+		return (*string)(&sset.UID), &sset, nil
 	case "ReplicaSet":
 		nsn := types.NamespacedName{Namespace: namespace, Name: owner.Name}
 		var rset appsv1.ReplicaSet
 		if err := cli.Get(ctx, nsn, &rset); err != nil {
-			return nil, fmt.Errorf("error getting replicaset %s: %w", nsn, err)
+			return nil, nil, fmt.Errorf("error getting replicaset %s: %w", nsn, err)
 		}
 		ctrl := metav1.GetControllerOf(&rset)
 		if ctrl == nil {
-			return nil, fmt.Errorf("no owner found for replicaset %s/%s", owner.Name, namespace)
+			return nil, nil, fmt.Errorf("no owner found for replicaset %s/%s", owner.Name, namespace)
 		} else if ctrl.Kind != "Deployment" {
-			return nil, fmt.Errorf(
+			return nil, nil, fmt.Errorf(
 				"expected replicaset %s in %s to have a deployment as owner, found %s instead",
 				owner.Name, namespace, ctrl.Kind,
 			)
@@ -506,11 +513,11 @@ func getOwnerObject(ctx context.Context, cli client.Client, namespace string, ow
 		nsn = types.NamespacedName{Namespace: namespace, Name: ctrl.Name}
 		var deployment appsv1.Deployment
 		if err := cli.Get(ctx, nsn, &deployment); err != nil {
-			return nil, fmt.Errorf("error getting deployment %s: %w", nsn, err)
+			return nil, nil, fmt.Errorf("error getting deployment %s: %w", nsn, err)
 		}
-		return &deployment, nil
+		return (*string)(&deployment.UID), &deployment, nil
 	default:
-		return nil, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"scaling pods controlled by a %s is not supported, please delete the pods controlled by "+
 				"%s in %s before retrying", owner.Kind, owner.Kind, namespace,
 		)
