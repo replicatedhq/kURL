@@ -80,7 +80,7 @@ function check_proxy_config() {
     local no_proxy=$(grep -E '^\s*Environment\s*=\s*"NO_PROXY=' "$proxy_config_file" | sed -E 's/^\s*Environment\s*=\s*"NO_PROXY=(.*)"/\1/')
 
     # Make the Docker image pull call with proxy configuration
-    if ! response=$(sudo HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy NO_PROXY=$no_proxy ctr image pull test/invalid/image:latest 2>&1) || [[ $response =~ .*"proxy".* ]]; then
+    if ! response=$(HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy NO_PROXY=$no_proxy ctr image pull test/invalid/image:latest 2>&1) || [[ $response =~ .*"proxy".* ]]; then
         logWarn "Proxy connection issues were identified"
         # Extract only the proxy error message
         proxy_error=$(echo "$response" | grep -oP '(?<=error="failed to do request: ).*(?= host)' | sed -r 's/Head.*: //' | sed -r 's/"$//')
