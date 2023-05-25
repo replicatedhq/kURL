@@ -82,6 +82,10 @@ function check_proxy_config() {
     # Make the Docker image pull call with proxy configuration
     if ! response=$(sudo HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy NO_PROXY=$no_proxy ctr image pull test/invalid/image:latest 2>&1) || [[ $response =~ .*"proxy".* ]]; then
         logWarn "Proxy connection issues were identified"
+        # Extract only the proxy error message
+        proxy_error=$(echo "$response" | grep -oP '(?<=error="failed to do request: ).*(?= host)' | sed -r 's/Head.*: //' | sed -r 's/"$//')
+        logWarn "Proxy error: $proxy_error"
+        echo ""
         logWarn "Please review the proxy configuration and ensure that it is valid."
         logWarn "More info: https://kurl.sh/docs/install-with-kurl/proxy-installs"
         return
