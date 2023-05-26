@@ -602,6 +602,7 @@ function main() {
     kubeadm_post_init
     uninstall_docker
     ${K8S_DISTRO}_addon_for_each addon_post_init
+    check_proxy_config
     outro
     package_cleanup
 
