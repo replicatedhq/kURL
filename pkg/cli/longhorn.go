@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -87,9 +88,32 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 				}
 
 				logger.Printf("Rolling back volume %s to %d replicas.", volume.Name, replicas)
-				delete(volume.Annotations, pvmigrateScaleDownAnnotation)
-				volume.Spec.NumberOfReplicas = replicas
-				if err := cli.Update(cmd.Context(), &volume); err != nil {
+
+				// The Longhorn volume could become stale when we update it since volumes can be updated by the Longhorn manager operator
+				// resulting in a conflict error.
+				// To resolve this, retry the update operation until we no longer get a conflict error.
+				retryUpdateErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+					nsn := types.NamespacedName{Namespace: longhornNamespace, Name: volume.Name}
+					if err := cli.Get(cmd.Context(), nsn, &volume); err != nil {
+						if errors.IsNotFound(err) {
+							logger.Printf("Longhorn volume %s not found. Ignoring since object must have been deleted.", volume.Name)
+							return nil
+						}
+						return fmt.Errorf("Failed to get Longhorn volume %s: %w", volume.Name, err)
+					}
+
+					// delete annotation
+					delete(volume.Annotations, pvmigrateScaleDownAnnotation)
+
+					// update replicas
+					volume.Spec.NumberOfReplicas = replicas
+					if err := cli.Update(cmd.Context(), &volume); err != nil {
+						return fmt.Errorf("Failed to update Longhorn volume %s: %w", volume.Name, err)
+					}
+					return nil
+				})
+
+				if retryUpdateErr != nil {
 					return fmt.Errorf("error rolling back volume %s replicas: %w", volume.Name, err)
 				}
 			}
