@@ -49,9 +49,9 @@ function proxy_bootstrap() {
 }
 
 # check_proxy_config tries to check if is possible connect with the registry
-# the following code will check if the proxy is invalid by doing a check crictl pull test/invalid/image:latest
+# Th following code will check if the proxy is invalid by running crictl pull test/invalid/image:latest
 # See that the image does not matter to us. We are looking here for proxy issues only and then, when the Proxy config
-# not to be accurate we will face and issue like:
+# not to be configured accurately we will face an issue like:
 # E0525 09:01:01.952576 1399831 remote_image.go:167] "PullImage from image service failed" err="rpc error: code = Unknown desc = failed to pull and unpack image \"docker.io/test/invalid/image:latest\": failed to resolve reference \"docker.io/test/invalid/image:latest\": failed to do request: Head \"https://registry-1.docker.io/v2/test/invalid/image/manifests/latest\": proxyconnect tcp: dial tcp: lookup invalidproxy: Temporary failure in name resolution" image="test/invalid/image:latest"
 # FATA[0000] pulling image: rpc error: code = Unknown desc = failed to pull and unpack image "docker.io/test/invalid/image:latest": failed to resolve reference "docker.io/test/invalid/image:latest": failed to do request: Head "https://registry-1.docker.io/v2/test/invalid/image/manifests/latest": proxyconnect tcp: dial tcp: lookup invalidproxy: Temporary failure in name resolution
 function check_proxy_config() {
