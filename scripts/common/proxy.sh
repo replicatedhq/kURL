@@ -76,7 +76,7 @@ function check_proxy_config() {
     if ! response=$(crictl pull test/invalid/image:latest 2>&1) && [[ $response =~ .*"proxy".* ]]; then
         logWarn "Proxy connection issues were identified:"
         error_message=$(echo "$response" | grep -oP '(?<=failed to do request: ).*' | sed -r 's/.*: //' | awk -F "\"" '{print $(NF-1)}' | sed -r 's/test\/invalid\/image:latest//')
-        logWarn "Proxy error: $error_message"
+        logWarn "$error_message"
         echo ""
         logWarn "Please review the proxy configuration and ensure that it is valid."
         logWarn "More info: https://kurl.sh/docs/install-with-kurl/proxy-installs"
