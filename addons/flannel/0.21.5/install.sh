@@ -233,8 +233,9 @@ function weave_to_flannel() {
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
-    kubectl -n kube-system delete pods --all
-    kubectl -n kube-flannel delete pods --all
+    kubectl -n kube-system delete pods --all --grace-period=200
+    kubectl -n kube-flannel delete pods --all --grace-period=200
+
     flannel_ready_spinner
 
     logStep "Restarting CSI pods"
@@ -246,16 +247,8 @@ function weave_to_flannel() {
     logStep "Restarting all other pods"
     echo "this may take several minutes"
     local ns=
-    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel|kurl|velero)' | cut -f2 -d'/'); do
-        kubectl delete pods -n "$ns" --all --grace-period=20
-
-        # Check if any pods are still running in the namespace
-        running_pods=$(kubectl get pods -n "$ns" | grep -v "STATUS" | grep -v "Terminating")
-
-        if [ -n "$running_pods" ]; then
-            echo "Force deleting pods in namespace $ns..."
-            kubectl delete pods -n "$ns" --all --grace-period=0 --force
-        fi
+    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
+        kubectl delete pods -n "$ns" --all --grace-period=200
     done
     sleep 60
     logSuccess "Migrated from Weave to Flannel"
