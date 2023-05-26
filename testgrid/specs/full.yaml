@@ -1404,26 +1404,6 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: k8s124x_cis_benchmarks_checks
-  installerSpec:
-    kubernetes:
-      version: "1.24.x"
-      cisCompliance: true
-    containerd:
-      version: "latest"
-    flannel:
-      version: latest
-    ekco:
-      version: "latest"
-  postInstallScript: |
-    echo "running CIS Kubernetes Benchmark Checks"
-    kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
-    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
-    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
-    echo "Checking kubectl with kube/config"
-    echo "Kubeconfig was $KUBECONFIG"
-    unset KUBECONFIG
-    kubectl get namespaces
 - name: k8s123x_124x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -2294,3 +2274,381 @@
       localPVStorageClassName: default
     minio:
       version: latest
+- name: longhorn
+  installerSpec:
+    contour:
+      version: latest
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+    kubernetes:
+      version: 1.24.x
+      containerLogMaxSize: "5Mi"
+      containerLogMaxFiles: 5
+    prometheus:
+      version: latest
+    registry:
+      version: latest
+    longhorn:
+      version: latest
+    flannel:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest
+- name: k8s119-minimal
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    kurl:
+      installerVersion: ""
+    docker:
+      version: 19.03.x
+    weave:
+      version: latest
+  unsupportedOSIDs:
+    - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
+    - rocky-92 # docker is not supported on rhel 9 variants
+- name: k8s121
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      version: 1.9.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: k8s121-airgap
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: 1.6.x
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      version: 1.9.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+- name: k8s122
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: 1.11.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: k8s122-airgap
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: 1.11.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+- name: minimal-124
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.24.x
+    flannel:
+      version: latest
+- name: minimal-125
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+- name: minimal-126
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.26.x
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+- name: minimal-127
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.27.x
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+- name: k8s124x_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.24.x"
+      cisCompliance: true
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: "latest"
+    flannel:
+      version: latest
+    ekco:
+      version: "latest"
+  postInstallScript: |
+    echo "running CIS Kubernetes Benchmark Checks"
+    kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
+    echo "Checking kubectl with kube/config"  
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+- name: k8s127x_reserved_resources
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+      kubeReserved: true
+      evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+      systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: "latest"
+    flannel:
+      version: latest
+  postInstallScript: |
+    set -eo pipefail
+    echo "validating kubelet config contains reserved resources"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 kubeReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 evictionHard
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory.available: 234Mi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 systemReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
+    echo "Checking kubectl with kube/config"  
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+- name: k8s127-openebs
+  installerSpec:
+    kubernetes:
+      version: 1.27.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+- name: k8s124-airgap-rook
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    kurl:
+      installerVersion: ""
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: 1.11.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+- name: "k8s_127x airgap"
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: 1.27.x
+    kurl:
+      installerVersion: ""
+    flannel:
+      version: latest
+    containerd:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    prometheus:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+  airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"  
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+    - rocky-92 # docker is not supported on rhel 9 variants
