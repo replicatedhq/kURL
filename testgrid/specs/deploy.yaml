@@ -91,7 +91,7 @@
     fi
 - name: "Upgrade to 1.22 to 1.24, Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)"
   flags: "yes"
-  cpu: 4
+  cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
