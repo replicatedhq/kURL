@@ -2,19 +2,17 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -31,77 +29,34 @@ type migrateOpts struct {
 	ekcoAddress    string
 	readyTimeout   time.Duration
 	migrateTimeout time.Duration
+	minimumNrNodes int
 }
 
 func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 	opts := migrateOpts{log: cli.Logger()}
 	cmd := &cobra.Command{
-		Use:          "migrate-multinode-storage",
-		Short:        "Migrate persistent volumes from 'scaling' to 'distributed' storage classes.",
-		SilenceUsage: true,
+		Use:   "migrate-multinode-storage",
+		Short: "Migrate persistent volumes from 'scaling' to 'distributed' storage classes.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if opts.minimumNrNodes <= 0 {
+				return fmt.Errorf("--minimum-number-of-nodes flag is required to be > 0.")
+			}
+			if opts.ekcoAddress == "" {
+				return fmt.Errorf("--ekco-address flag is required.")
+			}
+			cmd.SilenceUsage = true
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.GetConfig()
-			if err != nil {
-				return fmt.Errorf("failed to get kubernetes config: %w", err)
-			}
-			client, err := kubernetes.NewForConfig(cfg)
-			if err != nil {
-				return fmt.Errorf("failed to get kubernetes client: %w", err)
-			}
-			opts.log.Printf("reading ekco operator credentials.")
-			if opts.authToken, err = getEkcoStorageMigrationAuthToken(cmd.Context(), client); err != nil {
-				return fmt.Errorf("failed to get ekco storage migration auth token: %w", err)
-			}
-			opts.log.Printf("finding ekco operator http address.")
-			if opts.ekcoAddress, err = getEkcoAddress(cmd.Context(), client); err != nil {
-				return fmt.Errorf("failed to get ekco address: %w", err)
-			}
 			return runStorageMigration(cmd.Context(), opts)
 		},
 	}
 	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting for the cluster to be ready for the storage migration.")
 	cmd.Flags().DurationVar(&opts.migrateTimeout, "migrate-timeout", 8*time.Hour, "Timeout waiting for the storage migration to finish.")
+	cmd.Flags().IntVar(&opts.minimumNrNodes, "minimum-number-of-nodes", 0, "Indicates the desired minimum number of nodes to start the migration.")
+	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "", "The address of the ekco operator.")
+	cmd.Flags().StringVar(&opts.authToken, "ekco-auth-token", "", "The auth token to use to authenticate with the ekco operator.")
 	return cmd
-}
-
-// getEkcoStorageMigrationAuthToken parses the ekco config map and looks for the storage_migration_auth_token property.
-// this field may be empty, on this case this function returns an empty string.
-func getEkcoStorageMigrationAuthToken(ctx context.Context, cli kubernetes.Interface) (string, error) {
-	cm, err := cli.CoreV1().ConfigMaps(ekcoNamespace).Get(ctx, ekcoConfigConfigMap, metav1.GetOptions{})
-	if err != nil {
-		return "", fmt.Errorf("failed to get ekco configmap: %w", err)
-	}
-	rawConfig, ok := cm.Data["config.yaml"]
-	if !ok {
-		return "", fmt.Errorf("failed to find config.yaml in ekco configuration")
-	}
-	result := map[string]interface{}{}
-	if err := yaml.Unmarshal([]byte(rawConfig), &result); err != nil {
-		return "", fmt.Errorf("failed to unmarshal ekco config: %w", err)
-	}
-	if token, ok := result["storage_migration_auth_token"]; ok {
-		if tokenStr, ok := token.(string); ok {
-			return tokenStr, nil
-		}
-		return "", fmt.Errorf("failed to parse ekco config: storage_migration_auth_token is not a string")
-	}
-	return "", nil
-}
-
-// getEkcoAddress returns the address of the ekco pod. address is composed by the ip address and the port for http
-// connection. if zero or more than one ekco pod is found this function returns an error. XXX shouldn't we expose
-// ekco through a service instead?
-func getEkcoAddress(ctx context.Context, cli kubernetes.Interface) (string, error) {
-	pods, err := cli.CoreV1().Pods(ekcoNamespace).List(ctx, metav1.ListOptions{LabelSelector: ekcoPodsSelector})
-	if err != nil {
-		return "", fmt.Errorf("failed to list ekco pods: %w", err)
-	}
-	if len(pods.Items) == 0 {
-		return "", fmt.Errorf("failed to find ekco pod: no ekco pods found")
-	} else if len(pods.Items) > 1 {
-		return "", fmt.Errorf("failed to find ekco pod: multiple ekco pods found")
-	}
-	return fmt.Sprintf("%s:%d", pods.Items[0].Status.PodIP, ekcoPort), nil
 }
 
 // getEkcoMigrationLogs returns the logs of the migration as reported back by ekco.
@@ -134,24 +89,33 @@ func getEkcoMigrationStatus(opts migrateOpts) (string, error) {
 	return string(body), nil
 }
 
-// isEkcoReadyForStorageMigration returns true if ekco reports that it is ready for a storage migration. this relies
-// solely on ekco returning a 200 status with the "migration ready" message. XXX wouldn't be better to base this on
-// different http response codes?
-func isEkcoReadyForStorageMigration(opts migrateOpts) (bool, error) {
+// MigrationReady represents the status of the migration readiness check, includes a reason and also the number of
+// nodes in the cluster.
+type MigrationReadyStatus struct {
+	Ready   bool   `json:"ready"`
+	Reason  string `json:"reason"`
+	NrNodes int    `json:"nrNodes"`
+}
+
+func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, error) {
 	url := fmt.Sprintf("http://%s/storagemigration/ready", opts.ekcoAddress)
 	resp, err := http.Get(url)
 	if err != nil {
-		return false, fmt.Errorf("failed to get ekco status: %w", err)
+		return nil, fmt.Errorf("failed to get ekco status: %w", err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, fmt.Errorf("failed to read ekco status response: %w", err)
+		return nil, fmt.Errorf("failed to read ekco status response: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("failed to get ekco status (%d): %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("failed to get ekco status (%d): %s", resp.StatusCode, string(body))
 	}
-	return string(body) == "migration ready", nil
+	var status MigrationReadyStatus
+	if err := json.Unmarshal(body, &status); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal ekco status: %w", err)
+	}
+	return &status, nil
 }
 
 // approveStorageMigration tells ekco to start the storage migration.
@@ -177,6 +141,16 @@ func approveStorageMigration(opts migrateOpts) error {
 	return nil
 }
 
+func continueWithStorageMigration() bool {
+	fmt.Println("    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook")
+	fmt.Println("    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can")
+	fmt.Println("    choose to run the migration later if preferred.")
+	fmt.Print("Would you like to continue with the migration now? (Y/n) ")
+	var answer string
+	fmt.Scanln(&answer)
+	return answer == "" || strings.ToLower(answer) == "y"
+}
+
 func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 	if status, err := getEkcoMigrationStatus(opts); err != nil {
 		return fmt.Errorf("failed to read current status migration: %w", err)
@@ -184,13 +158,20 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 		opts.log.Printf("cluster storage migration already marked as completed.")
 		return nil
 	}
+	if status, err := isEkcoReadyForStorageMigration(opts); err != nil {
+		return fmt.Errorf("failed to check if cluster is ready for migration: %w", err)
+	} else if status.NrNodes < opts.minimumNrNodes {
+		return nil
+	} else if !continueWithStorageMigration() {
+		return nil
+	}
 	readyfn := func(ctx context.Context) (bool, error) {
-		ready, err := isEkcoReadyForStorageMigration(opts)
+		status, err := isEkcoReadyForStorageMigration(opts)
 		if err != nil {
 			return false, err
 		}
-		opts.log.Printf("cluster reporting ready for migration: %v", ready)
-		return ready, nil
+		opts.log.Printf("cluster reporting ready for migration: %v", status.Reason)
+		return status.Ready, nil
 	}
 	readyCtx, cancel := context.WithTimeout(ctx, opts.readyTimeout)
 	defer cancel()
