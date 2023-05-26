@@ -34,7 +34,7 @@
     - rocky-92 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.25 to 1.27, Migrate from Rook 1.11.x to OpenEBS + Minio (multi-node)"
   flags: "yes"
-  cpu: 4
+  cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -92,14 +92,14 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: "Upgrade to 1.24 to 1.26,Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)"
+- name: "Upgrade to 1.22 to 1.24, Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)"
   flags: "yes"
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.22.x
     containerd:
       version: 1.6.x
     flannel:
@@ -116,7 +116,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.24.x
     containerd:
       version: 1.6.x
     flannel:
