@@ -251,6 +251,10 @@ function weave_to_flannel() {
         kubectl delete pods -n "$ns" --all --grace-period=200
     done
     sleep 60
+    log "Awaiting up to 5 minutes to check Flannel Pod(s) are Running"
+    if ! spinner_until 300 check_for_running_pods "kube-flannel"; then
+        logWarn "Flannel has unhealthy Pod(s)"
+    fi
     logSuccess "Migrated from Weave to Flannel"
 }
 
