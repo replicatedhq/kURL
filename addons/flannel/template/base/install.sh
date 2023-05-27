@@ -255,17 +255,23 @@ function weave_to_flannel() {
 }
 
 function remove_weave() {
-    # firstnode only
-    kubectl -n kube-system delete daemonset weave-net
-    kubectl -n kube-system delete rolebinding weave-net
-    kubectl -n kube-system delete role weave-net
-    kubectl delete clusterrolebinding weave-net
-    kubectl delete clusterrole weave-net
-    kubectl -n kube-system delete serviceaccount weave-net
-    kubectl -n kube-system delete secret weave-passwd
+    local resources=("daemonset.apps/weave-net"
+                     "rolebinding.rbac.authorization.k8s.io/weave-net"
+                     "role.rbac.authorization.k8s.io/weave-net"
+                     "clusterrolebinding.rbac.authorization.k8s.io/weave-net"
+                     "clusterrole.rbac.authorization.k8s.io/weave-net"
+                     "serviceaccount/weave-net"
+                     "secret/weave-passwd")
 
-    # It should be executed in all nodes either
-    # See that the task used to run in the nodes also has this commands
+    # Check if resource exists before deleting it
+    for resource in "${resources[@]}"; do
+        if kubectl -n kube-system get "$resource" &> /dev/null; then
+            if ! timeout 60 kubectl -n kube-system delete "$resource" --ignore-not-found &> /dev/null; then
+                logWarn "Timeout occurred while deleting weave resources"
+            fi
+        fi
+    done
+
     # Delete the weave network interface, if it exists
     if ip link show weave > /dev/null 2>&1; then
         ip link delete weave
@@ -274,6 +280,28 @@ function remove_weave() {
     rm -rf /var/lib/weave
     rm -rf /etc/cni/net.d/*weave*
     rm -rf /opt/cni/bin/weave*
+
+    logStep "Verifying Weave removal"
+
+    for resource in "${resources[@]}"; do
+        if kubectl -n kube-system get "$resource" &> /dev/null; then
+            logWarn "Resource: $resource still exists. Attempting force deletion."
+            if ! spinner_until 30 kubectl -n kube-system delete "$resource" --force --grace-period=0 1>/dev/null; then
+                logWarn "Timeout occurred while force deleting resource: $resource"
+            fi
+            echo "waiting 30 seconds to check removal"
+            sleep 30
+        fi
+    done
+
+    for resource in "${resources[@]}"; do
+        if kubectl -n kube-system get "$resource" &> /dev/null; then
+            logWarn "Unable to remove resource: $resource"
+            return
+        fi
+    done
+
+    logSuccess "Weave has been successfully removed."
 }
 
 function flannel_kubeadm() {
