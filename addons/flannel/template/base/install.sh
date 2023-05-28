@@ -265,10 +265,10 @@ function remove_weave() {
     kubectl -n kube-system delete secret weave-passwd
 
     # all nodes
-    rm -f /opt/cni/bin/weave-*
-    rm -rf /etc/cni/net.d
     ip link delete weave
-
+    rm -rf /var/lib/weave
+    rm -rf /etc/cni/net.d/*weave*
+    rm -rf /opt/cni/bin/weave*
 }
 
 function flannel_kubeadm() {
