@@ -5,38 +5,42 @@
 # and ENV_NO_PROXY.
 function read_proxy_config_from_env() {
     # by default https proxy configuration inherits from http proxy config.
-    # we also make sure that we have both environment variables (with upper
-    # and lower case) set to the same value.
     if [ -n "$HTTP_PROXY" ]; then
         ENV_HTTP_PROXY_ADDRESS="$HTTP_PROXY"
         ENV_HTTPS_PROXY_ADDRESS="$HTTP_PROXY"
-        export http_proxy="$HTTP_PROXY"
     elif [ -n "$http_proxy" ]; then
         ENV_HTTP_PROXY_ADDRESS="$http_proxy"
         ENV_HTTPS_PROXY_ADDRESS="$http_proxy"
-        export HTTP_PROXY="$http_proxy"
     fi
 
     # if https proxy is explicitly set, it overrides the inherit http proxy
-    # configuration. we also make sure we have both environment variables
-    # (with upper and lower case) set to the same value.
+    # configuration.
     if [ -n "$HTTPS_PROXY" ]; then
         ENV_HTTPS_PROXY_ADDRESS="$HTTPS_PROXY"
-        export https_proxy="$HTTPS_PROXY"
     elif [ -n "$https_proxy" ]; then
         ENV_HTTPS_PROXY_ADDRESS="$https_proxy"
-        export HTTPS_PROXY="$https_proxy"
     fi
 
-    # no proxy is simply copied from the environment. we also make sure
-    # we have both environment variables (with upper and lower case) set
-    # to the same value.
+    # no proxy is simply copied from the environment.
     if [ -n "$NO_PROXY" ]; then
         ENV_NO_PROXY="$NO_PROXY"
-        export no_proxy="$NO_PROXY"
     elif [ -n "$no_proxy" ]; then
         ENV_NO_PROXY="$no_proxy"
-        export NO_PROXY="$no_proxy"
+    fi
+
+    # here we sanitize the proxy configuration. we make sure that both upper
+    # and lower case variables point to the same value.
+    if [ -n "$ENV_HTTP_PROXY_ADDRESS" ]; then
+        export http_proxy="$ENV_HTTP_PROXY_ADDRESS"
+        export HTTP_PROXY="$ENV_HTTP_PROXY_ADDRESS"
+    fi
+    if [ -n "$ENV_HTTPS_PROXY_ADDRESS" ]; then
+        export https_proxy="$ENV_HTTPS_PROXY_ADDRESS"
+        export HTTPS_PROXY="$ENV_HTTPS_PROXY_ADDRESS"
+    fi
+    if [ -n "$ENV_NO_PROXY" ]; then
+        export no_proxy="$ENV_NO_PROXY"
+        export NO_PROXY="$ENV_NO_PROXY"
     fi
 
     # if proxy is configured we need to make sure that kubectl can reach
@@ -123,7 +127,7 @@ function check_proxy_config() {
 
 # kubectl_no_proxy makes sure that kubectl can reach the apiserver without
 # going through the proxy. this is done by adding the apiserver address to
-# the NO_PROXY and no_proxy environment variable. this function expects 
+# the NO_PROXY and no_proxy environment variable. this function expects
 # both upper and lower case variables to be already sanitized (to contain
 # the same value).
 function kubectl_no_proxy() {
