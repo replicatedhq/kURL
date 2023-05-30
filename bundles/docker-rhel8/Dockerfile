@@ -1,5 +1,7 @@
 FROM rockylinux:8
 
+# Update the packages before continue
+RUN yum -y update
 RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
 
 RUN yum install -y yum-utils createrepo
@@ -8,6 +10,7 @@ RUN yum install -y modulemd-tools
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 RUN mkdir -p /packages/archives
 
+RUN yum -y update
 ARG DOCKER_VERSION
 
 RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
