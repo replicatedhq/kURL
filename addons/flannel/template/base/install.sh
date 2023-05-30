@@ -141,7 +141,7 @@ function flannel_health_check() {
 }
 
 function flannel_ready_spinner() {
-    echo "Waiting up 5 minutes for Flannel to become healthy"
+    echo "Waiting up to 5 minutes for Flannel to become healthy"
     if ! spinner_until 300 flannel_health_check; then
         kubectl logs -n kube-flannel -l app=flannel --all-containers --tail 10 || true
         bail "The Flannel add-on failed to deploy successfully."
