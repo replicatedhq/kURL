@@ -377,8 +377,14 @@ function weave_to_flannel() {
     logStep "Restarting kubelet"
     log "Stopping Kubelet"
     systemctl stop kubelet
-    log "Flushing IP Tables"
+
+    logStep "Flushing and deleting Weave entries from IP tables"
     iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+    logSuccess "All IP tables rules have been successfully flushed"
+
     log "Waiting for containerd to restart"
     restart_systemd_and_wait containerd
     log "Waiting for kubelet to restart"
