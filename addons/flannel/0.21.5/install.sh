@@ -233,8 +233,9 @@ function weave_to_flannel() {
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
-    kubectl -n kube-system delete pods --all
-    kubectl -n kube-flannel delete pods --all
+    kubectl -n kube-system delete pods --all --grace-period=200
+    kubectl -n kube-flannel delete pods --all --grace-period=200
+
     flannel_ready_spinner
 
     logStep "Restarting CSI pods"
@@ -247,10 +248,13 @@ function weave_to_flannel() {
     echo "this may take several minutes"
     local ns=
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
-        kubectl delete pods -n "$ns" --all
+        kubectl delete pods -n "$ns" --all --grace-period=200
     done
-
     sleep 60
+    log "Awaiting up to 5 minutes to check Flannel Pod(s) are Running"
+    if ! spinner_until 300 check_for_running_pods "kube-flannel"; then
+        logWarn "Flannel has unhealthy Pod(s)"
+    fi
     logSuccess "Migrated from Weave to Flannel"
 }
 
