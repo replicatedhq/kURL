@@ -70,6 +70,7 @@ function proxy_bootstrap() {
             export https_proxy="$overrideProxy"
             export HTTP_PROXY="$overrideProxy"
             export HTTPS_PROXY="$overrideProxy"
+            kubectl_no_proxy
             echo "Bootstrapped proxy address from installer spec file: $https_proxy"
             return
         fi
@@ -85,6 +86,7 @@ function proxy_bootstrap() {
     export https_proxy="$proxy"
     export HTTP_PROXY="$proxy"
     export HTTPS_PROXY="$proxy"
+    kubectl_no_proxy
     echo "Bootstrapped proxy address from installer yaml: $https_proxy"
 }
 
@@ -136,6 +138,12 @@ function kubectl_no_proxy() {
     fi
     kubectlEndpoint=$(cat /etc/kubernetes/admin.conf  | grep 'server:' | awk '{ print $NF }' | sed -E 's/https?:\/\///g')
     splitHostPort "$kubectlEndpoint"
+    # if the kubectl endpoint is already present in the no_proxy env we
+    # can skip and move forward. this avoids adding the same ip address
+    # multiple times and makes this function idempotent.
+    if echo "$no_proxy" | grep -q "$HOST"; then
+        return
+    fi
     if [ -n "$no_proxy" ]; then
         export no_proxy="$no_proxy,$HOST"
         export NO_PROXY="$NO_PROXY,$HOST"
