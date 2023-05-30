@@ -89,11 +89,9 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: "Upgrade to 1.22 to 1.24, Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)"
+- name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
   installerSpec:
     kubernetes:
       version: 1.22.x
