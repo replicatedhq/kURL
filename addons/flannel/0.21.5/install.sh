@@ -274,7 +274,7 @@ function weave_to_flannel() {
         timeout 80 kubectl delete pods -n "${ns}" --all --grace-period=60 || logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
 
         # Use the spinner_until function to wait until all pods are deleted
-        if ! spinner_until 60 pods_remain "${ns}"; then
+        if ! spinner_until 60 flannel_pods_remain "${ns}"; then
             # If pods remain after the timeout, force delete them
             logWarn "Force deleting remaining pods in namespace: ${ns}"
             kubectl -n "${ns}" delete pods --all --grace-period=0 --force || true
