@@ -252,10 +252,13 @@ func waitForFlexMigratorPod(ctx context.Context, clientset kubernetes.Interface)
 	if len(pods.Items) == 0 {
 		return nil, errors.New("no pods found for rook-ceph-migrator deployment")
 	}
-	pod := pods.Items[0]
+	for _, pod := range pods.Items {
+		if k8sutil.IsPodReady(pod) {
+			return &pod, nil
+		}
+	}
 
-	err = k8sutil.WaitForPodReady(ctx, clientset, pod.Namespace, pod.Name)
-	return &pod, errors.Wrap(err, "wait for rook-ceph-migrator pod")
+	return nil, errors.New("no ready pods found for rook-ceph-migrator deployment")
 }
 
 func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) error {
