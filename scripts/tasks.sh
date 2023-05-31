@@ -829,9 +829,13 @@ nodeRegistration:
   taints: []
 EOM
 
-    rm -f /opt/cni/bin/weave-*
-    rm -rf /etc/cni/net.d
+    echo "Removing Weave files from the node"
+
     ip link delete weave
+
+    rm -rf /var/lib/weave
+    rm -rf /etc/cni/net.d/*weave*
+    rm -rf /opt/cni/bin/weave*
 
     kubeadm join phase control-plane-prepare control-plane --config=/tmp/kubeadm-join.conf
     systemctl restart kubelet containerd
