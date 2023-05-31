@@ -233,8 +233,10 @@ function weave_to_flannel() {
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
-    kubectl -n kube-system delete pods --all --grace-period=200
-    kubectl -n kube-flannel delete pods --all --grace-period=200
+    log "Removing pods from kube-system. It can takes up to 1 minute per Pod"
+    kubectl -n kube-system delete pods --all --grace-period=60
+    log "Removing pods from kube-flannel. It can takes up to 1 minute per Pod"
+    kubectl -n kube-flannel delete pods --all --grace-period=60
 
     flannel_ready_spinner
 
