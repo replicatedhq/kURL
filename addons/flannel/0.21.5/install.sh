@@ -243,7 +243,6 @@ function weave_to_flannel() {
     # We will try delete the Pods without force it
     # However, in some cases such as where it has many addons it seems
     # getting stuck and we force the pods deletion
-    echo "this may take several minutes"
 
     # List of namespaces
     namespaces=("longhorn-system" "rook-ceph" "openebs")
@@ -253,7 +252,7 @@ function weave_to_flannel() {
         timeout 80 kubectl -n ${ns} delete pods --all --grace-period=60 || logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
 
         # Use the spinner_until function to wait until all pods are deleted
-        if ! spinner_until 60 pods_remain ${ns}; then
+        if ! spinner_until 60 flannel_pods_remain ${ns}; then
             # If pods remain after the timeout, force delete them
             logWarn "Force deleting remaining pods in namespace: ${ns}"
             kubectl -n ${ns} delete pods --all --grace-period=0 --force || true
@@ -293,7 +292,7 @@ function weave_to_flannel() {
 }
 
 # Function to check if pods are still present in a namespace
-function pods_remain() {
+function flannel_pods_remain() {
     local namespace="$1"
 
     # Get the status of the pods in the namespace
