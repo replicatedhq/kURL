@@ -6,12 +6,12 @@ metadata:
 spec:
   collectors:
     - clusterResources: {}
+  hostCollectors:
     - run:
         collectorName: journalctl-kubelet
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
-        image: busybox:1
         command: [ "journalctl" ]
-        args: [ "-u", "kubelet", "--no-pager", "-S", "7 days ago" ]
+        args: [ "-u", "kubelet", "--no-pager", "-S", "1 day ago" ]
   analyzers:
     - nodeResources:
         checkName: Node status check
@@ -38,5 +38,3 @@ spec:
           - fail:
               when: "true"
               message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
-          
-          
