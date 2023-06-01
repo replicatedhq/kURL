@@ -316,11 +316,27 @@ function remove_weave() {
     kubectl -n kube-system delete serviceaccount weave-net
     kubectl -n kube-system delete secret weave-passwd
 
-    # all nodes
-    ip link delete weave
-    rm -rf /var/lib/weave
-    rm -rf /etc/cni/net.d/*weave*
-    rm -rf /opt/cni/bin/weave*
+    # It should be executed in all nodes either
+    # See that the task used to run in the nodes also has this commands
+    # Delete the weave network interface, if it exists
+    if ip link show weave > /dev/null 2>&1; then
+        ip link delete weave
+    fi
+
+    # Delete the /var/lib/weave directory, if it exists
+    if [ -d "/var/lib/weave" ]; then
+        rm -rf /var/lib/weave
+    fi
+
+    # Delete any weave files in /etc/cni/net.d
+    if ls /etc/cni/net.d/*weave* > /dev/null 2>&1; then
+        rm -rf /etc/cni/net.d/*weave*
+    fi
+
+    # Delete any weave files in /opt/cni/bin
+    if ls /opt/cni/bin/*weave* > /dev/null 2>&1; then
+        rm -rf /opt/cni/bin/*weave*
+    fi
 }
 
 function flannel_kubeadm() {

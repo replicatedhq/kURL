@@ -830,12 +830,25 @@ nodeRegistration:
 EOM
 
     echo "Removing Weave files from the node"
+    # Delete the weave network interface, if it exists
+    if ip link show weave > /dev/null 2>&1; then
+        ip link delete weave
+    fi
 
-    ip link delete weave
+    # Delete the /var/lib/weave directory, if it exists
+    if [ -d "/var/lib/weave" ]; then
+        rm -rf /var/lib/weave
+    fi
 
-    rm -rf /var/lib/weave
-    rm -rf /etc/cni/net.d/*weave*
-    rm -rf /opt/cni/bin/weave*
+    # Delete any weave files in /etc/cni/net.d
+    if ls /etc/cni/net.d/*weave* > /dev/null 2>&1; then
+        rm -rf /etc/cni/net.d/*weave*
+    fi
+
+    # Delete any weave files in /opt/cni/bin
+    if ls /opt/cni/bin/*weave* > /dev/null 2>&1; then
+        rm -rf /opt/cni/bin/*weave*
+    fi
 
     kubeadm join phase control-plane-prepare control-plane --config=/tmp/kubeadm-join.conf
     systemctl restart kubelet containerd
@@ -866,9 +879,28 @@ function weave_to_flannel_secondary() {
         flannel_images_present
     fi
 
-    rm -f /opt/cni/bin/weave-*
-    rm -rf /etc/cni/net.d
-    ip link delete weave
+    # It should be executed in all nodes either
+    # See that the task used to run in the nodes also has this commands
+    # Delete the weave network interface, if it exists
+    if ip link show weave > /dev/null 2>&1; then
+        ip link delete weave
+    fi
+
+    # Delete the /var/lib/weave directory, if it exists
+    if [ -d "/var/lib/weave" ]; then
+        rm -rf /var/lib/weave
+    fi
+
+    # Delete any weave files in /etc/cni/net.d
+    if ls /etc/cni/net.d/*weave* > /dev/null 2>&1; then
+        rm -rf /etc/cni/net.d/*weave*
+    fi
+
+    # Delete any weave files in /opt/cni/bin
+    if ls /opt/cni/bin/*weave* > /dev/null 2>&1; then
+        rm -rf /opt/cni/bin/*weave*
+    fi
+    
     systemctl restart kubelet containerd
 
     logSuccess "Successfully updated $(get_local_node_name) to use Flannel"
