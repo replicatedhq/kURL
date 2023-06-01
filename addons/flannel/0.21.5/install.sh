@@ -324,9 +324,7 @@ function remove_weave() {
     fi
 
     # Delete the /var/lib/weave directory, if it exists
-    if [ -d "/var/lib/weave" ]; then
-        rm -rf /var/lib/weave
-    fi
+    rm -rf /var/lib/weave
 
     # Delete any weave files in /etc/cni/net.d
     if ls /etc/cni/net.d/*weave* > /dev/null 2>&1; then
