@@ -22,10 +22,22 @@ spec:
               message: "All nodes are online."
     - clusterPodStatuses:
         checkName: Pods status check
+        namespace:
+          - kube-flannel
+          - default
+          - kube-node-lease
+          - kube-public
+          - kube-system
+          - kurl
+          - projectcontour
+          - rook-ceph
+          - velero
+          - longhorn-system
+          - openebs
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         outcomes:
+          - pass:
+              message: "The Pod {{ .Name }} into the namespace {{ .Namespace }} is OK."
           - warn:
               when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
               message: "A Pod, {{ .Name }} into the namespace {{ .Namespace }}, is unhealthy with a status of: {{ .Status.Reason }}. Restarting the pod may fix the issue."
-          - pass:
-              message: "All Pods are OK."
