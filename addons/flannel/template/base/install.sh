@@ -233,95 +233,25 @@ function weave_to_flannel() {
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
-    log "this may take several minutes"
-    local ns=
-    namespaces=("kube-system" "kube-flannel")
-
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 5 minutes to delete all pods from ${ns}"
-        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
-            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
-        fi
-    done
-
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 2 minutes to verify if pods will be terminated"
-        if ! spinner_until 120 flannel_pods_remain ${ns}; then
-            logWarn "The namespace ${ns} has pods which were not terminated"
-        fi
-    done
-
+    kubectl -n kube-system delete pods --all --grace-period=200
+    kubectl -n kube-flannel delete pods --all --grace-period=200
     flannel_ready_spinner
 
     logStep "Restarting CSI pods"
-    log "this may take several minutes"
-    local ns=
-    namespaces=("longhorn-system" "rook-ceph" "openebs")
+    kubectl -n longhorn-system delete pods --all || true
+    kubectl -n rook-ceph delete pods --all || true
+    kubectl -n openebs delete pods --all || true
 
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 5 minutes to delete all pods from ${ns}"
-        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
-            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
-        fi
-    done
-
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 2 minutes to verify if pods will be terminated"
-        if ! spinner_until 120 flannel_pods_remain ${ns}; then
-            logWarn "The namespace ${ns} has pods which were not terminated"
-        fi
-    done
-
-    echo "waiting 60 seconds before continue"
     sleep 60
-
     logStep "Restarting all other pods"
     echo "this may take several minutes"
     local ns=
-
-    # Get the list of namespaces
-    namespaces=$(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/')
-
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 5 minutes to delete all pods from ${ns}"
-        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
-            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
-        fi
+    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
+        kubectl delete pods -n "$ns" --all
     done
 
-    for ns in "${namespaces[@]}"; do
-        log "Waiting up to 2 minutes to verify if pods will be terminated"
-        if ! spinner_until 120 flannel_pods_remain ${ns}; then
-            # If pods remain after the timeout, force delete them
-            logWarn "The namespace ${ns} has pods which were not terminated"
-        fi
-    done
-
-    echo "waiting 60 seconds before continue"
     sleep 60
-
-    log "Awaiting up to 5 minutes to check Flannel Pod(s) are Running"
-    if ! spinner_until 300 check_for_running_pods "kube-flannel"; then
-        logWarn "Flannel has unhealthy Pod(s)"
-    fi
     logSuccess "Migrated from Weave to Flannel"
-}
-
-# Function to check if pods are still present in a namespace
-function flannel_pods_remain() {
-    local namespace="$1"
-
-    # Get the status of the pods in the namespace
-    local pod_statuses=$(kubectl -n ${namespace} get pods --no-headers 2>/dev/null | awk '{print $3}' || true)
-
-    # If any pods are in a status 'Terminating' because it get stuck, return 1 (failure)
-    for status in $pod_statuses; do
-        if [[ $status == "Terminating" ]]; then
-            return 1
-        fi
-    done
-
-    return 0
 }
 
 function remove_weave() {
