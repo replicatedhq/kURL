@@ -323,18 +323,9 @@ function remove_weave() {
         ip link delete weave
     fi
 
-    # Delete the /var/lib/weave directory, if it exists
     rm -rf /var/lib/weave
-
-    # Delete any weave files in /etc/cni/net.d
-    if ls /etc/cni/net.d/*weave* > /dev/null 2>&1; then
-        rm -rf /etc/cni/net.d/*weave*
-    fi
-
-    # Delete any weave files in /opt/cni/bin
-    if ls /opt/cni/bin/*weave* > /dev/null 2>&1; then
-        rm -rf /opt/cni/bin/*weave*
-    fi
+    rm -rf /etc/cni/net.d/*weave*
+    rm -rf /opt/cni/bin/weave*
 }
 
 function flannel_kubeadm() {
