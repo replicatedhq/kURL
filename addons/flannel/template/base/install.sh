@@ -232,7 +232,7 @@ function weave_to_flannel() {
     echo "waiting for kubelet to restart"
     restart_systemd_and_wait kubelet
 
-    kubectl -n kube-flannel delete pods --all --grace-period=60
+    kubectl -n kube-flannel delete pods --all || true
     log "Awaiting up to 5 minutes to check Flannel Pod(s) are Running"
     if ! spinner_until 300 check_for_running_pods "kube-flannel"; then
         logWarn "Flannel has unhealthy Pod(s)"
