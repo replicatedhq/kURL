@@ -47,7 +47,7 @@ runs:
       run: |
         testgrid_os_spec_path="${{ inputs.testgrid-os-spec-path }}"
         if [ -z "$testgrid_os_spec_path" ]; then
-          testgrid_os_spec_path="${{ github.action_path }}/../../../testgrid/specs/os-firstlast.yaml"
+          testgrid_os_spec_path="${{ github.action_path }}/../../../testgrid/specs/os-latest.yaml"
         fi
         ${{ github.action_path }}/../../../bin/test-addon.sh \
           "${{ inputs.addon }}" \
