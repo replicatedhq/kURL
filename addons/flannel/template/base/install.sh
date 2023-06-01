@@ -233,29 +233,42 @@ function weave_to_flannel() {
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
-    kubectl -n kube-system delete pods --all --grace-period=200
-    kubectl -n kube-flannel delete pods --all --grace-period=200
+    log "this may take several minutes"
+    local ns=
+    namespaces=("kube-system" "kube-flannel")
+
+    for ns in "${namespaces[@]}"; do
+        log "Waiting up to 5 minutes to delete all pods from ${ns}"
+        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
+            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
+        fi
+    done
+
+    for ns in "${namespaces[@]}"; do
+        log "Waiting up to 2 minutes to verify if pods will be terminated"
+        if ! spinner_until 120 flannel_pods_remain ${ns}; then
+            logWarn "The namespace ${ns} has pods which were not terminated"
+        fi
+    done
 
     flannel_ready_spinner
 
     logStep "Restarting CSI pods"
     log "this may take several minutes"
-    # We will try delete the Pods without force it
-    # However, in some cases such as where it has many addons it seems
-    # getting stuck and we force the pods deletion
-
-    # List of namespaces
+    local ns=
     namespaces=("longhorn-system" "rook-ceph" "openebs")
 
     for ns in "${namespaces[@]}"; do
-        # Delete pods with a grace period and timeout, and ignore errors
-        timeout 80 kubectl -n ${ns} delete pods --all --grace-period=60 || logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
+        log "Waiting up to 5 minutes to delete all pods from ${ns}"
+        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
+            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
+        fi
+    done
 
-        # Use the spinner_until function to wait until all pods are deleted
-        if ! spinner_until 60 flannel_pods_remain ${ns}; then
-            # If pods remain after the timeout, force delete them
-            logWarn "Force deleting remaining pods in namespace: ${ns}"
-            kubectl -n ${ns} delete pods --all --grace-period=0 --force || true
+    for ns in "${namespaces[@]}"; do
+        log "Waiting up to 2 minutes to verify if pods will be terminated"
+        if ! spinner_until 120 flannel_pods_remain ${ns}; then
+            logWarn "The namespace ${ns} has pods which were not terminated"
         fi
     done
 
@@ -269,15 +282,18 @@ function weave_to_flannel() {
     # Get the list of namespaces
     namespaces=$(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/')
 
-    for ns in ${namespaces}; do
-        # Delete pods with a grace period and timeout, and ignore errors
-        timeout 80 kubectl delete pods -n "${ns}" --all --grace-period=60 || logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
+    for ns in "${namespaces[@]}"; do
+        log "Waiting up to 5 minutes to delete all pods from ${ns}"
+        if ! spinner_until 300 kubectl -n ${ns} delete pods --all --ignore-not-found; then
+            logWarn "Timeout reached while trying to delete pods in namespace: ${ns}"
+        fi
+    done
 
-        # Use the spinner_until function to wait until all pods are deleted
-        if ! spinner_until 60 flannel_pods_remain "${ns}"; then
+    for ns in "${namespaces[@]}"; do
+        log "Waiting up to 2 minutes to verify if pods will be terminated"
+        if ! spinner_until 120 flannel_pods_remain ${ns}; then
             # If pods remain after the timeout, force delete them
-            logWarn "Force deleting remaining pods in namespace: ${ns}"
-            kubectl -n "${ns}" delete pods --all --grace-period=0 --force || true
+            logWarn "The namespace ${ns} has pods which were not terminated"
         fi
     done
 
@@ -304,6 +320,8 @@ function flannel_pods_remain() {
             return 1
         fi
     done
+
+    return 0
 }
 
 function remove_weave() {
