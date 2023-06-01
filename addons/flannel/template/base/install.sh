@@ -148,8 +148,38 @@ function flannel_ready_spinner() {
     fi
 }
 
+# check if weave is installed fully or partially
 function flannel_weave_conflict() {
-    ls /etc/cni/net.d/*weave* >/dev/null 2>&1
+    # Check for weave files in /etc/cni/net.d and /opt/cni/bin
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1 || ls /opt/cni/bin/*weave* >/dev/null 2>&1; then
+        return 1
+    fi
+
+    # Check for WEAVE in the IPTABLES
+    local tables=("filter" "nat")
+    for table in "${tables[@]}"; do
+        if iptables -t $table -n -L | grep 'Chain WEAVE-' >/dev/null 2>&1; then
+            return 1
+        fi
+    done
+
+    # Check for specified weave Kubernetes resources
+    local resources=("daemonset.apps/weave-net"
+                     "rolebinding.rbac.authorization.k8s.io/weave-net"
+                     "role.rbac.authorization.k8s.io/weave-net"
+                     "clusterrolebinding.rbac.authorization.k8s.io/weave-net"
+                     "clusterrole.rbac.authorization.k8s.io/weave-net"
+                     "serviceaccount/weave-net"
+                     "secret/weave-passwd")
+
+    for resource in "${resources[@]}"; do
+        if kubectl get $resource --ignore-not-found >/dev/null 2>&1; then
+            return 1
+        fi
+    done
+
+    # If none of the conditions were met (no conflicts), return true
+    return 0
 }
 
 function flannel_antrea_conflict() {
