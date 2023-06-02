@@ -940,15 +940,21 @@ function build_installer_prefix() {
     local kurl_version="$2"
     local kurl_url="$3"
     local proxy_address="$4"
+    local proxy_https_address="$5"
 
     if [ -z "${kurl_url}" ]; then
         echo "cat "
         return
     fi
 
+    local is_https=
     local curl_flags=
-    if [ -n "${proxy_address}" ]; then
+    if [ -n "${proxy_address}" ] || [ -n "${proxy_https_address}" ]; then
         curl_flags=" -x ${proxy_address}"
+        is_https=$(echo "${kurl_url}" | grep -q "^https" && echo "true" || echo "false")
+        if [ -n "${proxy_https_address}" ] && [ "$is_https" = "true" ]; then
+            curl_flags=" -x ${proxy_https_address}"
+        fi
     fi
 
     if [ -n "${kurl_version}" ]; then
@@ -1502,7 +1508,7 @@ function common_prompt_task_missing_assets() {
     if [ "$AIRGAP" = "1" ]; then
         prefix="cat ./"
     else
-        prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS")"
+        prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS" "$PROXY_HTTPS_ADDRESS")"
     fi
 
     local airgap_flag=

@@ -523,7 +523,7 @@ function upgrade_kubernetes_remote_node() {
         printf "\t%bcat ./upgrade.sh | sudo bash -s airgap kubernetes-version=%s%s%b\n\n" "$GREEN" "$targetK8sVersion" "$common_flags" "$NC"
     else
         local prefix=
-        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
         printf "\t%b %supgrade.sh | sudo bash -s kubernetes-version=%s%s%b\n\n" "$GREEN" "$prefix" "$targetK8sVersion" "$common_flags" "$NC"
     fi
