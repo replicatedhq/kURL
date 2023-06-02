@@ -11,7 +11,9 @@ function test_render_yaml_file_2() {
     # shellcheck disable=SC2034
     local PROXY_ADDRESS=a
     # shellcheck disable=SC2034
-    local NO_PROXY_ADDRESSES=b
+    local PROXY_HTTPS_ADDRESS=b
+    # shellcheck disable=SC2034
+    local NO_PROXY_ADDRESSES=c
     local expects="apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,9 +28,9 @@ spec:
           - name: HTTP_PROXY
             value: \"a\"
           - name: HTTPS_PROXY
-            value: \"a\"
+            value: \"b\"
           - name: NO_PROXY
-            value: \"b\""
+            value: \"c\""
     assertEquals "preserves quotes" "$expects" "$(render_yaml_file_2 "./addons/velero/template/base/tmpl-velero-deployment-proxy.yaml")"
 }
 
