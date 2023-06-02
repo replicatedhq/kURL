@@ -287,10 +287,31 @@ function weave_to_flannel() {
         logStep "Scaling up Rook Ceph after the migration from Weave to Flannel"
 
         kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1
-        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":1},"mon":{"count":3},"osd":{"count":3}}}'
-
         logSuccess "Rook Ceph is scale up"
-        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":'"$MGR_COUNT"'},"mon":{"count":'"$MON_COUNT"'},"osd":{"count":'"$OSD_COUNT"'}}}'
+
+        PATCH='{"spec":{'
+
+        # Check if the variable MGR_COUNT exists
+        if [ -n "${MGR_COUNT}" ]; then
+            PATCH+='"mgr":{"count":'"$MGR_COUNT"'}'
+        fi
+
+        if [ -n "${MON_COUNT}" ]; then
+            if [[ $PATCH != '{"spec":{' ]]; then
+               PATCH+=','
+            fi
+            PATCH+='"mon":{"count":'"$MON_COUNT"'}'
+        fi
+
+        if [ -n "${OSD_COUNT}" ]; then
+            if [[ $PATCH != '{"spec":{' ]]; then
+                PATCH+=','
+            fi
+            PATCH+='"osd":{"count":'"$OSD_COUNT"'}'
+        fi
+
+        PATCH+='}}'
+        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p $PATCH
 
         echo "Awaiting Ceph healthy"
         if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then
