@@ -41,8 +41,21 @@ function flannel_pre_init() {
             bail "Not migrating from Weave to Flannel"
         fi
         flannel_check_nodes_connectivity
+        flannel_check_rook_ceph_status
     fi
 }
+
+function flannel_check_rook_ceph_status() {
+    if kubectl get namespace/rook-ceph ; then
+       logStep "Checking Rook Status prior migrate from Weave to Flannel"
+       if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
+           kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+           bail "Failed to verify the updated cluster, Ceph is not healthy"
+       fi
+       logSuccess "Rook Ceph is healthy"
+    fi
+}
+
 
 # flannel_check_nodes_connectivity verifies that all nodes in the cluster can reach each other through
 # port 8472/UDP (this communication is a flannel requirement).
@@ -158,6 +171,24 @@ function flannel_antrea_conflict() {
 
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
+    local MGR_COUNT=""
+    local MON_COUNT=""
+    local OSD_COUNT=""
+    if kubectl get namespace/rook-ceph ; then
+        logStep "Scaling down Rook Ceph for the migration from Weave to Flannel"
+
+        echo "Scaling down Rook Operator"
+        kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=0
+        echo "Scaling down Rook Ceph"
+
+        # Retrieve the existing count values
+        MGR_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mgr.count}')
+        MON_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.count}')
+        OSD_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.osd.count}')
+
+        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":0},"mon":{"count":0},"osd":{"count":0}}}'
+        logSuccess "Rook Ceph is scaled down"
+    fi
 
     logStep "Removing Weave to install Flannel"
     remove_weave
@@ -251,6 +282,24 @@ function weave_to_flannel() {
     done
 
     sleep 60
+
+    if kubectl get namespace/rook-ceph ; then
+        logStep "Scaling up Rook Ceph after the migration from Weave to Flannel"
+
+        kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1
+        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":1},"mon":{"count":3},"osd":{"count":3}}}'
+
+        logSuccess "Rook Ceph is scale up"
+        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":'"$MGR_COUNT"'},"mon":{"count":'"$MON_COUNT"'},"osd":{"count":'"$OSD_COUNT"'}}}'
+
+        echo "Awaiting Ceph healthy"
+        if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+            logWarn "RookCeph is not healthy. Migration from Weave to Flannel does not seems to be completed successfully"
+            return
+        fi
+    fi
+
     logSuccess "Migrated from Weave to Flannel"
 }
 
