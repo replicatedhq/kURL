@@ -8,6 +8,6 @@ metadata:
     kurl.sh/restore-kotsadm-plugin: RestoreItemAction
 data:
   HTTP_PROXY: ${PROXY_ADDRESS:-'""'}
-  HTTPS_PROXY: ${PROXY_ADDRESS:-'""'}
+  HTTPS_PROXY: ${PROXY_HTTPS_ADDRESS:-'""'}
   NO_PROXY: ${NO_PROXY_ADDRESSES:-'""'}
   hostCAPath: ${KOTSADM_TRUSTED_CERT_MOUNT:-'""'}

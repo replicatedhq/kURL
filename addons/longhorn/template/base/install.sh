@@ -183,7 +183,7 @@ function longhorn_maybe_init_hosts() {
                     printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s longhorn-node-initilize airgap${NC}\n\n"
                 else
                     local prefix=
-                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
                     printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s longhorn-node-initilize${NC}\n\n"
                 fi
 

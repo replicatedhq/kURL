@@ -319,15 +319,16 @@ function velero_kotsadm_restore_config() {
 function velero_patch_http_proxy() {
     local src="$1"
     local dst="$2"
-
-    if [ -n "$PROXY_ADDRESS" ]; then
+    if [ -n "$PROXY_ADDRESS" ] || [ -n "$PROXY_HTTPS_ADDRESS" ]; then
+        if [ -z "$PROXY_HTTPS_ADDRESS" ]; then
+            PROXY_HTTPS_ADDRESS="$PROXY_ADDRESS"
+        fi
         render_yaml_file_2 "$src/tmpl-velero-deployment-proxy.yaml" > "$dst/velero-deployment-proxy.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" velero-deployment-proxy.yaml
-    fi
-
-    if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
-        render_yaml_file_2 "$src/tmpl-node-agent-daemonset-proxy.yaml" > "$dst/node-agent-daemonset-proxy.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-proxy.yaml
+        if [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
+            render_yaml_file_2 "$src/tmpl-node-agent-daemonset-proxy.yaml" > "$dst/node-agent-daemonset-proxy.yaml"
+            insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-proxy.yaml
+        fi
     fi
 }
 
