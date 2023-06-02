@@ -286,7 +286,7 @@ function remove_weave() {
     for resource in "${resources[@]}"; do
         if kubectl -n kube-system get "$resource" &> /dev/null; then
             logWarn "Resource: $resource still exists. Attempting force deletion."
-            if ! spinner_until 30 kubectl -n kube-system delete "$resource" --force --grace-period=0 1>/dev/null; then
+            if ! timeout 30 kubectl -n kube-system delete "$resource" --force --grace-period=0 1>/dev/null; then
                 logWarn "Timeout occurred while force deleting resource: $resource"
             fi
             echo "waiting 30 seconds to check removal"
