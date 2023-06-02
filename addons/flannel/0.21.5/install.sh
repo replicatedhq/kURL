@@ -321,6 +321,10 @@ function remove_weave() {
         fi
     done
 
+    if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --ignore-not-found &> /dev/null; then
+        logWarn "Timeout occurred while deleting weave Pods"
+    fi
+
     # Delete the weave network interface, if it exists
     if ip link show weave > /dev/null 2>&1; then
         ip link delete weave
