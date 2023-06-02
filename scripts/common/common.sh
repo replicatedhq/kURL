@@ -887,15 +887,16 @@ function restart_systemd_and_wait() {
 
     local pid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
 
-    echo "Restarting $serviceName..."
+    logSubstep "Restarting $serviceName..."
     systemctl restart $serviceName
 
+    log "Checking if $serviceName was restarted successfully"
     if ! spinner_until 120 systemd_restart_succeeded $pid $serviceName; then
         journalctl -xe
         bail "Could not successfully restart systemd service $serviceName"
     fi
 
-    echo "Service $serviceName restarted."
+    logSuccess "Service $serviceName restarted."
 }
 
 # returns true when a job has completed
