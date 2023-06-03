@@ -50,7 +50,8 @@ function flannel_check_rook_ceph_status() {
        logStep "Checking Rook Status prior migrate from Weave to Flannel"
        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
-           bail "Failed to verify the updated cluster, Ceph is not healthy"
+           bail "Failed to verify Rook, Ceph is not healthy. The migration from Weave to Flannel can not be performed"
+           bail "Please, ensure that Rook Ceph is healthy."
        fi
        logSuccess "Rook Ceph is healthy"
     fi
@@ -174,6 +175,13 @@ function weave_to_flannel() {
     local MGR_COUNT=""
     local MON_COUNT=""
     local OSD_COUNT=""
+
+    # If we have Rook installed we need to scale down it before migrate
+    # Otherwise, it might end up blocking the Pods termination in the
+    # kube-system and if we or users force the deletion in some scenarios
+    # it might end up in an unresponsive cluster with the nodes status
+    # notReady. At the end we will scale up Rook again with the same
+    # cephCluster values obtained found before we scale it down.
     if kubectl get namespace/rook-ceph ; then
         logStep "Scaling down Rook Ceph for the migration from Weave to Flannel"
 
@@ -343,7 +351,10 @@ function remove_weave() {
     done
 
     if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --ignore-not-found &> /dev/null; then
-        logWarn "Timeout occurred while deleting weave Pods"
+        logWarn "Timeout occurred while deleting weave Pods. Attempting force deletion."
+        if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --force --grace-period=0 1>/dev/null; then
+             logWarn "Timeout occurred while force Weave Pods deletion"
+        fi
     fi
 
     # Delete the weave network interface, if it exists
@@ -374,6 +385,11 @@ function remove_weave() {
             return
         fi
     done
+
+    if kubectl get pods -n kube-system -l name=weave-net &> /dev/null; then
+       logWarn "Unable to remove Weave Pods"
+       return
+    fi
 
     logSuccess "Weave has been successfully removed."
 }
