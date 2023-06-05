@@ -14,7 +14,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
-	github.com/itchyny/gojq v0.12.12
+	github.com/itchyny/gojq v0.12.13
 	github.com/longhorn/longhorn-manager v1.4.1
 	github.com/mattn/go-isatty v0.0.19
 	github.com/minio/minio-go v6.0.14+incompatible
