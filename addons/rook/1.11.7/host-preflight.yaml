@@ -1,0 +1,40 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+  - blockDevices:
+      exclude: '{{kurl .IsUpgrade }}'
+  - tcpPortStatus:
+      collectorName: "Pod csi-rbdplugin Host Port"
+      port: 9090
+      exclude: '{{kurl .IsUpgrade }}'
+
+  analyzers:
+  - blockDevices:
+      includeUnmountedPartitions: true
+      minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
+      exclude: '{{kurl .IsUpgrade }}'
+      outcomes:
+      - pass:
+          when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1"
+          message: One available block device
+      - pass:
+          when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1"
+          message: Multiple available block devices
+      - fail:
+          message: "No available unformatted block devices were found, and Rook requires one. For further information see: https://kurl.sh/docs/add-ons/rook#block-storage"
+  - tcpPortStatus:
+      checkName: "Pod csi-rbdplugin Host Port Status"
+      collectorName: "Pod csi-rbdplugin Host Port"
+      exclude: '{{kurl .IsUpgrade }}'
+      outcomes:
+      - pass:
+          when: "connected"
+          message: "Port 9090 is available for use."
+      - fail:
+          when: "address-in-use"
+          message: "Another process is listening on port 9090."
+      - fail:
+          message: "Unexpected error connecting to port 9090."
