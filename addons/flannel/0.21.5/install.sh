@@ -172,9 +172,9 @@ function flannel_antrea_conflict() {
 
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
-    local MGR_COUNT=""
-    local MON_COUNT=""
-    local OSD_COUNT=""
+#    local MGR_COUNT=""
+#    local MON_COUNT=""
+#    local OSD_COUNT=""
 
     # If we have Rook installed we need to scale down it before migrate
     # Otherwise, it might end up blocking the Pods termination in the
@@ -189,12 +189,12 @@ function weave_to_flannel() {
         kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=0
         echo "Scaling down Rook Ceph"
 
-        # Retrieve the existing count values
-        MGR_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mgr.count}')
-        MON_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.count}')
-        OSD_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.osd.count}')
-
-        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":0},"mon":{"count":0},"osd":{"count":0}}}'
+#        # Retrieve the existing count values
+#        MGR_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mgr.count}')
+#        MON_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.count}')
+#        OSD_COUNT=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.osd.count}')
+#
+#        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mgr":{"count":0},"mon":{"count":0},"osd":{"count":0}}}'
         logSuccess "Rook Ceph is scaled down"
     fi
 
@@ -297,29 +297,29 @@ function weave_to_flannel() {
         kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1
         logSuccess "Rook Ceph is scale up"
 
-        PATCH='{"spec":{'
-
-        # Check if the variable MGR_COUNT exists
-        if [ -n "${MGR_COUNT}" ]; then
-            PATCH+='"mgr":{"count":'"$MGR_COUNT"'}'
-        fi
-
-        if [ -n "${MON_COUNT}" ]; then
-            if [[ $PATCH != '{"spec":{' ]]; then
-               PATCH+=','
-            fi
-            PATCH+='"mon":{"count":'"$MON_COUNT"'}'
-        fi
-
-        if [ -n "${OSD_COUNT}" ]; then
-            if [[ $PATCH != '{"spec":{' ]]; then
-                PATCH+=','
-            fi
-            PATCH+='"osd":{"count":'"$OSD_COUNT"'}'
-        fi
-
-        PATCH+='}}'
-        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p $PATCH
+#        PATCH='{"spec":{'
+#
+#        # Check if the variable MGR_COUNT exists
+#        if [ -n "${MGR_COUNT}" ]; then
+#            PATCH+='"mgr":{"count":'"$MGR_COUNT"'}'
+#        fi
+#
+#        if [ -n "${MON_COUNT}" ]; then
+#            if [[ $PATCH != '{"spec":{' ]]; then
+#               PATCH+=','
+#            fi
+#            PATCH+='"mon":{"count":'"$MON_COUNT"'}'
+#        fi
+#
+#        if [ -n "${OSD_COUNT}" ]; then
+#            if [[ $PATCH != '{"spec":{' ]]; then
+#                PATCH+=','
+#            fi
+#            PATCH+='"osd":{"count":'"$OSD_COUNT"'}'
+#        fi
+#
+#        PATCH+='}}'
+#        kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p $PATCH
 
         echo "Awaiting Ceph healthy"
         if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then

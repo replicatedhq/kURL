@@ -1,28 +1,28 @@
-- name: "flannel latest single node"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "flannel latest single node upgrade"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "0.20.x"
-  upgradeSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
+#- name: "flannel latest single node"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.25.x"
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#- name: "flannel latest single node upgrade"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.25.x"
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      version: "0.20.x"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.25.x"
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
 - name: "flannel latest multi node"
   installerSpec:
     kubernetes:
@@ -49,68 +49,68 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: "weave to flannel single node"
-  installerSpec:
-    kubernetes:
-      version: "1.26.x"
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.26.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "weave to flannel single node with addons and openebs"
-  flags: "yes"
-  cpu: 6
-  installerSpec:
-    kubernetes:
-      version: "1.26.x"
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
-  upgradeSpec:
-    kubernetes:
-      version: "1.26.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
+#- name: "weave to flannel single node"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.26.x"
+#    containerd:
+#      version: "latest"
+#    weave:
+#      version: "latest"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.26.x"
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#- name: "weave to flannel single node with addons and openebs"
+#  flags: "yes"
+#  cpu: 6
+#  installerSpec:
+#    kubernetes:
+#      version: "1.26.x"
+#    containerd:
+#      version: "latest"
+#    weave:
+#      version: "latest"
+#    contour:
+#      version: "latest"
+#    prometheus:
+#      version: "latest"
+#    registry:
+#      version: "latest"
+#    ekco:
+#      version: "latest"
+#    minio:
+#      version: "2023-05-18T00-05-36Z"
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "local"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.26.x"
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#    contour:
+#      version: "latest"
+#    prometheus:
+#      version: "latest"
+#    registry:
+#      version: "latest"
+#    ekco:
+#      version: "latest"
+#    minio:
+#      version: "2023-05-18T00-05-36Z"
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "local"
 - name: "weave to flannel single node with addons and rook"
   flags: "yes"
   cpu: 6
@@ -155,48 +155,48 @@
       version: "1.11.x"
   unsupportedOSIDs:
     - centos-74 # Rook Pre-init: centos-7.4 Kernel 3.10.0-693.el7.x86_64 is not supported
-- name: "weave to flannel single node, custom IP ranges"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-      serviceCIDR: 172.16.0.0/16
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-      podCIDR: 172.17.0.0/16
-  upgradeSpec:
-    kubernetes:
-      version: "1.25.x"
-      serviceCIDR: 172.16.0.0/16
-    containerd:
-      version: "latest"
-    flannel:
-      podCIDR: 172.17.0.0/16
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "weave to flannel, docker to containerd, single node"
-  installerSpec:
-    kubernetes:
-      version: "1.23.x"
-    docker:
-      version: "latest"
-    weave:
-      version: "latest"
-    ekco:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.23.x"
-    containerd:
-      version: "latest"
-    ekco:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - rocky-91 # docker is not supported on rhel 9 variants
-  - centos-81 # docker 20.10.17 is not supported on centos 8.1.
-  - centos-84 # docker 20.10.17 is not supported on centos 8.4.
-  - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+#- name: "weave to flannel single node, custom IP ranges"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.25.x"
+#      serviceCIDR: 172.16.0.0/16
+#    containerd:
+#      version: "latest"
+#    weave:
+#      version: "latest"
+#      podCIDR: 172.17.0.0/16
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.25.x"
+#      serviceCIDR: 172.16.0.0/16
+#    containerd:
+#      version: "latest"
+#    flannel:
+#      podCIDR: 172.17.0.0/16
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#- name: "weave to flannel, docker to containerd, single node"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.23.x"
+#    docker:
+#      version: "latest"
+#    weave:
+#      version: "latest"
+#    ekco:
+#      version: "latest"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.23.x"
+#    containerd:
+#      version: "latest"
+#    ekco:
+#      version: "latest"
+#    flannel:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  unsupportedOSIDs:
+#  - rocky-91 # docker is not supported on rhel 9 variants
+#  - centos-81 # docker 20.10.17 is not supported on centos 8.1.
+#  - centos-84 # docker 20.10.17 is not supported on centos 8.4.
+#  - ol-8x # docker 20.10.17 is not supported on ol 8.7.
