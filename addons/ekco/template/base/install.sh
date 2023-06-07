@@ -429,6 +429,7 @@ function ekco_create_deployment() {
     cp "$src/rbac.yaml" "$dst/rbac.yaml"
     cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
+    cp "$src/service.yaml" "$dst/service.yaml"
 
     # is rook enabled
     if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
