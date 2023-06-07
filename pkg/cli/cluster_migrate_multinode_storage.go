@@ -42,9 +42,6 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 			if opts.minimumNrNodes <= 0 {
 				return fmt.Errorf("--minimum-number-of-nodes flag is required to be > 0.")
 			}
-			if opts.ekcoAddress == "" {
-				return fmt.Errorf("--ekco-address flag is required.")
-			}
 			cmd.SilenceUsage = true
 			return nil
 		},
