@@ -875,6 +875,10 @@ function systemd_restart_succeeded() {
         return 1
     fi
 
+    if [ "$newPid" = "0" ]; then
+        return 1
+    fi
+
     if ps -p $oldPid >/dev/null 2>&1; then
         return 1
     fi
