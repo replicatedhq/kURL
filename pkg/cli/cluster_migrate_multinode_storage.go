@@ -52,7 +52,7 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting for the cluster to be ready for the storage migration.")
 	cmd.Flags().DurationVar(&opts.migrateTimeout, "migrate-timeout", 8*time.Hour, "Timeout waiting for the storage migration to finish.")
 	cmd.Flags().IntVar(&opts.minimumNrNodes, "minimum-number-of-nodes", 0, "Indicates the desired minimum number of nodes to start the migration.")
-	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "ecko-operator.kurl:"+strconv.Itoa(ekcoPort), "The address of the ekco operator.")
+	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "ekc-operator.kurl:"+strconv.Itoa(ekcoPort), "The address of the ekco operator.")
 	cmd.Flags().StringVar(&opts.authToken, "ekco-auth-token", "", "The auth token to use to authenticate with the ekco operator.")
 	return cmd
 }
