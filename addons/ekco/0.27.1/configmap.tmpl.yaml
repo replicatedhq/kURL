@@ -49,3 +49,4 @@ data:
     enable_ha_kotsadm: $EKCO_MAINTAIN_KOTSADM
     rook_minimum_node_count: ${ROOK_MINIMUM_NODE_COUNT:-0}
     rook_storage_class: "${STORAGE_CLASS:-distributed}"
+    storage_migration_auth_token: "$storage_migration_auth_token"

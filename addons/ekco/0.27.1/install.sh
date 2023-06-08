@@ -465,6 +465,10 @@ function ekco_create_deployment() {
         # shellcheck disable=SC2034
         rook_storage_nodes="$(echo "$ROOK_NODES" | yaml_escape_string_quotes | yaml_newline_to_literal)"
     fi
+    local storage_migration_auth_token=
+    # configmap.tmpl.yaml makes use of local variable storage_migration_auth_token
+    # shellcheck disable=SC2034
+    storage_migration_auth_token=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)
     render_yaml_file_2 "$src/configmap.tmpl.yaml" > "$dst/configmap.yaml"
 
     local ekco_config_hash=
