@@ -41,8 +41,22 @@ function flannel_pre_init() {
             bail "Not migrating from Weave to Flannel"
         fi
         flannel_check_nodes_connectivity
+        flannel_check_rook_ceph_status
     fi
 }
+
+function flannel_check_rook_ceph_status() {
+    if kubectl get namespace/rook-ceph ; then
+       logStep "Checking Rook Status prior migrate from Weave to Flannel"
+       if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
+           kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+           bail "Failed to verify Rook, Ceph is not healthy. The migration from Weave to Flannel can not be performed"
+           bail "Please, ensure that Rook Ceph is healthy."
+       fi
+       logSuccess "Rook Ceph is healthy"
+    fi
+}
+
 
 # flannel_check_nodes_connectivity verifies that all nodes in the cluster can reach each other through
 # port 8472/UDP (this communication is a flannel requirement).
@@ -141,11 +155,12 @@ function flannel_health_check() {
 }
 
 function flannel_ready_spinner() {
-    echo "Waiting up to 5 minutes for Flannel to become healthy"
+    logSubstep "Waiting up to 5 minutes for Flannel to become healthy"
     if ! spinner_until 300 flannel_health_check; then
         kubectl logs -n kube-flannel -l app=flannel --all-containers --tail 10 || true
         bail "The Flannel add-on failed to deploy successfully."
     fi
+    logSuccess "Flannel is healthy"
 }
 
 function flannel_weave_conflict() {
@@ -156,17 +171,143 @@ function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
 }
 
+function flannel_scale_down_ekco() {
+    if ! kubernetes_resource_exists kurl deployment ekc-operator ; then
+        return
+    fi
+
+    if [ "$(kubectl -n kurl get deployments ekc-operator -o jsonpath='{.spec.replicas}')" = "0" ]; then
+        return
+    fi
+    logSubstep "Scaling down Ekco Operator"
+    kubectl -n kurl scale deployment ekc-operator --replicas=0
+
+    log "Waiting for ekco pods to be removed"
+    if ! spinner_until 300 ekco_pods_gone; then
+        bail "Unable to scale down ekco operator"
+    fi
+    logSuccess "Ecko Operator is scaled down"
+}
+
+# rook_scale_up_ekco will scale up ekco to 1 replica
+function flannel_scale_up_ekco() {
+    if ! kubernetes_resource_exists kurl deployment ekc-operator ; then
+        return
+    fi
+
+    logSubstep "Scaling up Ecko Operator"
+    if ! timeout 120 kubectl -n kurl scale deployment ekc-operator --replicas=1 1>/dev/null; then
+        logWarn "Failed to scale down Ecko Operator within the timeout period."
+        return
+    fi
+
+    logSuccess "Ecko is scaled up"
+}
+
+
+# rook_scale_down_prometheus will scale down prometheus to 0 replicas
+function flannel_scale_down_prometheus() {
+    if ! kubernetes_resource_exists monitoring prometheus k8s ; then
+        return
+    fi
+
+    if [ "$(kubectl -n monitoring get prometheus k8s -o jsonpath='{.spec.replicas}')" = "0" ]; then
+        return
+    fi
+
+    logSubstep "Scaling down Prometheus"
+
+    log "Patching prometheus to scale down"
+    if ! timeout 120 kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]' 1>/dev/null; then
+        logWarn "Failed to patch Prometheus to scale down within the timeout period."
+    fi
+
+    log "Waiting 30 seconds to let Prometheus scale down"
+    sleep 30
+
+    log "Waiting for prometheus pods to be removed"
+    if ! spinner_until 300 prometheus_pods_gone; then
+        logWarn "Prometheus pods still running. Trying once more"
+        kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+        if ! spinner_until 300 prometheus_pods_gone; then
+            bail "Unable to scale down prometheus"
+        fi
+    fi
+    logSuccess "Prometheus is scaled down"
+}
+
+# flannel_scale_up_prometheus will scale up prometheus replicas to 2
+function flannel_scale_up_prometheus() {
+    if ! kubernetes_resource_exists monitoring prometheus k8s ; then
+        return
+    fi
+
+    logSubstep "Scaling up Prometheus"
+    if ! timeout 120 kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]' 1>/dev/null; then
+        logWarn "Failed to patch Prometheus to scale up within the timeout period."
+    fi
+
+    log "Awaiting Prometheus pods to transition to Running"
+    if ! spinner_until 300 check_for_running_pods "monitoring"; then
+        logWarn "Prometheus scale up did not complete within the allotted time"
+        return
+    fi
+
+    logSuccess "Prometheus is scaled up"
+}
+
+function flannel_scale_down_rook() {
+    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-operator; then
+        return
+    fi
+
+    logSubstep "Scaling down Rook Ceph for the migration from Weave to Flannel"
+    log "Scaling down Rook Operator"
+    if ! timeout 300 kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=0 1>/dev/null; then
+        kubectl logs -n rook-ceph -l app=rook-ceph-operator --all-containers --tail 10 || true
+        bail "The Rook Ceph operator failed to scale down within the timeout period."
+    fi
+
+    logSuccess "Rook Ceph is scaled down"
+}
+
+function flannel_scale_up_rook() {
+    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-operator; then
+        return
+    fi
+
+    logSubstep "Scaling up Rook Ceph"
+    if ! timeout 120 kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1 1>/dev/null; then
+        logWarn "Failed to scale up Rook Operator within the timeout period."
+    fi
+
+    log "Waiting Ceph become healthy"
+    if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then
+        kubectl logs -n rook-ceph -l app=rook-ceph-operator --all-containers --tail 10 || true
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        logWarn "RookCeph is not healthy. Migration from Weave to Flannel does not seems to be completed successfully"
+        return
+    fi
+
+    logSuccess "Rook Ceph is scale up"
+}
+
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
 
-    logStep "Removing Weave to install Flannel"
-    remove_weave
+    logStep "Scale down services prior remove Weave"
+    flannel_scale_down_ekco
+    flannel_scale_down_rook
+    flannel_scale_down_prometheus
+    logSuccess "Services scaled down successfully"
 
-    logStep "Updating kubeadm to use Flannel"
+    remove_weave
     flannel_kubeadm
 
     logStep "Applying Flannel"
     kubectl -n kube-flannel apply -k "$dst/"
+    logSuccess "Flannel applied successfully"
+
 
     # if there is more than one node, prompt to run on each primary/master node, and then on each worker/secondary node
     local master_node_count=
@@ -174,6 +315,8 @@ function weave_to_flannel() {
     local master_node_names=
     master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
     if [ "$master_node_count" -gt 1 ]; then
+        logStep "Required to remove Weave from Primary Nodes"
+
         local other_master_nodes=
         other_master_nodes=$(echo "$master_node_names" | grep -v "$(get_local_node_name)")
         printf "${YELLOW}Moving primary nodes from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
@@ -196,6 +339,9 @@ function weave_to_flannel() {
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
         prompt
+
+        logSuccess "User confirmation about nodes execution."
+        log "Deleting Pods from kube-flannel"
         kubectl -n kube-flannel delete pods --all
     fi
 
@@ -204,6 +350,8 @@ function weave_to_flannel() {
     local worker_node_names=
     worker_node_names=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
     if [ "$worker_node_count" -gt 0 ]; then
+        logStep "Required to remove Weave from Nodes"
+
         printf "${YELLOW}Moving from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
         printf "${YELLOW}Please run the following command on each of the listed secondary nodes:${NC}\n\n"
         printf "${worker_node_names}\n"
@@ -221,19 +369,26 @@ function weave_to_flannel() {
         kubectl -n kube-flannel delete pods --all
     fi
 
-    echo "waiting for kube-flannel-ds to become healthy in kube-flannel"
-    spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"
+    log "Waiting for kube-flannel-ds to become healthy in kube-flannel"
+    if ! spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"; then
+       logWarn "Unable to fully update Kube Flannel daemonset"
+    fi
 
     logStep "Restarting kubelet"
+    log "Stopping Kubelet"
     systemctl stop kubelet
+    log "Flushing IP Tables"
     iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
-    echo "waiting for containerd to restart"
+    log "Waiting for containerd to restart"
     restart_systemd_and_wait containerd
-    echo "waiting for kubelet to restart"
+    log "Waiting for kubelet to restart"
     restart_systemd_and_wait kubelet
 
     logStep "Restarting pods in kube-system"
+    log "it may take several minutes to delete all pods"
     kubectl -n kube-system delete pods --all
+
+    logStep "Restarting pods in kube-flannel"
     kubectl -n kube-flannel delete pods --all
     flannel_ready_spinner
 
@@ -251,10 +406,18 @@ function weave_to_flannel() {
     done
 
     sleep 60
-    logSuccess "Migrated from Weave to Flannel"
+
+    logStep "Scale up services"
+    flannel_scale_up_ekco
+    flannel_scale_up_prometheus
+    flannel_scale_up_rook
+    logSuccess "Services scaled up successfully"
+
+    logSuccess "Migration from Weave to Flannel finished"
 }
 
 function remove_weave() {
+    logStep "Removing Weave to install Flannel"
     local resources=("daemonset.apps/weave-net"
                      "rolebinding.rbac.authorization.k8s.io/weave-net"
                      "role.rbac.authorization.k8s.io/weave-net"
@@ -262,6 +425,12 @@ function remove_weave() {
                      "clusterrole.rbac.authorization.k8s.io/weave-net"
                      "serviceaccount/weave-net"
                      "secret/weave-passwd")
+
+    # Seems that we need to delete first the daemonset
+    log "Remove weave resources"
+    if ! timeout 60 kubectl delete daemonset.apps/weave-net -n kube-system --ignore-not-found 1>/dev/null; then
+         logWarn "Timeout occurred while delete  daemonset.apps/weave-net"
+    fi
 
     # Check if resource exists before deleting it
     for resource in "${resources[@]}"; do
@@ -272,7 +441,14 @@ function remove_weave() {
         fi
     done
 
-    # Delete the weave network interface, if it exists
+    if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --ignore-not-found &> /dev/null; then
+        logWarn "Timeout occurred while deleting weave Pods. Attempting force deletion."
+        if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --force --grace-period=0 1>/dev/null; then
+             logWarn "Timeout occurred while force Weave Pods deletion"
+        fi
+    fi
+
+    log "Delete the weave network interface, if it exists"
     if ip link show weave > /dev/null 2>&1; then
         ip link delete weave
     fi
@@ -282,7 +458,6 @@ function remove_weave() {
     rm -rf /opt/cni/bin/weave*
 
     logStep "Verifying Weave removal"
-
     for resource in "${resources[@]}"; do
         if kubectl -n kube-system get "$resource" &> /dev/null; then
             logWarn "Resource: $resource still exists. Attempting force deletion."
@@ -294,17 +469,30 @@ function remove_weave() {
         fi
     done
 
+    if kubectl get pods -n kube-system -l name=weave-net 2>/dev/null | grep -q .; then
+        logWarn "Forcing deletion of Weave Pods"
+        if ! timeout 60 kubectl delete pods -n kube-system -l name=weave-net --force 1>/dev/null; then
+             logWarn "Timeout occurred while force Weave Pods deletion"
+        fi
+        echo "waiting 30 seconds to check removal"
+        sleep 30
+    fi
+
     for resource in "${resources[@]}"; do
         if kubectl -n kube-system get "$resource" &> /dev/null; then
-            logWarn "Unable to remove resource: $resource"
-            return
+            bail "Unable to remove Weave resources to move with the migration"
         fi
     done
+
+    if kubectl get pods -n kube-system -l name=weave-net 2>/dev/null | grep -q .; then
+        bail "Weave pods still exist. Unable to proceed with the migration."
+    fi
 
     logSuccess "Weave has been successfully removed."
 }
 
 function flannel_kubeadm() {
+    logStep "Updating kubeadm to use Flannel"
     # search for 'serviceSubnet', add podSubnet above it
     local pod_cidr_range_line=
     pod_cidr_range_line="  podSubnet: ${POD_CIDR}"
@@ -316,6 +504,7 @@ function flannel_kubeadm() {
 
     kubeadm init phase upload-config kubeadm --config="$KUBEADM_CONF_FILE"
     kubeadm init phase control-plane controller-manager --config="$KUBEADM_CONF_FILE"
+    logSuccess "Kubeadm updated successfully"
 }
 
 function flannel_already_applied() {
