@@ -141,6 +141,7 @@ rules:
     resources:
       - storageclasses
     verbs:
+      - create
       - get
       - list
       - update

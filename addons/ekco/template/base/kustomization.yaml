@@ -6,3 +6,4 @@ resources:
 - configmap.yaml
 - deployment.yaml
 - rotate-certs-rbac.yaml
+- service.yaml

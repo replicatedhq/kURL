@@ -36,6 +36,7 @@ rules:
       - cephfilesystems
       - cephobjectstores
     verbs:
+      - create
       - get
       - update
       - patch
