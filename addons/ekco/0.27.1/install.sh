@@ -457,13 +457,17 @@ function ekco_create_deployment() {
         render_yaml_file_2 "$src/rolebinding-kotsadm.yaml" >> "$dst/rolebinding.yaml"
     fi
 
-    local rook_storage_nodes=
+    local storage_migration_auth_token=
     if [ -n "$ROOK_NODES" ]; then
         # replace newlines with \n and escape double quotes
         # configmap.tmpl.yaml makes use of local variable rook_storage_nodes
         # shellcheck disable=SC2034
         rook_storage_nodes="$(echo "$ROOK_NODES" | yaml_escape_string_quotes | yaml_newline_to_literal)"
     fi
+    local rook_storage_nodes=
+    # configmap.tmpl.yaml makes use of local variable storage_migration_auth_token
+    # shellcheck disable=SC2034
+    storage_migration_auth_token=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)
     render_yaml_file_2 "$src/configmap.tmpl.yaml" > "$dst/configmap.yaml"
 
     local ekco_config_hash=
