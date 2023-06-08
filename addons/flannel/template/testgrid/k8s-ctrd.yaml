@@ -113,7 +113,7 @@
       localPVStorageClassName: "local"
 - name: "weave to flannel single node with addons and rook"
   flags: "yes"
-  cpu: 6
+  cpu: 8
   installerSpec:
     kubernetes:
       version: "1.26.x"
