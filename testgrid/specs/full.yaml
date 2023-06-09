@@ -2652,3 +2652,55 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
     - rocky-92 # docker is not supported on rhel 9 variants
+- name: "weave to flannel single node with addons and openebs"
+  flags: "yes"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    rook:
+      version: "1.11.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    rook:
+      version: "1.11.x"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
