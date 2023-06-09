@@ -30,10 +30,15 @@ function init_preflights() {
 # if kurl pods like ekco not be running then we should bail
 function bail_if_kurl_pods_are_unhealthy() {
     if commandExists kubectl; then
-      log "Awaiting 2 minutes to check kURL Pod(s) are Running"
-      if ! spinner_until 120 check_for_running_pods kurl; then
-          bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
-      fi
+        # if host preflight are being ignored we just move forward.
+        if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+            logWarn "Host preflight checks being ignored, moving on without checking for unhealthy pods in kurl namespace."
+            return 0
+        fi
+        log "Awaiting 2 minutes to check kURL Pod(s) are Running"
+        if ! spinner_until 120 check_for_running_pods kurl; then
+            bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
+        fi
     fi
 }
 
