@@ -7772,7 +7772,7 @@ spec:
         - --log-level info
         command:
         - envoy
-        image: envoyproxy/envoy:v1.26.1
+        image: envoyproxy/envoy:v1.26.2
         imagePullPolicy: IfNotPresent
         name: envoy
         env:
