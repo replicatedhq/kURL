@@ -1,2 +1,2 @@
-image envoy docker.io/envoyproxy/envoy:v1.26.1
+image envoy docker.io/envoyproxy/envoy:v1.26.2
 image contour ghcr.io/projectcontour/contour:v1.25.0
