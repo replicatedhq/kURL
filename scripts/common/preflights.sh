@@ -72,13 +72,13 @@ function bailIfUnsupportedOS() {
             ;;
         rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel9.0|rhel9.1)
             ;;
-        rocky9.0|rocky9.1)
+        rocky9.0|rocky9.1|rocky9.2)
             ;;
         centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
         amzn2)
             ;;
-        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7)
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7|ol8.8)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}. The list of supported operating systems can be viewed at https://kurl.sh/docs/install-with-kurl/system-requirements."
@@ -194,12 +194,14 @@ checkFirewalld() {
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
         return
     fi
-    if ! systemctl -q is-active firewalld ; then
+
+    if ! systemctl -q is-enabled firewalld && ! systemctl -q is-active firewalld; then
+        logSuccess "Firewalld is either not enabled or not active."
         return
     fi
 
     if [ "$HARD_FAIL_ON_FIREWALLD" = "1" ]; then
-        printf "${RED}Firewalld is active${NC}\n" 1>&2
+        printf "${RED}Firewalld is currently either enabled or active. Stop (systemctl stop firewalld) and disable Firewalld (systemctl disable firewalld) before proceeding.{NC}\n" 1>&2
         exit 1
     fi
 
@@ -209,14 +211,14 @@ checkFirewalld() {
         return
     fi
    
-    printf "${YELLOW}Firewalld is active, please press Y to disable ${NC}"
+    printf "${YELLOW}Firewalld is currently either enabled or active. To ensure smooth installation and avoid potential issues, it is highly recommended to stop and disable Firewalld. Please press 'Y' to proceed with stopping and disabling Firewalld.${NC}"
     if confirmY ; then
         systemctl stop firewalld
         systemctl disable firewalld
         return
     fi
 
-    printf "${YELLOW}Continue with firewalld active? ${NC}"
+    printf "${YELLOW}Please note that if you choose to continue with Firewalld enabled and active, the installer may encounter unexpected behaviors and may not function properly. Therefore, it is strongly advised to stop and completely disable Firewalld before proceeding. Continue with firewalld enabled and/or active?${NC}"
     if confirmN ; then
         BYPASS_FIREWALLD_WARNING=1
         return
@@ -373,15 +375,15 @@ selinux_enforced() {
 }
 
 function kotsadm_prerelease() {
-    if [ -n "$TESTGRID_ID" ]; then
-        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC}\n"
-        return 0
-    fi
-
     if [ "$KOTSADM_VERSION" = "alpha" ] || [ "$KOTSADM_VERSION" = "nightly" ]; then
-        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Press Y to continue.${NC} "
-        if ! confirmN; then
-            bail "\nWill not install prerelease version of kotsadm."
+        if [ -n "$TESTGRID_ID" ]; then
+            printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC}\n"
+            return 0
+        else
+            printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Press Y to continue.${NC} "
+            if ! confirmN; then
+                bail "\nWill not install prerelease version of kotsadm."
+            fi
         fi
     fi
 }
@@ -597,8 +599,6 @@ function host_preflights() {
     if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
-
-        # TODO: report preflight fail
     else
         set +e
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
@@ -627,7 +627,25 @@ function host_preflights() {
                 ;;
         esac                                       
     fi
-    logStep "Host preflights success"
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+       logWarn "Using host-preflight-ignore flag to disregard any failures during the pre-flight checks"
+
+       case $kurl_exit_code in
+           3)
+               logFail "Host preflights have warnings that should block the installation."
+               return
+               ;;
+           2)
+               logWarn "Host preflights have warnings which is highly recommended to sort out the conditions before proceeding."
+               return
+               ;;
+           1)
+               logFail "Host preflights have failures that should block the installation."
+               return
+               ;;
+       esac
+    fi
+    logSuccess "Host preflights success"
 }
 
 IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR="in-cluster-preflights"
@@ -641,6 +659,11 @@ function cluster_preflights() {
 
     # Do not run those tests when/if kubernetes is not installed
     if ! commandExists kubectl; then
+        return
+    fi
+
+    if [ ! -f /etc/kubernetes/admin.conf ]; then
+        log "In cluster Preflights will not be executed because /etc/kubernetes/admin.conf is not found"
         return
     fi
 
@@ -675,7 +698,6 @@ function cluster_preflights() {
     if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
-        # TODO: report preflight fail
     else
         set +e
         "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
@@ -686,10 +708,10 @@ function cluster_preflights() {
 
         case $kurl_exit_code in
             3)
-                bail "On cluster Preflights have warnings that block the installation."
+                bail "In cluster Preflights have warnings that block the installation."
                 ;;
             2)
-                logWarn "Preflights checks executed on cluster have warnings"
+                logWarn "Preflights checks executed in cluster have warnings"
                 logWarn "It is highly recommended to sort out the warning conditions before proceeding."
                 logWarn "Be aware that continuing with preflight warnings can result in failures."
                 log ""
@@ -700,11 +722,28 @@ function cluster_preflights() {
                 return 0
                 ;;
             1)
-                bail "On cluster Preflights checks have failures that block the installation."
+                bail "In cluster Preflights checks have failures that block the installation."
                 ;;
         esac
     fi
-    logStep "On cluster Preflights success"
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+         logWarn "Using host-preflight-ignore flag to disregard any failures during the pre-flight checks"
+         case $kurl_exit_code in
+             3)
+                 logFail "In cluster preflights have warnings that should block the installation."
+                 return
+                 ;;
+             2)
+                 logWarn "In cluster preflights have warnings which is highly recommended to sort out the conditions before proceeding."
+                 return
+                 ;;
+             1)
+                 logFail "In cluster preflights have failures that should block the installation."
+                 return
+                 ;;
+         esac
+    fi
+    logSuccess "In cluster Preflights success"
 }
 
 # host_preflights_mkresults will append cli data to preflight results file
@@ -831,11 +870,15 @@ function bail_if_kurl_version_is_lower_than_previous_config() {
         return
     fi
 
-    semverCompare "$(echo "$KURL_VERSION" | sed 's/v//g')" "$(echo "$previous_kurl_version" | sed 's/v//g')"
-    if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
-        logFail "The current kURL release version $KURL_VERSION is less than the previously installed version $previous_kurl_version."
-        bail "Please use a kURL release version which is equal to or greater than the version used previously."
+    if [ -n "$KURL_VERSION" ]; then
+        semverCompare "$(echo "$KURL_VERSION" | sed 's/v//g')" "$(echo "$previous_kurl_version" | sed 's/v//g')"
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
+            logFail "The current kURL release version $KURL_VERSION is less than the previously installed version $previous_kurl_version."
+            bail "Please use a kURL release version which is equal to or greater than the version used previously."
+        fi
     fi
     log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
-    log "and the current kURL version used is $KURL_VERSION"
+    if [ -n "$KURL_VERSION" ]; then
+        log "and the current kURL version used is $KURL_VERSION"
+    fi
 }

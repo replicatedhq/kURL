@@ -85,7 +85,7 @@ function main() {
     generate "$version"
     add_as_latest "$version"
 
-    echo "::set-output name=metrics_server_version::$version"
+    echo "metrics_server_version=$version" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

@@ -1,3 +1,4 @@
+#!/bin/bash
 
 function discover() {
     local fullCluster="$1"
@@ -121,35 +122,19 @@ detectLsbDist() {
     fi
 }
 
-KUBERNETES_STEP_LOCAL_PRIMARY=0
-KUBERNETES_UPGRADE_LOCAL_PRIMARY_MINOR=0
-KUBERNETES_UPGRADE_LOCAL_PRIMARY_PATCH=0
+export CURRENT_KUBERNETES_VERSION=
 
-KUBERNETES_STEP_REMOTE_PRIMARIES=0
-KUBERNETES_UPGRADE_REMOTE_PRIMARIES_MINOR=0
-KUBERNETES_UPGRADE_REMOTE_PRIMARIES_PATCH=0
+export KUBERNETES_UPGRADE=0
 
-KUBERNETES_STEP_SECONDARIES=0
-KUBERNETES_UPGRADE_SECONDARIES_MINOR=0
-KUBERNETES_UPGRADE_SECONDARIES_PATCH=0
-
-discoverCurrentKubernetesVersion() {
+function discoverCurrentKubernetesVersion() {
     local fullCluster="$1"
 
-    set +e
-    CURRENT_KUBERNETES_VERSION=$(grep ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-    set -e
+    CURRENT_KUBERNETES_VERSION=$(maybe discover_local_kubernetes_version)
 
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         # This is a new install and no upgrades are required
         return 0
     fi
-
-    # These versions are for the local primary
-    semverParse $CURRENT_KUBERNETES_VERSION
-    KUBERNETES_CURRENT_VERSION_MAJOR="$major"
-    KUBERNETES_CURRENT_VERSION_MINOR="$minor"
-    KUBERNETES_CURRENT_VERSION_PATCH="$patch"
 
     if [ -z "$fullCluster" ]; then
         return 0
@@ -159,99 +144,36 @@ discoverCurrentKubernetesVersion() {
     kubernetes_get_remote_primaries
     kubernetes_get_secondaries
 
-    # If any nodes have a lower minor than this then we'll need to do an extra step upgrade
-    STEP_VERSION_MINOR=$(($KUBERNETES_TARGET_VERSION_MINOR - 1))
-
-    # These will be used in preflight checks
-    LOWEST_SUPPORTED_MINOR=$(($STEP_VERSION_MINOR - 1))
-    MIN_CLUSTER_NODE_MINOR_FOUND=$KUBERNETES_CURRENT_VERSION_MINOR
-    MAX_CLUSTER_NODE_MINOR_FOUND=$KUBERNETES_CURRENT_VERSION_MINOR
-
-    # Check if minor, step, or patch upgrades are needed for the local primary
-    if [ $KUBERNETES_CURRENT_VERSION_MINOR -lt $STEP_VERSION_MINOR ]; then
-        KUBERNETES_STEP_LOCAL_PRIMARY=1
-        KUBERNETES_UPGRADE_LOCAL_PRIMARY_MINOR=1
+    semverCompare "$CURRENT_KUBERNETES_VERSION" "$KUBERNETES_VERSION"
+    if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
         KUBERNETES_UPGRADE=1
-    elif [ $KUBERNETES_CURRENT_VERSION_MINOR -lt $KUBERNETES_TARGET_VERSION_MINOR ]; then
-        KUBERNETES_UPGRADE_LOCAL_PRIMARY_MINOR=1
-        KUBERNETES_UPGRADE=1
-    elif [ $KUBERNETES_CURRENT_VERSION_PATCH -lt $KUBERNETES_TARGET_VERSION_PATCH ]; then
-        KUBERNETES_UPGRADE_LOCAL_PRIMARY_PATCH=1
-        KUBERNETES_UPGRADE=1
+    elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
+        bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION"
     fi
 
     # Check for upgrades required on remote primaries
-    for i in ${!KUBERNETES_REMOTE_PRIMARIES[@]}; do
-        semverParse ${KUBERNETES_REMOTE_PRIMARY_VERSIONS[$i]}
-
-        # Adjust min and max minor vars for preflights
-        if [ $minor -lt $MIN_CLUSTER_NODE_MINOR_FOUND ]; then
-            MIN_CLUSTER_NODE_MINOR_FOUND=$minor
-        fi
-        if [ $minor -gt $MAX_CLUSTER_NODE_MINOR_FOUND ]; then
-            MAX_CLUSTER_NODE_MINOR_FOUND=$minor
-        fi
-
-        # Check step, minor, and patch for this remote primary
-        if [ $minor -lt $STEP_VERSION_MINOR ]; then
-            KUBERNETES_STEP_REMOTE_PRIMARIES=1
-            KUBERNETES_UPGRADE_REMOTE_PRIMARIES_MINOR=1
+    for node in "${!KUBERNETES_REMOTE_PRIMARIES[@]}"; do
+        semverCompare "${KUBERNETES_REMOTE_PRIMARY_VERSIONS[$node]}" "$KUBERNETES_VERSION"
+        if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
             KUBERNETES_UPGRADE=1
-        elif [ $minor -lt $KUBERNETES_TARGET_VERSION_MINOR ]; then
-            KUBERNETES_UPGRADE_REMOTE_PRIMARIES_MINOR=1
-            KUBERNETES_UPGRADE=1
-        elif [ $patch -lt $KUBERNETES_TARGET_VERSION_PATCH ]; then
-            KUBERNETES_UPGRADE_REMOTE_PRIMARIES_PATCH=1
-            KUBERNETES_UPGRADE=1
+        elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
+            bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION on remote primary $node"
         fi
     done
 
     # Check for upgrades required on remote secondaries
-    for i in ${!KUBERNETES_SECONDARIES[@]}; do
-        semverParse ${KUBERNETES_SECONDARY_VERSIONS[$i]}
-
-        # Adjust min and max minor vars for preflights
-        if [ $minor -lt $MIN_CLUSTER_NODE_MINOR_FOUND ]; then
-            MIN_CLUSTER_NODE_MINOR_FOUND=$minor
-        fi
-        if [ $minor -gt $MAX_CLUSTER_NODE_MINOR_FOUND ]; then
-            MAX_CLUSTER_NODE_MINOR_FOUND=$minor
-        fi
-
-        # Check step, minor, and patch for this secondary
-        if [ $minor -lt $STEP_VERSION_MINOR ]; then
-            KUBERNETES_STEP_SECONDARIES=1
-            KUBERNETES_UPGRADE_SECONDARIES_MINOR=1
+    for node in "${!KUBERNETES_SECONDARIES[@]}"; do
+        semverCompare "${KUBERNETES_SECONDARY_VERSIONS[$node]}" "$KUBERNETES_VERSION"
+        if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
             KUBERNETES_UPGRADE=1
-        elif [ $minor -lt $KUBERNETES_TARGET_VERSION_MINOR ]; then
-            KUBERNETES_UPGRADE_SECONDARIES_MINOR=1
-            KUBERNETES_UPGRADE=1
-        elif [ $patch -lt $KUBERNETES_TARGET_VERSION_PATCH ]; then
-            KUBERNETES_UPGRADE_SECONDARIES_PATCH=1
-            KUBERNETES_UPGRADE=1
+        elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
+            bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION on remote worker $node"
         fi
     done
+}
 
-    # preflights
-    if [ $MAX_CLUSTER_NODE_MINOR_FOUND -gt $KUBERNETES_TARGET_VERSION_MINOR ]; then
-        printf "%s %s %s" \
-            "The currently installed kubernetes version is 1.${MAX_CLUSTER_NODE_MINOR_FOUND}." \
-            "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
-            "Since the currently installed version is newer than the requested version, no action will be taken."
-        bail
-    fi
-    if [ $MIN_CLUSTER_NODE_MINOR_FOUND -lt $LOWEST_SUPPORTED_MINOR ]; then
-        MAX_UPGRADEABLE_VERSION_MINOR=$(($MIN_CLUSTER_NODE_MINOR_FOUND + 2))
-        printf "%s %s %s" \
-            "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
-            "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
-            "Kurl can only be upgraded two minor versions at time. Please install ${KUBERNETES_TARGET_VERSION_MAJOR}.${MAX_UPGRADEABLE_VERSION_MINOR}.x. first."
-        bail
-    fi
-
-    if [ "$KUBERNETES_STEP_LOCAL_PRIMARY" == "1" ] || [ "$KUBERNETES_STEP_REMOTE_PRIMARIES" == "1" ] || [ "$KUBERNETES_STEP_SECONDARIES" == 1 ]; then
-        STEP_VERSION=${STEP_VERSIONS[$STEP_VERSION_MINOR]}
-    fi
+function discover_local_kubernetes_version() {
+    grep -s ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'
 }
 
 function get_docker_version() {

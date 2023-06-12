@@ -54,6 +54,8 @@ maybe_upgrade() {
     if [ "$kubeletMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ] || ([ "$kubeletMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$kubeletPatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ]); then
         logStep "Kubernetes version v$kubeletVersion detected, upgrading node to version v$KUBERNETES_VERSION"
 
+        kubernetes_load_images "$KUBERNETES_VERSION"
+
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         ( set -x; kubeadm upgrade node )
@@ -131,6 +133,7 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     kubernetes_get_packages
+    kubernetes_maybe_get_packages_airgap # this is necesssary for step versions for multi-k8s upgrades
     preflights_require_host_packages
     host_preflights "${MASTER:-0}" "1" "1"
     install_host_dependencies

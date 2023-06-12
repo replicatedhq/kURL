@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
+. $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
@@ -81,16 +82,16 @@ function tasks() {
             rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"
             popd_install_directory
             ;;
-        rook-upgrade|rook_upgrade)
-            pushd_install_directory
-            shift # the first param is rook-upgrade|rook_upgrade
-            rook_upgrade_tasks_rook_upgrade "$@"
-            popd_install_directory
-            ;;
         rook-upgrade-load-images|rook_upgrade_load_images)
             pushd_install_directory
             shift # the first param is rook-upgrade-load-images|rook_upgrade_load_images
             rook_upgrade_tasks_load_images "$@"
+            popd_install_directory
+            ;;
+        kubernetes-upgrade-load-assets|kubernetes_upgrade_load_assets)
+            pushd_install_directory
+            shift # the first param is kubernetes-upgrade-load-assets|kubernetes_upgrade_load_assets
+            kubernetes_upgrade_tasks_load_assets "$@"
             popd_install_directory
             ;;
         weave-to-flannel-primary|weave_to_flannel_primary)
@@ -182,6 +183,23 @@ function generate_admin_user() {
 function reset() {
     set +e
 
+    shift # the first param is reset
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="$_value"
+                    KURL_INSTALL_DIRECTORY="$(realpath "$_value")/kurl"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    maybe_read_kurl_config_from_cluster # sets KURL_INSTALL_DIRECTORY
+
     if [ "$FORCE_RESET" != 1 ]; then
         printf "${YELLOW}"
         printf "WARNING: \n"
@@ -203,6 +221,9 @@ function reset() {
     fi
 
     discover
+
+    # set KURL_INSTALL_DIRECTORY
+    maybe_read_kurl_config_from_cluster
 
     if [ -f /opt/ekco/shutdown.sh ]; then
         bash /opt/ekco/shutdown.sh
@@ -247,7 +268,8 @@ function reset() {
     rm -rf /var/lib/weave
     rm -rf /var/lib/longhorn
     rm -rf /etc/haproxy
-    rm -rf /var/lib/kurl
+    rm -rf "$KURL_INSTALL_DIRECTORY"
+    rm -rf "$KURL_INSTALL_DIRECTORY.repos"
 
     printf "Killing haproxy\n"
     pkill haproxy || true
@@ -350,18 +372,19 @@ function join_token() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${docker_registry_ip}")"
-    if [ -n "$additional_no_proxy_addresses" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-    fi
-    if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
-    fi
+
+    local no_proxy_addresses=""
+    [ -n "$additional_no_proxy_addresses" ] && no_proxy_addresses="$additional_no_proxy_addresses"
+    [ -n "$service_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$service_cidr"
+    [ -n "$pod_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$pod_cidr"
+    [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
     common_flags="${common_flags}$(get_remotes_flags)"
     common_flags="${common_flags}$(get_ipv6_flag)"
 
     local prefix=
-    prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "")"
+    prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "" "")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
@@ -784,7 +807,7 @@ function weave_to_flannel_primary() {
     rm /tmp/kubeadm-token
 
     cat > /tmp/kubeadm-join.conf <<- EOM
-apiVersion: kubeadm.k8s.io/v1beta2
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
 controlPlane:
   certificateKey: $CERT_KEY
   localAPIEndpoint:
@@ -806,9 +829,15 @@ nodeRegistration:
   taints: []
 EOM
 
-    rm -f /opt/cni/bin/weave-*
-    rm -rf /etc/cni/net.d
-    ip link delete weave
+    echo "Removing Weave files from the node"
+    # Delete the weave network interface, if it exists
+    if ip link show weave > /dev/null 2>&1; then
+        ip link delete weave
+    fi
+
+    rm -rf /var/lib/weave
+    rm -rf /etc/cni/net.d/*weave*
+    rm -rf /opt/cni/bin/weave*
 
     kubeadm join phase control-plane-prepare control-plane --config=/tmp/kubeadm-join.conf
     systemctl restart kubelet containerd
@@ -839,9 +868,17 @@ function weave_to_flannel_secondary() {
         flannel_images_present
     fi
 
-    rm -f /opt/cni/bin/weave-*
-    rm -rf /etc/cni/net.d
-    ip link delete weave
+    # It should be executed in all nodes either
+    # See that the task used to run in the nodes also has this commands
+    # Delete the weave network interface, if it exists
+    if ip link show weave > /dev/null 2>&1; then
+        ip link delete weave
+    fi
+
+    rm -rf /var/lib/weave
+    rm -rf /etc/cni/net.d/*weave*
+    rm -rf /opt/cni/bin/weave*
+    
     systemctl restart kubelet containerd
 
     logSuccess "Successfully updated $(get_local_node_name) to use Flannel"

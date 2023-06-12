@@ -7,7 +7,7 @@ function get_latest_release_version() {
     local url=$2
     local version
 
-    version=$(curl -I "$url" | \
+    version=$(curl -sI "$url" | \
         grep -i "^location" | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 
@@ -20,6 +20,7 @@ function get_latest_tag_version() {
     local version
 
     version=$(curl -fsSL "$url" | \
+        tac | tac | \
         grep -m1 '"name": "v' | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 
@@ -63,8 +64,6 @@ AZURE_PLUGIN_VERSION=""
 GCP_PLUGIN_VERSION=""
 S3CMD_TAG=""
 function main() {
-    set -x
-
     get_latest_release_version VELERO_VERSION https://github.com/vmware-tanzu/velero/releases/latest
 
     get_latest_release_version AWS_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-aws/releases/latest
@@ -90,7 +89,7 @@ function main() {
         add_as_latest
     fi
 
-    echo "::set-output name=velero_version::$VELERO_VERSION"
+    echo "velero_version=$VELERO_VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

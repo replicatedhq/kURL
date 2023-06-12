@@ -264,9 +264,9 @@ function _yum_install_host_packages_el9() {
     fi
 
     local reponame="$repoprefix.kurl.local"
-    local repopath="/var/lib/kurl.repos/$repoprefix"
+    local repopath="$KURL_INSTALL_DIRECTORY.repos/$repoprefix"
 
-    mkdir -p "/var/lib/kurl.repos"
+    mkdir -p "$KURL_INSTALL_DIRECTORY.repos"
     rm -rf "$repopath"
     cp -r "$fullpath" "$repopath"
 

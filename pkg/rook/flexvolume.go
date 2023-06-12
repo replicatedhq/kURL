@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/replicatedhq/kurl/pkg/rook/static/flexmigrator"
-	"github.com/replicatedhq/plumber"
+	"github.com/replicatedhq/plumber/v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -252,10 +252,13 @@ func waitForFlexMigratorPod(ctx context.Context, clientset kubernetes.Interface)
 	if len(pods.Items) == 0 {
 		return nil, errors.New("no pods found for rook-ceph-migrator deployment")
 	}
-	pod := pods.Items[0]
+	for _, pod := range pods.Items {
+		if k8sutil.IsPodReady(pod) {
+			return &pod, nil
+		}
+	}
 
-	err = k8sutil.WaitForPodReady(ctx, clientset, pod.Namespace, pod.Name)
-	return &pod, errors.Wrap(err, "wait for rook-ceph-migrator pod")
+	return nil, errors.New("no ready pods found for rook-ceph-migrator deployment")
 }
 
 func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) error {
@@ -314,7 +317,7 @@ func validatePodCanScale(pod *corev1.Pod) error {
 	}
 
 	switch ref.Kind {
-	case "StatefulSet", "Deployment":
+	case "StatefulSet", "ReplicaSet":
 		return nil
 	default:
 		return fmt.Errorf("pod %s/%s has unsupported owner %s", pod.Namespace, pod.Name, ref.Kind)

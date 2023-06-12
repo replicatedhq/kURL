@@ -35,7 +35,7 @@ function _object_store_create_bucket() {
     local acl="x-amz-acl:private"
     local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
-    local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+    local sig=$(echo -en "${string}" | openssl dgst -sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     local addr=$($DIR/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -X PUT  \
@@ -53,7 +53,7 @@ function object_store_bucket_exists() {
     local acl="x-amz-acl:private"
     local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
     local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
-    local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+    local sig=$(echo -en "${string}" | openssl dgst -sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     local addr=$($DIR/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -I \
@@ -285,7 +285,7 @@ function migrate_minio_to_rgw() {
         minio_ns=minio
     fi
 
-    if ! kubernetes_resource_exists $minio_ns deployment minio; then
+    if ! kubernetes_resource_exists $minio_ns deployment minio && ! kubernetes_resource_exists $minio_ns statefulset ha-minio; then
         return 0
     fi
 

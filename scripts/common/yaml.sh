@@ -1,3 +1,4 @@
+#!/bin/bash
 
 function render_yaml() {
     eval "echo \"$(cat $DIR/yaml/$1)\""
@@ -27,6 +28,26 @@ function render_file() {
 function insert_patches_strategic_merge() {
     local kustomization_file="$1"
     local patch_file="$2"
+
+    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
+    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
+        if [[ $kustomization_file =~ "prometheus" ]] || [[ $kustomization_file =~ "rook" ]]; then
+            # TODO: multi-doc patches is not currently supported in kustomize v5
+            # continue using the deprecated 'patchesStrategicMerge' field until this is fixed
+            # Ref: https://github.com/kubernetes-sigs/kustomize/issues/5040
+            if ! grep -q "patchesStrategicMerge" "$kustomization_file"; then
+                echo "patchesStrategicMerge:" >> "$kustomization_file"
+            fi
+            sed -i "/patchesStrategicMerge.*/a - $patch_file" "$kustomization_file"
+        else
+            if ! grep -q "^patches:" "$kustomization_file"; then
+                echo "patches:" >> "$kustomization_file"
+            fi
+            sed -i "/patches:/a - path: $patch_file" "$kustomization_file"
+        fi
+        return
+    fi
 
     if ! grep -q "patchesStrategicMerge" "$kustomization_file"; then
         echo "patchesStrategicMerge:" >> "$kustomization_file"
@@ -100,20 +121,87 @@ twospace_ path: $patch_file"       "$kustomization_file"
 }
 
 function setup_kubeadm_kustomize() {
+    local kubeadm_exclude=
+    local kubeadm_conf_api=
+    local kubeadm_cluster_config_v1beta2_file="kubeadm-cluster-config-v1beta2.yml"
+    local kubeadm_cluster_config_v1beta3_file="kubeadm-cluster-config-v1beta3.yml"
+    local kubeadm_init_config_v1beta2_file="kubeadm-init-config-v1beta2.yml"
+    local kubeadm_init_config_v1beta3_file="kubeadm-init-config-v1beta3.yml"
+    local kubeadm_join_config_v1beta2_file="kubeadm-join-config-v1beta2.yaml"
+    local kubeadm_join_config_v1beta3_file="kubeadm-join-config-v1beta3.yaml"
+    local kubeadm_init_src="$DIR/kustomize/kubeadm/init-orig"
+    local kubeadm_join_src="$DIR/kustomize/kubeadm/join-orig"
+    local kubeadm_init_dst="$DIR/kustomize/kubeadm/init"
+    local kubeadm_join_dst="$DIR/kustomize/kubeadm/join"
+    kubeadm_conf_api=$(kubeadm_conf_api_version)
+
     # Clean up the source directories for the kubeadm kustomize resources and
     # patches.
-    rm -rf $DIR/kustomize/kubeadm/init
-    cp -rf $DIR/kustomize/kubeadm/init-orig $DIR/kustomize/kubeadm/init
-    rm -rf $DIR/kustomize/kubeadm/join
-    cp -rf $DIR/kustomize/kubeadm/join-orig $DIR/kustomize/kubeadm/join
-    rm -rf $DIR/kustomize/kubeadm/init-patches
-    mkdir -p $DIR/kustomize/kubeadm/init-patches
-    rm -rf $DIR/kustomize/kubeadm/join-patches
-    mkdir -p $DIR/kustomize/kubeadm/join-patches
+    rm -rf "$DIR/kustomize/kubeadm/init"
+    rm -rf "$DIR/kustomize/kubeadm/join"
+    rm -rf "$DIR/kustomize/kubeadm/init-patches"
+    rm -rf "$DIR/kustomize/kubeadm/join-patches"
+
+    # Kubernete 1.26+ will use kubeadm/v1beta3 API
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "26" ]; then
+        # only include kubeadm/v1beta3 resources
+        kubeadm_exclude=("$kubeadm_cluster_config_v1beta2_file" "$kubeadm_init_config_v1beta2_file" "$kubeadm_join_config_v1beta2_file")
+    else
+        # only include kubeadm/v1beta2 resources
+        kubeadm_exclude=("$kubeadm_cluster_config_v1beta3_file" "$kubeadm_init_config_v1beta3_file" "$kubeadm_join_config_v1beta3_file")
+    fi
+
+    # copy kubeadm kustomize resources
+    copy_kustomize_kubeadm_resources "$kubeadm_init_src" "$kubeadm_init_dst" "${kubeadm_exclude[@]}"
+    copy_kustomize_kubeadm_resources "$kubeadm_join_src" "$kubeadm_join_dst" "${kubeadm_exclude[@]}"
+
+    # tell kustomize which resources to generate
+    # NOTE: 'eval' is used so that variables embedded within variables can be rendered correctly in the shell
+    eval insert_resources "$kubeadm_init_dst/kustomization.yaml" "\$kubeadm_cluster_config_${kubeadm_conf_api}_file"
+    eval insert_resources "$kubeadm_init_dst/kustomization.yaml" "\$kubeadm_init_config_${kubeadm_conf_api}_file"
+    eval insert_resources "$kubeadm_join_dst/kustomization.yaml" "\$kubeadm_join_config_${kubeadm_conf_api}_file"
+
+    # create kubeadm kustomize patches directories
+    mkdir -p "$DIR/kustomize/kubeadm/init-patches"
+    mkdir -p "$DIR/kustomize/kubeadm/join-patches"
 
     if [ -n "$USE_STANDARD_PORT_RANGE" ]; then
-        sed -i 's/80-60000/30000-32767/g'  $DIR/kustomize/kubeadm/init/kubeadm-cluster-config-v1beta2.yml
+        sed -i 's/80-60000/30000-32767/g'  "$DIR/kustomize/kubeadm/init/kubeadm-cluster-config-$kubeadm_conf_api.yml"
     fi
+}
+
+# copy_kustomize_kubeadm_resources copies kubeadm kustomize resources
+# from source ($1) to destination ($2) and excludes files specified as
+# variable number of arguments.
+# E.g. copy_kustomize_kubeadm_resources \
+#       "/var/lib/kurl/kustomize/kubeadm/init-orig" \
+#       "/var/lib/kurl/kustomize/kubeadm/init" \
+#       "kubeadm-cluster-config-v1beta2.yml" \
+#       "kubeadm-init-config-v1beta2.yml" \
+#       "kubeadm-join-config-v1beta2.yml"
+function copy_kustomize_kubeadm_resources() {
+    local kustomize_kubeadm_src_dir=$1
+    local kustomize_kubeadm_dst_dir=$2
+    local excluded_files=("${@:3}")
+
+    # ensure destination exist
+    mkdir -p "$kustomize_kubeadm_dst_dir"
+
+    # copy kustomize resources from source to destination directory
+    # but exclude files in $excluded_files.
+    for file in "$kustomize_kubeadm_src_dir"/*; do
+        filename=$(basename "$file")
+        excluded=false
+        for excluded_file in "${excluded_files[@]}"; do
+            if [ "$filename" = "$excluded_file" ]; then
+                excluded=true
+                break
+            fi
+        done
+        if ! $excluded; then
+            cp "$file" "$kustomize_kubeadm_dst_dir"
+        fi
+    done
 }
 
 function apply_installer_crd() {
@@ -137,4 +225,20 @@ function installer_label_velero_exclude_from_backup() {
     if [ -n "$INSTALLER_ID" ]; then
         kubectl label --overwrite=true installer/"$INSTALLER_ID" velero.io/exclude-from-backup=true
     fi
+}
+
+# yaml_indent indents each line of stdin with the given indent
+function yaml_indent() {
+    local indent=$1
+    sed -e "s/^/$indent/"
+}
+
+# yaml_escape_string_quotes escapes string quotes for use in a yaml file
+function yaml_escape_string_quotes() {
+    sed -e 's/"/\\"/g'
+}
+
+# yaml_newline_to_literal replaces newlines with \n
+function yaml_newline_to_literal() {
+    sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
 }

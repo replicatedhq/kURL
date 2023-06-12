@@ -20,26 +20,46 @@ function kubernetes_host() {
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
-    load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
-    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
-        load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
-    fi
+    kubernetes_load_images "$KUBERNETES_VERSION"
 
     install_plugins
 
     install_kustomize
 }
 
+function kubernetes_load_images() {
+    local version="$1"
+
+    local varname="KUBERNETES_IMAGES_LOADED_${version//./_}"
+    if [ "${!varname:-}" = "1" ]; then
+        # images already loaded for this version
+        return 0
+    fi
+
+    load_images "$DIR/packages/kubernetes/$version/images"
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$version/images"
+    fi
+
+    declare -g "$varname"=1
+}
+
 function kubernetes_get_packages() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
         kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
-
-        # if we are upgrading two kubernetes versions at once
-        if [ -n "$STEP_VERSION" ]; then
-            kubernetes_get_host_packages_online "$STEP_VERSION"
-        fi
     fi
+}
+
+# kubernetes_maybe_get_packages_airgap downloads kubernetes packages if they are not already present
+function kubernetes_maybe_get_packages_airgap() {
+    if [ "$AIRGAP" != "1" ]; then
+        return
+    fi
+    if [ -d "$DIR/packages/kubernetes/$KUBERNETES_VERSION/assets" ]; then
+        return
+    fi
+    addon_fetch_airgap "kubernetes" "$KUBERNETES_VERSION"
 }
 
 function kubernetes_load_ipvs_modules() {
@@ -138,7 +158,7 @@ function kubernetes_install_host_packages() {
 
         # less command is broken if libtinfo.so.5 is missing in amazon linux 2
         if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
-            if [ -d "$DIR/packages/kubernetes/${k8sVersion}" ]; then
+            if [ -d "$DIR/packages/kubernetes/${k8sVersion}/assets" ]; then
                 install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
             fi
         fi
@@ -245,7 +265,6 @@ kubernetes_host_commands_ok() {
     kubelet --version | grep -q "$k8sVersion"
 }
 
-KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=
 function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
@@ -256,8 +275,6 @@ function kubernetes_get_host_packages_online() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
         # rm "${package}"
-
-        KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
     fi
 }
 
@@ -284,15 +301,27 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" 2>/dev/null
+    kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label)"
+}
+
+function kubernetes_remote_nodes() {
+    kubectl get nodes --ignore-not-found --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)"
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector="$(kubernetes_get_control_plane_label),kubernetes.io/hostname!=$(get_local_node_name)"
 }
 
 function kubernetes_workers() {
-    kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector='!'"$(kubernetes_get_control_plane_label)"
+}
+
+function kubernetes_get_control_plane_label() {
+    if kubectl get nodes --show-labels | grep -qF "node-role.kubernetes.io/master" ; then
+        echo "node-role.kubernetes.io/master"
+    else
+        echo "node-role.kubernetes.io/control-plane"
+    fi
 }
 
 # exit 0 if there are any remote workers or masters
@@ -302,7 +331,7 @@ function kubernetes_has_remotes() {
         return 1
     fi
 
-    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null | wc -l)
+    local count=$(kubectl get nodes --ignore-not-found --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" | wc -l)
     if [ "$count" -gt "0" ]; then
         return 0
     fi
@@ -626,10 +655,6 @@ function list_all_required_images() {
 
     find packages/kubernetes/$KUBERNETES_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
 
-    if [ -n "$STEP_VERSION" ]; then
-        find packages/kubernetes/$STEP_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
     if [ -n "$DOCKER_VERSION" ]; then
         find packages/docker/$DOCKER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
@@ -701,24 +726,30 @@ function kubernetes_node_has_image() {
 KUBERNETES_REMOTE_PRIMARIES=()
 KUBERNETES_REMOTE_PRIMARY_VERSIONS=()
 function kubernetes_get_remote_primaries() {
-    while read -r primary; do
-        local name=$(echo $primary | awk '{ print $1 }')
-        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+    local primary=
+    while read -r primary ; do
+        local name=
+        name=$(echo "$primary" | awk '{ print $1 }')
+        local version=
+        version="$(try_1m kubernetes_node_kubelet_version "$name")"
 
-        KUBERNETES_REMOTE_PRIMARIES+=( $name )
-        KUBERNETES_REMOTE_PRIMARY_VERSIONS+=( $version )
+        KUBERNETES_REMOTE_PRIMARIES+=( "$name" )
+        KUBERNETES_REMOTE_PRIMARY_VERSIONS+=( "${version#v}" ) # strip leading v
     done < <(kubernetes_remote_masters)
 }
 
 KUBERNETES_SECONDARIES=()
 KUBERNETES_SECONDARY_VERSIONS=()
 function kubernetes_get_secondaries() {
-    while read -r secondary; do
-        local name=$(echo $secondary | awk '{ print $1 }')
-        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+    local secondary=
+    while read -r secondary ; do
+        local name=
+        name=$(echo "$secondary" | awk '{ print $1 }')
+        local version=
+        version="$(try_1m kubernetes_node_kubelet_version "$name")"
 
-        KUBERNETES_SECONDARIES+=( $name )
-        KUBERNETES_SECONDARY_VERSIONS+=( $version )
+        KUBERNETES_SECONDARIES+=( "$name" )
+        KUBERNETES_SECONDARY_VERSIONS+=( "${version#v}" ) # strip leading v
     done < <(kubernetes_workers)
 }
 
@@ -1050,6 +1081,10 @@ function kubernetes_configure_pause_image() {
 
     insert_patches_strategic_merge "$dir/kustomization.yaml" "kubelet-args-pause-image.patch.yaml"
     render_yaml_file_2 "$dir/kubelet-args-pause-image.patch.tmpl.yaml" > "$dir/kubelet-args-pause-image.patch.yaml"
+
+    # templatize the kubeadm version field as this will be rendered (again) when generating the final kubeadm conf file
+    # shellcheck disable=SC2016
+    sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$dir/kubelet-args-pause-image.patch.yaml"
 }
 
 KUBELET_FLAGS_FILE="/var/lib/kubelet/kubeadm-flags.env"
@@ -1116,4 +1151,31 @@ function kubernetes_containerd_pause_image() {
         return
     fi
     grep sandbox_image /etc/containerd/config.toml | sed 's/[=\"]//g' | awk '{ print $2 }'
+}
+
+# kubernetes_kustomize_config_migrate fixes missing and deprecated fields in kustomization file
+function kubernetes_kustomize_config_migrate() {
+    local kustomize_dir=$1
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
+        # TODO: Currently this is using kustomize 3.5.4 to migrate the config due to a bug in
+        # kustomize v5: https://github.com/kubernetes-sigs/kustomize/issues/5149
+       ( cd "$kustomize_dir" && kustomize edit fix )
+    fi
+}
+
+# kubernetes_configure_coredns is a workaround to reset the custom nameserver config in the coredns
+# configmap. This runs after kubeadm init or upgrade which will reset the coredns configmap if it
+# finds that it is the default. the issue is that it does a fuzzy match and if only the nameserver
+# is set kubeadm determines that it is the default and it replaces the configmap.
+function kubernetes_configure_coredns() {
+    if [ -z "$NAMESERVER" ]; then
+        return 0
+    fi
+    kubectl -n kube-system get configmap coredns -oyaml > /tmp/Corefile
+    # Example lines to replace from k8s 1.17 and 1.19
+    # "forward . /etc/resolv.conf" => "forward . 8.8.8.8"
+    # "forward . /etc/resolv.conf {" => "forward . 8.8.8.8 {"
+    sed -i "s/forward \. \/etc\/resolv\.conf/forward \. ${NAMESERVER}/" /tmp/Corefile
+    kubectl -n kube-system replace configmap coredns -f /tmp/Corefile
+    kubectl -n kube-system rollout restart deployment/coredns
 }

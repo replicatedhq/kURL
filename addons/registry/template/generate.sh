@@ -55,7 +55,7 @@ function main() {
         add_as_latest
     fi
 
-    echo "::set-output name=registry_version::$VERSION"
+    echo "registry_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

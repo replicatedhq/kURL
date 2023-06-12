@@ -1,0 +1,2 @@
+image registry registry:2.8.2
+image s3cmd kurlsh/s3cmd:20230406-9a6d89f

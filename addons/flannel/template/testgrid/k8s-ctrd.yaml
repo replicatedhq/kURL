@@ -65,6 +65,96 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "weave to flannel single node with addons and openebs"
+  flags: "yes"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+  upgradeSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+- name: "weave to flannel single node with addons and rook"
+  flags: "yes"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    rook:
+      version: "1.11.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.26.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    contour:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-05-18T00-05-36Z"
+    rook:
+      version: "1.11.x"
+  unsupportedOSIDs:
+    - centos-74 # Rook Pre-init: centos-7.4 Kernel 3.10.0-693.el7.x86_64 is not supported
 - name: "weave to flannel single node, custom IP ranges"
   installerSpec:
     kubernetes:
@@ -107,3 +197,6 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
+  - centos-81 # docker 20.10.17 is not supported on centos 8.1.
+  - centos-84 # docker 20.10.17 is not supported on centos 8.4.
+  - ol-8x # docker 20.10.17 is not supported on ol 8.7.

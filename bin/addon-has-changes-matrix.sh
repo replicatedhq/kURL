@@ -79,7 +79,7 @@ function main() {
 
   if [ "${#ADDONS_AVAILBLE[@]}" -gt "0" ]; then
     echo "Modified addons detected. Continuing with action..."
-    echo "::set-output name=addons::{\"include\":[$(join_array_by ',' "${ADDONS_AVAILBLE[@]}")]}"
+    echo "addons={\"include\":[$(join_array_by ',' "${ADDONS_AVAILBLE[@]}")]}" >> "$GITHUB_OUTPUT"
   else
     echo "No changed addons detected, addon is currently in the ADDON_DENY_LIST, or addon does not have a TestGrid template."
   fi

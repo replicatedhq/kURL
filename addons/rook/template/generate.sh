@@ -175,7 +175,7 @@ function main() {
 
     generate_step_versions
 
-    echo "::set-output name=rook_version::$VERSION"
+    echo "rook_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"

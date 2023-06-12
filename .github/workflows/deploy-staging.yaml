@@ -6,7 +6,6 @@ on:
     - main
     paths:
     - '**'
-    - '!testgrid/**'
     - '!docs/**'
     - '!CONTRIBUTING.md'
     - '!README.md'
@@ -22,7 +21,7 @@ jobs:
       run: |
         git fetch --tags -f
         export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
-        echo "::set-output name=version_tag::${VERSION_TAG}"
+        echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
   kurl-util-image:
     runs-on: ubuntu-20.04
@@ -63,7 +62,7 @@ jobs:
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
-        echo "::set-output name=matrix::$OUTPUT"
+        echo "matrix=$OUTPUT" >> "$GITHUB_OUTPUT"
       env:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -83,7 +82,7 @@ jobs:
 
     - uses: actions/setup-go@v4
       with:
-        go-version: 1.19
+        go-version: '1.20'
 
     - name: setup env
       id: env
@@ -200,7 +199,7 @@ jobs:
             --spec ./testgrid/specs/deploy.yaml \
             --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
-        echo "::set-output name=msg::${MSG}"
+        echo "msg=$MSG" >> "$GITHUB_OUTPUT"
         echo "::notice ::${MSG}"
 
   cleanup-s3:

@@ -45,6 +45,9 @@ function openebs() {
 
     # migrate from Longhorn storage if applicable
     openebs_maybe_migrate_from_longhorn
+
+    # remove NDM pods if applicable
+    openebs_cleanup_ndm
 }
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
@@ -291,6 +294,9 @@ function openebs_should_be_default_storageclass() {
     elif openebs_has_default_storageclass ; then
         # if there is already a default storage class that is not "$storage_class_name"
         return 1
+    elif [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+        # if dynamic storage is enabled, the default storageclass will be managed by ekco
+        return 1
     elif [ "$storage_class_name" = "default" ]; then
         # if "$storage_class_name" named "default", it should be the default
         return 0
@@ -419,4 +425,10 @@ function openebs_prompt_migrate_from_longhorn() {
     if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
+}
+
+function openebs_cleanup_ndm() {
+    kubectl delete --ignore-not-found configmap -n "$OPENEBS_NAMESPACE" openebs-ndm-config
+    kubectl delete --ignore-not-found daemonset -n "$OPENEBS_NAMESPACE" openebs-ndm
+    kubectl delete --ignore-not-found deployment -n "$OPENEBS_NAMESPACE" openebs-ndm-operator
 }

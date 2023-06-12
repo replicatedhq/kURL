@@ -64,7 +64,10 @@ function velero() {
     # Bail if the migrationn fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
-        try_5m velero_pvc_migrated
+        if ! try_5m velero_pvc_migrated ; then
+            velero_pvc_migrated_debug_info
+            bail "Velero migration failed"
+        fi
         logSuccess "Velero migration complete"
     fi
 
@@ -201,7 +204,10 @@ function velero_already_applied() {
     # Bail if the migration fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
-        try_5m velero_pvc_migrated
+        if ! try_5m velero_pvc_migrated ; then
+            velero_pvc_migrated_debug_info
+            bail "Velero migration failed"
+        fi
         logSuccess "Velero migration complete"
     fi
 
@@ -313,15 +319,16 @@ function velero_kotsadm_restore_config() {
 function velero_patch_http_proxy() {
     local src="$1"
     local dst="$2"
-
-    if [ -n "$PROXY_ADDRESS" ]; then
+    if [ -n "$PROXY_ADDRESS" ] || [ -n "$PROXY_HTTPS_ADDRESS" ]; then
+        if [ -z "$PROXY_HTTPS_ADDRESS" ]; then
+            PROXY_HTTPS_ADDRESS="$PROXY_ADDRESS"
+        fi
         render_yaml_file_2 "$src/tmpl-velero-deployment-proxy.yaml" > "$dst/velero-deployment-proxy.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" velero-deployment-proxy.yaml
-    fi
-
-    if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
-        render_yaml_file_2 "$src/tmpl-node-agent-daemonset-proxy.yaml" > "$dst/node-agent-daemonset-proxy.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-proxy.yaml
+        if [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
+            render_yaml_file_2 "$src/tmpl-node-agent-daemonset-proxy.yaml" > "$dst/node-agent-daemonset-proxy.yaml"
+            insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-proxy.yaml
+        fi
     fi
 }
 
@@ -466,12 +473,20 @@ function determine_velero_pvc_size() {
 }
 
 function velero_pvc_migrated() {
-    velero_pod=$( kubectl get pods -n velero -l component=velero -o jsonpath='{.items[?(@.spec.containers[0].name=="velero")].metadata.name}')
-    if kubectl -n velero logs "$velero_pod" -c migrate-s3  | grep -q "migration ran successfully" &>/dev/null; then
+    local velero_pod=
+    velero_pod=$(kubectl get pods -n velero -l component=velero -o jsonpath='{.items[?(@.spec.containers[0].name=="velero")].metadata.name}')
+    if kubectl -n velero logs "$velero_pod" -c migrate-s3 | grep -q "migration ran successfully" &>/dev/null; then
         return 0
     fi
-    if kubectl -n velero logs "$velero_pod" -c migrate-s3  | grep -q "migration has already run" &>/dev/null; then
+    if kubectl -n velero logs "$velero_pod" -c migrate-s3 | grep -q "migration has already run" &>/dev/null; then
         return 0
     fi
     return 1
+}
+
+function velero_pvc_migrated_debug_info() {
+    kubectl get pods -n velero -l component=velero
+    local velero_pod=
+    velero_pod=$(kubectl get pods -n velero -l component=velero -o jsonpath='{.items[?(@.spec.containers[0].name=="velero")].metadata.name}')
+    kubectl -n velero logs "$velero_pod" -c migrate-s3
 }

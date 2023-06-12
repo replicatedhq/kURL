@@ -33,12 +33,14 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
 	clusterCmd.AddCommand(newPreflightCmd(cli))
+	clusterCmd.AddCommand(NewClusterMigrateMultinodeStorageCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
 	netutilCmd := newNetutilCommand(cli)
 	netutilCmd.AddCommand(newNetutilIfaceFromIPCommand(cli))
 	netutilCmd.AddCommand(newNetutilDefaultIfaceCommand(cli))
 	netutilCmd.AddCommand(newNetutilFormatIPAddressCmd(cli))
+	netutilCmd.AddCommand(newNetutilNodesConnectivity(cli))
 	cmd.AddCommand(netutilCmd)
 
 	objectStoreCmd := newObjectStoreCmd(cli)

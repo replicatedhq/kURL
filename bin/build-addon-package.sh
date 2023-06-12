@@ -29,7 +29,7 @@ function build_addon() {
   aws s3 cp "$tmpdir/$addon-$version.tar.gz" "s3://${S3_BUCKET}/$s3_key" --region us-east-1
 
   echo "Package pushed to: s3://${S3_BUCKET}/$s3_key"
-  echo "::set-output name=addon_package_url::https://$S3_BUCKET.s3.amazonaws.com/$s3_key"
+  echo "addon_package_url=https://$S3_BUCKET.s3.amazonaws.com/$s3_key" >> "$GITHUB_OUTPUT"
 }
 
 function main() {

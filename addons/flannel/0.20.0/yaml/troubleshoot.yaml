@@ -3,7 +3,6 @@ kind: Secret
 metadata:
   name: flannel-troubleshoot-spec
   labels:
-    troubleshoot.io/kind: supportbundle-spec
     troubleshoot.sh/kind: support-bundle
 stringData:
   support-bundle-spec: |

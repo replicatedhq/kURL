@@ -62,15 +62,15 @@
     minio:
       version: "latest"
 - name: "Velero Remove Object Storage"
-  cpu: 6
+  cpu: 8
   installerSpec:
     kubernetes:
-      version: 1.20.x
+      version: 1.23.x
     flannel:
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.6.x
+      version: 1.11.x
     registry:
       version: latest
     kotsadm:
@@ -78,12 +78,12 @@
     containerd:
       version: latest
     velero:
-      version: 1.6.x
+      version: 1.9.x
     ekco:
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.24.x
     flannel:
       version: latest
     longhorn:
@@ -100,3 +100,5 @@
       s3Override: "__testdist__"
     ekco:
       version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel

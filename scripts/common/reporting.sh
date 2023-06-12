@@ -290,8 +290,8 @@ function attempt_get_cluster_id() {
     if ! kubernetes_resource_exists kurl configmap kurl-cluster-uuid ; then
         # If the cluster is down, check to see if this is an etcd member and the cluster uuid is
         # persisted to disk.
-        if [ -d /var/lib/etcd/member ] && [ -f /var/lib/kurl/clusteruuid ]; then
-            KURL_CLUSTER_UUID=$(cat /var/lib/kurl/clusteruuid)
+        if [ -d /var/lib/etcd/member ] && [ -f "${KURL_INSTALL_DIRECTORY}/clusteruuid" ]; then
+            KURL_CLUSTER_UUID=$(cat "${KURL_INSTALL_DIRECTORY}/clusteruuid")
         else
             KURL_CLUSTER_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
         fi
@@ -300,9 +300,9 @@ function attempt_get_cluster_id() {
     fi
 
     # Persist the cluster uuid to disk in case the cluster is down.
-    # The tasks.sh reset command will remove the /var/lib/kurl directory and the cluster uuid will
+    # The tasks.sh reset command will remove the KURL_INSTALL_DIRECTORY directory and the cluster uuid will
     # be regenerated if reset.
-    echo "$KURL_CLUSTER_UUID" > /var/lib/kurl/clusteruuid
+    echo "$KURL_CLUSTER_UUID" > "${KURL_INSTALL_DIRECTORY}/clusteruuid"
 }
 
 # maybe_set_kurl_cluster_uuid will create the kurl_cluster_uuid configmap using the

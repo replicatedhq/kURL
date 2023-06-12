@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nodes-connectivity-listener
+spec:
+  selector:
+    matchLabels:
+      name: nodes-connectivity-listener
+  template:
+    metadata:
+      labels:
+        name: nodes-connectivity-listener
+    spec:
+      hostNetwork: true
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: nodes-connectivity-listener
+        image: nodes-connectivity-image
+        command: [ "/bin/bash", "-c" ]

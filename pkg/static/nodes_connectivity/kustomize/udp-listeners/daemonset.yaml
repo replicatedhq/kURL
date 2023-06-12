@@ -1,0 +1,10 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nodes-connectivity-listener
+spec:
+  template:
+    spec:
+      containers:
+      - name: nodes-connectivity-listener
+        args: ["/usr/bin/nc -kulw 0 $PORT"]

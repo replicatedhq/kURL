@@ -316,7 +316,7 @@ function main() {
         fi
     done
 
-    echo "::set-output name=containerd_version::$GREATEST_VERSION"
+    echo "containerd_version=$GREATEST_VERSION" >> "$GITHUB_OUTPUT"
 
     update_available_versions
     generate_step_versions

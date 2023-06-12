@@ -196,4 +196,48 @@ EOF
 function kubeadm_api_is_healthy() {
     curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
 }
+
+function kubeadm_conf_api_version() {
+    
+    # Get kubeadm api version from the runtime
+    # Enforce the use of kubeadm.k8s.io/v1beta3 api version beginning with Kubernetes 1.26+
+    local kubeadm_v1beta3_min_version=
+    kubeadm_v1beta3_min_version="26"
+    if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "$kubeadm_v1beta3_min_version" ]; then
+            echo "v1beta3"
+        else
+            echo "v1beta2"
+        fi 
+    else
+        # ################################ NOTE ########################################## #
+        # get the version from an existing cluster when the installer is not run           #
+        # i.e. this is meant to handle cases where kubeadm config is patched from tasks.sh #
+
+        semverParse "$(kubeadm version --output=short | sed 's/v//')"
+        # shellcheck disable=SC2154
+        local kube_current_version_minor="$minor"
+        if [ "$kube_current_version_minor" -ge "$kubeadm_v1beta3_min_version" ]; then
+            echo "v1beta3"
+        else
+            echo "v1beta2"
+        fi
+    fi
+}
+
+# kubeadm_customize_config mutates a kubeadm configuration file for Kubernetes compatibility purposes
+function kubeadm_customize_config() {
+    local kubeadm_patch_config=$1
+
+    # Templatize the api version for kubeadm patches
+    # shellcheck disable=SC2016
+    sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$kubeadm_patch_config"
+
+    # Kubernetes 1.24 deprecated the '--container-runtime' kubelet argument in 1.24 and removed it in 1.27
+    # See: https://kubernetes.io/blog/2023/03/17/upcoming-changes-in-kubernetes-v1-27/#removal-of-container-runtime-command-line-argument
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "24" ]; then
+        # remove kubeletExtraArgs.container-runtime from the containerd kubeadm addon patch
+        sed -i '/container-runtime:/d' "$kubeadm_patch_config"
+    fi
+}
     

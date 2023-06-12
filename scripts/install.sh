@@ -33,20 +33,7 @@ DIR=.
 . $DIR/scripts/common/containerd.sh
 # Magic end
 
-function configure_coredns() {
-    # Runs after kubeadm init which always resets the coredns configmap - no need to check for
-    # and revert a previously set nameserver
-    if [ -z "$NAMESERVER" ]; then
-        return 0
-    fi
-    kubectl -n kube-system get configmap coredns -oyaml > /tmp/Corefile
-    # Example lines to replace from k8s 1.17 and 1.19
-    # "forward . /etc/resolv.conf" => "forward . 8.8.8.8"
-    # "forward . /etc/resolv.conf {" => "forward . 8.8.8.8 {"
-    sed -i "s/forward \. \/etc\/resolv\.conf/forward \. ${NAMESERVER}/" /tmp/Corefile
-    kubectl -n kube-system replace configmap coredns -f /tmp/Corefile
-    kubectl -n kube-system rollout restart deployment/coredns
-}
+KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS="${KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS:-}"
 
 function init() {
     logStep "Initialize Kubernetes"
@@ -179,20 +166,31 @@ function init() {
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.yaml
     fi
+    if [ -n "$KUBERNETES_MAX_PODS_PER_NODE" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-max-pods.yaml
+
+        render_yaml_file_2 $kustomize_kubeadm_init/patch-kubelet-max-pods.tmpl.yaml > $kustomize_kubeadm_init/patch-kubelet-max-pods.yaml
+    fi
 
     kubernetes_configure_pause_image "$kustomize_kubeadm_init"
 
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
-        cp $patch $kustomize_kubeadm_init/$patch_basename
+        cp "$patch" "$kustomize_kubeadm_init/$patch_basename"
+        
+        kubeadm_customize_config "$kustomize_kubeadm_init/$patch_basename"
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
-            $patch_basename
+            "$patch_basename"
     done
     mkdir -p "$KUBEADM_CONF_DIR"
-    kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
-    render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
+
+    # Generate kubeadm config
+    kubectl kustomize $kustomize_kubeadm_init > "$KUBEADM_CONF_DIR/kubeadm-init-raw.yaml"
+    render_yaml_file "$KUBEADM_CONF_DIR/kubeadm-init-raw.yaml" > "$KUBEADM_CONF_FILE"
 
     # kustomize requires assests have a metadata field while kubeadm config will reject yaml containing it
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
@@ -236,9 +234,13 @@ function init() {
     cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
     mkdir -p /var/log/apiserver
 
+    if [ -z "$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" ]; then
+        KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
+    fi
+
     set -o pipefail
     cmd_retry 3 kubeadm init \
-        --ignore-preflight-errors=all \
+        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
@@ -279,6 +281,7 @@ function init() {
 
     wait_for_nodes
 
+    # workaround as some code relies on this legacy label
     kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator
@@ -303,7 +306,7 @@ function init() {
                     printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
                 else
                     local prefix=
-                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
                     printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
                 fi
@@ -338,7 +341,7 @@ function init() {
 
     logSuccess "Cluster Initialized"
 
-    configure_coredns
+    kubernetes_configure_coredns
 
     if commandExists registry_init; then
         registry_init
@@ -349,6 +352,9 @@ function init() {
             spinner_kubernetes_api_healthy
         fi
     fi
+
+    # install the kurl in-cluster troubleshoot supportbundle spec
+    kubectl -n kurl apply -f "$DIR/manifests/troubleshoot.yaml"
 }
 
 function kubeadm_post_init() {
@@ -370,6 +376,7 @@ function kurl_config() {
     if kubernetes_resource_exists kube-system configmap kurl-config; then
         kubectl -n kube-system delete configmap kurl-config
     fi
+
     kubectl -n kube-system create configmap kurl-config \
         --from-literal=kurl_url="$KURL_URL" \
         --from-literal=installer_id="$INSTALLER_ID" \
@@ -387,6 +394,8 @@ function kurl_config() {
         --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
         --from-literal=additional_no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES" \
         --from-literal=kubernetes_cis_compliance="$KUBERNETES_CIS_COMPLIANCE"
+
+    logSuccess "Kurl installer spec was successfully persisted in the kurl configmap"
 }
 
 function outro() {
@@ -402,10 +411,16 @@ function outro() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-    if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-    fi
-    common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+    service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
+    pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+
+    local no_proxy_addresses=""
+
+    [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ] && no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES"
+    [ -n "$service_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$service_cidr"
+    [ -n "$pod_cidr" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}$pod_cidr"
+    [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
     common_flags="${common_flags}$(get_remotes_flags)"
     common_flags="${common_flags}$(get_ipv6_flag)"
@@ -436,7 +451,7 @@ function outro() {
     printf "\n"
 
     local prefix=
-    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
@@ -548,6 +563,7 @@ function main() {
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
     init_preflights
+    kubernetes_upgrade_preflight
     common_prompts
     journald_persistent
     configure_proxy
@@ -586,6 +602,7 @@ function main() {
     kubeadm_post_init
     uninstall_docker
     ${K8S_DISTRO}_addon_for_each addon_post_init
+    check_proxy_config
     outro
     package_cleanup
 

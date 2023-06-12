@@ -167,18 +167,24 @@ function addon_fetch_airgap() {
         # the package already exists, no need to download it
         printf "The package %s %s is already available locally.\n" "$name" "$version"
     else
-        # prompt the user to give us the package
-        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
-        printf "\nYou can download it with the following command:\n"
-        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/$package_name"
+        package_path="$(find assets/*"$name-$version"*.tar.gz 2>/dev/null | head -n 1)"
+        if [ -n "$package_path" ]; then
+            # the package already exists, no need to download it
+            printf "The package %s is already available locally.\n" "$(basename "$package_path")"
+        else
+            # prompt the user to give us the package
+            printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
+            printf "\nYou can download it with the following command:\n"
+            printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/$package_name"
 
-        addon_fetch_airgap_prompt_for_package "$package_name"
+            addon_fetch_airgap_prompt_for_package "$package_name"
+        fi
     fi
 
     printf "Unpacking %s %s...\n" "$name" "$version"
     tar xf "$package_path"
 
-    addon_source "$name" "$version"
+    # do not source the addon here as the kubernetes "addon" uses this function but is not an addon
 }
 
 # addon_fetch_multiple_airgap checks if the files are already present - if they are, use that
@@ -246,6 +252,7 @@ function addon_fetch_multiple_airgap() {
         fi
 
         # do not source the addon here as we are loading multiple addons that may conflict
+        # also the kubernetes "addon" uses this function but is not an addon
     fi
 }
 
@@ -286,10 +293,13 @@ function addon_outro() {
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-        if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
-            common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
-        fi
-        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+
+        local no_proxy_addresses=""
+        [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ] && no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES"
+        [ -n "${SERVICE_CIDR}" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}${SERVICE_CIDR}"
+        [ -n "${POD_CIDR}" ] && no_proxy_addresses="${no_proxy_addresses:+$no_proxy_addresses,}${POD_CIDR}"
+        [ -n "$no_proxy_addresses" ] && common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag 1 "$no_proxy_addresses")"
+
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_skip_system_package_install_flag)"
         common_flags="${common_flags}$(get_exclude_builtin_host_preflights_flag)"
@@ -300,7 +310,7 @@ function addon_outro() {
             printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
         else
             local prefix=
-            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
             printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
         fi

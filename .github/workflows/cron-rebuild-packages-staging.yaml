@@ -20,7 +20,7 @@ jobs:
           export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
 
           OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
-          echo "::set-output name=matrix::$OUTPUT"
+          echo "matrix=$OUTPUT" >> "$GITHUB_OUTPUT"
 
   build-upload-packages:
     needs: build-matrix
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.20'
 
       - uses: actions/checkout@v3
 

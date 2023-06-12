@@ -7,6 +7,12 @@ VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
 
+    local versions127=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.27\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions127[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.27: ${versions127[0]}"
+        VERSIONS+=("${versions127[0]}")
+    fi
+
     local versions126=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.26\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions126[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.26: ${versions126[0]}"
@@ -51,7 +57,7 @@ function generate_version_directory() {
     mv kubeadm /tmp
 
     while read -r image; do
-        # k8s.gcr.io/kube-apiserver:v1.20.2 -> kube-apiserver
+        # registry.k8s.io/kube-apiserver:v1.20.2 -> kube-apiserver
         local name=$(echo "$image" | awk -F':' '{ print $1 }' | awk -F '/' '{ print $2 }')
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
@@ -88,11 +94,11 @@ function generate_conformance_package() {
 
     # add conformance image for sonobuoy to manifest
     # TODO: in the future change this image to registry.k8s.io
-    echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
+    echo "image conformance registry.k8s.io/conformance:v${version}" > "../$version/conformance/Manifest"
 
 
     # --mode quick image
-    local image="$(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
+    local image="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
     local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
     echo "image $name $image" >> "../$version/conformance/Manifest"
 
@@ -101,7 +107,7 @@ function generate_conformance_package() {
     # sonobuoy_pull_images "$version" || true
 
     # local image=
-    # for image in $(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images) ; do
+    # for image in $(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images) ; do
     #     if docker inspect "$image" >/dev/null 2>&1 ; then
     #         local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
     #         echo "image $name $image" >> "../$version/conformance/Manifest"
@@ -131,6 +137,13 @@ function get_latest_sonobuoy_release_version() {
 }
 
 function update_available_versions() {
+    local version127=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.27' ) )
+    if [ ${#version127[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-127/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version127[0]}" ; then
+            sed -i "/cron-kubernetes-update-127/a\    \"${version127[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
     local version126=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.26' ) )
     if [ ${#version126[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-126/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version126[0]}" ; then
@@ -199,7 +212,7 @@ function main() {
         generate_version_directory "${version}"
         generate_conformance_package "${version}"
     done
-    echo "::set-output name=kubernetes_version::${VERSIONS[*]}"
+    echo "kubernetes_version=${VERSIONS[*]}" >> "$GITHUB_OUTPUT"
 
     update_available_versions
 

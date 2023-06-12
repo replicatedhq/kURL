@@ -19,8 +19,9 @@ jobs:
       - id: set-matrix
         name: Build image matrix
         run: |
-          OUTPUT=`./bin/scan-images/matrix.js`
-          echo "::set-output name=matrix::$OUTPUT"
+          echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+          ./bin/scan-images/matrix.js >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
   scan-images:
     name: ${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }}
@@ -35,7 +36,7 @@ jobs:
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "Generate artifact"
         id: trivy
-        uses: aquasecurity/trivy-action@0.9.2
+        uses: aquasecurity/trivy-action@0.10.0
         continue-on-error: ${{ ! matrix.maintainer }}
         with:
           image-ref: ${{ matrix.image }}
@@ -53,7 +54,7 @@ jobs:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
           path: trivy.json
       - name: "Display results"
-        uses: aquasecurity/trivy-action@0.9.2
+        uses: aquasecurity/trivy-action@0.10.0
         if: ${{ always() && steps.trivy.outcome == 'failure' }}
         continue-on-error: ${{ ! matrix.maintainer }}
         with:

@@ -11,7 +11,7 @@ You can check [system requirements](https://kurl.sh/docs/install-with-kurl/syste
 ## Pre-requirements
 
 - npm _(i.e. for mac os: `brew install npm`)_
-- [Golang](https://go.dev/doc/install) >= 1.19+
+- [Golang](https://go.dev/doc/install) >= 1.20+
 - Docker
 
 **If your local environment is OSX:** ensure that you install `gnu-sed` and `md5sha1sum` to be able to run the scripts.
@@ -22,7 +22,7 @@ The apple-supplied `sed` does not support in-place replace, and OSX does not com
 
 ### Testing released versions
 
-*For packages that have already been released, you can save time by running `curl -L https://s3-staging.kurl.sh/staging/kubernetes-1.26.1.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://s3-staging.kurl.sh/staging/containerd-1.6.16.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
+*For packages that have already been released, you can save time by running `curl -L https://s3-staging.kurl.sh/staging/kubernetes-1.27.1.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://s3-staging.kurl.sh/staging/containerd-1.6.20.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
 
 - 📌 _Ensure that you have a_ **kurl** _directory already created (`mkdir kurl`) from wherever you run the aforementioned commands.
 - 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/staging/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />

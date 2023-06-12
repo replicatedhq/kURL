@@ -1,0 +1,13 @@
+image kube-apiserver registry.k8s.io/kube-apiserver:v1.27.2
+image kube-controller-manager registry.k8s.io/kube-controller-manager:v1.27.2
+image kube-scheduler registry.k8s.io/kube-scheduler:v1.27.2
+image kube-proxy registry.k8s.io/kube-proxy:v1.27.2
+image pause registry.k8s.io/pause:3.9
+image etcd registry.k8s.io/etcd:3.5.7-0
+image coredns registry.k8s.io/coredns/coredns:v1.10.1
+
+asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v1.27.2/bin/linux/amd64/kubeadm
+asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.27.0/crictl-v1.27.0-linux-amd64.tar.gz
+
+asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64
+asset kustomize-v3.5.4.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.4/kustomize_v3.5.4_linux_amd64.tar.gz

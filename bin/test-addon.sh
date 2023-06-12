@@ -85,7 +85,7 @@ function main() {
   done
   shopt -u nullglob
 
-  echo "::set-output name=message::${MSG}"
+  echo "message=$MSG" >> "$GITHUB_OUTPUT"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }

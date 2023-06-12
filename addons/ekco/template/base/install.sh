@@ -71,6 +71,8 @@ function ekco() {
     local src="$DIR/addons/ekco/$EKCO_VERSION"
     local dst="$DIR/kustomize/ekco"
 
+    ekco_dynamicstorage
+
     ekco_create_deployment "$src" "$dst"
 
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
@@ -83,7 +85,7 @@ function ekco() {
     # installed they will get their overridden image
     if [ -n "$EKCO_POD_IMAGE_OVERRIDES" ]; then
         ekco_load_images
-        echo "Waiting up to 5 minutes for pod-image-overrides mutating webhook config to be created"
+        log "Waiting up to 5 minutes for pod-image-overrides mutating webhook config to be created"
         if ! spinner_until 300 kubernetes_resource_exists kurl mutatingwebhookconfigurations pod-image-overrides.kurl.sh; then
             bail "EKCO failed to deploy the pod-image-overrides.kurl.sh mutating webhook configuration"
         fi
@@ -135,7 +137,7 @@ function ekco_maybe_scaleup_operator() {
     ekcoReplicas=$(kubectl -n kurl get deployment ekc-operator -o jsonpath='{.spec.replicas}')
 
     if [ -z "$ekcoReplicas" ] || [ "$ekcoReplicas" -eq 0 ]; then
-        echo "Scaling up EKCO operator deployment"
+        log "Scaling up EKCO operator deployment"
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 }
@@ -154,6 +156,8 @@ function ekco_maybe_remove_rook_priority_class_label() {
 function ekco_install_reboot_service() {
     local src="$1"
 
+    logStep "Installing ekco reboot service"
+
     mkdir -p /opt/ekco
     cp "$src/reboot/startup.sh" /opt/ekco/startup.sh
     cp "$src/reboot/shutdown.sh" /opt/ekco/shutdown.sh
@@ -167,14 +171,23 @@ function ekco_install_reboot_service() {
 
     systemctl daemon-reload
     systemctl enable ekco-reboot.service
-    systemctl start ekco-reboot.service
+    if ! timeout 30s systemctl start ekco-reboot.service; then
+        log "Failed to start ekco-reboot.service within 30s, restarting it"
+        systemctl restart ekco-reboot.service
+    fi
+
+    logSuccess "ekco reboot service installed"
 }
 
 function ekco_install_purge_node_command() {
     local src="$1"
 
+    logStep "Installing ekco purge node command"
+
     cp "$src/ekco-purge-node.sh" /usr/local/bin/ekco-purge-node
     chmod u+x /usr/local/bin/ekco-purge-node
+
+    logSuccess "ekco purge node command installed"
 }
 
 function ekco_handle_load_balancer_address_change_pre_init() {
@@ -194,7 +207,7 @@ function ekco_handle_load_balancer_address_change_pre_init() {
     local ARG=--add-alt-names=$newLoadBalancerHost
 
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
-        echo "Adding new load balancer $newLoadBalancerHost to API server certificate on node $NODE"
+        logStep "Adding new load balancer $newLoadBalancerHost to API server certificate on node $NODE"
         local podName=regen-cert-$NODE
         kubectl delete pod $podName --force --grace-period=0 2>/dev/null || true
         render_yaml_file "$DIR/addons/ekco/$EKCO_VERSION/regen-cert-pod.yaml" | kubectl apply -f -
@@ -211,7 +224,7 @@ function ekco_handle_load_balancer_address_change_pre_init() {
     # Wait for the servers to pick up the new certs
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
         local nodeIP=$(kubectl get node $NODE -owide  --no-headers | awk '{ print $6 }')
-        echo "Waiting for $NODE to begin serving certificate signed for $newLoadBalancerHost"
+        log "Waiting for $NODE to begin serving certificate signed for $newLoadBalancerHost"
         local addr=$($DIR/bin/kurl format-address $nodeIP)
         if ! spinner_until 120 cert_has_san "$addr:6443" "$newLoadBalancerHost"; then
             printf "${YELLOW}$NODE is not serving certificate signed for $newLoadBalancerHost${NC}\n"
@@ -236,7 +249,7 @@ function ekco_handle_load_balancer_address_change_post_init() {
     local ARG=--drop-alt-names=$oldLoadBalancerHost
 
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
-        echo "Removing old load balancer address $oldLoadBalancerHost from API server certificate on node $NODE"
+        logStep "Removing old load balancer address $oldLoadBalancerHost from API server certificate on node $NODE"
         local podName=regen-cert-$NODE
         kubectl delete pod $podName --force --grace-period=0 2>/dev/null || true
         render_yaml_file "$DIR/addons/ekco/$EKCO_VERSION/regen-cert-pod.yaml" | kubectl apply -f -
@@ -269,7 +282,7 @@ function ekco_bootstrap_internal_lb() {
         last_modified="$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)"
     fi
 
-    echo "Updating the Kubernetes apiserver load balancer"
+    logStep "Updating the Kubernetes apiserver load balancer"
 
     # Always regenerate the manifests to account for updates.
     # Note: this could cause downtime when kublet syncs the manifests for a new haproxy version
@@ -298,7 +311,7 @@ function ekco_bootstrap_internal_lb() {
     fi
 
     if [ "$already_bootstrapped" = "1" ]; then
-        echo "Waiting for the Kubernetes apiserver load balancer to restart"
+        log "Waiting for the Kubernetes apiserver load balancer to restart"
         if [ "$last_modified" != "$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)" ]; then
             sleep_spinner 60 # allow time for the kubelet to detect the manifest change
         fi
@@ -393,7 +406,7 @@ function ekco_handle_load_balancer_address_change_kubeconfigs() {
         kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --exclude=${exclude} --server=https://${API_SERVICE_ADDRESS} &>/tmp/change-lb-log"
     fi
 
-    echo "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
+    log "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
     spinner_until 600 ekco_change_lb_completed
 
     logs=$(kubectl -n kurl exec -i deploy/ekc-operator -- cat /tmp/change-lb-log)
@@ -408,12 +421,15 @@ function ekco_change_lb_completed() {
 }
 
 function ekco_create_deployment() {
+    local src="$1"
+    local dst="$2"
+
     cp "$src/kustomization.yaml" "$dst/kustomization.yaml"
     cp "$src/namespace.yaml" "$dst/namespace.yaml"
     cp "$src/rbac.yaml" "$dst/rbac.yaml"
     cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
-    cp "$src/deployment.yaml" "$dst/deployment.yaml"
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
+    cp "$src/service.yaml" "$dst/service.yaml"
 
     # is rook enabled
     if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
@@ -442,8 +458,24 @@ function ekco_create_deployment() {
         render_yaml_file_2 "$src/rolebinding-kotsadm.yaml" >> "$dst/rolebinding.yaml"
     fi
 
-    render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
-    insert_resources "$dst/kustomization.yaml" configmap.yaml
+    local rook_storage_nodes=
+    if [ -n "$ROOK_NODES" ]; then
+        # replace newlines with \n and escape double quotes
+        # configmap.tmpl.yaml makes use of local variable rook_storage_nodes
+        # shellcheck disable=SC2034
+        rook_storage_nodes="$(echo "$ROOK_NODES" | yaml_escape_string_quotes | yaml_newline_to_literal)"
+    fi
+    local storage_migration_auth_token=
+    # configmap.tmpl.yaml makes use of local variable storage_migration_auth_token
+    # shellcheck disable=SC2034
+    storage_migration_auth_token=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)
+    render_yaml_file_2 "$src/configmap.tmpl.yaml" > "$dst/configmap.yaml"
+
+    local ekco_config_hash=
+    # deployment.tmpl.yaml makes use of local variable ekco_config_hash
+    # shellcheck disable=SC2034
+    ekco_config_hash="$(ekco_generate_config_hash "$dst")"
+    render_yaml_file_2 "$src/deployment.tmpl.yaml" > "$dst/deployment.yaml"
 
     kubectl apply -k "$dst"
     # apply rolebindings separately so as not to override the namespace
@@ -458,9 +490,29 @@ function ekco_load_images() {
         return 0
     fi
 
+    logStep "Loading ekco image overrides"
+
     if [ -n "$DOCKER_VERSION" ]; then
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "docker load < {}"
     else
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
+    fi
+
+    logSuccess "ekco image overrides loaded"
+}
+
+function ekco_generate_config_hash() {
+    local dst="$1"
+    md5sum "$dst/configmap.yaml" | awk '{ print $1 }'
+}
+
+function ekco_dynamicstorage() {
+    if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+        # check if the rook storageclass name exists - if it does we've already migrated and should not recreate/update 'scaling'
+        # yes the env var for rook's storage class name is "STORAGE_CLASS" - this is not a typo
+        if kubectl get storageclasses.storage.k8s.io "$STORAGE_CLASS" >/dev/null 2>&1; then
+            return 0
+        fi
+        kubectl apply -f "$src/storageclass-scaling.yaml"
     fi
 }

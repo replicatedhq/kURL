@@ -154,7 +154,7 @@ function common_prompts() {
 
     prompt_airgap_preload_images
 
-    if [ "$HA_CLUSTER" = "1" ]; then
+    if [ "$HA_CLUSTER" = "1" ] && [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" != "1" ]; then
         prompt_for_load_balancer_address
     fi
 }
