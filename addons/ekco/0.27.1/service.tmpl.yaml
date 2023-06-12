@@ -3,8 +3,10 @@ kind: Service
 metadata:
   name: ekc-operator
 spec:
+  type: NodePort
   selector:
     app: ekc-operator
   ports:
     - protocol: TCP
       port: 8080
+      nodePort: $EKCO_NODE_PORT

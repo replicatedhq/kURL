@@ -67,6 +67,18 @@ function ekco_pre_init() {
     fi
 }
 
+function ekco_post_init() {
+    local primary_ip=
+    local control_plane_label=
+    control_plane_label="$(kubernetes_get_control_plane_label)"
+    primary_ip=$(kubectl get nodes --no-headers --selector="$control_plane_label" -owide | awk '{ print $6 }' | head -n 1)
+    if [ -n "${primary_ip}" ]; then
+        # global variable EKCO_ADDRESS is used as an argument to the join.sh command
+        # shellcheck disable=SC2034
+        EKCO_ADDRESS="${primary_ip}:${EKCO_NODE_PORT}"
+    fi
+}
+
 function ekco() {
     local src="$DIR/addons/ekco/$EKCO_VERSION"
     local dst="$DIR/kustomize/ekco"
@@ -420,6 +432,7 @@ function ekco_change_lb_completed() {
     2>/dev/null kubectl -n kurl exec -i deploy/ekc-operator -- grep -q "Result:" /tmp/change-lb-log
 }
 
+
 function ekco_create_deployment() {
     local src="$1"
     local dst="$2"
@@ -429,7 +442,6 @@ function ekco_create_deployment() {
     cp "$src/rbac.yaml" "$dst/rbac.yaml"
     cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
-    cp "$src/service.yaml" "$dst/service.yaml"
 
     # is rook enabled
     if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
@@ -465,11 +477,16 @@ function ekco_create_deployment() {
         # shellcheck disable=SC2034
         rook_storage_nodes="$(echo "$ROOK_NODES" | yaml_escape_string_quotes | yaml_newline_to_literal)"
     fi
-    local storage_migration_auth_token=
-    # configmap.tmpl.yaml makes use of local variable storage_migration_auth_token
+    
+    # configmap.tmpl.yaml makes use of the global variable EKCO_AUTH_TOKEN
     # shellcheck disable=SC2034
-    storage_migration_auth_token=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)
+    EKCO_AUTH_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)
     render_yaml_file_2 "$src/configmap.tmpl.yaml" > "$dst/configmap.yaml"
+
+    # service.tmpl.yaml makes use of the global variable EKCO_NODE_PORT
+    # shellcheck disable=SC2034
+    EKCO_NODE_PORT=31880
+    render_yaml_file_2 "$src/service.tmpl.yaml" > "$dst/service.yaml"
 
     local ekco_config_hash=
     # deployment.tmpl.yaml makes use of local variable ekco_config_hash
