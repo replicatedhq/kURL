@@ -451,28 +451,23 @@ function rook_maybe_migrate_from_openebs() {
     if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -le "1" ]; then
         return 0
     fi
-    local num_nodes
-    num_nodes="$(kubectl get nodes --no-headers | wc -l)"
-    if [ "$num_nodes" -lt "$ROOK_MINIMUM_NODE_COUNT" ]; then
+
+    if [ -z "$EKCO_AUTH_TOKEN" ]; then
+        logFail "Internal Error: an authentication token is required to start the OpenEBS to Rook multi-node migration."
         return 0
     fi
-    if ! kubectl get sc scaling >/dev/null 2>&1 ; then
+
+    if [ -z "$EKCO_ADDRESS" ]; then
+        logFail "Internal Error: unable to determine network address of the kURL operator."
         return 0
     fi
-    logWarn "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook"
-    logWarn "    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can"
-    logWarn "    choose to run the migration later if preferred."
-    log "Would you like to continue with the migration now? "
-    if ! confirmN; then
-        logWarn "Migration from OpenEBS to Rook skipped."
-        logWarn "If you would like to run the migration later, run the following command:"
-        logWarn "    $DIR/bin/kurl cluster migrate-multinode-storage"
-        return 0
-    fi
-    if ! $DIR/bin/kurl cluster migrate-multinode-storage; then
+
+    # Initiate OpenEBS to Rook multi-node migration
+    if ! $DIR/bin/kurl cluster migrate-multinode-storage --minimum-number-of-nodes "$ROOK_MINIMUM_NODE_COUNT" --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN"; then
         logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
         logFail "If you would like to run the migration later, run the following command:"
         logFail "    $DIR/bin/kurl cluster migrate-multinode-storage"
         return 0
     fi
 }
+

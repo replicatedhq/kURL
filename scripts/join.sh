@@ -191,6 +191,7 @@ function main() {
     install_helm
     join
     check_proxy_config
+    rook_maybe_migrate_from_openebs
     outro
     package_cleanup
     popd_install_directory

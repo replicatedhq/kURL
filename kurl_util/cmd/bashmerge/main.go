@@ -302,6 +302,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Velero = &kurlv1beta1.Velero{}
 			}
 			installer.Spec.Velero.ServerFlags = append(installer.Spec.Velero.ServerFlags, flags...)
+		case "ekco-address":
+			continue
+		case "ekco-auth-token":
+			continue
 		default:
 			return fmt.Errorf("string %s is not a bash flag", split[0])
 		}
