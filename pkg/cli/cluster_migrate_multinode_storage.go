@@ -147,7 +147,7 @@ func continueWithStorageMigration() bool {
 	fmt.Print("Would you like to continue with the migration now? (Y/n) ")
 	var answer string
 	fmt.Scanln(&answer)
-	return answer == "" || strings.ToLower(answer) == "y"
+	return strings.ToLower(answer) == "y"
 }
 
 func runStorageMigration(ctx context.Context, opts migrateOpts) error {
