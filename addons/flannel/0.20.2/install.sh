@@ -34,15 +34,35 @@ function flannel_pre_init() {
 
     flannel_init_pod_subnet
 
-    if flannel_weave_conflict; then
-        logWarn "The migration from Weave to Flannel will require whole-cluster downtime."
-        logWarn "Would you like to continue?"
+    if ! flannel_weave_conflict; then
+        return 0
+    fi
+
+    logWarn "The migration from Weave to Flannel will require whole-cluster downtime."
+    logWarn "Would you like to continue?"
+    if ! confirmY ; then
+        bail "Not migrating from Weave to Flannel"
+    fi
+
+    # if the migration from weave has failed before we may have a cluster with a
+    # non working network, in this scenario we can't simply move forward because
+    # other addons may fail during their pre_init phase. we need to jump from here
+    # directly into the weave to flannel migration code. subsequent call to install
+    # flannel again will be, essentially, a noop.
+    if flannel_weave_migration_has_failed; then
+        logWarn "Previous attempt to migrate from Weave to Flannel has failed."
+        logWarn "Attempting to migrate again, do you wish to continue?"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
-        flannel_check_nodes_connectivity
-        flannel_check_rook_ceph_status
+        discover_pod_subnet
+        discover_service_subnet
+        flannel
+        return 0
     fi
+
+    flannel_check_nodes_connectivity
+    flannel_check_rook_ceph_status
 }
 
 function flannel_check_rook_ceph_status() {
@@ -94,6 +114,7 @@ function flannel() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
 
+    mkdir -p "$dst"
     cp "$src"/yaml/* "$dst/"
 
     # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
@@ -163,8 +184,22 @@ function flannel_ready_spinner() {
     logSuccess "Flannel is healthy"
 }
 
+# flannel_weave_conflict returns true if weave is installed or a previous migration to
+# flannel was failed. on these scenarios we need to run the weave-to-flannel migration.
 function flannel_weave_conflict() {
-    ls /etc/cni/net.d/*weave* >/dev/null 2>&1
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+        return 0
+    fi
+    flannel_weave_migration_has_failed
+}
+
+# flannel_weave_migration_has_failed returns true if a previous migration to flannel
+# was failed.
+function flannel_weave_migration_has_failed() {
+    # this config map is created when the migration from weave to flannel is started
+    # and removed when it is finished. if we find this config map then we know that
+    # we have failed in a previous attempt to migrate.
+    kubectl get cm -n kurl migration-from-weave >/dev/null 2>&1
 }
 
 function flannel_antrea_conflict() {
@@ -295,6 +330,10 @@ function flannel_scale_up_rook() {
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
 
+    # start by creating a config map indicating that this migration has been started. if we fail
+    # midair this ensure this function will be ran once more.
+    kubectl create configmap -n kurl migration-from-weave --from-literal=started="true" --dry-run=client -o yaml | kubectl apply -f -
+
     logStep "Scale down services prior remove Weave"
     flannel_scale_down_ekco
     flannel_scale_down_rook
@@ -413,6 +452,8 @@ function weave_to_flannel() {
     flannel_scale_up_rook
     logSuccess "Services scaled up successfully"
 
+    # delete the configmap that was used to signalize the weave to flannel migration start.
+    kubectl delete configmap -n kurl migration-from-weave
     logSuccess "Migration from Weave to Flannel finished"
 }
 

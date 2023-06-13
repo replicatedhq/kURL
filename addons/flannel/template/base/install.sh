@@ -40,6 +40,13 @@ function flannel_pre_init() {
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
+
+        # we only check cluster nodes connectivity and rook health once. if we have already tried
+        # to migrate from weave to flannel and failed we can't expect the cluster to be in a healthy
+        # state anymore, on this scenario we move on so we can retry the migration.
+        if flannel_weave_migration_has_failed; then
+            return 0
+        fi
         flannel_check_nodes_connectivity
         flannel_check_rook_ceph_status
     fi
@@ -163,8 +170,23 @@ function flannel_ready_spinner() {
     logSuccess "Flannel is healthy"
 }
 
+# flannel_weave_conflict returns true if weave is installed or a previous migration to
+# flannel was failed. on these scenarios we need to run the weave-to-flannel migration.
 function flannel_weave_conflict() {
-    ls /etc/cni/net.d/*weave* >/dev/null 2>&1
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+        return 0
+    fi
+    flannel_weave_migration_has_failed
+}
+
+# flannel_weave_migration_has_failed returns true if a previous migration to flannel
+# was failed.
+function flannel_weave_migration_has_failed() {
+    # this config map is created when the migration from weave to flannel is started
+    # and removed when it is finished. if we find this config map then we know that
+    # we have failed in a previous attempt to migrate from weave to flannel. on this
+    # scenario we should retry the migration.
+    kubectl get cm -n kube-system migrating-from-weave >/dev/null 2>&1
 }
 
 function flannel_antrea_conflict() {
@@ -295,6 +317,10 @@ function flannel_scale_up_rook() {
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
 
+    # start by creating a config map indicating that this migration has been started. if we fail
+    # midair this ensure this function will be ran once more.
+    kubectl create configmap -n kube-system migrating-from-weave --from-literal=started="true" --dry-run=client -o yaml | kubectl apply -f -
+
     logStep "Scale down services prior remove Weave"
     flannel_scale_down_ekco
     flannel_scale_down_rook
@@ -413,6 +439,8 @@ function weave_to_flannel() {
     flannel_scale_up_rook
     logSuccess "Services scaled up successfully"
 
+    # delete the configmap that was used to signalize the weave to flannel migration start.
+    kubectl delete configmap -n kube-system migrating-from-weave
     logSuccess "Migration from Weave to Flannel finished"
 }
 
