@@ -52,14 +52,14 @@
 - name: "weave to flannel single node"
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     weave:
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     flannel:
@@ -70,7 +70,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     weave:
@@ -91,7 +91,7 @@
       localPVStorageClassName: "local"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     flannel:
@@ -116,7 +116,7 @@
   cpu: 8
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     weave:
@@ -135,7 +135,7 @@
       version: "1.11.x"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     flannel:
