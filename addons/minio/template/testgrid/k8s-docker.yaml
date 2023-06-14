@@ -1,5 +1,5 @@
 # basic test
-- name: fresh minio install
+- name: fresh minio install (openebs)
   installerSpec:
     kubernetes:
       version: "latest"
@@ -57,14 +57,16 @@
 
 
 # installation with specified PVC size
-- name: install with 20Gi volume
+- name: install with 20Gi volume (openebs)
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.27.x"
     flannel:
       version: latest
-    longhorn:
+    openebs:
       version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "default"
     containerd:
       version: "latest"
     minio:
@@ -98,11 +100,11 @@
     validate_read_write_object_store rwtest testfile.txt
 
 # upgrade that changes PVC size
-- name: upgrade minio from latest while increasing PVC claim size
+- name: upgrade minio from latest while increasing PVC claim size (longhorn)
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.24.x"
     flannel:
       version: latest
     longhorn:
@@ -113,7 +115,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.24.x"
     flannel:
       version: latest
     longhorn:
@@ -138,7 +140,7 @@
     kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
 
 # upgrade from 2020-01-25T02-50-51Z
-- name: upgrade minio from 2020-01-25T02-50-51Z
+- name: upgrade minio from 2020-01-25T02-50-51Z (longhorn)
   flags: "yes"
   installerSpec:
     kubernetes:
