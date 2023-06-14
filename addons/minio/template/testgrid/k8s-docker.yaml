@@ -75,6 +75,9 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+    echo "PVC size should be 20Gi:"
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
 
 # installation with hostPath
 - name: install using /opt/minio hostpath
@@ -99,7 +102,7 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     flannel:
       version: latest
     longhorn:
@@ -110,7 +113,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     flannel:
       version: latest
     longhorn:
@@ -130,6 +133,9 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    echo "PVC size should be 20Gi:"
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
 
 # upgrade from 2020-01-25T02-50-51Z
 - name: upgrade minio from 2020-01-25T02-50-51Z
@@ -246,3 +252,6 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    echo "PVC size should be 20Gi:"
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+    kubectl get pvc -n kurl minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
