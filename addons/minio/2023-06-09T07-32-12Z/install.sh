@@ -277,6 +277,14 @@ function allow_pvc_resize() {
             # if it is not at the desired size, scale down the minio deployment
             kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
 
+            # wait for the deployment to scale down
+            printf "Waiting for Minio pods to be removed\n"
+            if ! spinner_until 120 pods_gone_by_selector minio app=minio; then
+                 logWarn "Unable to scale down Minio, restoring desired scale and aborting PVC resize"
+                 kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$current_scale"
+                 return 0
+            fi
+
             printf "Waiting up to one minute for Minio PVC size to change from %s to %s\n" "$current_size" "$desired_size"
             n=0
             while [ "$current_size" != "$desired_size" ] && [ $n -lt 30 ]; do
@@ -467,7 +475,7 @@ function minio_swap_fs_migration_hostpaths() {
 # from within the pod.
 function minio_uses_fs_format() {
     # before running this we need to ensure that the minio deployment is fully deployed.
-    printf "Awaiting for minio deployment to rollout\n"
+    printf "Waiting for minio deployment to rollout\n"
     if ! spinner_until 300 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
         bail "Timeout awaiting for minio deployment"
     fi
