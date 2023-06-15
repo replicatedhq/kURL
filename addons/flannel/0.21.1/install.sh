@@ -44,6 +44,16 @@ function flannel_pre_init() {
         bail "Not migrating from Weave to Flannel"
     fi
 
+    # flannel_init_pod_subnet will fail to read the pod cidr when using weave
+    # because weave installation does not seem to populate the pod cidr property
+    # on the kubeadm cm. here we attempt to read the data directly from the
+    # weave-net daemonset.
+    local weave_pod_cidr
+    weave_pod_cidr=$(flannel_find_weave_pod_cidr)
+    if [ -z "$EXISTING_POD_CIDR" ] && [ -n "$weave_pod_cidr" ]; then
+        EXISTING_POD_CIDR="$weave_pod_cidr"
+    fi
+
     # if the migration from weave has failed before we may have a cluster with a
     # non working network, in this scenario we can't simply move forward because
     # other addons may fail during their pre_init phase. we need to jump from here
@@ -77,6 +87,10 @@ function flannel_check_rook_ceph_status() {
     fi
 }
 
+# flannel_find_weave_pod_cidr reads the weave pod cidr directly from the weave-net daemonset.
+function flannel_find_weave_pod_cidr() {
+    kubectl get daemonset weave-net -n kube-system -o yaml 2>/dev/null |grep "name: IPALLOC_RANGE" -A1 | tail -1 | awk '{ print $NF }'
+}
 
 # flannel_check_nodes_connectivity verifies that all nodes in the cluster can reach each other through
 # port 8472/UDP (this communication is a flannel requirement).
@@ -343,6 +357,10 @@ function weave_to_flannel() {
     remove_weave
     flannel_kubeadm
 
+    log "Flushing IP Tables"
+    weave_flush_iptables
+    log "Waiting for containerd to restart"
+
     logStep "Applying Flannel"
     kubectl -n kube-flannel apply -k "$dst/"
     logSuccess "Flannel applied successfully"
@@ -416,9 +434,6 @@ function weave_to_flannel() {
     logStep "Restarting kubelet"
     log "Stopping Kubelet"
     systemctl stop kubelet
-    log "Flushing IP Tables"
-    iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
-    log "Waiting for containerd to restart"
     restart_systemd_and_wait containerd
     log "Waiting for kubelet to restart"
     restart_systemd_and_wait kubelet
@@ -455,6 +470,22 @@ function weave_to_flannel() {
     # delete the configmap that was used to signalize the weave to flannel migration start.
     kubectl delete configmap -n kurl migration-from-weave
     logSuccess "Migration from Weave to Flannel finished"
+}
+
+# weave_flush_iptables removes all weave related iptables rules from the node.
+# existing rules that do not refer to weave or kubernetes are preserved.
+function weave_flush_iptables() {
+    # save all rules that do not mention kube or weave.
+    local fpath
+    fpath=$(mktemp /tmp/kurl-iptables-rules-XXXX)
+    iptables-save | grep -v KUBE | grep -v WEAVE > "$fpath"
+    # temporarily change the INPUT chain policy so we don't loose access to the machine
+    # and then hammer everything out of existence.
+    iptables -P INPUT ACCEPT
+    iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
+    # restore the rules that were not removed.
+    iptables-restore < "$fpath"
+    rm -f "$fpath"
 }
 
 function remove_weave() {
