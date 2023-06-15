@@ -914,15 +914,23 @@ function migrate_to_multinode_storage() {
 
     # Is Rook and OpenEBS installed
     if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
-        logFail "Rook and OpenEBS must be installed in order to migrate to multi-node"
+        bail "Rook and OpenEBS must be installed in order to migrate to multi-node"
     fi
 
     # Get Rook.minimumNodeCount option from the configmap
     local rookMinNodes=
     rookMinNodes=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-rook}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2)
-
     if [ -z "$rookMinNodes" ] || [ "$rookMinNodes" -le "1" ]; then
-        logFail "Rook.MinimumNodeCount must be greater than 1"
+        bail "Rook.MinimumNodeCount must be greater than 1"
+    fi
+
+    local ekcoVersion=
+    local requiredEkcoVersion=
+    requiredEkcoVersion="0.27.1"
+    ekcoVersion=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-ekco}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2 | tr -d '}"')
+    semverCompare "$ekcoVersion" "$requiredEkcoVersion"
+    if [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+        bail "EKCO add-on version >= $requiredEkcoVersion required for migration"
     fi
 
     local ekcoAddress=
