@@ -19,7 +19,7 @@ spec:
 {{kurl- if and .IsJoin (not .IsUpgrade)}}
   {{kurl- range $index, $address := .RemoteHosts}}
     - tcpConnect:
-        collectorName: "weave {{kurl $address }} {{$index}}"
+        collectorName: "weave {{kurl $address }} {{kurl $index}}"
         address: '{{kurl $address }}:6783'
         timeout: 5s
   {{kurl- end}}
@@ -91,23 +91,23 @@ spec:
 {{kurl- if and .IsJoin (not .IsUpgrade)}}
   {{kurl- range $index, $address := .RemoteHosts}}
     - tcpConnect:
-        checkName: "weave {{kurl $address }}:6783 TCP connection status #{{$index}}"
-        collectorName: "weave {{kurl $address }} {{$index}}"
+        checkName: "weave {{kurl $address }}:6783 TCP connection status #{{kurl $index}}"
+        collectorName: "weave {{kurl $address }} {{kurl $index}}"
         outcomes:
           - warn:
               when: "connection-refused"
-              message: Connection to weave {{kurl $address }}:6783 was refused #{{$index}}
+              message: Connection to weave {{kurl $address }}:6783 was refused #{{kurl $index}}
           - warn:
               when: "connection-timeout"
-              message: Timed out connecting to weave {{kurl $address }}:6783 #{{$index}}
+              message: Timed out connecting to weave {{kurl $address }}:6783 #{{kurl $index}}
           - warn:
               when: "error"
-              message: Unexpected error connecting to weave {{kurl $address }}:6783 #{{$index}}
+              message: Unexpected error connecting to weave {{kurl $address }}:6783 #{{kurl $index}}
           - pass:
               when: "connected"
-              message: Successfully connected to weave {{kurl $address }}:6783 #{{$index}}
+              message: Successfully connected to weave {{kurl $address }}:6783 #{{kurl $index}}
           - warn:
-              message: Unexpected TCP connection status for weave {{kurl $address }}:6783 #{{$index}}
+              message: Unexpected TCP connection status for weave {{kurl $address }}:6783 #{{kurl $index}}
   {{kurl- end}}
 {{kurl- end}}
 
