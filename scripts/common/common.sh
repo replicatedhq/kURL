@@ -1536,3 +1536,36 @@ function node_is_using_docker() {
     node="$(get_local_node_name)"
     kubectl get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock"
 }
+
+# get_ekco_addr prints the host address (including port) for reaching the EKCO service to stdout
+function get_ekco_addr() {
+    if [ -n "$EKCO_ADDRESS" ]; then
+        echo "$EKCO_ADDRESS"
+        return
+    fi
+
+    local ekco_addr=
+    local ekco_port=
+    local current_node_ip=
+    current_node_ip=$(kubectl get nodes -o wide | grep "$(get_local_node_name)" | awk '{print $6}')
+    ekco_port="${EKCO_NODE_PORT}"
+
+    if [ -z "${ekco_port}" ]; then
+        ekco_port=$(kubectl get svc ekc-operator -n kurl -o jsonpath='{.spec.ports[?(@.nodePort)].nodePort}')
+    fi
+    ekco_addr="${current_node_ip}:${ekco_port}"
+    echo "$ekco_addr"
+}
+
+# get_ekco_storage_migration_auth_token prints the ekco storage migration authentication token to stdout
+function get_ekco_storage_migration_auth_token() {
+    if [ -n "$EKCO_AUTH_TOKEN" ]; then
+        echo "$EKCO_AUTH_TOKEN"
+        return
+    fi
+
+    local auth_token=
+    auth_token=$(kubectl get cm -n kurl ekco-config -ojsonpath='{.data.config\.yaml}' | grep "storage_migration_auth_token:" | awk '{print $2}')
+
+    echo "$auth_token"
+}
