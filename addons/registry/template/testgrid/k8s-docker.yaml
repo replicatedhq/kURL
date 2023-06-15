@@ -248,7 +248,7 @@
     flannel:
       version: latest
     openebs:
-      version: "3.3.0"
+      version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     minio:
@@ -262,6 +262,62 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
+
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+# can registry be *added* to an existing cluster?
+- name: add_registry_openebs
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "latest"
+    containerd:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "latest"
+    containerd:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postUpgradeScript: |
 
     # wait for the pod to be ready
     sleep 60s
