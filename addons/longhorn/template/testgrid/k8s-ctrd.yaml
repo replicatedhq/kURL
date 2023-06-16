@@ -227,7 +227,7 @@
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
