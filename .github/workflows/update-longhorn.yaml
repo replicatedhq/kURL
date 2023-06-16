@@ -1,0 +1,51 @@
+name: cron-longhorn-update
+on:
+  schedule:
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-longhorn:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # for installing github.com/go-ksplit/ksplit
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Create Longhorn Update
+      id: update
+      working-directory: ./addons/longhorn/template
+      run: |
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.2.3
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new Longhorn version
+        title: 'Automated Longhorn version update ${{ steps.update.outputs.longhorn_version }}'
+        branch: automation/update-longhorn
+        delete-branch: true
+        labels: |
+          automated-pr
+          longhorn
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-longhorn-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-longhorn.yaml) GitHub action
+          
+          ```release-note
+          Adds [Longhorn add-on](https://kurl.sh/docs/add-ons/longhorn) version ${{ steps.update.outputs.longhorn_version }}.
+          ```
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
