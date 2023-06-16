@@ -1,0 +1,4 @@
+asset sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.56.17/sonobuoy_0.56.17_linux_amd64.tar.gz
+
+image systemd-logs sonobuoy/systemd-logs:v0.4
+image sonobuoy sonobuoy/sonobuoy:v0.56.17
