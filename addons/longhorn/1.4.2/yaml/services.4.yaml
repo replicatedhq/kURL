@@ -1,0 +1,21 @@
+# Source: longhorn/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/version: v1.4.2
+    app: longhorn-conversion-webhook
+  name: longhorn-conversion-webhook
+  namespace: longhorn-system
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  selector:
+    app: longhorn-conversion-webhook
+  ports:
+  - name: conversion-webhook
+    port: 9443
+    targetPort: conversion-wh
+---

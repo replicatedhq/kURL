@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: longhorn-ui
+  name: longhorn-frontend
+  namespace: longhorn-system
+spec:
+  type: NodePort
+  selector:
+    app: longhorn-ui
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    nodePort: ${LONGHORN_UI_BIND_PORT}

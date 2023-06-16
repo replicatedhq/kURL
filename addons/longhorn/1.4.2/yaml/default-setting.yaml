@@ -1,0 +1,13 @@
+# Source: longhorn/templates/default-setting.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: longhorn-default-setting
+  namespace: longhorn-system
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/version: v1.4.2
+data:
+  default-setting.yaml: |-
+---

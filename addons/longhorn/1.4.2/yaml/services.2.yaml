@@ -1,0 +1,21 @@
+# Source: longhorn/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/version: v1.4.2
+    app: longhorn-recovery-backend
+  name: longhorn-recovery-backend
+  namespace: longhorn-system
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  selector:
+    app: longhorn-recovery-backend
+  ports:
+  - name: recovery-backend
+    port: 9600
+    targetPort: recov-backend
+---
