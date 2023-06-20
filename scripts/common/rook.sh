@@ -401,7 +401,7 @@ function rook_is_healthy_to_migrate_from() {
         echo output
         echo ""
 
-        if [[ $output == *"Module 'dashboard' has failed"* ]] || [[ $output == *"Module 'prometheus'"* ]]; then
+        if [[ $output == *"Module 'dashboard'"* ]] || [[ $output == *"Module 'prometheus'"* ]]; then
             echo "Disabling Ceph manager modules in order to get Ceph healthy again."
             kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mgr module disable prometheus || true
             kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mgr module disable dashboard || true
