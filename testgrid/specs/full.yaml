@@ -2626,8 +2626,7 @@
     containerd:
       version: "latest"
     flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
+      version: "latest"
     contour:
       version: "latest"
     prometheus:
