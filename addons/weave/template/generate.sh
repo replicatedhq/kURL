@@ -64,6 +64,16 @@ function generate() {
     if [ -n "$WEAVE_EXEC_IMAGE_PATCH_VERSION" ]; then
         sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/Manifest"
         sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset.yaml"
+
+        # The following code will remove the initContainer added to sort out issue face with weave and symbolic links
+        semverParse "${ADDON_VERSION}"
+        local addon_major_minor_version="${major}.${minor}"
+        if [ "$addon_major_minor_version" != "2.8" ]; then
+            # Remove initContainers section
+            sed -i '/initContainers:/,/volumes:/d' "$dir/patch-daemonset.yaml"
+            # Remove volumes section
+            sed -i '/volumes:/,+1d' "$dir/patch-daemonset.yaml"
+        fi
     fi
 }
 
