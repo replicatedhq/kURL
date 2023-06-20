@@ -75,7 +75,7 @@ function bailIfUnsupportedOS() {
             ;;
         ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel9.0|rhel9.1)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel8.8|rhel9.0|rhel9.1)
             ;;
         rocky9.0|rocky9.1|rocky9.2)
             ;;
