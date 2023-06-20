@@ -385,13 +385,13 @@ function rook_operator_ready() {
 # Note this method is a duplication of rook_is_healthy_to_upgrade which now is called in the migration process
 # ONLY when we are moving from Rook. We should not try to fix it in other circumstances
 function rook_is_healthy_to_migrate_from() {
-    log "Awaiting 2 minutes to check Rook Ceph Pod(s) are Running"
+    log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
     if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
         logFail "Rook Ceph has unhealthy Pod(s)"
         return 1
     fi
 
-    log "Awaiting Rook Ceph health ..."
+    log "Awaiting up to 10 minutes to check that Rook Ceph is health"
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         logWarn "Rook Ceph is unhealthy"
 
@@ -446,13 +446,13 @@ function rook_is_healthy_to_migrate_from() {
 }
 
 function rook_is_healthy_to_upgrade() {
-    log "Awaiting 2 minutes to check Rook Ceph Pod(s) are Running"
-    if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
+    log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+    if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
         logFail "Rook Ceph has unhealthy Pod(s)"
         return 1
     fi
 
-    log "Awaiting Rook Ceph health ..."
+    log "Awaiting up to 10 minutes to check that Rook Ceph is health"
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         logFail "Rook Ceph is unhealthy"
