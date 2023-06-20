@@ -368,14 +368,91 @@ function rook_operator_ready() {
     return 0
 }
 
-function rook_is_healthy_to_upgrade() {
-    log "Awaiting 2 minutes to check Rook Ceph Pod(s) are Running"
-    if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
+# In certain edge cases, while migrating away from Rook, we may encounter issues.
+# Specifically, after we execute a pvmigrate operation to migrate the PVCs and to migrate the Object store, the system
+# may transition to an unhealthy state. This problem appears to be connected to specific modules
+# [root@rook-ceph-operator-747c86774c-7v95s /]# ceph health detail
+# HEALTH_ERR 2 mgr modules have failed
+# MGR_MODULE_ERROR 2 mgr modules have failed
+#     Module 'dashboard' has failed: error('No socket could be created',)
+#     Module 'prometheus' has failed: error('No socket could be created',)
+# The proposed workaround ensures a smooth transition during the migration and upgrade processes, ultimately allowing
+# for the successful deletion of Rook. To this end, this PR automates the resolution process by rectifying the Rook Ceph
+# state and allowing the migration to proceed, given that Rook will be removed in the end. It's important to note that
+# this automated fix is only applied during the checks performed when we are in the process of migrating away from Rook
+# and when Rook's removal is the intended outcome.
+#
+# Note this method is a duplication of rook_is_healthy_to_upgrade which now is called in the migration process
+# ONLY when we are moving from Rook. We should not try to fix it in other circumstances
+function rook_is_healthy_to_migrate_from() {
+    log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+    if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
         logFail "Rook Ceph has unhealthy Pod(s)"
         return 1
     fi
 
-    log "Awaiting Rook Ceph health ..."
+    log "Awaiting up to 10 minutes to check that Rook Ceph is health"
+    if ! $DIR/bin/kurl rook wait-for-health 600 ; then
+        logWarn "Rook Ceph is unhealthy"
+
+        output=$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status)
+
+        echo ""
+        echo output
+        echo ""
+
+        if [[ $output == *"Module 'dashboard'"* ]] || [[ $output == *"Module 'prometheus'"* ]]; then
+            echo "Disabling Ceph manager modules in order to get Ceph healthy again."
+            kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mgr module disable prometheus || true
+            kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mgr module disable dashboard || true
+        fi
+
+        log "Verify Rook Ceph health after try to fix"
+        if ! $DIR/bin/kurl rook wait-for-health 600; then
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+            logFail "Rook Ceph is unhealthy"
+            return 1
+        fi
+        return 1
+    fi
+
+    log "Checking Rook Ceph versions and replicas"
+    kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+    local rook_versions=
+    rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+    if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+        logFail "Multiple Rook versions detected"
+        logFail "${rook_versions}"
+        return 1
+    fi
+
+    log "Checking Ceph versions and replicas"
+    kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
+    local ceph_versions_found=
+    ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
+    if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
+        # It is required because an Rook Ceph bug which was sorted out with the release 1.4.8
+        # More info: https://github.com/rook/rook/pull/6610
+        if [ "$(echo "${ceph_versions_found}" | wc -l)" == "2" ] && [ "$(echo "${ceph_versions_found}" | grep "0.0.0-0")" ]; then
+            log "Found two ceph versions but one of them is 0.0.0-0 which will be ignored"
+            echo "${ceph_versions_found}"
+        else
+            logFail "Multiple Ceph versions detected"
+            logFail "${ceph_versions_found}"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+function rook_is_healthy_to_upgrade() {
+    log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
+    if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
+        logFail "Rook Ceph has unhealthy Pod(s)"
+        return 1
+    fi
+
+    log "Awaiting up to 10 minutes to check that Rook Ceph is health"
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         logFail "Rook Ceph is unhealthy"
