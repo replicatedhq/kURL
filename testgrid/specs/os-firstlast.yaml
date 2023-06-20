@@ -39,6 +39,10 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
+- id: rocky-88
+  name: Rocky Linux
+  version: "8.8"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/8.8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2
 - id: rocky-92
   name: Rocky Linux
   version: "9.2"
