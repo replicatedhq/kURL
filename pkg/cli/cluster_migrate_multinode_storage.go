@@ -7,13 +7,15 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 const (
@@ -30,29 +32,26 @@ type migrateOpts struct {
 	ekcoAddress    string
 	readyTimeout   time.Duration
 	migrateTimeout time.Duration
-	minimumNrNodes int
 }
 
 func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
+	var clientSet kubernetes.Interface
 	opts := migrateOpts{log: cli.Logger()}
+
 	cmd := &cobra.Command{
 		Use:   "migrate-multinode-storage",
 		Short: "Migrate persistent volumes from 'scaling' to 'distributed' storage classes.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if opts.minimumNrNodes <= 0 {
-				return fmt.Errorf("--minimum-number-of-nodes flag is required to be > 0.")
-			}
 			cmd.SilenceUsage = true
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStorageMigration(cmd.Context(), opts)
+			return runStorageMigration(cmd.Context(), clientSet, opts)
 		},
 	}
 	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting for the cluster to be ready for the storage migration.")
 	cmd.Flags().DurationVar(&opts.migrateTimeout, "migrate-timeout", 8*time.Hour, "Timeout waiting for the storage migration to finish.")
-	cmd.Flags().IntVar(&opts.minimumNrNodes, "minimum-number-of-nodes", 0, "Indicates the desired minimum number of nodes to start the migration.")
-	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "ekc-operator.kurl:"+strconv.Itoa(ekcoPort), "The address of the ekco operator.")
+	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "localhost:31880", "The address of the ekco operator.")
 	cmd.Flags().StringVar(&opts.authToken, "ekco-auth-token", "", "The auth token to use to authenticate with the ekco operator.")
 	return cmd
 }
@@ -87,13 +86,42 @@ func getEkcoMigrationStatus(opts migrateOpts) (string, error) {
 	return string(body), nil
 }
 
-// MigrationReady represents the status of the migration readiness check, includes a reason and also the number of
-// nodes in the cluster.
+// ClusterReadyStatus represents the status of the cluster readiness check, namely whether
+// the total number of nodes in the cluster exceed or meet the minimum required number of nodes
+// for the migration to start.
+type ClusterReadyStatus struct {
+	MigrationReadyStatus
+	NrNodes         int `json:"nrNodes"`
+	RequiredNrNodes int `json:"requiredNrNodes"`
+}
+
+// MigrationReadyStatus represents the status of the migration readiness check, includes
+// a reason, the total number of nodes in the cluster and the required number of nodes needed to start the migration.
 type MigrationReadyStatus struct {
-	Ready           bool   `json:"ready"`
-	Reason          string `json:"reason"`
-	NrNodes         int    `json:"nrNodes"`
-	RequiredNrNodes int    `json:"requiredNrNodes"`
+	Ready  bool   `json:"ready"`
+	Reason string `json:"reason"`
+}
+
+func isClusterReadyForStorageMigration(opts migrateOpts) (*ClusterReadyStatus, error) {
+	url := fmt.Sprintf("http://%s/storagemigration/cluster-ready", opts.ekcoAddress)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ekco cluster ready status: %w", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read ekco cluster ready status response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get ekco OK status (%d): %s", resp.StatusCode, string(body))
+	}
+	var clusStatus ClusterReadyStatus
+	if err := json.Unmarshal(body, &clusStatus); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal ekco cluster ready status: %w", err)
+	}
+	return &clusStatus, nil
 }
 
 func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, error) {
@@ -118,13 +146,20 @@ func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, er
 }
 
 // approveStorageMigration tells ekco to start the storage migration.
-func approveStorageMigration(opts migrateOpts) error {
+func approveStorageMigration(ctx context.Context, opts migrateOpts) error {
 	url := fmt.Sprintf("http://%s/storagemigration/approve", opts.ekcoAddress)
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", opts.authToken))
+
+	authToken := opts.authToken
+	if authToken == "" {
+		if authToken, err = getEkcoStorageMigrationAuthToken(ctx); err != nil {
+			return fmt.Errorf("authentication token missing: %w", err)
+		}
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authToken))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to approve storage migration: %w", err)
@@ -150,20 +185,25 @@ func continueWithStorageMigration() bool {
 	return strings.ToLower(answer) == "y"
 }
 
-func runStorageMigration(ctx context.Context, opts migrateOpts) error {
+func runStorageMigration(ctx context.Context, kcli kubernetes.Interface, opts migrateOpts) error {
+
+	// check if migration already completed or if there's one already in progress
 	if status, err := getEkcoMigrationStatus(opts); err != nil {
 		return fmt.Errorf("failed to read current status migration: %w", err)
 	} else if status == ekcoMigrationStatusCompleted {
 		opts.log.Printf("cluster storage migration already marked as completed.")
 		return nil
 	}
-	if status, err := isEkcoReadyForStorageMigration(opts); err != nil {
-		return fmt.Errorf("failed to check if cluster is ready for migration: %w", err)
-	} else if status.NrNodes < opts.minimumNrNodes {
-		return nil
+
+	// check the cluster size requirements
+	if clusStatus, err := isClusterReadyForStorageMigration(opts); err != nil {
+		return fmt.Errorf("failed to check if node requirements are met for migration: %w", err)
+	} else if !clusStatus.Ready {
+		return fmt.Errorf("cannot begin multi-node storage migration: %s", clusStatus.Reason)
 	} else if !continueWithStorageMigration() {
 		return nil
 	}
+
 	readyfn := func(ctx context.Context) (bool, error) {
 		status, err := isEkcoReadyForStorageMigration(opts)
 		if err != nil {
@@ -178,8 +218,9 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 	if err := wait.PollUntilContextCancel(readyCtx, 5*time.Second, true, readyfn); err != nil {
 		return fmt.Errorf("failed to wait for ekco to be ready for migration: %w", err)
 	}
+
 	opts.log.Printf("approving cluster storage migration.")
-	if err := approveStorageMigration(opts); err != nil {
+	if err := approveStorageMigration(ctx, opts); err != nil {
 		return fmt.Errorf("failed to approve storage migration: %w", err)
 	}
 	readyfn = func(ctx context.Context) (bool, error) {
@@ -204,4 +245,33 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 		return fmt.Errorf("failed to wait for ekco to be ready for migration: %w", err)
 	}
 	return nil
+}
+
+func getEkcoStorageMigrationAuthToken(ctx context.Context) (string, error) {
+	// Get kube client
+	k8sConfig, err := config.GetConfig()
+	if err != nil {
+		return "", fmt.Errorf("failed to read kubernetes configuration: %w", err)
+	}
+	clientSet, err := kubernetes.NewForConfig(k8sConfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	// retrieve configmap
+	ekcoConfig, err := clientSet.CoreV1().ConfigMaps("kurl").Get(ctx, "ekco-config", metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("get ekco-config configmap in kurl namespace: %v", err)
+	}
+
+	// get authentication token
+	ekcoConfigYaml := ekcoConfig.Data["config.yaml"]
+	var authConfig struct {
+		AuthToken string `yaml:"storage_migration_auth_token"`
+	}
+	if err := yaml.Unmarshal([]byte(ekcoConfigYaml), &authConfig); err != nil {
+		return "", fmt.Errorf("failed to parse storage migration authentication token from YAML config: %w", err)
+	}
+
+	return authConfig.AuthToken, nil
 }
