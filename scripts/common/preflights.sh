@@ -870,7 +870,7 @@ function bail_if_no_object_store_or_storage_and_has_registry() {
     if [ -n "$REGISTRY_VERSION" ]; then
         if [ -z "$MINIO_VERSION" ] && [ -z "$ROOK_VERSION" ] && [ -z "$OPENEBS_VERSION" ] && [ -z "$LONGHORN_VERSION" ]; then
              logFail "Registry add-on requires an object store or a storage provisioner"
-             bail "Please ensure that your installer also provides an object store or a storage storage provision with either the MinIO or Rook or OpenEBS add-on."
+             bail "Please ensure that your installer also provides an object store or a storage provisioner with either the MinIO or Rook or OpenEBS add-on."
         fi
     fi
 }
