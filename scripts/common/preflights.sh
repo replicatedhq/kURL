@@ -24,6 +24,7 @@ function init_preflights() {
     bail_if_unsupported_migration_from_rook_to_openebs
     bail_if_unsupported_migration_from_longhorn_to_openebs
     bail_if_kurl_version_is_lower_than_previous_config
+    bail_if_no_object_store_or_storage_and_has_registry
     return 0
 }
 
@@ -859,6 +860,17 @@ function bail_when_no_object_store_and_s3_enabled() {
         if [ -n "$VELERO_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
              logFail "Velero with KOTS s3 enabled requires an object store."
              bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
+        fi
+    fi
+}
+
+# bail_when_no_object_store_or_storage_and_has_registry will bail if no object store or any storage addon be select
+# for an install with registry
+function bail_if_no_object_store_or_storage_and_has_registry() {
+    if [ -n "$REGISTRY_VERSION" ]; then
+        if [ -z "$MINIO_VERSION" ] && [ -z "$ROOK_VERSION" ] && [ -z "$OPENEBS_VERSION" ] && [ -z "$LONGHORN_VERSION" ]; then
+             logFail "Registry add-on requires an object store or a storage provisioner"
+             bail "Please ensure that your installer also provides an object store or a storage provisioner with either the MinIO or Rook or OpenEBS add-on."
         fi
     fi
 }
