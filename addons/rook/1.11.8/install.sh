@@ -1110,9 +1110,15 @@ function rook_maybe_wait_for_rollout() {
     # timeout set to 300s (5mins)
     rook_ceph_cluster_ready_spinner 10 300
 
-    log "Awaiting Rook pods to transition to Running"
-    if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
+    log "Awaiting up to 5 minutes Rook pods to transition to Running"
+    if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
         logWarn "Rook-ceph rollout did not complete within the allotted time"
+    fi
+
+    echo "Awaiting up to 20 minutes Rock Ceph be healthy"
+    if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        logWarn "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 }
 
