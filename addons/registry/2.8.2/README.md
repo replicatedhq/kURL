@@ -19,4 +19,3 @@ The user has push/pull access to all repos in the registry.
 
 By default it is not possible to push to the registry from remote hosts.
 Use the `registry-publish-port=<port>` flag to configure the registry to listen on a NodePort.
- testing change
