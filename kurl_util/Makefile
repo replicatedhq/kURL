@@ -77,7 +77,7 @@ bin/toml:
 	go build ${LDFLAGS} -o bin/toml cmd/toml/main.go
 
 bin/veleroplugin: cmd/veleroplugin/main.go
-	go build ${LDFLAGS} -o bin/veleroplugin cmd/veleroplugin/main.go
+	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/veleroplugin cmd/veleroplugin/main.go
 
 bin/vendorflights:
 	go build ${LDFLAGS} -o bin/vendorflights cmd/vendorflights/main.go
