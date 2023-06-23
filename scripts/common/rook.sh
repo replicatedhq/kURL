@@ -150,7 +150,12 @@ function remove_rook_ceph() {
         logWarn "Unable to delete rook-ceph CRDs"
     fi
 
-    log "Removing rook-ceph volumes custom resource"
+    log "Removing rook-ceph objectbucket CRDs"
+    if ! kubectl get crd | grep 'objectbucket.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
+        logWarn "Unable to delete rook-ceph CRDs"
+    fi
+
+    log "Removing rook-ceph volumes CRD"
     if ! kubectl delete --ignore-not-found crd volumes.rook.io --timeout=60s; then
         logWarn "Unable delete rook-ceph volumes custom resource"
     fi
