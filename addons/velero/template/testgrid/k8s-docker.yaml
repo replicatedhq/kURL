@@ -37,6 +37,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    download_kots_integration_test_application_airgap_bundle
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
