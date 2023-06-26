@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+
+name: Vulnerability and license scan
+
+jobs:
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - uses: aquasecurity/trivy-action@0.11.2
+        with:
+          scan-type: fs
+          scan-ref: .
+
+
+    
