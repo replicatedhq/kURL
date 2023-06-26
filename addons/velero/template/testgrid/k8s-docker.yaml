@@ -31,13 +31,14 @@
       version: "latest"
     kotsadm:
       version: latest
+    registry:
+      version: latest
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-    download_kots_integration_test_application_airgap_bundle
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
