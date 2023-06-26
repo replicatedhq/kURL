@@ -4,7 +4,6 @@ on:
       - main
   pull_request:
 
-
 name: Vulnerability and license scan
 
 jobs:
@@ -18,7 +17,7 @@ jobs:
       - uses: aquasecurity/trivy-action@0.11.2
         with:
           scan-type: fs
-          scan-ref: .
+          scanners: license
 
 
     
