@@ -3360,8 +3360,8 @@ k8s.io/code-generator v0.19.7/go.mod h1:lwEq3YnLYb/7uVXLorOJfxg+cUu2oihFhHZ0n9NI
 k8s.io/code-generator v0.20.0/go.mod h1:UsqdF+VX4PU2g46NC2JRs4gc+IfrctnwHb76RNbWHJg=
 k8s.io/code-generator v0.20.1/go.mod h1:UsqdF+VX4PU2g46NC2JRs4gc+IfrctnwHb76RNbWHJg=
 k8s.io/code-generator v0.26.1/go.mod h1:OMoJ5Dqx1wgaQzKgc+ZWaZPfGjdRq/Y3WubFrZmeI3I=
-k8s.io/code-generator v0.27.2 h1:RmK0CnU5qRaK6WRtSyWNODmfTZNoJbrizpVcsgbtrvI=
-k8s.io/code-generator v0.27.2/go.mod h1:DPung1sI5vBgn4AGKtlPRQAyagj/ir/4jI55ipZHVww=
+k8s.io/code-generator v0.27.3 h1:JRhRQkzKdQhHmv9s5f7vuqveL8qukAQ2IqaHm6MFspM=
+k8s.io/code-generator v0.27.3/go.mod h1:DPung1sI5vBgn4AGKtlPRQAyagj/ir/4jI55ipZHVww=
 k8s.io/component-base v0.18.3/go.mod h1:bp5GzGR0aGkYEfTj+eTY0AN/vXTgkJdQXjNTTVUaa3k=
 k8s.io/component-base v0.20.1/go.mod h1:guxkoJnNoh8LNrbtiQOlyp2Y2XFCZQmrcg2n/DeYNLk=
 k8s.io/component-base v0.20.4/go.mod h1:t4p9EdiagbVCJKrQ1RsA5/V4rFQNDfRlevJajlGwgjI=
