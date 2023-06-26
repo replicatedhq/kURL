@@ -3,4 +3,4 @@ resources:
   - troubleshoot.yaml
 
 patches:
-  - path: kube-flannel-cfg.patch.yaml
+  - kube-flannel-cfg.patch.yaml
