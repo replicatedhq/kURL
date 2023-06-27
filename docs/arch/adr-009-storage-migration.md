@@ -31,14 +31,12 @@ spec:
     localPVStorageClassName: "local"
 ```
 
-When `rook.minimumNodeCount` is unset or set to a value of 1, the Rook add-on will function as at does today, with a single storageclass - "distributed".
+When the 'rook' section is present in the spec, the StorageClass "scaling" will be created.
+When openebs section is present in the spec, the StorageClass "local" will be created.
+The default storage class will be "scaling" when present and "local" if it isn't. Both storage classes will be backed by openebs localpv.
 
-When set to a value of 2 or more (requires openebs localpv to be present), the rook operator will be installed on single node installs, but no ceph cluster will be created.
-In the above configuration, two storageclasses will be available - "scaling" and "local".
-The default storage class will be "scaling", and both storage classes will be backed by openebs localpv.
-
-When the third node is added, a Ceph cluster will be created by the EKCO operator.
-When that Ceph cluster becomes healthy (with at least 3 replicas), the "distributed" storageclass will be created using rook-ceph.
+When the minimumNodeCount is reached, with no less than a value of 3, a Ceph cluster will be created by the EKCO operator.
+When that Ceph cluster becomes healthy (with at least 3 replicas), the "distributed" StorageClass will be created using rook-ceph.
 However, a migration will not begin until one of four things occurs:
 
 1. The user joins the third(+) node to the cluster, and accepts a prompt to migrate storage
