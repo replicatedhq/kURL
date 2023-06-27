@@ -1,7 +1,7 @@
 - name: "Velero Minimal"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.27.x"
     flannel:
       version: latest
     rook:
