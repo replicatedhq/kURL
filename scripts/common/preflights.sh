@@ -13,6 +13,7 @@ function preflights() {
     cri_preflights
     host_nameservers_reachable
     allow_remove_docker_new_install
+    bail_if_automated_storage_scaling_prereqs_not_met
     return 0
 }
 
@@ -899,3 +900,18 @@ function bail_if_kurl_version_is_lower_than_previous_config() {
         log "and the current kURL version used is $KURL_VERSION"
     fi
 }
+
+# bail if rook/openebs prereqs not met for minimumNodeCount param for automated storage scaling
+function bail_if_automated_storage_scaling_prereqs_not_met() {
+    if [ -n "ROOK_MINIMUM_NODE_COUNT"]; then
+        semverCompare "$(echo "$ROOK_VERSION" | sed 's/v//g')" "$(echo "1.11.5" | sed 's/v//g')"
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 1.11.5
+            logFail "The current Rook version $ROOK_VERSION is less than 1.11.5 which is required to use automated storage scaling (minimumNodeCount Parameter)"
+            bail "Please use a Rook version higher than 1.11.5 or remove minimumNodeCount Paramenter"
+        fi
+        semverCompare "$(echo "$OPENEBS_VERSION" | sed 's/v//g')" "$(echo "3.6.0" | sed 's/v//g')"
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 3.6.0
+            logFail "The current OpenEBS version $OPENEBS_VERSION is less than 3.6.0 which is required to use automated storage scaling (minimumNodeCount Parameter)"
+            bail "Please use an OpenEBS version higher than 3.6.0 or remove minimumNodeCount Paramenter"
+}
+
