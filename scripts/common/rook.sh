@@ -490,6 +490,16 @@ function rook_maybe_migrate_from_openebs() {
 # rook_maybe_migrate_from_openebs_primary will call rook_maybe_migrate_from_openebs
 # after determining values for EKCO_AUTH_TOKEN and EKCO_ADDRESS from the cluster.
 function rook_maybe_migrate_from_openebs_primary() {
-    #TODO
+    local ekcoAddress=
+    local ekcoAuthToken=
+    ekcoAddress=$(get_ekco_addr)
+    ekcoAuthToken=$(get_ekco_storage_migration_auth_token)
+    if [ -z "$ekcoAddress" ] || [ -z "$ekcoAuthToken" ]; then
+        return 0
+    fi
+
+    export EKCO_ADDRESS="$ekcoAddress"
+    export EKCO_AUTH_TOKEN="$ekcoAuthToken"
+
     rook_maybe_migrate_from_openebs
 }

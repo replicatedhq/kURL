@@ -924,27 +924,7 @@ function migrate_to_multinode_storage() {
         bail "Rook.MinimumNodeCount must be greater than 1"
     fi
 
-    local ekcoVersion=
-    local requiredEkcoVersion=
-    requiredEkcoVersion="0.27.1"
-    ekcoVersion=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-ekco}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2 | tr -d '}"')
-    semverCompare "$ekcoVersion" "$requiredEkcoVersion"
-    if [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
-        bail "EKCO add-on version >= $requiredEkcoVersion required for migration"
-    fi
-
-    local ekcoAddress=
-    local ekcoAuthToken=
-    ekcoAddress=$(get_ekco_addr)
-    ekcoAuthToken=$(get_ekco_storage_migration_auth_token)
-
-    # Initiate OpenEBS to Rook multi-node migration
-    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$ekcoAddress" --ekco-auth-token "$ekcoAuthToken" < /dev/tty; then
-        logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
-        logFail "If you would like to run the migration later, run the following command:"
-        logFail "    $DIR/bin/kurl cluster migrate-multinode-storage --ekco-address $ekcoAddress --ekco-auth-token $ekcoAuthToken"
-        return 0
-    fi
+    rook_maybe_migrate_from_openebs_primary
 }
 
 mkdir -p /var/log/kurl
