@@ -35,6 +35,7 @@ rules:
       - cephblockpools
       - cephfilesystems
       - cephobjectstores
+      - cephobjectstoreusers
     verbs:
       - create
       - get
