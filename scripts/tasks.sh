@@ -920,8 +920,8 @@ function migrate_to_multinode_storage() {
     # Get Rook.minimumNodeCount option from the configmap
     local rookMinNodes=
     rookMinNodes=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-rook}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2)
-    if [ -z "$rookMinNodes" ] || [ "$rookMinNodes" -le "1" ]; then
-        bail "Rook.MinimumNodeCount must be greater than 1"
+    if [ -z "$rookMinNodes" ] || [ "$rookMinNodes" -lt "3" ]; then
+        bail "Rook.MinimumNodeCount must be greater than or equal to 3"
     fi
 
     rook_maybe_migrate_from_openebs_primary
