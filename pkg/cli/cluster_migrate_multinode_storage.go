@@ -33,7 +33,7 @@ type migrateOpts struct {
 	readyTimeout   time.Duration
 	migrateTimeout time.Duration
 	checkStatus    bool
-	runMigration   bool
+	assumeYes      bool
 }
 
 func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
@@ -55,7 +55,7 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 	cmd.Flags().StringVar(&opts.ekcoAddress, "ekco-address", "localhost:31880", "The address of the ekco operator.")
 	cmd.Flags().StringVar(&opts.authToken, "ekco-auth-token", "", "The auth token to use to authenticate with the ekco operator.")
 	cmd.Flags().BoolVar(&opts.checkStatus, "check-status", false, "Check the status of the storage migration, but do not run it if available.")
-	cmd.Flags().BoolVar(&opts.runMigration, "run-migration", false, "Run the storage migration if available without prompting.")
+	cmd.Flags().BoolVar(&opts.assumeYes, "assume-yes", false, "Run the storage migration if available without prompting.")
 	return cmd
 }
 
@@ -211,7 +211,7 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 		return nil
 	}
 
-	if opts.runMigration {
+	if opts.assumeYes {
 		opts.log.Printf("starting cluster storage migration.")
 	} else if !continueWithStorageMigration() {
 		return nil
