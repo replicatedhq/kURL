@@ -471,3 +471,9 @@ function rook_maybe_migrate_from_openebs() {
     fi
 }
 
+# rook_maybe_migrate_from_openebs_primary will call rook_maybe_migrate_from_openebs
+# after determining values for EKCO_AUTH_TOKEN and EKCO_ADDRESS from the cluster.
+function rook_maybe_migrate_from_openebs_primary() {
+    #TODO
+    rook_maybe_migrate_from_openebs
+}

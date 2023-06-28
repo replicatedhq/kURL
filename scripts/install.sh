@@ -603,7 +603,7 @@ function main() {
     uninstall_docker
     ${K8S_DISTRO}_addon_for_each addon_post_init
     check_proxy_config
-    rook_maybe_migrate_from_openebs
+    rook_maybe_migrate_from_openebs_primary
     outro
     package_cleanup
 
