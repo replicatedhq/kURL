@@ -462,8 +462,24 @@ function rook_maybe_migrate_from_openebs() {
         return 0
     fi
 
+    # check if OpenEBS to Rook multi-node migration is available - if it is, prompt the user to start it
+    if "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --check-status; then
+        printf "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook"
+        printf "    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can"
+        printf "    choose to run the migration later if preferred."
+        printf "Would you like to continue with the migration now? "
+        if ! confirmN ; then
+            printf "Not migrating from OpenEBS to Rook\n"
+            return 0
+        fi
+    else
+        # migration is not available, so exit
+        printf "Migration from OpenEBS to Rook is not available\n"
+        return 0
+    fi
+
     # Initiate OpenEBS to Rook multi-node migration
-    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" < /dev/tty; then
+    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --assume-yes; then
         logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
         logFail "If you would like to run the migration later, run the following command:"
         logFail "    $DIR/bin/kurl cluster migrate-multinode-storage --ekco-address $EKCO_ADDRESS --ekco-auth-token $EKCO_AUTH_TOKEN"
