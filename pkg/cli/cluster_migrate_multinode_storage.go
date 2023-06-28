@@ -35,7 +35,6 @@ type migrateOpts struct {
 }
 
 func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
-	var clientSet kubernetes.Interface
 	opts := migrateOpts{log: cli.Logger()}
 
 	cmd := &cobra.Command{
@@ -46,7 +45,7 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStorageMigration(cmd.Context(), clientSet, opts)
+			return runStorageMigration(cmd.Context(), opts)
 		},
 	}
 	cmd.Flags().DurationVar(&opts.readyTimeout, "ready-timeout", 10*time.Minute, "Timeout waiting for the cluster to be ready for the storage migration.")
@@ -179,13 +178,13 @@ func continueWithStorageMigration() bool {
 	fmt.Println("    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook")
 	fmt.Println("    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can")
 	fmt.Println("    choose to run the migration later if preferred.")
-	fmt.Print("Would you like to continue with the migration now? (Y/n) ")
+	fmt.Print("Would you like to continue with the migration now? (y/N) ")
 	var answer string
 	fmt.Scanln(&answer)
 	return strings.ToLower(answer) == "y"
 }
 
-func runStorageMigration(ctx context.Context, kcli kubernetes.Interface, opts migrateOpts) error {
+func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 
 	// check if migration already completed or if there's one already in progress
 	if status, err := getEkcoMigrationStatus(opts); err != nil {
@@ -261,7 +260,7 @@ func getEkcoStorageMigrationAuthToken(ctx context.Context) (string, error) {
 	// retrieve configmap
 	ekcoConfig, err := clientSet.CoreV1().ConfigMaps("kurl").Get(ctx, "ekco-config", metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("get ekco-config configmap in kurl namespace: %v", err)
+		return "", fmt.Errorf("failed to get ekco-config configmap in kurl namespace: %v", err)
 	}
 
 	// get authentication token
