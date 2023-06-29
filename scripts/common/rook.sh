@@ -451,7 +451,14 @@ function rook_maybe_migrate_from_openebs() {
     if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -le "1" ]; then
         return 0
     fi
+    rook_maybe_migrate_from_openebs_internal
+}
 
+# rook_maybe_migrate_from_openebs_internal SHOULD NOT BE CALLED DIRECTLY.
+# it is called by rook_maybe_migrate_from_openebs and rook_maybe_migrate_from_openebs_tasks when all the conditions are met.
+# it will check that the required environment variables (EKCO_AUTH_TOKEN and EKCO_ADDRESS) are set and then
+# check EKCO to ee if the migration is available. If it is, it will prompt the user to start it.
+function rook_maybe_migrate_from_openebs_internal() {
     if [ -z "$EKCO_AUTH_TOKEN" ]; then
         logFail "Internal Error: an authentication token is required to start the OpenEBS to Rook multi-node migration."
         return 0
@@ -460,6 +467,11 @@ function rook_maybe_migrate_from_openebs() {
     if [ -z "$EKCO_ADDRESS" ]; then
         logFail "Internal Error: unable to determine network address of the kURL operator."
         return 0
+    fi
+
+    # are both rook and openebs installed, not just specified?
+    if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
+        bail "Rook and OpenEBS must be installed in order to migrate to multi-node storage"
     fi
 
     # check if OpenEBS to Rook multi-node migration is available - if it is, prompt the user to start it
@@ -487,9 +499,9 @@ function rook_maybe_migrate_from_openebs() {
     fi
 }
 
-# rook_maybe_migrate_from_openebs_primary will call rook_maybe_migrate_from_openebs
+# rook_maybe_migrate_from_openebs_tasks will call rook_maybe_migrate_from_openebs_internal
 # after determining values for EKCO_AUTH_TOKEN and EKCO_ADDRESS from the cluster.
-function rook_maybe_migrate_from_openebs_primary() {
+function rook_maybe_migrate_from_openebs_tasks() {
     local ekcoAddress=
     local ekcoAuthToken=
     ekcoAddress=$(get_ekco_addr)
@@ -501,5 +513,5 @@ function rook_maybe_migrate_from_openebs_primary() {
     export EKCO_ADDRESS="$ekcoAddress"
     export EKCO_AUTH_TOKEN="$ekcoAuthToken"
 
-    rook_maybe_migrate_from_openebs
+    rook_maybe_migrate_from_openebs_internal
 }

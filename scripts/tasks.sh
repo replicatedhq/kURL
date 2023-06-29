@@ -913,13 +913,6 @@ function migrate_to_multinode_storage() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     download_util_binaries
 
-    # TODO: fix missing versions
-
-    # Is Rook and OpenEBS installed
-    if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
-        bail "Rook and OpenEBS must be installed in order to migrate to multi-node"
-    fi
-
     # Get Rook.minimumNodeCount option from the configmap
     local rookMinNodes=
     rookMinNodes=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-rook}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2)
@@ -927,7 +920,7 @@ function migrate_to_multinode_storage() {
         bail "Rook.MinimumNodeCount must be greater than or equal to 3"
     fi
 
-    rook_maybe_migrate_from_openebs_primary
+    rook_maybe_migrate_from_openebs_tasks
 }
 
 mkdir -p /var/log/kurl
