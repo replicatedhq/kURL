@@ -109,7 +109,6 @@ function createrepo_rhel_8() {
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
             yum install -y yum-utils createrepo && \
-            yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/ && \
             yum install -y modulemd-tools && \
             createrepo_c /packages/archives && \
             repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
