@@ -911,6 +911,9 @@ function flannel_images_present() {
 # Determine if the cluster is eligible for a multi-node migration and then initiate the migration
 function migrate_to_multinode_storage() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
+    download_util_binaries
+
+    # TODO: fix missing versions
 
     # Is Rook and OpenEBS installed
     if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
