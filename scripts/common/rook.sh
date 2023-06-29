@@ -457,7 +457,7 @@ function rook_maybe_migrate_from_openebs() {
 # rook_maybe_migrate_from_openebs_internal SHOULD NOT BE CALLED DIRECTLY.
 # it is called by rook_maybe_migrate_from_openebs and rook_maybe_migrate_from_openebs_tasks when all the conditions are met.
 # it will check that the required environment variables (EKCO_AUTH_TOKEN and EKCO_ADDRESS) are set and then
-# check EKCO to ee if the migration is available. If it is, it will prompt the user to start it.
+# check EKCO to see if the migration is available. If it is, it will prompt the user to start it.
 function rook_maybe_migrate_from_openebs_internal() {
     if [ -z "$EKCO_AUTH_TOKEN" ]; then
         logFail "Internal Error: an authentication token is required to start the OpenEBS to Rook multi-node migration."
