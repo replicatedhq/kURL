@@ -514,3 +514,86 @@ function add_rook_store_object_migration_status() {
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
     export DID_MIGRATE_ROOK_OBJECT_STORE=1
 }
+
+# rook_maybe_migrate_from_openebs may migrate data from OpenEBS to Rook when all the following
+# conditions are met:
+# - Ekco version is >= 0.27.1.
+# - OpenEBS and Rook are selected on the Installer.
+# - Rook's minimum node count is set to a value > 1.
+# - The number of nodes on the cluster is >= than the Rook minimum node count.
+# - The 'scaling' storage class exists.
+function rook_maybe_migrate_from_openebs() {
+    semverCompare "$EKCO_VERSION" "0.27.1"
+    if [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+        return 0
+    fi
+    if [ -z "$ROOK_VERSION" ] || [ -z "$OPENEBS_VERSION" ]; then
+        return 0
+    fi
+    if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -le "1" ]; then
+        return 0
+    fi
+    rook_maybe_migrate_from_openebs_internal
+}
+
+# rook_maybe_migrate_from_openebs_internal SHOULD NOT BE CALLED DIRECTLY.
+# it is called by rook_maybe_migrate_from_openebs and rook_maybe_migrate_from_openebs_tasks when all the conditions are met.
+# it will check that the required environment variables (EKCO_AUTH_TOKEN and EKCO_ADDRESS) are set and then
+# check EKCO to see if the migration is available. If it is, it will prompt the user to start it.
+function rook_maybe_migrate_from_openebs_internal() {
+    if [ -z "$EKCO_AUTH_TOKEN" ]; then
+        logFail "Internal Error: an authentication token is required to start the OpenEBS to Rook multi-node migration."
+        return 0
+    fi
+
+    if [ -z "$EKCO_ADDRESS" ]; then
+        logFail "Internal Error: unable to determine network address of the kURL operator."
+        return 0
+    fi
+
+    # are both rook and openebs installed, not just specified?
+    if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
+        bail "Rook and OpenEBS must be installed in order to migrate to multi-node storage"
+    fi
+
+    # check if OpenEBS to Rook multi-node migration is available - if it is, prompt the user to start it
+    if "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --check-status; then
+        printf "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook\n"
+        printf "    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can\n"
+        printf "    choose to run the migration later if preferred.\n"
+        printf "Would you like to continue with the migration now? \n"
+        if ! confirmN ; then
+            printf "Not migrating from OpenEBS to Rook\n"
+            return 0
+        fi
+    else
+        # migration is not available, so exit
+        printf "Migration from OpenEBS to Rook is not available\n"
+        return 0
+    fi
+
+    # Initiate OpenEBS to Rook multi-node migration
+    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --assume-yes; then
+        logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
+        logFail "If you would like to run the migration later, run the following command:"
+        logFail "    $DIR/bin/kurl cluster migrate-multinode-storage --ekco-address $EKCO_ADDRESS --ekco-auth-token $EKCO_AUTH_TOKEN"
+        return 0
+    fi
+}
+
+# rook_maybe_migrate_from_openebs_tasks will call rook_maybe_migrate_from_openebs_internal
+# after determining values for EKCO_AUTH_TOKEN and EKCO_ADDRESS from the cluster.
+function rook_maybe_migrate_from_openebs_tasks() {
+    local ekcoAddress=
+    local ekcoAuthToken=
+    ekcoAddress=$(get_ekco_addr)
+    ekcoAuthToken=$(get_ekco_storage_migration_auth_token)
+    if [ -z "$ekcoAddress" ] || [ -z "$ekcoAuthToken" ]; then
+        return 0
+    fi
+
+    export EKCO_ADDRESS="$ekcoAddress"
+    export EKCO_AUTH_TOKEN="$ekcoAuthToken"
+
+    rook_maybe_migrate_from_openebs_internal
+}

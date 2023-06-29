@@ -91,6 +91,16 @@ function get_patch_yaml() {
                 ;;
             docker-registry-ip)
                 ;;
+            ekco-address)
+                if [ -z "$EKCO_ADDRESS" ]; then
+                    EKCO_ADDRESS="$_value"
+                fi
+                ;;
+            ekco-auth-token)
+                if [ -z "$EKCO_AUTH_TOKEN" ]; then
+                    EKCO_AUTH_TOKEN="$_value"
+                fi
+                ;;
             ekco-enable-internal-load-balancer)
                 ;;
             ha)

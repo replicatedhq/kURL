@@ -100,6 +100,9 @@ function tasks() {
         weave-to-flannel-secondary|weave_to_flannel_secondary)
             weave_to_flannel_secondary "$@"
             ;;
+        migrate-to-multinode-storage|migrate_to_multinode_storage)
+            migrate_to_multinode_storage "$@"
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -386,6 +389,11 @@ function join_token() {
     local prefix=
     prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "" "")"
 
+    local ekcoAddress=
+    local ekcoAuthToken=
+    ekcoAddress=$(get_ekco_addr)
+    ekcoAuthToken=$(get_ekco_storage_migration_auth_token)
+
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
         printf "\n"
@@ -409,7 +417,7 @@ function join_token() {
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags} ekco-address=${ekcoAddress} ekco-auth-token=${ekcoAuthToken}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -418,7 +426,7 @@ function join_token() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags} ekco-address=${ekcoAddress} ekco-auth-token=${ekcoAuthToken}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -427,7 +435,7 @@ function join_token() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags} ekco-address=${ekcoAddress} ekco-auth-token=${ekcoAuthToken}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -435,7 +443,7 @@ function join_token() {
             printf "\n"
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags} ekco-address=${ekcoAddress} ekco-auth-token=${ekcoAuthToken}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -898,6 +906,21 @@ function flannel_images_present() {
         logFail "Flannel images not present on $(get_local_node_name), please ensure the 'load-images' task has been run successfully"
         exit 1
     fi
+}
+
+# Determine if the cluster is eligible for a multi-node migration and then initiate the migration
+function migrate_to_multinode_storage() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+    download_util_binaries
+
+    # Get Rook.minimumNodeCount option from the configmap
+    local rookMinNodes=
+    rookMinNodes=$(kubectl get cm kurl-current-config -n kurl -ojsonpath='{.data.addons-rook}' | base64 -d | tr "," " "| awk '{print $1}' | cut -d ":" -f 2)
+    if [ -z "$rookMinNodes" ] || [ "$rookMinNodes" -lt "3" ]; then
+        bail "Rook.minimumNodeCount must be greater than or equal to 3"
+    fi
+
+    rook_maybe_migrate_from_openebs_tasks
 }
 
 mkdir -p /var/log/kurl
