@@ -551,11 +551,6 @@ function rook_maybe_migrate_from_openebs_internal() {
         return 0
     fi
 
-    # are both rook and openebs installed, not just specified?
-    if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
-        bail "Rook and OpenEBS must be installed in order to migrate to multi-node storage"
-    fi
-
     # check if OpenEBS to Rook multi-node migration is available - if it is, prompt the user to start it
     if "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --check-status; then
         printf "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook\n"
@@ -594,6 +589,11 @@ function rook_maybe_migrate_from_openebs_tasks() {
 
     export EKCO_ADDRESS="$ekcoAddress"
     export EKCO_AUTH_TOKEN="$ekcoAuthToken"
+
+    # are both rook and openebs installed, not just specified?
+    if ! kubectl get ns | grep -q rook-ceph && ! kubectl get ns | grep -q openebs; then
+        bail "Rook and OpenEBS must be installed in order to migrate to multi-node storage"
+    fi
 
     rook_maybe_migrate_from_openebs_internal
 }
