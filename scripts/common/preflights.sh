@@ -912,7 +912,7 @@ function bail_if_automated_storage_scaling_prereqs_not_met() {
         semverCompare "$(echo "$OPENEBS_VERSION" | sed 's/v//g')" "$(echo "3.6.0" | sed 's/v//g')"
         if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 3.6.0
             logFail "The current OpenEBS version $OPENEBS_VERSION is less than 3.6.0 which is required to use automated storage scaling (minimumNodeCount Parameter)"
-            bail "Please use an OpenEBS version higher than 3.6.0 or remove minimumNodeCount Paramenter"
+            bail "Please use OpenEBS version 3.6.0 or greater, or remove the minimumNodeCount parameter"
         fi
     fi
 }
