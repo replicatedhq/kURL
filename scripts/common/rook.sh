@@ -530,7 +530,7 @@ function rook_maybe_migrate_from_openebs() {
     if [ -z "$ROOK_VERSION" ] || [ -z "$OPENEBS_VERSION" ]; then
         return 0
     fi
-    if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -le "1" ]; then
+    if [ -z "$ROOK_MINIMUM_NODE_COUNT" ] || [ "$ROOK_MINIMUM_NODE_COUNT" -lt "3" ]; then
         return 0
     fi
     rook_maybe_migrate_from_openebs_internal
