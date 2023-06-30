@@ -907,7 +907,7 @@ function bail_if_automated_storage_scaling_prereqs_not_met() {
         semverCompare "$(echo "$ROOK_VERSION" | sed 's/v//g')" "$(echo "1.11.7" | sed 's/v//g')"
         if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 1.11.5
             logFail "The current Rook version $ROOK_VERSION is less than 1.11.5 which is required to use automated storage scaling (minimumNodeCount Parameter)"
-            bail "Please use a Rook version higher than 1.11.5 or remove minimumNodeCount Paramenter"
+            bail "Please use Rook version 1.11.7 or greater, or remove the minimumNodeCount parameter"
         fi
         semverCompare "$(echo "$OPENEBS_VERSION" | sed 's/v//g')" "$(echo "3.6.0" | sed 's/v//g')"
         if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 3.6.0
