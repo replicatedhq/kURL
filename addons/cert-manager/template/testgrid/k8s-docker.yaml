@@ -44,6 +44,36 @@
     kubectl get pods -n cert-manager
     kubectl get issuers letsencrypt-staging
 
+- name: upgrade from latest
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    certManager:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    certManager:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    kubectl get crds
+    kubectl get all -n cert-manager
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/staging-issuer.yaml
+    kubectl get issuers letsencrypt-staging
+  postUpgradeScript: |
+    # todo validate that cert-manager is actually working (TBD how)
+    kubectl get pods -n cert-manager
+    kubectl get issuers letsencrypt-staging
+
 - name: airgap install
   airgap: true
   installerSpec:
