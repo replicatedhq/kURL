@@ -12,7 +12,17 @@
   postInstallScript: |
     kubectl get crds
     kubectl get all -n cert-manager
-    # todo validate that cert-manager is actually working (TBD how)
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/cert-manager/v__testver__/test/fixtures/cert-manager-resources.yaml
+    sleep 10s
+    kubectl describe certificates
+    kubectl describe certificates | grep "Certificate issued successfully"
+    
+    # setup cmctl
+    OS=$(go env GOOS); ARCH=$(go env GOARCH); curl -fsSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/v__testver__/download/cmctl-$OS-$ARCH.tar.gz
+    tar xzf cmctl.tar.gz
+    sudo mv cmctl /usr/local/bin
+    
+    cmctl check api
 
 - name: upgrade from earliest
   installerSpec:

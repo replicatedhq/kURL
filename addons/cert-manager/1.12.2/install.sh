@@ -8,7 +8,7 @@ cert-manager() {
   cp "$src/kustomization.yaml" "$dst"
 
 
-  # check if the current cert-manager version is v1.0.3 - if it is, skip the upgrade
+  # check if the current cert-manager version is v1.0.3 - if it is, run the upgrade properly
   if kubectl get ns | grep -q cert-manager; then
     local certManagerImage=
     certManagerImage=$(kubectl get deployment -n cert-manager cert-manager -o jsonpath='{.spec.template.spec.containers[0].image}')
