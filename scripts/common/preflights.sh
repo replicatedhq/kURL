@@ -903,14 +903,14 @@ function bail_if_kurl_version_is_lower_than_previous_config() {
 
 # bail if rook/openebs prereqs not met for minimumNodeCount param for automated storage scaling
 function bail_if_automated_storage_scaling_prereqs_not_met() {
-    if [ -n "ROOK_MINIMUM_NODE_COUNT"]; then
+    if [ -n "$ROOK_MINIMUM_NODE_COUNT" ]; then
         semverCompare "$(echo "$ROOK_VERSION" | sed 's/v//g')" "$(echo "1.11.7" | sed 's/v//g')"
-        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 1.11.5
-            logFail "The current Rook version $ROOK_VERSION is less than 1.11.5 which is required to use automated storage scaling (minimumNodeCount Parameter)"
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 1.11.7
+            logFail "The current Rook version $ROOK_VERSION is less than 1.11.7 which is required to use automated storage scaling (minimumNodeCount Parameter)"
             bail "Please use Rook version 1.11.7 or greater, or remove the minimumNodeCount parameter"
         fi
         semverCompare "$(echo "$OPENEBS_VERSION" | sed 's/v//g')" "$(echo "3.6.0" | sed 's/v//g')"
-        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # less than or equal to 3.6.0
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 3.6.0
             logFail "The current OpenEBS version $OPENEBS_VERSION is less than 3.6.0 which is required to use automated storage scaling (minimumNodeCount Parameter)"
             bail "Please use OpenEBS version 3.6.0 or greater, or remove the minimumNodeCount parameter"
         fi
