@@ -48,5 +48,6 @@ data:
     minio_util_image: "$KURL_UTIL_IMAGE"
     enable_ha_kotsadm: $EKCO_MAINTAIN_KOTSADM
     rook_minimum_node_count: ${ROOK_MINIMUM_NODE_COUNT:-0}
+    rook_ceph_image: "$ROOK_CEPH_IMAGE"
     rook_storage_class: "${STORAGE_CLASS:-distributed}"
     storage_migration_auth_token: "$EKCO_AUTH_TOKEN"
