@@ -1,8 +1,6 @@
 # shellcheck disable=SC2148
 
 function rook_pre_init() {
-    export ROOK_CEPH_IMAGE="__CEPH_IMAGE__"
-
     local current_version
     current_version="$(rook_version)"
 
@@ -59,9 +57,11 @@ function rook_post_init() {
     fi
 }
 
+ROOK_CEPH_IMAGE=
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
+    export ROOK_CEPH_IMAGE="__CEPH_IMAGE__"
 
     if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
@@ -140,6 +140,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    export ROOK_CEPH_IMAGE="__CEPH_IMAGE__"
     rook_set_ceph_pool_replicas
     "$DIR"/bin/kurl rook wait-for-health 120
     rook_maybe_wait_for_rollout
@@ -263,8 +264,9 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
+    local ceph_image="__CEPH_IMAGE__"
     local ceph_version=
-    ceph_version="$(echo "${ROOK_CEPH_IMAGE}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
+    ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
