@@ -264,8 +264,9 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
+    local ceph_image="__CEPH_IMAGE__"
     local ceph_version=
-    ceph_version="$(echo "${ROOK_CEPH_IMAGE}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
+    ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
