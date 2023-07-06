@@ -77,7 +77,7 @@ function flannel_pre_init() {
 
 function flannel_check_rook_ceph_status() {
     if kubectl get namespace/rook-ceph ; then
-       logStep "Checking Rook Status prior migrate from Weave to Flannel"
+       logStep "Checking Rook Status prior to migrating from Weave to Flannel"
        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
            bail "Failed to verify Rook, Ceph is not healthy. The migration from Weave to Flannel can not be performed"
