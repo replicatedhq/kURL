@@ -525,7 +525,7 @@ module.exports.InstallerVersions = {
     "0.0.1",
   ],
   ekco: [
-    "0.27.2", // cron-ekco-update
+    "0.27.3", // cron-ekco-update
   ],
   certManager: [
     "1.0.3",
