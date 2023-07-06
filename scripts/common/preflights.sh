@@ -324,7 +324,7 @@ function cri_preflights() {
 
 function require_cri() {
     if is_rhel_9_variant && [ -z "$CONTAINERD_VERSION" ]; then
-        bail "Containerd is required"
+        bail "Containerd is required on RHEL 9 variants. Docker is not supported."
     fi
 
     if commandExists docker ; then
