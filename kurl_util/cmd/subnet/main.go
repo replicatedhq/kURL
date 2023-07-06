@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/pkg/errors"
 	"github.com/vishvananda/netlink"
 )
 
@@ -47,7 +46,8 @@ func main() {
 		for _, s := range strings.Split(*excludeSubnetFlag, ",") {
 			_, subnet, err := net.ParseCIDR(s)
 			if err != nil {
-				panic(errors.Wrap(err, "failed to parse exclude-subnet cidr"))
+				fmt.Printf("failed to parse exclude-subnet cidr: %s\n", err.Error())
+				os.Exit(1)
 			}
 			excludeSubnets = append(excludeSubnets, subnet)
 		}
@@ -55,7 +55,7 @@ func main() {
 
 	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
 	if err != nil {
-		fmt.Printf("failed to list routes: %s", err.Error())
+		fmt.Printf("failed to list routes: %s\n", err.Error())
 		os.Exit(1)
 	}
 	if debug {
@@ -92,7 +92,7 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 
 	_, subnet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", startIP, cidrRange))
 	if err != nil {
-		return nil, errors.Wrap(err, "parse cidr")
+		return nil, fmt.Errorf("parse cidr: %w", err)
 	}
 	if debug {
 		fmt.Fprintf(os.Stderr, "First subnet %s\n", subnet)
