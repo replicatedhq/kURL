@@ -265,6 +265,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.SkipSystemPackageInstall = true
+		case "storage-migration-ready-timeout":
+			continue
 		case "exclude-builtin-host-preflights", "exclude-builtin-preflights":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}

@@ -1569,3 +1569,11 @@ function get_ekco_storage_migration_auth_token() {
 
     echo "$auth_token"
 }
+
+# determine storage migration ready timeout
+function storage_migration_ready_timeout() {
+    if [ -z "$STORAGE_MIGRATION_READY_TIMEOUT" ]; then
+        STORAGE_MIGRATION_READY_TIMEOUT="10m0s"
+    fi
+    echo "$STORAGE_MIGRATION_READY_TIMEOUT"
+}
