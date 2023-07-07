@@ -146,6 +146,9 @@ function get_patch_yaml() {
                 ;;
             load-balancer-address)
                 ;;
+            storage-migration-ready-timeout)
+                STORAGE_MIGRATION_READY_TIMEOUT="${_value}"
+                ;;
             # Legacy Command
             preflight-ignore)
                 ;;

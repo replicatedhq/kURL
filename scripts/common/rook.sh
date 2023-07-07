@@ -568,7 +568,7 @@ function rook_maybe_migrate_from_openebs_internal() {
     fi
 
     # Initiate OpenEBS to Rook multi-node migration
-    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --assume-yes; then
+    if ! "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --ready-timeout "$(storage_migration_ready_timeout)" --assume-yes; then
         logFail "Failed to migrate from OpenEBS to Rook. The installation will move on."
         logFail "If you would like to run the migration later, run the following command:"
         logFail "    $DIR/bin/kurl cluster migrate-multinode-storage --ekco-address $EKCO_ADDRESS --ekco-auth-token $EKCO_AUTH_TOKEN"
