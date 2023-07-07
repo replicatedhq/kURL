@@ -57,9 +57,11 @@ function rook_post_init() {
     fi
 }
 
+ROOK_CEPH_IMAGE=
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
+    export ROOK_CEPH_IMAGE="quay.io/ceph/ceph:v17.2.6"
 
     if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
@@ -89,8 +91,8 @@ function rook() {
 
     if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         # check if there is already a CephCluster - if there is, this code should manage it
-        if ! kubectl get cephcluster -n rook-ceph rook-ceph; then
-            log "Not setting up a Ceph Cluster until there are at least ${ROOK_MINIMUM_NODE_COUNT} nodes"
+        if ! kubectl get cephcluster -n rook-ceph rook-ceph >/dev/null 2>&1; then
+            log "Rook minimumNodeCount parameter set to ${ROOK_MINIMUM_NODE_COUNT}. Ceph Cluster will be managed by EKCO."
             return 0 # do not create a ceph cluster if it should instead be managed by ekco
         fi
     fi
@@ -138,6 +140,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    export ROOK_CEPH_IMAGE="quay.io/ceph/ceph:v17.2.6"
     rook_set_ceph_pool_replicas
     "$DIR"/bin/kurl rook wait-for-health 120
     rook_maybe_wait_for_rollout
