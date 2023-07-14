@@ -211,3 +211,19 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+- name: "k8s_127x with kurl in-cluster support bundle spec"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+  postInstallScript: |
+    echo "test whether the kurl support bundle spec was installed"
+    supportBundle=$(kubectl get secrets -n kurl kurl-supportbundle-spec -ojsonpath='{.data.support-bundle-spec}')
+    echo "$supportBundle"
+    echo "test if the content of the secret is a support bundle spec"
+    echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
+    echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
+    kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'

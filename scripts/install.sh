@@ -595,6 +595,7 @@ function main() {
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
     maybe_set_kurl_cluster_uuid
+    kurl_install_support_bundle_configmap
     ${K8S_DISTRO}_addon_for_each addon_install
     maybe_cleanup_rook
     maybe_cleanup_longhorn
