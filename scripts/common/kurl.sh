@@ -23,11 +23,12 @@ function kurl_set_current_version() {
 }
 
 function kurl_install_support_bundle_configmap() {
-    cat <<EOF | kubectl apply -n kurl kurl-current-config -f -
+    cat <<EOF | kubectl apply -n kurl -f -
 apiVersion: v1
 kind: Secret
 metadata:
   name: kurl-supportbundle-spec
+  namespace: kurl
   labels:
     troubleshoot.io/kind: support-bundle
 stringData:
