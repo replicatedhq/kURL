@@ -15,7 +15,7 @@ spec:
   - blockDevices:
       includeUnmountedPartitions: true
       minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
-      exclude: '{{kurl .IsUpgrade }}'
+      exclude: '{{kurl or (.IsUpgrade) (gt .Installer.Spec.Rook.MinimumNodeCount 2) }}'
       outcomes:
       - pass:
           when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1"
