@@ -51,6 +51,12 @@ function report_install_start() {
         \"kurl_cluster_uuid\": \"$KURL_CLUSTER_UUID\" \
         }" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
+
+    # report the kurl version as an addon if it is set
+    if [ -n "${KURL_VERSION}" ]; then
+        report_addon_start "kurl" "$KURL_VERSION"
+        report_addon_success "kurl" "$KURL_VERSION"
+    fi
 }
 
 function report_install_success() {
