@@ -40,3 +40,43 @@
       version: 0.65.x
     metricsServer:
       version: 0.6.x
+- name: "Cust 171aaa33103c04449567bfeadb0a49833ca7a6b0: Multi-node"
+  flags: "yes"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.25.4
+    containerd:
+      version: 1.6.19
+    weave:
+      version: 2.6.x
+    kotsadm:
+      version: 1.96.3
+      disableS3: true
+    ekco:
+      version: 0.26.4
+    rook:
+      version: 1.9.x
+    prometheus:
+      version: "0.63.0-45.7.1"
+    metricsServer:
+      version: 0.6.3
+  upgradeSpec:
+    kubernetes:
+      version: 1.27.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.22.x
+    kotsadm:
+      version: 1.100.x
+      disableS3: true
+    ekco:
+      version: latest
+    rook:
+      version: 1.11.x
+    prometheus:
+      version: 0.65.x
+    metricsServer:
+      version: 0.6.x
