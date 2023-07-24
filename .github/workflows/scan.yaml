@@ -10,11 +10,12 @@ jobs:
   license:
     runs-on: ubuntu-latest
     steps:
-      - uses: aquasecurity/trivy-action@0.11.2
-        with:
-          scan-type: repo
-          scanners: license
-          scan-ref: https://github.com/replicatedhq/kurl
-
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - run: go mod download
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: brew install trivy
+      - run: trivy fs --scanners license .
 
     
