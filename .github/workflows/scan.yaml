@@ -18,6 +18,6 @@ jobs:
       - run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install trivy
-      - run: trivy fs --scanners license .
+          trivy fs --scanners license .
 
     
