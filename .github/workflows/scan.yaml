@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
+      - run: go mod download
       - uses: actions/setup-node@v3
       - run: npm ci
       - uses: aquasecurity/trivy-action@0.11.2
