@@ -15,6 +15,7 @@ jobs:
       - run: go mod download
       - uses: actions/setup-node@v3
       - run: npm ci
+      - run: eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       - run: brew install trivy
       - run: trivy fs --scanners license .
 
