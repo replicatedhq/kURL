@@ -552,7 +552,7 @@ function rook_maybe_migrate_from_openebs_internal() {
     fi
 
     # check if OpenEBS to Rook multi-node migration is available - if it is, prompt the user to start it
-    if "${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --check-status; then
+    if cluster_status_msg=$("${DIR}"/bin/kurl cluster migrate-multinode-storage --ekco-address "$EKCO_ADDRESS" --ekco-auth-token "$EKCO_AUTH_TOKEN" --check-status 2>&1); then
         printf "    The installer detected both OpenEBS and Rook installations in your cluster. Migration from OpenEBS to Rook\n"
         printf "    is possible now, but it requires scaling down applications using OpenEBS volumes, causing downtime. You can\n"
         printf "    choose to run the migration later if preferred.\n"
@@ -563,7 +563,7 @@ function rook_maybe_migrate_from_openebs_internal() {
         fi
     else
         # migration is not available, so exit
-        printf "Migration from OpenEBS to Rook is not available\n"
+        printf "Migration from OpenEBS to Rook is not available: %s\n" "$(echo $cluster_status_msg | sed s/'Error: '//)"
         return 0
     fi
 
