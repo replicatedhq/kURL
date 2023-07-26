@@ -2661,3 +2661,58 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+- name: "k8s_123x-k8s_125 and docker-weave and longhorn-openebs"
+  flags: "yes"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "2.6.x"
+    contour:
+      version: "1.20.x"
+    docker:
+      version: "20.10.x"
+    prometheus:
+      version: "0.60.x"
+    registry:
+      version: "2.7.x"
+    velero:
+      version: "1.7.x"
+    kotsadm:
+      version: "1.80.x"
+    ekco:
+      version: "0.27.x"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    longhorn:
+      version: "1.2.x"
+    metricsServer:
+      version: "0.4.x"
+    certManager:
+      version: "1.9.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: "0.22.x"
+    contour:
+      version: "1.25.x"
+    containerd: 
+      version: "1.6.x"
+    prometheus: 
+      version: "0.65.x"
+    registry: 
+      version: "2.8.x"
+    velero: 
+      version: "1.11.x"
+    kotsadm: 
+      version: "1.101.x"
+    ekco: 
+      version: "0.27.x"
+    minio: 
+      version: "2023-06-29T05-12-28Z"
+    metricsServer: 
+      version: "0.6.x"
+    certManager:
+      version: "1.9.x"
