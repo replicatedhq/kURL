@@ -2716,3 +2716,7 @@
       version: "0.6.x"
     certManager:
       version: "1.9.x"
+    openebs: 
+      version: "3.7.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
