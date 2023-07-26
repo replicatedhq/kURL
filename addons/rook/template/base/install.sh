@@ -92,6 +92,7 @@ function rook() {
     if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         # check if there is already a CephCluster - if there is, this code should manage it
         if ! kubectl get cephcluster -n rook-ceph rook-ceph >/dev/null 2>&1; then
+            kubectl apply -f "$src/mgr-blockpool.yaml"
             log "Rook minimumNodeCount parameter set to ${ROOK_MINIMUM_NODE_COUNT}. Ceph Cluster will be managed by EKCO."
             return 0 # do not create a ceph cluster if it should instead be managed by ekco
         fi
