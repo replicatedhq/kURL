@@ -1423,9 +1423,9 @@
     validate_read_write_object_store postupgrade upgradefile.txt
     check_and_customize_kurl_integration_test_application
 
-- name: Trigger automated local to distributed storage migration on a three node cluster
-  flags: "yes"
-  cpu: 4
+- name: Install Rook with minimum node count of 3
+  flags: "yes storage-migration-ready-timeout=20m0s"
+  cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
@@ -1436,33 +1436,18 @@
     flannel:
       version: 0.22.x
     registry:
-      version: 2.8.x
-    kotsadm:
-      version: latest
-      disableS3: true
+      version: 2.8.1
     ekco:
       version: latest
-    openebs: 
-      version: 3.6.0
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-  upgradeSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    registry:
-      version: 2.8.x
     kotsadm:
       version: latest
-    ekco:
+    minio:
       version: latest
     rook:
-      version: 1.11.7
-      minimumnodecount: 3
-    openebs: 
+      version: 1.11.8
+      s3Override: "https://kurl-sh.s3.amazonaws.com/pr/pr-4704-29cf52a-rook-1.11.8.tar.gz"
+      minimumNodeCount: 3
+    openebs:
       version: 3.6.0
       isLocalPVEnabled: true
       localPVStorageClassName: local
@@ -1472,9 +1457,20 @@
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    sleep 120
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    sleep 600
+    kubectl get pods -n rook-ceph
+    kubectl get cephcluster -n rook-ceph
+    echo "ceph status"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph status
+    echo "ceph health detail"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph health detail
+    echo "ekco logs"
+    kubectl logs -n kurl deployment/ekc-operator
+    
     # 'scaling' storage class should have been deleted after the migration
     if kubectl get sc scaling >/dev/null 2>&1 ; then
         echo "OpenEBS 'scaling' storage class was not deleted"
@@ -1490,127 +1486,6 @@
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-- name: Does not trigger automated local to distributed storage migration on a single node cluster
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    registry:
-      version: 2.8.x
-    kotsadm:
-      version: latest
-      disableS3: true
-    ekco:
-      version: latest
-    openebs: 
-      version: 3.6.0
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-  upgradeSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    registry:
-      version: 2.8.x
-    kotsadm:
-      version: latest
-    ekco:
-      version: latest
-    rook:
-      version: 1.11.7
-      minimumnodecount: 3
-    openebs: 
-      version: 3.6.0
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    # 'distributed' storage class should not exist
-    if kubectl get sc distributed >/dev/null 2>&1 ; then
-        echo "Not expecting Rook 'distributed' storage class to be created for a single node cluster"
-        exit 1
-    fi
-    # 'scaling' storage class should not exist for single node cluster
-    if kubectl get sc scaling >/dev/null 2>&1 ; then
-        echo "Not expecting OpenEBS 'scaling' storage class to be created for a single node cluster"
-        exit 1
-    fi
-    if [ "$(kubectl get sc local -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" != "true" ]; then
-        echo "Expect OpenEBS 'local' to be the default storage class"
-        exit 1
-    fi
-- name: Does not trigger automated local to distributed storage migration on a 2 node cluster
-  flags: "yes"
-  numPrimaryNodes: 1
-  numSecondaryNodes: 1
-  installerSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    registry:
-      version: 2.8.x
-    kotsadm:
-      version: latest
-      disableS3: true
-    ekco:
-      version: latest
-    openebs: 
-      version: 3.6.0
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-  upgradeSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    registry:
-      version: 2.8.x
-    kotsadm:
-      version: latest
-    ekco:
-      version: latest
-    rook:
-      version: 1.11.7
-      minimumnodecount: 3
-    openebs: 
-      version: 3.6.0
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    # 'distributed' storage class should not exist
-    if kubectl get sc distributed >/dev/null 2>&1 ; then
-        echo "Not expecting Rook 'distributed' storage class to be created"
-        exit 1
-    fi
-    # 'scaling' storage class should exist for clusters with >1 node
-    if kubectl get sc scaling >/dev/null 2>&1 ; then
-        echo "Expect OpenEBS 'scaling' storage class to be created for clusters with > 1 node"
-        exit 1
-    fi
-    if [ "$(kubectl get sc scaling -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" != "true" ]; then
-        echo "Expect OpenEBS 'scaling' to be the default storage class"
-        exit 1
-    fi
+
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
