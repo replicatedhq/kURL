@@ -1,4 +1,4 @@
-- name: "Cust 171aaa33103c04449567bfeadb0a49833ca7a6b0"
+- name: "Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x"
   flags: "yes"
   installerSpec:
     kubernetes:
