@@ -1464,9 +1464,9 @@
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
     
-    echo "waiting up to 20m for scaling storageclass to be removed"
+    echo "waiting up to 10m for scaling storageclass to be removed"
     x=0
-    while [ "$(kubectl get storageclass scaling --no-headers | wc -l)" -eq 1 ] && [ "$x" -le 12 ] ; do sleep 100 && x=$(( $x + 1 )) ; done
+    while [ "$(kubectl get storageclass scaling --no-headers | wc -l)" -eq 1 ] && [ "$x" -le 6 ] ; do sleep 100 && x=$(( $x + 1 )) ; done
     
     sleep 30 # wait a little longer to make sure that the kotsadm pods have time to come up
     
