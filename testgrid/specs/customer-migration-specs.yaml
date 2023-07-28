@@ -74,7 +74,7 @@
       exit 1
     fi
 
-- name: "Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: k8s 1.23.x -> k8s 1.25.x, docker -> containerd, weave -> flannel, longhorn -> openebs"
+- name: "Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs"
   flags: "yes"
   cpu: 8
   installerSpec:
@@ -106,7 +106,7 @@
       version: "1.9.x"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.23.x"
     flannel:
       version: "0.22.x"
     contour:
