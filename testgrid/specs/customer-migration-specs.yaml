@@ -40,4 +40,33 @@
       version: 0.65.x
     metricsServer:
       version: 0.6.x
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
 
+    # mount a localpv volume
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+
+    # write to the volume
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+
+    # deploy sample app 
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure weave was removed
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+      echo "weave CNI still installed on host"
+      exit 1
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.27" ]]; then
+      echo "Kubernetes was not upgraded to 1.27.x"
+      exit 1
+    fi
