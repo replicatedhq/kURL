@@ -1,0 +1,75 @@
+- name: "Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.25.4
+    containerd:
+      version: 1.6.19
+    weave:
+      version: 2.6.x
+    kotsadm:
+      version: 1.96.3
+      disableS3: true
+    ekco:
+      version: 0.26.4
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    prometheus:
+      version: "0.63.0-45.7.1"
+    metricsServer:
+      version: 0.6.3
+  upgradeSpec:
+    kubernetes:
+      version: 1.27.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.22.x
+    kotsadm:
+      version: 1.100.x
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.7.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    prometheus:
+      version: 0.65.x
+    metricsServer:
+      version: 0.6.x
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # mount a localpv volume
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+
+    # write to the volume
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+
+    # deploy sample app 
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # verify data was migrated
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure weave was removed
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+      echo "weave CNI still installed on host"
+      exit 1
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.27" ]]; then
+      echo "Kubernetes was not upgraded to 1.27.x"
+      exit 1
+    fi
