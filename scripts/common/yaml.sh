@@ -242,3 +242,21 @@ function yaml_escape_string_quotes() {
 function yaml_newline_to_literal() {
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
 }
+
+# get_yaml_from_multidoc_yaml reads a single file multi-doc yaml and finds a particular embedded yaml doc
+# based on the `name:` field and outputs the doc to stdout.
+function get_yaml_from_multidoc_yaml() {
+    local multidoc_yaml="$1"
+    local resource_name="$2"
+
+    # use awk to split the multidoc file using `---`separator
+    awk -v RS='---\n' -v ORS='---\n' -v RESOURCE_NAME="$resource_name" '
+        $0 ~ ("name: " RESOURCE_NAME) {
+            found = 1
+            print $0
+        }
+        END {
+            exit !found
+        }
+    ' "$multidoc_yaml"
+}
