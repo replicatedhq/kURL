@@ -1424,7 +1424,7 @@
     check_and_customize_kurl_integration_test_application
 
 - name: Install Rook with minimum node count of 3
-  flags: "yes storage-migration-ready-timeout=20m0s"
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -1432,11 +1432,11 @@
     kubernetes:
       version: 1.27.x
     containerd:
-      version: 1.6.x
+      version: latest
     flannel:
-      version: 0.22.x
+      version: latest
     registry:
-      version: 2.8.1
+      version: latest
     ekco:
       version: latest
     kotsadm:
@@ -1445,12 +1445,15 @@
       version: latest
     rook:
       version: 1.11.8
-      s3Override: "https://kurl-sh.s3.amazonaws.com/pr/pr-4704-29cf52a-rook-1.11.8.tar.gz"
       minimumNodeCount: 3
+    goldpinger:
+      version: latest
     openebs:
       version: 3.6.0
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -1461,15 +1464,32 @@
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
     
-    sleep 600
+    echo "waiting up to 20m for scaling storageclass to be removed"
+    x=0
+    while [ "$(kubectl get storageclass scaling --no-headers | wc -l)" -eq 1 ] && [ "$x" -le 12 ] ; do sleep 100 && x=$(( $x + 1 )) ; done
+    
+    sleep 30 # wait a little longer to make sure that the kotsadm pods have time to come up
+    
+    echo "all pods"
+    kubectl get pods -A
+    echo "ekco logs"
+    kubectl get pods -n kurl
+    kubectl logs -n kurl deployment/ekc-operator
+    echo "PVCs"
+    kubectl get pvc -A
+    echo "SCs"
+    kubectl get sc -A
+    echo "ceph pools"
+    kubectl describe cephblockpool -n rook-ceph
+#    echo "all pods description"
+#    kubectl describe pod -A
+    
     kubectl get pods -n rook-ceph
     kubectl get cephcluster -n rook-ceph
     echo "ceph status"
     kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph status
     echo "ceph health detail"
     kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph health detail
-    echo "ekco logs"
-    kubectl logs -n kurl deployment/ekc-operator
     
     # 'scaling' storage class should have been deleted after the migration
     if kubectl get sc scaling >/dev/null 2>&1 ; then
