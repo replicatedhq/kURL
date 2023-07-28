@@ -56,6 +56,9 @@
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
 
+    # verify data was migrated
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+
     # ensure we can redeploy sample app
     check_and_customize_kurl_integration_test_application
 
