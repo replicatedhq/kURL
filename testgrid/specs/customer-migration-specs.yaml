@@ -73,3 +73,106 @@
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
+
+- name: "Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: k8s 1.23.x -> k8s 1.25.x, docker -> containerd, weave -> flannel, longhorn -> openebs"
+  flags: "yes"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "2.6.x"
+    contour:
+      version: "1.20.x"
+    docker:
+      version: "20.10.x"
+    prometheus:
+      version: "0.60.x"
+    registry:
+      version: "2.7.x"
+    velero:
+      version: "1.7.x"
+    kotsadm:
+      version: "1.80.x"
+    ekco:
+      version: "0.27.x"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    longhorn:
+      version: "1.2.x"
+    metricsServer:
+      version: "0.4.x"
+    certManager:
+      version: "1.9.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: "0.22.x"
+    contour:
+      version: "1.25.x"
+    containerd:
+      version: "1.6.x"
+    prometheus:
+      version: "0.65.x"
+    registry:
+      version: "2.8.x"
+    velero:
+      version: "1.11.x"
+    kotsadm:
+      version: "1.101.x"
+    ekco:
+      version: "0.27.x"
+    minio:
+      version: "2023-06-29T05-12-28Z"
+    metricsServer:
+      version: "0.6.x"
+    certManager:
+      version: "1.9.x"
+    openebs:
+      version: "3.7.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # mount a localpv volume
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.7.1"
+
+    # write to the volume
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+
+    # deploy sample app
+    install_and_customize_kurl_integration_test_application
+
+    # ensure minio is working
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # verify data was migrated
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure weave was removed
+    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+      echo "weave CNI still installed on host"
+      exit 1
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.25" ]]; then
+      echo "Kubernetes was not upgraded to 1.25.x"
+      exit 1
+    fi
+
+    # ensure minio is still working
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
