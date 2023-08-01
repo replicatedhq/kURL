@@ -33,7 +33,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	github.com/vishvananda/netlink v1.2.1-beta.2
-	github.com/vmware-tanzu/velero v1.11.0
+	github.com/vmware-tanzu/velero v1.11.1
 	golang.org/x/crypto v0.11.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/sync v0.3.0
