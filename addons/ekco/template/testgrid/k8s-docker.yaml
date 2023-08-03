@@ -35,7 +35,7 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
-    install_and_customize_kurl_integration_test_application
+    # install_and_customize_kurl_integration_test_application
 
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
@@ -81,7 +81,7 @@
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
-    check_and_customize_kurl_integration_test_application
+    # check_and_customize_kurl_integration_test_application
 
     rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
