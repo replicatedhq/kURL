@@ -662,6 +662,8 @@
     minio:
       version: latest
   postInstallScript: |
+    # wait for ekco to scale up the Ceph cluster
+    while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
