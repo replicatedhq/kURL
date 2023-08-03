@@ -1,145 +1,89 @@
-- name: Minimal Latest, Rook
+- name: Install Rook with minimum node count of 3
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: 1.27.x
+    containerd:
+      version: latest
     flannel:
       version: latest
-    rook:
-      version: "1.9.x"
-    containerd:
-      version: "latest"
+    registry:
+      version: latest
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: Kubernetes 1.24, Internal LB, Rook, Multi node
-  installerSpec:
-    kubernetes:
-      version: 1.24.x
-    flannel:
-      version: latest
-    rook:
-      version: "1.9.x"
-    containerd:
-      version: "latest"
     kotsadm:
       version: latest
-      disableS3: true
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      minReadyMasterNodeCount: 1
-      enableInternalLoadBalancer: true
-  numPrimaryNodes: 3
+    minio:
+      version: latest
+    rook:
+      version: 1.11.8
+      minimumNodeCount: 3
+    goldpinger:
+      version: latest
+    openebs:
+      version: 3.6.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: Kubernetes 1.21, Longhorn, Internal LB
-  installerSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      enableInternalLoadBalancer: true
-- name: podImageOverrides
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    contour:
-      version: "1.20.0"
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      podImageOverrides:
-        - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
   postInstallScript: |
-    sleep 120
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
 
-    pod_image="$(kubectl -n projectcontour get po -l app=contour -o jsonpath='{.items[].spec.containers[].image}')"
-    if ! echo "$pod_image" | grep 'v1.20.1' ; then
-      echo "Pod image override failed: $pod_image"
-      exit 1
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    echo "waiting up to 10m for scaling storageclass to be removed"
+    x=0
+    while [ "$(kubectl get storageclass scaling --no-headers | wc -l)" -eq 1 ] && [ "$x" -le 6 ] ; do sleep 100 && x=$(( $x + 1 )) ; done
+    
+    sleep 30 # wait a little longer to make sure that the kotsadm pods have time to come up
+    
+    echo "all pods"
+    kubectl get pods -A
+    echo "ekco logs"
+    kubectl get pods -n kurl
+    kubectl logs -n kurl deployment/ekc-operator
+    echo "PVCs"
+    kubectl get pvc -A
+    echo "SCs"
+    kubectl get sc -A
+    echo "ceph pools"
+    kubectl describe cephblockpool -n rook-ceph
+    #    echo "all pods description"
+    #    kubectl describe pod -A
+    
+    kubectl get pods -n rook-ceph
+    kubectl get cephcluster -n rook-ceph
+    echo "ceph status"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph status
+    echo "ceph health detail"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph health detail
+    
+    # 'scaling' storage class should have been deleted after the migration
+    if kubectl get sc scaling >/dev/null 2>&1 ; then
+        echo "OpenEBS 'scaling' storage class was not deleted"
+        exit 1
+    fi
+    # 'distributed' should be the only default storage class after the migration
+    if [ "$(kubectl get sc distributed -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" != "true" ]; then
+        echo "Rook 'distributed' storage class is not the default"
+        exit 1
     fi
 
-    echo "Pod image override success: $pod_image"
-- name: HAProxy Config File Permission Set to 640
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      enableInternalLoadBalancer: true
-  preInstallScript: |
-    umask 0027
-- name: Upgrade HA add ekco
-  installerSpec:
-    kubernetes:
-      version: "1.23.x"
-      loadBalancerUseFirstPrimary: true
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    ekco:
-      version: "0.10.1"
-  upgradeSpec:
-    kubernetes:
-      version: "1.25.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      enableInternalLoadBalancer: true
-  flags: "ha"
-- name: HA minio initial installation
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: "latest"
-    ekco:
-      version: "__testver__"
-      s3Override: "__testdist__"
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
+
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
+

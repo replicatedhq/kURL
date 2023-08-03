@@ -35,7 +35,7 @@ spec:
           operator: Exists
       containers:
         - name: ekc-operator
-          image: replicated/ekco:v0.28.2
+          image: ttl.sh/replicated/ekco:697cf92657d9ad2404018bbc526f422dd3a5fb93
           imagePullPolicy: IfNotPresent
           command: [ /usr/bin/ekco, operator ]
           resources:
