@@ -403,7 +403,7 @@
     contour:
       version: 1.7.0
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     fluentd:
@@ -806,7 +806,7 @@
     flannel:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -849,7 +849,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     prometheus:
@@ -874,7 +874,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     kotsadm:
@@ -899,7 +899,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1043,7 +1043,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1070,7 +1070,7 @@
     contour:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     prometheus:
@@ -1097,7 +1097,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1122,7 +1122,7 @@
     weave:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     kotsadm:
       version: latest
     docker:
@@ -1335,7 +1335,7 @@
     contour:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -2009,7 +2009,7 @@
     flannel:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -2079,7 +2079,7 @@
     flannel:
       version: "latest"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
     contour:
       version: "latest"
     registry:
@@ -2116,7 +2116,7 @@
     flannel:
       version: "latest"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
     contour:
       version: "latest"
     registry:
@@ -2321,7 +2321,7 @@
     contour:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -2345,7 +2345,7 @@
     contour:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -2495,7 +2495,7 @@
     contour:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
@@ -2619,7 +2619,7 @@
       isLocalPVEnabled: true
       localPVStorageClassName: "local"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
   upgradeSpec:
     kubernetes:
       version: "1.26.x"
@@ -2642,7 +2642,7 @@
       isLocalPVEnabled: true
       localPVStorageClassName: "local"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
 - name: "k8s_127x with kurl in-cluster support bundle spec"

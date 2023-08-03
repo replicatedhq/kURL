@@ -91,7 +91,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.11.x
+      version: 1.12.x
     registry:
       version: latest
     kotsadm:
