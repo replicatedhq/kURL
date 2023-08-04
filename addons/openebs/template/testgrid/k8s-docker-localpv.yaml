@@ -389,6 +389,9 @@
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     # pushes an image to the internal registry.
     test_push_image_to_registry
+    
+    sleep 60
+    kubectl get pods -A
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # sleep for a while to guarantee that the pod has been scaled up.
