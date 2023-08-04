@@ -410,11 +410,19 @@ function openebs_prompt_migrate_from_longhorn() {
 
     semverParse "$KUBERNETES_VERSION"
     if [ "$minor" -gt 24 ] ; then
-        logFail "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
-        logFail "    on your cluster. As a result, it is not possible to migrate data from Longhorn to OpenEBS. To successfully migrate data, please choose a Kubernetes"
-        logFail "    version that is compatible with the version of Longhorn running on your cluster (note: Longhorn is compatible with Kubernetes versions up to and"
-        logFail "    including 1.24)."
-        bail "Not migrating"
+        logWarn ""
+        logWarn "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
+        logWarn "    on your cluster. Because of this, we will install OpenEBS and migrate your data from Longhorn before upgrading Kubernetes."
+
+        log "Would you like to continue? "
+        if ! confirmN; then
+            bail "Not migrating"
+        fi
+
+        longhorn_prepare_for_migration
+        addon_install "openebs" "$OPENEBS_VERSION"
+        maybe_cleanup_longhorn
+        return
     fi
 
     log "Would you like to continue? "

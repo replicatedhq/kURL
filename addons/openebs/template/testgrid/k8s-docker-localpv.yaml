@@ -290,6 +290,12 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     # pulls the image we pushed before the migration.
     test_pull_image_from_registry
+    
+    # ensure that longhorn has been removed
+    if kubectl get ns | grep -q longhorn-system; then
+      echo "longhorn-system namespace still exists"
+      exit 1
+    fi
 
 - name: localpv upgrade from latest
   flags: "yes"
@@ -333,3 +339,73 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+
+
+- name: localpv migrate from longhorn with kubernetes upgrade
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.24.9"
+    flannel:
+      version: "latest"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    prometheus:
+      version: "0.60.1-41.7.3"
+    minio:
+      version: "latest"
+    registry:
+      version: "2.8.1"
+    longhorn:
+      version: "1.3.1"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: "latest"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    prometheus:
+      version: "0.60.1-41.7.3"
+    minio:
+      version: "latest"
+    registry:
+      version: "2.8.1"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    # create a deployment using the longhorn storage class ("default" namespace).
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    # generate a random file and copies it to the pod deployed by the previously created deployment.
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    # pushes an image to the internal registry.
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    # sleep for a while to guarantee that the pod has been scaled up.
+    sleep 120
+    # downloads the previously stored file and compares, expecting to see the same content.
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    # makes sure that the new pvc is being provisioned by openebs.
+    pvc_uses_provisioner "migration-test" "default" "openebs"
+    # pulls the image we pushed before the migration.
+    test_pull_image_from_registry
+    
+    # ensure that kubernetes has upgraded
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.25
+    
+    # ensure that longhorn has been removed
+    if kubectl get ns | grep -q longhorn-system; then
+      echo "longhorn-system namespace still exists"
+      exit 1
+    fi
