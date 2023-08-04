@@ -420,7 +420,9 @@ function openebs_prompt_migrate_from_longhorn() {
         fi
 
         longhorn_prepare_for_migration
+        report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
         addon_install "openebs" "$OPENEBS_VERSION"
+        report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
         maybe_cleanup_longhorn
         return
     fi
