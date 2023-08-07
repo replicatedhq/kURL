@@ -20,7 +20,7 @@ require (
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.66.0
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.1
 	github.com/replicatedhq/kurlkinds v1.4.1
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.9.0
