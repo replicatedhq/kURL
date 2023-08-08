@@ -37,6 +37,14 @@ maybe_upgrade() {
     local kubeletMajor="$major"
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
+    local kustomize_kubeadm_init="$DIR/kustomize/kubeadm/init"
+
+    # ensure that /etc/kubernetes/audit.yaml exists
+    if [ -f "$kustomize_kubeadm_init/audit.yaml" ] && [ ! -f /etc/kubernetes/audit.yaml ]; then
+        cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
+    fi
+    # ensure audit log directory exists
+    mkdir -p /var/log/apiserver
 
     if [ -n "$HOSTNAME_CHECK" ]; then
         if [ "$HOSTNAME_CHECK" != "$(get_local_node_name)" ]; then
