@@ -1091,8 +1091,14 @@ function retag_gcr_images() {
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
+            # if the image name matches `coredns`, extract the tag and also retag `$image` to registry.k8s.io/coredns:$tag
+            # this handles issues where kubernetes expects coredns to be at registry.k8s.io/coredns:1.6.2 but it is at registry.k8s.io/coredns/coredns:v1.6.2
+            if [[ "$image" =~ "coredns" ]]; then
+                tag=$(echo "$image" | awk -F':' '{print $2}')
+                docker tag "$image" "registry.k8s.io/coredns:$tag" 2>/dev/null || true
+            fi
         done
-        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F registry.gcr.io || true; })
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F registry.k8s.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
@@ -1102,8 +1108,14 @@ function retag_gcr_images() {
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
+            # if the image name matches `coredns`, extract the tag and also retag `$image` to registry.k8s.io/coredns:$tag
+            # this handles issues where kubernetes expects coredns to be at registry.k8s.io/coredns:1.6.2 but it is at registry.k8s.io/coredns/coredns:v1.6.2
+            if [[ "$image" =~ "coredns" ]]; then
+                tag=$(echo "$image" | awk -F':' '{print $2}')
+                ctr -n k8s.io images tag "$image" "registry.k8s.io/coredns:$tag" 2>/dev/null || true
+            fi
         done
-        images=$(ctr -n=k8s.io images list --quiet | { grep -F registry.gcr.io || true; })
+        images=$(ctr -n=k8s.io images list --quiet | { grep -F registry.k8s.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
