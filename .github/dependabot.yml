@@ -9,15 +9,7 @@ updates:
       - "type::chore"
     schedule:
       interval: "weekly"
-
-  - package-ecosystem: "gomod"
-    directory: "/kurlkinds"
-    labels:
-      - "dependencies"
-      - "go"
-      - "type::chore"
-    schedule:
-      interval: "weekly"
+    open-pull-requests-limit: 25
 
   - package-ecosystem: "github-actions"
     directory: "/"
