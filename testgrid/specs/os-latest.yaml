@@ -33,10 +33,10 @@
   name: Rocky Linux
   version: "9.2"
   vmimageuri: https://download.rockylinux.org/pub/rocky/9.2/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
-- id: ubuntu-2004
+- id: ubuntu-1804
   name: Ubuntu
-  version: "20.04"
-  vmimageuri: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+  version: "18.04"
+  vmimageuri: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
   preinit: ""
 - id: ubuntu-2204
   name: Ubuntu
