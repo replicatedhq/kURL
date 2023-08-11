@@ -1,2 +1,2 @@
-image ekco ttl.sh/replicated/ekco:0563c40f0f2c9f8e871b3d6720c79260871ef63d
+image ekco ttl.sh/replicated/ekco:8bc17c967afedd4e07e6cb94e0e37836da2a6a10
 image haproxy haproxy:2.8.1-alpine3.18
