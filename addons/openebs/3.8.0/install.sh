@@ -146,6 +146,15 @@ function openebs_prompt_migrate_from_rook() {
         bail "Not migrating"
     fi
 
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 18 ] ; then
+        # if the current version of k8s is compatible with OpenEBS, install it and migrate the data before upgrading k8s
+        printf "    Starting OpenEBS installation and migration from Rook to OpenEBS.\n"
+
+        report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
+        addon_install "openebs" "$OPENEBS_VERSION"
+        report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
+    fi
 }
 
 function openebs_apply_crds() {
