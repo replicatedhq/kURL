@@ -130,7 +130,10 @@ func isClusterReadyForStorageMigration(opts migrateOpts) (*ClusterReadyStatus, e
 
 func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, error) {
 	url := fmt.Sprintf("http://%s/storagemigration/ready", opts.ekcoAddress)
-	resp, err := retryablehttp.Get(url)
+	retryClient := retryablehttp.NewClient()
+	retryClient.Logger = nil
+	retryClient.RetryMax = 5
+	resp, err := retryClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ekco status: %w", err)
 	}
