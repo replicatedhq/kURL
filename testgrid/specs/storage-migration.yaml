@@ -1483,8 +1483,8 @@
     kubectl get sc -A
     echo "ceph pools"
     kubectl describe cephblockpool -n rook-ceph
-#    echo "all pods description"
-#    kubectl describe pod -A
+    #    echo "all pods description"
+    #    kubectl describe pod -A
     
     kubectl get pods -n rook-ceph
     kubectl get cephcluster -n rook-ceph
