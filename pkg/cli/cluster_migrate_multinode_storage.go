@@ -63,7 +63,10 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 // getEkcoMigrationLogs returns the logs of the migration as reported back by ekco.
 func getEkcoMigrationLogs(opts migrateOpts) (string, error) {
 	url := fmt.Sprintf("http://%s/storagemigration/logs", opts.ekcoAddress)
-	resp, err := retryablehttp.Get(url)
+	retryClient := retryablehttp.NewClient()
+	retryClient.Logger = nil
+	retryClient.RetryMax = 5
+	resp, err := retryClient.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to get migration logs: %w", err)
 	}
@@ -78,7 +81,10 @@ func getEkcoMigrationLogs(opts migrateOpts) (string, error) {
 // getEkcoMigrationStatus returns the status of the storage migration as reported back by ekco.
 func getEkcoMigrationStatus(opts migrateOpts) (string, error) {
 	url := fmt.Sprintf("http://%s/storagemigration/status", opts.ekcoAddress)
-	resp, err := retryablehttp.Get(url)
+	retryClient := retryablehttp.NewClient()
+	retryClient.Logger = nil
+	retryClient.RetryMax = 5
+	resp, err := retryClient.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to get migration status: %w", err)
 	}
@@ -108,7 +114,10 @@ type MigrationReadyStatus struct {
 
 func isClusterReadyForStorageMigration(opts migrateOpts) (*ClusterReadyStatus, error) {
 	url := fmt.Sprintf("http://%s/storagemigration/cluster-ready", opts.ekcoAddress)
-	resp, err := retryablehttp.Get(url)
+	retryClient := retryablehttp.NewClient()
+	retryClient.Logger = nil
+	retryClient.RetryMax = 5
+	resp, err := retryClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ekco cluster ready status: %w", err)
 	}
