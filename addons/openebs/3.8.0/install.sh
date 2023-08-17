@@ -417,16 +417,15 @@ function openebs_prompt_migrate_from_longhorn() {
     logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
     logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
 
-    semverParse "$KUBERNETES_VERSION"
-    if [ "$minor" -gt 24 ] ; then
-        logWarn ""
-        logWarn "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
-        logWarn "    on your cluster. Because of this, we will install OpenEBS and migrate your data from Longhorn before upgrading Kubernetes."
+    log "Would you like to continue? "
+    if ! confirmN; then
+        bail "Not migrating"
+    fi
 
-        log "Would you like to continue? "
-        if ! confirmN; then
-            bail "Not migrating"
-        fi
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 18 ] ; then
+        # if the current version of k8s is compatible with OpenEBS, install it and migrate the data before upgrading k8s
+        printf "    Starting OpenEBS installation and migration from Longhorn to OpenEBS.\n"
 
         longhorn_prepare_for_migration
         report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
@@ -434,11 +433,6 @@ function openebs_prompt_migrate_from_longhorn() {
         report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
         maybe_cleanup_longhorn
         return
-    fi
-
-    log "Would you like to continue? "
-    if ! confirmN; then
-        bail "Not migrating"
     fi
 
     if ! longhorn_prepare_for_migration; then
