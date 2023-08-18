@@ -154,7 +154,7 @@
       exit 1
     fi
 
-- name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x"
+- name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
   flags: "yes"
   installerSpec:
     kubernetes:
