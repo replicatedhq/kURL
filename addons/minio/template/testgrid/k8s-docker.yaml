@@ -23,6 +23,7 @@
 # migration from rook-ceph object store to minio
 - name: migrate from rook-ceph object store to minio
   flags: "yes"
+  airgap: true
   installerSpec:
     kubernetes:
       version: "latest"
