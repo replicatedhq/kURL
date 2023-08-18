@@ -250,6 +250,7 @@ function minio_migrate_from_rgw_early() {
     fi
 
     report_addon_start "minio-preinstall" "$MINIO_VERSION"
+    addon_load "minio" "$MINIO_VERSION"
     addon_install "minio" "$MINIO_VERSION"
     report_addon_success "minio-preinstall" "$MINIO_VERSION"
 
