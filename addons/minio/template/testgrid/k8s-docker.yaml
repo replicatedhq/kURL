@@ -55,13 +55,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-    check_and_customize_kurl_integration_test_application
     
     echo "Verify if rook-ceph namespace was removed after upgrade"
     if kubectl get namespace/rook-ceph ; then
