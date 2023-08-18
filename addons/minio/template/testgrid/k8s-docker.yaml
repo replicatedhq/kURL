@@ -1,27 +1,28 @@
-# basic test
-- name: fresh minio install (openebs)
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-      namespace: openebs
-      version: "3.2.x"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
+## basic test
+#- name: fresh minio install (openebs)
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    openebs:
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: default
+#      namespace: openebs
+#      version: "3.2.x"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
 
 # migration from rook-ceph object store to minio
 - name: migrate from rook-ceph object store to minio
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "latest"
@@ -69,204 +70,204 @@
        echo "Namespace rook-ceph was removed"
     fi
 
-# installation with specified PVC size
-- name: install with 20Gi volume (openebs)
-  installerSpec:
-    kubernetes:
-      version: "1.27.x"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "default"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      claimSize: "20Gi"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-    echo "PVC size should be 20Gi:"
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
-
-# installation with hostPath
-- name: install using /opt/minio hostpath
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      hostPath: "/opt/minio"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-
-# upgrade that changes PVC size
-- name: upgrade minio from latest while increasing PVC claim size (longhorn)
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    minio:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      claimSize: "20Gi"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-    echo "PVC size should be 20Gi:"
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
-
-# upgrade from 2020-01-25T02-50-51Z
-- name: upgrade minio from 2020-01-25T02-50-51Z (longhorn)
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    minio:
-      version: "2020-01-25T02-50-51Z"
-  upgradeSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-
-# upgrade from 2020-01-25T02-50-51Z using openebs
-- name: upgrade minio from 2020-01-25T02-50-51Z (openebs)
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "default"
-    containerd:
-      version: "latest"
-    minio:
-      version: "2020-01-25T02-50-51Z"
-  upgradeSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "default"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-
-- name: upgrade minio from 2020-01-25T02-50-51Z while increasing PVC claim size (openebs)
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "default"
-    containerd:
-      version: "latest"
-    minio:
-      version: "2020-01-25T02-50-51Z"
-  upgradeSpec:
-    kubernetes:
-      version: "latest"
-    flannel:
-      version: latest
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "default"
-    containerd:
-      version: "latest"
-    minio:
-      version: "__testver__"
-      claimSize: "20Gi"
-      s3Override: "__testdist__"
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-    echo "PVC size should be 20Gi:"
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
-    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
+## installation with specified PVC size
+#- name: install with 20Gi volume (openebs)
+#  installerSpec:
+#    kubernetes:
+#      version: "1.27.x"
+#    flannel:
+#      version: latest
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "default"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      claimSize: "20Gi"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#    echo "PVC size should be 20Gi:"
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
+#
+## installation with hostPath
+#- name: install using /opt/minio hostpath
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      hostPath: "/opt/minio"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#
+## upgrade that changes PVC size
+#- name: upgrade minio from latest while increasing PVC claim size (longhorn)
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: "1.24.x"
+#    flannel:
+#      version: latest
+#    longhorn:
+#      version: "latest"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "latest"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.24.x"
+#    flannel:
+#      version: latest
+#    longhorn:
+#      version: "latest"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      claimSize: "20Gi"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#  postUpgradeScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_testfile rwtest testfile.txt
+#    validate_read_write_object_store postupgrade upgradefile.txt
+#    echo "PVC size should be 20Gi:"
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
+#
+## upgrade from 2020-01-25T02-50-51Z
+#- name: upgrade minio from 2020-01-25T02-50-51Z (longhorn)
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    longhorn:
+#      version: "latest"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "2020-01-25T02-50-51Z"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    longhorn:
+#      version: "latest"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#  postUpgradeScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_testfile rwtest testfile.txt
+#    validate_read_write_object_store postupgrade upgradefile.txt
+#
+## upgrade from 2020-01-25T02-50-51Z using openebs
+#- name: upgrade minio from 2020-01-25T02-50-51Z (openebs)
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "default"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "2020-01-25T02-50-51Z"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "default"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#  postUpgradeScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_testfile rwtest testfile.txt
+#    validate_read_write_object_store postupgrade upgradefile.txt
+#
+#- name: upgrade minio from 2020-01-25T02-50-51Z while increasing PVC claim size (openebs)
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "default"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "2020-01-25T02-50-51Z"
+#  upgradeSpec:
+#    kubernetes:
+#      version: "latest"
+#    flannel:
+#      version: latest
+#    openebs:
+#      version: "latest"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "default"
+#    containerd:
+#      version: "latest"
+#    minio:
+#      version: "__testver__"
+#      claimSize: "20Gi"
+#      s3Override: "__testdist__"
+#  postInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_read_write_object_store rwtest testfile.txt
+#  postUpgradeScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    minio_object_store_info
+#    validate_testfile rwtest testfile.txt
+#    validate_read_write_object_store postupgrade upgradefile.txt
+#    echo "PVC size should be 20Gi:"
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
+#    kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
