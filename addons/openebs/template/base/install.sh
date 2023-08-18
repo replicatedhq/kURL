@@ -152,6 +152,7 @@ function openebs_prompt_migrate_from_rook() {
         printf "    Starting OpenEBS installation and migration from Rook to OpenEBS.\n"
 
         report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
+        addon_load "openebs" "$OPENEBS_VERSION"
         addon_install "openebs" "$OPENEBS_VERSION"
         report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
     fi
@@ -429,6 +430,7 @@ function openebs_prompt_migrate_from_longhorn() {
 
         longhorn_prepare_for_migration
         report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
+        addon_load "openebs" "$OPENEBS_VERSION"
         addon_install "openebs" "$OPENEBS_VERSION"
         report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
         maybe_cleanup_longhorn
