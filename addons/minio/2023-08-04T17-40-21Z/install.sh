@@ -249,9 +249,9 @@ function minio_migrate_from_rgw_early() {
         return
     fi
 
-    report_addon_start "minio-preinstall" "$OPENEBS_VERSION"
-    addon_install "minio" "$OPENEBS_VERSION"
-    report_addon_success "minio-preinstall" "$OPENEBS_VERSION"
+    report_addon_start "minio-preinstall" "$MINIO_VERSION"
+    addon_install "minio" "$MINIO_VERSION"
+    report_addon_success "minio-preinstall" "$MINIO_VERSION"
 
     maybe_cleanup_rook
 }
