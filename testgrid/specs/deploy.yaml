@@ -1,3 +1,4 @@
+#file: noinspection YAMLSchemaValidation
 - name: "Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd"
   flags: "yes"
   installerSpec:
@@ -32,7 +33,7 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - rocky-92 # docker is not supported on rhel 9 variants
-- name: "Upgrade to 1.25 to 1.27, Migrate from Rook 1.12.x to OpenEBS + Minio"
+- name: "Upgrade to 1.25 to 1.28, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -51,7 +52,7 @@
       version: 1.12.x
   upgradeSpec:
     kubernetes:
-      version: 1.27.x
+      version: 1.28.x
     containerd:
       version: 1.6.x
     flannel:
@@ -145,7 +146,7 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-- name: "Upgrade from k8s 1.26 to 1.27 - Airgap"
+- name: "Upgrade from k8s 1.26 to 1.28 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
@@ -168,7 +169,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.28.x
     kurl:
       installerVersion: ""
     flannel:
@@ -211,10 +212,10 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: "k8s_127x with kurl in-cluster support bundle spec"
+- name: "k8s_128x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
-      version: "1.27.x"
+      version: "1.28.x"
     containerd:
       version: latest
     flannel:

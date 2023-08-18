@@ -1432,7 +1432,7 @@
   numSecondaryNodes: 2
   installerSpec:
     kubernetes:
-      version: 1.27.x
+      version: 1.28.x
     containerd:
       version: latest
     flannel:
