@@ -59,6 +59,18 @@ dockerout $os addons/containerd/template/$dockerfile $version
 EOT
 }
 
+function add_override_os_to_manifest_file() {
+    local version=$1
+    local override_version=$2
+    local os=$3
+    local dockerfile=$4
+    local file=/tmp/containerd/$version/Manifest
+
+    cat <<EOT >> $file
+dockerout $os addons/containerd/template/$dockerfile override_version
+EOT
+}
+
 function init_preflight_file() {
     local version=$1
 
@@ -105,7 +117,7 @@ function add_supported_os_to_preflight_file() {
 EOT
 }
 
-function add_warning_os_to_preflight_file() {
+function add_override_os_to_preflight_file() {
     local version=$1
     local replacement_version=$2
     local os_distro=$3
@@ -228,9 +240,9 @@ function find_common_versions() {
         fi
 
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
-            echo "Ubuntu 18 lacks version $version, using 1.6.21 instead"
-            add_warning_os_to_preflight_file $version "1.6.21" "ubuntu" "18.04"
-            add_supported_os_to_manifest_file "1.6.21" "ubuntu-18.04" "Dockerfile.ubuntu18"
+            echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
+            add_override_os_to_preflight_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
+            add_override_os_to_manifest_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
         else
             add_supported_os_to_preflight_file $version "ubuntu" "18.04"
             add_supported_os_to_manifest_file $version "ubuntu-18.04" "Dockerfile.ubuntu18"
