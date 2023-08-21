@@ -146,11 +146,11 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-- name: "Upgrade from k8s 1.26 to 1.28 - Airgap"
+- name: "Upgrade from k8s 1.27 to 1.28 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     kurl:
       installerVersion: ""
     flannel:
