@@ -1152,7 +1152,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     openebs:
@@ -1238,7 +1238,7 @@
 - name: "Upgrade to 1.28 minimal airgap"
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     openebs:
