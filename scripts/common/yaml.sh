@@ -73,7 +73,7 @@ function insert_bases() {
 
     local kubectl_client_minor_version=
     if commandExists "kubectl" ; then
-        kubectl_client_minor_version="$(kubectl version --short | grep -i client | awk '{ print $3 }' | cut -d '.' -f2)"
+        kubectl_client_minor_version="$(kubectl_client_version | cut -d '.' -f2)"
     else
         kubectl_client_minor_version="$(echo "$KUBERNETES_VERSION" | cut -d '.' -f2)"
     fi
