@@ -1589,3 +1589,27 @@ function storage_migration_ready_timeout() {
     fi
     echo "$STORAGE_MIGRATION_READY_TIMEOUT"
 }
+
+# return the version of kubernetes that is currently installed on the server
+function kubectl_server_version() {
+    local kubectl_server_version=
+    if kubectl version --short > /dev/null 2>&1 ; then
+        kubectl_server_version="$(kubectl version --short | grep -i server | awk '{ print $3 }')"
+    else
+        # kubectl version --short is not supported in kubectl > 1.27, but is now the default behavior
+        kubectl_server_version="$(kubectl version | grep -i server | awk '{ print $3 }')"
+    fi
+    echo "$kubectl_server_version"
+}
+
+# return the version of kubernetes that is currently installed on the client
+function kubectl_client_version() {
+    local kubectl_client_version=
+    if kubectl version --short > /dev/null 2>&1 ; then
+        kubectl_client_version="$(kubectl version --short | grep -i client | awk '{ print $3 }')"
+    else
+        # kubectl version --short is not supported in kubectl > 1.27, but is now the default behavior
+        kubectl_client_version="$(kubectl version | grep -i client | awk '{ print $3 }')"
+    fi
+    echo "$kubectl_client_version"
+}
