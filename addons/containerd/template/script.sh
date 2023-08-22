@@ -59,6 +59,18 @@ dockerout $os addons/containerd/template/$dockerfile $version
 EOT
 }
 
+function add_override_os_to_manifest_file() {
+    local version=$1
+    local override_version=$2
+    local os=$3
+    local dockerfile=$4
+    local file=/tmp/containerd/$version/Manifest
+
+    cat <<EOT >> $file
+dockerout $os addons/containerd/template/$dockerfile override_version
+EOT
+}
+
 function init_preflight_file() {
     local version=$1
 
@@ -102,6 +114,20 @@ function add_supported_os_to_preflight_file() {
           - pass:
               when: "$os_distro = $os_version"
               message: "containerd addon supports $os_distro $os_version"
+EOT
+}
+
+function add_override_os_to_preflight_file() {
+    local version=$1
+    local replacement_version=$2
+    local os_distro=$3
+    local os_version=$4
+
+    local file=/tmp/containerd/$version/host-preflight.yaml
+    cat <<EOT >> $file
+          - warn:
+              when: "$os_distro = $os_version"
+              message: "containerd addon supports $os_distro $os_version, but only up to containerd $replacement_version, which will be installed instead of $version"
 EOT
 }
 
@@ -156,7 +182,7 @@ function find_common_versions() {
     UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
 
-    # Get the intersection of versions available for all operating systems
+    # Get the union of versions available for all operating systems
     local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
 
@@ -214,8 +240,9 @@ function find_common_versions() {
         fi
 
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
-            echo "Ubuntu 18 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "ubuntu" "18.04"
+            echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
+            add_override_os_to_preflight_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
+            add_override_os_to_manifest_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
         else
             add_supported_os_to_preflight_file $version "ubuntu" "18.04"
             add_supported_os_to_manifest_file $version "ubuntu-18.04" "Dockerfile.ubuntu18"
@@ -240,7 +267,7 @@ function find_common_versions() {
         VERSIONS+=("$version")
     done
 
-    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
+    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for at least one operating system: ${VERSIONS[*]}"
 
     export GREATEST_VERSION="${VERSIONS[0]}"
 }
