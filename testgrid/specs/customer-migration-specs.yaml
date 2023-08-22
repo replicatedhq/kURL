@@ -69,7 +69,7 @@
     fi
 
     # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.27" ]]; then
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
@@ -149,7 +149,7 @@
     fi
 
     # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.27" ]]; then
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
@@ -231,7 +231,7 @@
     fi
 
     # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')" =~ "1.27" ]]; then
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
