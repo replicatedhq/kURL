@@ -67,7 +67,7 @@ function add_override_os_to_manifest_file() {
     local file=/tmp/containerd/$version/Manifest
 
     cat <<EOT >> $file
-dockerout $os addons/containerd/template/$dockerfile override_version
+dockerout $os addons/containerd/template/$dockerfile $override_version
 EOT
 }
 
