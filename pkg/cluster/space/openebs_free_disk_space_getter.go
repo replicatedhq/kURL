@@ -20,7 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 type OpenEBSFreeDiskSpaceGetter struct {
@@ -186,7 +186,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildTmpPVC(node string) *corev1.Persistent
 			Namespace: "default",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
-			StorageClassName: pointer.String(o.scname),
+			StorageClassName: ptr.To(o.scname),
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
@@ -305,8 +305,8 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 			},
 		},
 		Spec: batchv1.JobSpec{
-			BackoffLimit:          pointer.Int32(1),
-			ActiveDeadlineSeconds: pointer.Int64(120),
+			BackoffLimit:          ptr.To(int32(1)),
+			ActiveDeadlineSeconds: ptr.To(int64(120)),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
 			},

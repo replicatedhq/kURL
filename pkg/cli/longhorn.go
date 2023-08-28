@@ -18,7 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -221,7 +221,7 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli clien
 		if err != nil {
 			return fmt.Errorf("error parsing replica count for deployment %s/%s: %w", dep.Namespace, dep.Name, err)
 		}
-		dep.Spec.Replicas = pointer.Int32(int32(replicas))
+		dep.Spec.Replicas = ptr.To(int32(replicas))
 		delete(dep.Annotations, pvmigrateScaleDownAnnotation)
 		logger.Printf("Scaling up deployment %s/%s", dep.Namespace, dep.Name)
 		if err := cli.Update(ctx, &dep); err != nil {
@@ -241,7 +241,7 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli clien
 		if err != nil {
 			return fmt.Errorf("error parsing replica count for statefulset %s/%s: %w", st.Namespace, st.Name, err)
 		}
-		st.Spec.Replicas = pointer.Int32(int32(replicas))
+		st.Spec.Replicas = ptr.To(int32(replicas))
 		delete(st.Annotations, pvmigrateScaleDownAnnotation)
 		logger.Printf("Scaling up statefulset %s/%s", st.Namespace, st.Name)
 		if err := cli.Update(ctx, &st); err != nil {
@@ -447,18 +447,18 @@ func scaleDownObject(ctx context.Context, logger *log.Logger, cli client.Client,
 	switch concrete := obj.(type) {
 	case *appsv1.Deployment:
 		replicas = concrete.Spec.Replicas
-		concrete.Spec.Replicas = pointer.Int32(0)
+		concrete.Spec.Replicas = ptr.To(int32(0))
 		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
 	case *appsv1.StatefulSet:
 		replicas = concrete.Spec.Replicas
-		concrete.Spec.Replicas = pointer.Int32(0)
+		concrete.Spec.Replicas = ptr.To(int32(0))
 		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
 	default:
 		return fmt.Errorf("unsupported object type %T", obj)
 	}
 
 	if replicas == nil {
-		replicas = pointer.Int32(0)
+		replicas = ptr.To(int32(0))
 	}
 
 	annotations := obj.GetAnnotations()
