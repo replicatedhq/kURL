@@ -1613,3 +1613,10 @@ function kubectl_client_version() {
     fi
     echo "$kubectl_client_version"
 }
+
+# create directories for remote commands to be placed within, and ensure they are empty
+function setup_remote_commands_dirs() {
+    mkdir -p "$DIR/remotes"
+    rm -rf "$DIR/remotes"/*
+    mkdir -p "$DIR/remotes/onenode"
+}

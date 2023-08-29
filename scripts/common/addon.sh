@@ -307,12 +307,12 @@ function addon_outro() {
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
+            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n" | tee "$DIR/remotes/allnodes.sh"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
-            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n" | tee "$DIR/remotes/allnodes.sh"
         fi
 
         if [ "${KURL_IGNORE_REMOTE_UPGRADE_PROMPT}" != "1" ]; then
