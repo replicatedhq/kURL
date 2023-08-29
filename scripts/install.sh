@@ -298,22 +298,6 @@ function init() {
         if kubernetes_has_remotes; then
             if commandExists ekco_handle_load_balancer_address_change_kubeconfigs; then
                 ekco_handle_load_balancer_address_change_kubeconfigs
-            else
-                # Manual steps for ekco < 0.11.0
-                printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
-                printf "\n"
-                if [ "$AIRGAP" = "1" ]; then
-                    printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
-                else
-                    local prefix=
-                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
-
-                    printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
-                fi
-
-                printf "\n"
-                printf "Continue? "
-                confirmN
             fi
 
             if commandExists ekco_handle_load_balancer_address_change_post_init; then
