@@ -543,6 +543,7 @@ function main() {
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start
+    setup_remote_commands_dirs
     trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights

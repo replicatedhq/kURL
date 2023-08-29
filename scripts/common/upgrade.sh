@@ -520,12 +520,12 @@ function upgrade_kubernetes_remote_node() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: %b%s%b\n\n" "$GREEN" "$nodeName" "$NC"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t%bcat ./upgrade.sh | sudo bash -s airgap kubernetes-version=%s%s%b\n\n" "$GREEN" "$targetK8sVersion" "$common_flags" "$NC"
+        printf "\t%bcat ./upgrade.sh | sudo bash -s airgap kubernetes-version=%s%s%b\n\n" "$GREEN" "$targetK8sVersion" "$common_flags" "$NC" | tee "$DIR/remotes/onenode/$nodeName"
     else
         local prefix=
         prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
-        printf "\t%b %supgrade.sh | sudo bash -s kubernetes-version=%s%s%b\n\n" "$GREEN" "$prefix" "$targetK8sVersion" "$common_flags" "$NC"
+        printf "\t%b %supgrade.sh | sudo bash -s kubernetes-version=%s%s%b\n\n" "$GREEN" "$prefix" "$targetK8sVersion" "$common_flags" "$NC" | tee "$DIR/remotes/onenode/$nodeName"
     fi
 
     rm -rf "$HOME/.kube"
