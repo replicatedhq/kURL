@@ -9,15 +9,14 @@ name: Vulnerability and license scan
 jobs:
   license:
     runs-on: ubuntu-latest
+    container:
+      image: aquasec/trivy:0.44.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
       - run: go mod download
       - uses: actions/setup-node@v3
       - run: npm ci
-      - run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install trivy
-          trivy fs --scanners license .
+      - run: trivy fs --scanners license .
 
     
