@@ -27,7 +27,3 @@ sbom/
 
 # ide 
 .vscode
-
-# FOSSA
-fossa.debug.*
-fossa.telemetry.*
