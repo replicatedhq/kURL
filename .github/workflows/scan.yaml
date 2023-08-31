@@ -19,6 +19,7 @@ jobs:
           /home/linuxbrew/.linuxbrew/bin/brew shellenv | while read line; do
             echo $(echo ${line::-1} | sed -e "s/^export //g") >> $GITHUB_ENV
           done
+          cat $GITHUB_ENV
       - run: brew install trivy
       - run: trivy fs --scanners license . | tee license-report.txt
       - uses: actions/upload-artifact@v3
