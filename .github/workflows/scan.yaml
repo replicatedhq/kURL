@@ -4,6 +4,9 @@ on:
       - main
   pull_request:
 
+env:
+  TRIVY_VERSION: 0.44.1
+
 name: License scan
 
 jobs:
@@ -16,11 +19,8 @@ jobs:
       - uses: actions/setup-node@v3
       - run: npm ci
       - run: |
-          /home/linuxbrew/.linuxbrew/bin/brew shellenv | while read line; do
-            echo $(echo ${line::-1} | sed -e "s/^export //g") >> $GITHUB_ENV
-          done
-          cat $GITHUB_ENV
-      - run: brew install trivy
+          wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
+          sudo dpkg -i trivy_${TRIVY_VERSION}_Linux-64bit.deb
       - run: trivy fs --scanners license . | tee license-report.txt
       - uses: actions/upload-artifact@v3
         with:
