@@ -1,7 +1,0 @@
-{
-    "name": "aws",
-    "fulfills": ["Cloud Provider"],
-    "requires": [],
-    "recommends": []
-  }
-  
