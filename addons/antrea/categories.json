@@ -1,6 +1,0 @@
-{
-  "name": "antrea",
-  "fulfills": ["CNI Plugin"],
-  "requires": ["Container Runtime"],
-  "recommends": []
-}

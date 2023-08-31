@@ -164,16 +164,6 @@ module.exports.InstallerVersions = {
     "2.8.1",
     "2.7.0",
   ],
-  antrea: [
-    // cron-antrea-update
-    "1.4.0",
-    "1.2.1",
-    "1.2.0",
-    "1.1.0",
-    "1.0.1",
-    "1.0.0",
-    "0.13.1",
-  ],
   flannel: [
     // cron-flannel-update
     "0.22.2",
@@ -598,8 +588,5 @@ module.exports.InstallerVersions = {
     "3.2.0-5.0.0",
     "3.2.0-4.2.1",
     "3.2.0-4.1.1",
-  ],
-  aws: [
-    "0.1.0",
   ],
 };
