@@ -5,8 +5,6 @@
 
 # kURL
 
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5995%2Fgithub.com%2Freplicatedhq%2Fkurl.svg?type=small)](https://app.fossa.com/projects/custom%2B5995%2Fgithub.com%2Freplicatedhq%2Fkurl?ref=badge_small)
-
 kURL is a Kubernetes installer for airgapped and online clusters.
 
 kURL relies on `kubeadm` to bring up the Kubernetes control plane, but there are a variety of tasks a system administrator must perform both before and after running kubeadm init in order to have a production-ready Kubernetes cluster, such as installing Docker, configuring Pod networking, or installing kubeadm itself.
