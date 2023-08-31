@@ -1,0 +1,3 @@
+image antrea-ubuntu projects.registry.vmware.com/antrea/antrea-ubuntu:v__ANTREA_VERSION__
+
+asset antctl https://github.com/vmware-tanzu/antrea/releases/download/v__ANTREA_VERSION__/antctl-Linux-x86_64
