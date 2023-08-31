@@ -4,7 +4,7 @@ on:
       - main
   pull_request:
 
-name: Vulnerability and license scan
+name: License scan
 
 jobs:
   license:
@@ -16,8 +16,13 @@ jobs:
       - uses: actions/setup-node@v3
       - run: npm ci
       - run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install trivy
-          trivy fs --scanners license .
-
-    
+          /home/linuxbrew/.linuxbrew/bin/brew shellenv | while read line; do
+            echo $(echo ${line::-1} | sed -e "s/^export //g") >> $GITHUB_ENV
+          done
+      - run: brew install trivy
+      - run: trivy fs --scanners license . | tee license-report.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: license-report
+          path: license-report.txt
+      - run: trivy fs --scanners license --exit-code 1 --severity UNKNOWN,CRITICAL,HIGH .
