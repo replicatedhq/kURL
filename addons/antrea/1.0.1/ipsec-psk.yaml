@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: antrea-ipsec
+  namespace: kube-system
+stringData:
+  psk: $ANTREA_IPSEC_PSK
