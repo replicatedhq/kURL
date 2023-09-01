@@ -2698,3 +2698,86 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+- name: merge-installer-hostpreflight-and-upgrade
+  installerSpec:
+    kubernetes:
+      version: 1.28.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.28.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+  preInstallScript: |
+    mkdir -p /opt/kurl-testgrid/
+    echo "apiVersion: cluster.kurl.sh/v1beta1
+    kind: Installer
+    metadata:
+      name: installer
+    spec:
+      kurl:
+        hostPreflights:
+          apiVersion: troubleshoot.sh/v1beta2
+          kind: HostPreflight
+          spec:
+            collectors:
+            - http:
+                collectorName: Can Access Replicated API
+                get:
+                  url: https://replicated.app
+            analyzers:
+            - http:
+                checkName: Can Access Replicated API
+                collectorName: Can Access Replicated API
+                outcomes:
+                - warn:
+                    when: \"error\"
+                    message: Error connecting to https://replicated.app
+                - pass:
+                    when: \"statusCode == 200\"
+                    message: Connected to https://replicated.app
+                - warn:
+                    message: \"Unexpected response\"" > /opt/kurl-testgrid/patchfile.yaml
+  postInstallScript: |
+    mkdir -p /opt/kurl-testgrid/
+    echo "apiVersion: cluster.kurl.sh/v1beta1
+    kind: Installer
+    metadata:
+      name: installer
+    spec:
+      kurl:
+        hostPreflights:
+          apiVersion: troubleshoot.sh/v1beta2
+          kind: HostPreflight
+          spec:
+            collectors:
+            - tcpPortStatus:
+                collectorName: \"Checks port 8888 is available\"
+                port: 8888
+            analyzers:
+            - tcpPortStatus:
+                checkName: \"Checks port 8888 is available\"
+                collectorName: \"Checks port 8888 is available\"
+                outcomes:
+                  - fail:
+                      when: \"connection-refused\"
+                      message: Connection to port 8888 was refused.
+                  - warn:
+                      when: \"address-in-use\"
+                      message: Another process was already listening on port 8888.
+                  - fail:
+                      when: \"connection-timeout\"
+                      message: Timed out connecting to port 8888.
+                  - fail:
+                      when: \"error\"
+                      message: Unexpected port status
+                  - pass:
+                      when: \"connected\"
+                      message: Port 8888 is available
+                  - warn:
+                      message: Unexpected port status" > /opt/kurl-testgrid/patchfile.yaml
