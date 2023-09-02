@@ -2744,6 +2744,7 @@
                 - warn:
                     message: \"Unexpected response\"" > /opt/kurl-testgrid/patchfile.yaml
   postInstallScript: |
+    kubectl get installer -A -o yaml | grep replicated.app
     mkdir -p /opt/kurl-testgrid/
     echo "apiVersion: cluster.kurl.sh/v1beta1
     kind: Installer
@@ -2781,3 +2782,5 @@
                       message: Port 8888 is available
                   - warn:
                       message: Unexpected port status" > /opt/kurl-testgrid/patchfile.yaml
+  postUpgradeScript: |
+    kubectl get installer -A -o yaml | grep 8888
