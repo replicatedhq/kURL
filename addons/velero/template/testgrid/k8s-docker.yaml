@@ -133,6 +133,7 @@
 #    kubectl kots backup ls
 
 - name: "Velero remove restic"
+  cpu: 8
   installerSpec:
     kubernetes:
       version: "1.27.x"
