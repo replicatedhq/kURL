@@ -47,6 +47,11 @@ function velero() {
 
     velero_change_storageclass "$src" "$dst"
 
+    # Remove restic resources since they've been replaced by node agent
+    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
+    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
+    kubectl delete crd resticrepositories.velero.io --ignore-not-found
+
     # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
     if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; then
         velero_patch_internal_pvc_snapshots "$src" "$dst"
@@ -195,11 +200,6 @@ function velero_already_applied() {
     if [ -f "$dst/kustomization.yaml" ]; then
         kubectl apply -k "$dst"
     fi
-
-    # Remove restic resources since they've been replaced by node agent
-    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
-    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
-    kubectl delete crd resticrepositories.velero.io --ignore-not-found
 
     # Bail if the migration fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then

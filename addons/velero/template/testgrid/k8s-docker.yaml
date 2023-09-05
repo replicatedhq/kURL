@@ -132,3 +132,48 @@
     source /opt/kurl-testgrid/testhelpers.sh
     kubectl kots backup
     kubectl kots backup ls
+
+- name: "Velero remove restic"
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    rook:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    velero:
+      version: "1.9.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    rook:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    kubectl kots backup
+    kubectl kots backup ls
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    kubectl kots backup
+    kubectl kots backup ls
+    kubectl get pods -n velero
+    # if restic pods are still running, fail the test
+    if kubectl get pods -n velero | grep restic; then
+      echo "Restic pods still running after upgrade"
+      exit 1
+    fi
+    
