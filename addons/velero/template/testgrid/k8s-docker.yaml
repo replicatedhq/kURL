@@ -1,11 +1,12 @@
 - name: "Velero Minimal"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: "1.27.x"
     flannel:
       version: latest
     rook:
-      version: "latest"
+      version: 1.12.x
     containerd:
       version: "latest"
     kotsadm:
@@ -16,9 +17,10 @@
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
-    kubectl kots backup
-    kubectl kots backup ls
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
 - name: "Velero Minimal Airgap"
+  cpu: 6
   airgap: true
   installerSpec:
     kubernetes:
@@ -26,7 +28,7 @@
     flannel:
       version: latest
     rook:
-      version: "latest"
+      version: 1.12.x
     containerd:
       version: "latest"
     kotsadm:
@@ -42,8 +44,8 @@
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
-    kubectl kots backup
-    kubectl kots backup ls
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
 - name: "Velero DisableS3 - Rook"
   installerSpec:
     kubernetes:
@@ -63,8 +65,8 @@
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
-    kubectl kots backup
-    kubectl kots backup ls
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
 - name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
@@ -90,7 +92,6 @@
     flannel:
       version: latest
     rook:
-      isBlockStorageEnabled: true
       version: 1.12.x
     registry:
       version: latest
@@ -126,9 +127,55 @@
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
-    kubectl kots backup
-    kubectl kots backup ls
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    kubectl kots backup
-    kubectl kots backup ls
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+
+- name: "Velero remove restic"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    rook:
+      version: 1.12.x
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    velero:
+      version: "1.9.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    rook:
+      version: 1.12.x
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    kubectl get pods -n velero
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+    # if restic pods are still running, fail the test
+    if kubectl get pods -n velero | grep restic; then
+      echo "Restic pods still running after upgrade"
+      exit 1
+    fi
+

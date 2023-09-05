@@ -47,6 +47,11 @@ function velero() {
 
     velero_change_storageclass "$src" "$dst"
 
+    # Remove restic resources since they've been replaced by node agent
+    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
+    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
+    kubectl delete crd resticrepositories.velero.io --ignore-not-found
+
     # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
     if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; then
         velero_patch_internal_pvc_snapshots "$src" "$dst"
@@ -80,6 +85,8 @@ function velero() {
         velero_pv_name=$(kubectl get pvc velero-internal-snapshots -n ${VELERO_NAMESPACE} -ojsonpath='{.spec.volumeName}')
         kubectl patch pv "$velero_pv_name" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
     fi
+
+    spinner_until 120 deployment_fully_updated velero velero
 }
 
 function velero_join() {
@@ -88,7 +95,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    velero_install_nfs_utils_if_missing 
+    velero_install_nfs_utils_if_missing
 }
 
 function velero_install_nfs_utils_if_missing() {
@@ -159,7 +166,7 @@ function velero_install() {
         --namespace $VELERO_NAMESPACE \
         --plugins velero/velero-plugin-for-aws:v1.7.1,velero/velero-plugin-for-gcp:v1.7.1,velero/velero-plugin-for-microsoft-azure:v1.7.1,replicated/local-volume-provider:v0.5.4,"$KURL_UTIL_IMAGE" \
         --use-volume-snapshots=false \
-        --dry-run -o yaml > "$dst/velero.yaml" 
+        --dry-run -o yaml > "$dst/velero.yaml"
 
     rm -f velero-credentials
 }
@@ -169,7 +176,7 @@ function velero_already_applied() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
-    # If we need to migrate, we're going to need to basically reconstruct the original install 
+    # If we need to migrate, we're going to need to basically reconstruct the original install
     # underneath the migration
     if velero_should_migrate_from_object_store; then
 
@@ -177,7 +184,7 @@ function velero_already_applied() {
 
         determine_velero_pvc_size
 
-        velero_binary 
+        velero_binary
         velero_install "$src" "$dst"
         velero_patch_node_agent_privilege "$src" "$dst"
         velero_patch_args "$src" "$dst"
@@ -195,11 +202,6 @@ function velero_already_applied() {
     if [ -f "$dst/kustomization.yaml" ]; then
         kubectl apply -k "$dst"
     fi
-
-    # Remove restic resources since they've been replaced by node agent
-    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
-    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
-    kubectl delete crd resticrepositories.velero.io --ignore-not-found
 
     # Bail if the migration fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then
