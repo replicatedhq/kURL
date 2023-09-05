@@ -1,5 +1,21 @@
 yum libzstd
-asset runc https://github.com/opencontainers/runc/releases/download/v1.1.9/runc.amd64
+asset runc https://github.com/opencontainers/runc/releases/download/
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>503 first byte timeout</title>
+  </head>
+  <body>
+    <h1>Error 503 first byte timeout</h1>
+    <p>first byte timeout</p>
+    <h3>Error 54113</h3>
+    <p>Details: cache-bur-kbur8200088-BUR 1693886954 3581956286</p>
+    <hr>
+    <p>Varnish cache server</p>
+  </body>
+</html>/runc.amd64
 dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.20
 dockerout rhel-7-force addons/containerd/template/Dockerfile.centos7-force 1.6.20
 dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 1.6.20
