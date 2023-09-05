@@ -1,139 +1,139 @@
-#- name: "Velero Minimal"
-#  cpu: 6
-#  installerSpec:
-#    kubernetes:
-#      version: "1.27.x"
-#    flannel:
-#      version: latest
-#    rook:
-#      version: 1.12.x
-#    containerd:
-#      version: "latest"
-#    kotsadm:
-#      version: latest
-#    velero:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    install_and_customize_kurl_integration_test_application
-#    timeout 5m kubectl kots backup
-#    timeout 5m kubectl kots backup ls
-#- name: "Velero Minimal Airgap"
-#  cpu: 6
-#  airgap: true
-#  installerSpec:
-#    kubernetes:
-#      version: "latest"
-#    flannel:
-#      version: latest
-#    rook:
-#      version: 1.12.x
-#    containerd:
-#      version: "latest"
-#    kotsadm:
-#      version: latest
-#    registry:
-#      version: latest
-#    velero:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#  preInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    install_and_customize_kurl_integration_test_application
-#    timeout 5m kubectl kots backup
-#    timeout 5m kubectl kots backup ls
-#- name: "Velero DisableS3 - Rook"
-#  installerSpec:
-#    kubernetes:
-#      version: "latest"
-#    flannel:
-#      version: latest
-#    rook:
-#      version: "1.5.x"
-#    containerd:
-#      version: "latest"
-#    kotsadm:
-#      version: latest
-#      disableS3: true
-#    velero:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    install_and_customize_kurl_integration_test_application
-#    timeout 5m kubectl kots backup
-#    timeout 5m kubectl kots backup ls
-#- name: "Velero OpenEBS only"
-#  installerSpec:
-#    kubernetes:
-#      version: "latest"
-#    flannel:
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    containerd:
-#      version: "latest"
-#    velero:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#    minio:
-#      version: "latest"
-#- name: "Velero Remove Object Storage"
-#  cpu: 8
-#  installerSpec:
-#    kubernetes:
-#      version: 1.23.x
-#    flannel:
-#      version: latest
-#    rook:
-#      version: 1.12.x
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#    containerd:
-#      version: latest
-#    velero:
-#      version: 1.9.x
-#    ekco:
-#      version: "latest"
-#  upgradeSpec:
-#    kubernetes:
-#      version: 1.24.x
-#    flannel:
-#      version: latest
-#    longhorn:
-#      version: latest
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#      disableS3: true
-#    containerd:
-#      version: latest
-#    velero:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#    ekco:
-#      version: "latest"
-#  unsupportedOSIDs:
-#    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    install_and_customize_kurl_integration_test_application
-#    timeout 5m kubectl kots backup
-#    timeout 5m kubectl kots backup ls
-#  postUpgradeScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    timeout 5m kubectl kots backup
-#    timeout 5m kubectl kots backup ls
-#
+- name: "Velero Minimal"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    rook:
+      version: 1.12.x
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+- name: "Velero Minimal Airgap"
+  cpu: 6
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    flannel:
+      version: latest
+    rook:
+      version: 1.12.x
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+    registry:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+- name: "Velero DisableS3 - Rook"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    flannel:
+      version: latest
+    rook:
+      version: "1.5.x"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+      disableS3: true
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+- name: "Velero OpenEBS only"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
+      version: "latest"
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    minio:
+      version: "latest"
+- name: "Velero Remove Object Storage"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    flannel:
+      version: latest
+    rook:
+      version: 1.12.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.9.x
+    ekco:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    flannel:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    ekco:
+      version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+
 - name: "Velero remove restic"
   cpu: 8
   installerSpec:
