@@ -95,7 +95,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    velero_install_nfs_utils_if_missing
+    velero_install_nfs_utils_if_missing 
 }
 
 function velero_install_nfs_utils_if_missing() {
@@ -166,7 +166,7 @@ function velero_install() {
         --namespace $VELERO_NAMESPACE \
         --plugins velero/velero-plugin-for-aws:v1.7.1,velero/velero-plugin-for-gcp:v1.7.1,velero/velero-plugin-for-microsoft-azure:v1.7.1,replicated/local-volume-provider:v0.5.4,"$KURL_UTIL_IMAGE" \
         --use-volume-snapshots=false \
-        --dry-run -o yaml > "$dst/velero.yaml"
+        --dry-run -o yaml > "$dst/velero.yaml" 
 
     rm -f velero-credentials
 }
@@ -176,7 +176,7 @@ function velero_already_applied() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
-    # If we need to migrate, we're going to need to basically reconstruct the original install
+    # If we need to migrate, we're going to need to basically reconstruct the original install 
     # underneath the migration
     if velero_should_migrate_from_object_store; then
 
@@ -184,7 +184,7 @@ function velero_already_applied() {
 
         determine_velero_pvc_size
 
-        velero_binary
+        velero_binary 
         velero_install "$src" "$dst"
         velero_patch_node_agent_privilege "$src" "$dst"
         velero_patch_args "$src" "$dst"
