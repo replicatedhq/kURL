@@ -81,7 +81,9 @@ function is_docker_version_supported() {
     case "$LSB_DIST" in
     centos|rhel|ol)
         if [ "${DIST_VERSION_MAJOR}" = "8" ] && [ -n "$DOCKER_VERSION" ]; then
-            return 1
+            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
+                return 1
+            fi
         fi
         ;;
     esac
