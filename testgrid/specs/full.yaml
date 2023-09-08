@@ -403,7 +403,7 @@
     contour:
       version: 1.7.0
     rook:
-      version: 1.12.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     fluentd:
