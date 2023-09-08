@@ -24,7 +24,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.1
 	github.com/replicatedhq/kurlkinds v1.4.9
 	github.com/replicatedhq/plumber/v2 v2.2.0
-	github.com/replicatedhq/pvmigrate v0.9.1
+	github.com/replicatedhq/pvmigrate v0.10.0
 	github.com/replicatedhq/troubleshoot v0.71.1
 	github.com/rook/rook v1.12.2
 	github.com/rook/rook/pkg/apis v0.0.0-20230822134130-9803bd5aa7b5
