@@ -63,8 +63,11 @@ function docker_install() {
     case "$LSB_DIST" in
     centos|rhel|ol)
         if [ "${DIST_VERSION_MAJOR}" = "8" ] && ! is_docker_version_supported ; then
-            rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
-            export DID_INSTALL_DOCKER=1
+            # only forcibly install docker before 19.03.15 on centos/rhel 8 - other versions can use the normal install path
+            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
+                rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
+                export DID_INSTALL_DOCKER=1
+            fi
         fi
         ;;
     esac
@@ -81,9 +84,7 @@ function is_docker_version_supported() {
     case "$LSB_DIST" in
     centos|rhel|ol)
         if [ "${DIST_VERSION_MAJOR}" = "8" ] && [ -n "$DOCKER_VERSION" ]; then
-            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
-                return 1
-            fi
+            return 1
         fi
         ;;
     esac
