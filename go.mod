@@ -21,7 +21,7 @@ require (
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.1
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.68.0
 	github.com/replicatedhq/kurlkinds v1.4.9
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.10.0
@@ -259,7 +259,7 @@ require (
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/term v0.12.0 // indirect
@@ -277,7 +277,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	helm.sh/helm/v3 v3.12.3 // indirect
-	k8s.io/apiextensions-apiserver v0.28.0 // indirect
+	k8s.io/apiextensions-apiserver v0.28.1 // indirect
 	k8s.io/apiserver v0.28.1 // indirect
 	k8s.io/component-base v0.28.1 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
