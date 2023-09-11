@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-EKCO_HAPROXY_IMAGE=haproxy:2.8.2-alpine3.18
+EKCO_HAPROXY_IMAGE=haproxy:2.8.3-alpine3.18
 
 EKCO_ROOK_PRIORITY_CLASS=
 function ekco_pre_init() {
