@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Verify version tag
       run: |
@@ -22,7 +22,7 @@ jobs:
     needs:
     - verify-tag
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
@@ -41,7 +41,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - id: set-matrix
       name: Build image matrix
@@ -62,7 +62,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - uses: actions/setup-go@v4
@@ -95,7 +95,7 @@ jobs:
       staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: find corresponding staging release for commit
       id: get_staging_release
       run: |
@@ -120,7 +120,7 @@ jobs:
     needs:
     - get-staging-release
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Verify Testgrid Run
@@ -137,7 +137,7 @@ jobs:
     outputs:
       package: ${{ steps.set-matrix.outputs.package }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Build Package Matrix
@@ -165,7 +165,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Copy packages to Prod
@@ -190,7 +190,7 @@ jobs:
     - set-current-version
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Generate kURL Release Notes PR
       env:
@@ -209,7 +209,7 @@ jobs:
     - set-current-version
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     # Node and Go are needed by the SBOM generator
     - uses: actions/setup-node@v3
@@ -315,7 +315,7 @@ jobs:
         time: "3m"
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Get the version
       id: get_tag
