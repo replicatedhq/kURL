@@ -62,7 +62,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.29.0 // indirect
-	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
+	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/distribution/v3 v3.0.0-20221208165359-362910506bc2 // indirect
 	github.com/docker/cli v23.0.1+incompatible // indirect
-	github.com/docker/docker v23.0.4+incompatible // indirect
+	github.com/docker/docker v24.0.5+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
@@ -157,7 +157,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/hashicorp/vault v1.13.5 // indirect
+	github.com/hashicorp/vault v1.13.7 // indirect
 	github.com/hashicorp/vault/api v1.9.2 // indirect
 	github.com/hashicorp/vault/api/auth/approle v0.4.1 // indirect
 	github.com/hashicorp/vault/sdk v0.9.2 // indirect
@@ -181,7 +181,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
-	github.com/libopenstorage/secrets v0.0.0-20230417161723-1022cc4d5aeb // indirect
+	github.com/libopenstorage/secrets v0.0.0-20230912180533-efe55db6c349 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/longhorn/go-iscsi-helper v0.0.0-20230215054929-acb305e1031b // indirect
 	github.com/lufia/plan9stats v0.0.0-20230110061619-bbe2e5e100de // indirect
