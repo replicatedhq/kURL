@@ -414,11 +414,11 @@ function weave_to_flannel() {
         printf "${worker_node_names}\n"
 
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
+            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-secondary airgap${NC}\n\n"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary airgap${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
