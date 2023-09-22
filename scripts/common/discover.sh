@@ -117,7 +117,7 @@ detectLsbDist() {
         echo >&2 ""
         echo >&2 "Please visit the following URL for more detailed installation instructions:"
         echo >&2 ""
-        echo >&2 "  https://help.replicated.com/docs/distributing-an-application/installing/"
+        echo >&2 "  https://kurl.sh/docs/install-with-kurl/system-requirements"
         exit 1
     fi
 }
