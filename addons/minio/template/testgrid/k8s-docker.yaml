@@ -56,7 +56,8 @@
     registry:
       version: "latest"
   preInstallScript: |
-    curl -LO https://staging.kurl.sh/bundle/version/v2023.08.15-0-55fd16d5/4b3081f/packages/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
+    # this pulls from prod because we don't keep old staging versions in s3
+    curl -LO https://kurl.sh/bundle/version/v2023.08.15-0/latest/packages/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
     mkdir -p /var/lib/kurl/assets
     mv kubernetes-1.20.15,kubernetes-1.21.14.tar.gz /var/lib/kurl/assets/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
   postInstallScript: |
