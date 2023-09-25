@@ -293,6 +293,7 @@ function containerd_migrate_from_docker() {
     systemctl daemon-reload
 
     echo "Migrated to containerd"
+    echo "------------------------------------- YES IT REALLY MIGRATED ------------------------------------------------"
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
 }
 
