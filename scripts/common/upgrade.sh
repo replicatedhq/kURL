@@ -522,7 +522,7 @@ function upgrade_kubernetes_remote_node() {
     if [ "$AIRGAP" = "1" ]; then
         local command=
         command=$(printf "cat ./upgrade.sh | sudo bash -s airgap kubernetes-version=%s%s" "$targetK8sVersion" "$common_flags")
-        echo "$command" > "$DIR/remotes/$nodeName"
+        echo "$command yes" > "$DIR/remotes/$nodeName"
         printf "\t%b%s%b\n\n" "$GREEN" "$command" "$NC"
     else
         local prefix=
@@ -530,7 +530,7 @@ function upgrade_kubernetes_remote_node() {
 
         local command=
         command=$(printf "%supgrade.sh | sudo bash -s kubernetes-version=%s%s" "$prefix" "$targetK8sVersion" "$common_flags")
-        echo "$command" > "$DIR/remotes/$nodeName"
+        echo "$command yes" > "$DIR/remotes/$nodeName"
 
         printf "\t%b %s%b\n\n" "$GREEN" "$command" "$NC"
     fi

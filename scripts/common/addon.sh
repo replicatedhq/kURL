@@ -309,7 +309,7 @@ function addon_outro() {
         if [ "$AIRGAP" = "1" ]; then
             local command=
             command=$(printf "cat ./upgrade.sh | sudo bash -s airgap${common_flags}")
-            echo "$command" > "$DIR/remotes/allnodes"
+            echo "$command yes" > "$DIR/remotes/allnodes"
 
             printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         else
@@ -318,7 +318,7 @@ function addon_outro() {
 
             local command=
             command=$(printf "${prefix}upgrade.sh | sudo bash -s${common_flags}")
-            echo "$command" > "$DIR/remotes/allnodes"
+            echo "$command yes" > "$DIR/remotes/allnodes"
 
             printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         fi
