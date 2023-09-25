@@ -410,7 +410,12 @@ function weave_to_flannel() {
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
-        prompt
+        if [ "$ASSUME_YES" = "1" ]; then
+            echo "The 'yes' flag has been passed, so we will wait for 5 minutes here for this to run on remote nodes"
+            sleep 300
+        else
+            prompt
+        fi
 
         logSuccess "User confirmation about nodes execution."
         log "Deleting Pods from kube-flannel"
@@ -451,11 +456,14 @@ function weave_to_flannel() {
             printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         fi
 
-        # TODO: how do I avoid this prompt being required here?
-        # we should be able to detect that this has been run on the remote nodes
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
-#        prompt
-        sleep 300 # just sleep here for a test
+        if [ "$ASSUME_YES" = "1" ]; then
+            echo "The 'yes' flag has been passed, so we will wait for 5 minutes here for this to run on remote nodes"
+            sleep 300
+        else
+            prompt
+        fi
+
         kubectl -n kube-flannel delete pods --all
     fi
 
