@@ -1139,12 +1139,16 @@ function canonical_image_name() {
 
 # check_for_running_pods scans for pod(s) in a namespace and checks whether their status is running/completed
 # note: Evicted pods are exempt from this check
+# exports a variable UNHEALTHY_PODS containing the names of pods that are not running/completed
+UNHEALTHY_PODS=
 function check_for_running_pods() {
     local namespace=$1
     local is_job_controller=0
     local ns_pods=
     local status=
     local containers=
+
+    local unhealthy_podnames=
 
     ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
 
@@ -1166,7 +1170,8 @@ function check_for_running_pods() {
         fi
 
         if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
-            return 1
+            unhealthy_podnames="$unhealthy_podnames $pod"
+            continue
         fi
 
         containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
@@ -1175,10 +1180,17 @@ function check_for_running_pods() {
             
             # ignore container ready status for pods managed by the Job controller
             if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
-                return 1
+                unhealthy_podnames="$unhealthy_podnames $pod"
+                continue
             fi
         done
     done
+
+    # if there are unhealthy pods, return 1
+    if [ -n "$unhealthy_podnames" ]; then
+        export UNHEALTHY_PODS="$unhealthy_podnames"
+        return 1
+    fi
 
     return 0
 }
