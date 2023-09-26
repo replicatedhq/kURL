@@ -39,7 +39,8 @@ function bail_if_kurl_pods_are_unhealthy() {
         fi
         log "Awaiting 2 minutes to check kURL Pod(s) are Running"
         if ! spinner_until 120 check_for_running_pods kurl; then
-            bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
+            kubectl get pods -n kurl
+            bail "Kurl has unhealthy Pod(s) $UNHEALTHY_PODS. Restarting the pod may fix the issue."
         fi
     fi
 }
