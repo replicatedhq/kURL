@@ -212,7 +212,7 @@
     # write to the volume
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
 
-    # deploy sample app 
+    # deploy sample app
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     # source helper functions
@@ -233,5 +233,362 @@
     # ensure kubernetes was upgraded
     if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
       echo "Kubernetes was not upgraded to 1.27.x"
+      exit 1
+    fi
+
+- name: "Cust sha1:TBD: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
+  flags: "yes"
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.3
+    docker:
+      daemonConfig: |
+        {
+          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
+          \"log-opts\": {
+              \"max-size\": \"100m\",
+              \"max-file\": \"3\"
+              }
+        }
+      version: 19.03.10
+    weave:
+      version: 2.6.5
+    rook:
+      version: 1.0.4
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 1.6.0
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.7.0
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.49.0-17.1.3
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.57.0
+    velero:
+      version: 1.6.0
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      rookShouldUseAllNodes: false
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.16.0
+    kurl:
+      installerVersion: v2023.03.28-0
+      additionalNoProxyAddresses: [ ]
+    goldpinger:
+      version: 3.2.0-4.1.1
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.14
+    docker:
+      daemonConfig: |
+        {
+          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
+          \"log-opts\": {
+            \"max-size\": \"100m\",
+            \"max-file\": \"3\"
+          }
+        }
+      version: 19.03.10
+    weave:
+      version: 2.6.5-20221025
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    minio:
+      version: 2022-10-20T00-55-09Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.0
+    registry:
+      version: 2.8.1
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.90.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.90.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.9.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.25.0
+    kurl:
+      installerVersion: v2023.03.28-0
+      additionalNoProxyAddresses: [ ]
+    goldpinger:
+      version: 3.7.0-5.5.0
+  unsupportedOSIDs:
+    - ubuntu-2204 # this version of docker is too old for 22.04
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # deploy sample app 
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+    
+    # ensure rook was removed
+    if kubectl get ns rook-ceph >/dev/null 2>&1; then
+      echo "rook-ceph namespace still exists"
+      exit 1
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.21" ]]; then
+      echo "Kubernetes was not upgraded to 1.21.x"
+      exit 1
+    fi
+
+
+- name: "Cust sha1:TBD: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
+  flags: "yes"
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.21.14
+    docker:
+      daemonConfig: |
+        {
+          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
+          \"log-opts\": {
+            \"max-size\": \"100m\",
+            \"max-file\": \"3\"
+          }
+        }
+      version: 19.03.10
+    weave:
+      version: 2.6.5-20221025
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    minio:
+      version: 2022-10-20T00-55-09Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.0
+    registry:
+      version: 2.8.1
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.90.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.90.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.9.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.25.0
+    kurl:
+      installerVersion: v2023.03.28-0
+      additionalNoProxyAddresses: [ ]
+    goldpinger:
+      version: 3.7.0-5.5.0
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.6
+    flannel:
+      version: 0.22.0
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.8.0
+    minio:
+      version: 2023-09-04T19-57-37Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.25.0
+    registry:
+      version: 2.8.2
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.102.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.102.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.11.0
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.28.3
+    kurl:
+      installerVersion: v2023.09.07-0
+      additionalNoProxyAddresses: [ ]
+    containerd:
+      version: 1.6.21
+    goldpinger:
+      version: 3.7.0-6.0.1
+  unsupportedOSIDs:
+    - ubuntu-2204 # this version of docker is too old for 22.04
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # deploy sample app 
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.26" ]]; then
+      echo "Kubernetes was not upgraded to 1.26.x"
+      exit 1
+    fi
+
+- name: "Cust sha1:TBD: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
+  flags: "yes"
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.3
+    docker:
+      daemonConfig: |
+        {
+          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
+          \"log-opts\": {
+              \"max-size\": \"100m\",
+              \"max-file\": \"3\"
+              }
+        }
+      version: 19.03.10
+    weave:
+      version: 2.6.5
+    rook:
+      version: 1.0.4
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 1.6.0
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.7.0
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.49.0-17.1.3
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.57.0
+    velero:
+      version: 1.6.0
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      rookShouldUseAllNodes: false
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.16.0
+    kurl:
+      installerVersion: v2023.03.28-0
+      additionalNoProxyAddresses: [ ]
+    goldpinger:
+      version: 3.2.0-4.1.1
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.6
+    flannel:
+      version: 0.22.0
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.8.0
+    minio:
+      version: 2023-09-04T19-57-37Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.25.0
+    registry:
+      version: 2.8.2
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.102.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.102.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.11.0
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.28.3
+    kurl:
+      installerVersion: v2023.09.07-0
+      additionalNoProxyAddresses: [ ]
+    containerd:
+      version: 1.6.21
+    goldpinger:
+      version: 3.7.0-6.0.1
+  unsupportedOSIDs:
+    - ubuntu-2204 # this version of docker is too old for 22.04
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # deploy sample app 
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure rook was removed
+    if kubectl get ns rook-ceph >/dev/null 2>&1; then
+      echo "rook-ceph namespace still exists"
+      exit 1
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.26" ]]; then
+      echo "Kubernetes was not upgraded to 1.26.x"
       exit 1
     fi
