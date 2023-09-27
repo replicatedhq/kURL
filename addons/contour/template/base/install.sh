@@ -38,4 +38,7 @@ function contour() {
     kubectl create --save-config namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
 
     kubectl apply -k "$dst/"
+
+    printf "awaiting contour deployment\n"
+    spinner_until 300 deployment_fully_updated projectcontour contour
 }
