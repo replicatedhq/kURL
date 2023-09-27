@@ -1169,7 +1169,7 @@ function check_for_running_pods() {
             continue
         fi
 
-        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
+        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ] && [ "$status" != "Completed" ]; then
             unhealthy_podnames="$unhealthy_podnames $pod"
             continue
         fi
