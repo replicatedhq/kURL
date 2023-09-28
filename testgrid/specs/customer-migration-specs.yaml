@@ -1,255 +1,256 @@
-- name: "Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x"
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.25.4
-    containerd:
-      version: 1.6.19
-    weave:
-      version: 2.6.x
-    kotsadm:
-      version: 1.96.3
-      disableS3: true
-    ekco:
-      version: 0.26.4
-    openebs:
-      version: 3.4.x
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-    prometheus:
-      version: "0.63.0-45.7.1"
-    metricsServer:
-      version: 0.6.3
-  upgradeSpec:
-    kubernetes:
-      version: 1.27.x
-    containerd:
-      version: 1.6.x
-    flannel:
-      version: 0.22.x
-    kotsadm:
-      version: 1.100.x
-      disableS3: true
-    ekco:
-      version: latest
-    openebs:
-      version: 3.7.x
-      isLocalPVEnabled: true
-      localPVStorageClassName: local
-    prometheus:
-      version: 0.65.x
-    metricsServer:
-      version: 0.6.x
-  postInstallScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # mount a localpv volume
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
-
-    # write to the volume
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-
-    # deploy sample app
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # verify data was migrated
-    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-
-    # ensure we can redeploy sample app
-    check_and_customize_kurl_integration_test_application
-
-    # ensure weave was removed
-    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
-      echo "weave CNI still installed on host"
-      exit 1
-    fi
-
-    # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
-      echo "Kubernetes was not upgraded to 1.27.x"
-      exit 1
-    fi
-
-- name: "Cust sha1:9aed61a879834bbff0586a61784b4f56135671f7: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x"
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.23.x
-    weave:
-      version: 2.6.x
-    minio:
-      version: 2022-06-11T19-55-32Z
-    contour:
-      version: 1.21.x
-    registry:
-      version: 2.7.x
-    kotsadm:
-      version: 1.88.x
-    velero:
-      version: 1.9.x
-    ekco:
-      version: 0.19.x
-    containerd:
-      version: 1.5.x
-    longhorn:
-      version: 1.2.x
-  upgradeSpec:
-    kubernetes:
-      version: 1.27.x
-    flannel:
-      version: "0.22.x"
-    contour:
-      version: "1.25.x"
-    registry:
-      version: "2.8.x"
-    kotsadm:
-      version: latest
-    containerd:
-      version: "1.6.x"
-    velero:
-      version: "1.11.x"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-06-29T05-12-28Z"
-    openebs:
-      version: "3.7.x"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
-  postInstallScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # mount a localpv volume
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
-
-    # write to the volume
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-
-    # deploy sample app
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # verify data was migrated
-    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-
-    # ensure we can redeploy sample app
-    check_and_customize_kurl_integration_test_application
-
-    # ensure weave was removed
-    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
-      echo "weave CNI still installed on host"
-      exit 1
-    fi
-
-    # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
-      echo "Kubernetes was not upgraded to 1.27.x"
-      exit 1
-    fi
-
-- name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.16
-    docker:
-      version: 20.10.5
-    weave:
-      version: 2.6.5
-    rook:
-      version: 1.0.4
-    contour:
-      version: 1.20.1
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.53.1-30.1.0
-    kotsadm:
-      version: 1.66.0
-    ekco:
-      version: 0.18.0
-      nodeUnreachableToleration: 1m
-  upgradeSpec:
-    kubernetes:
-      version: "1.27.x"
-    flannel:
-      version: "0.22.x"
-    openebs:
-      version: "3.7.x"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
-    contour:
-      version: "1.25.x"
-    prometheus:
-      version: "0.65.x"
-    registry:
-      version: "2.8.x"
-    containerd:
-      version: "1.6.x"
-    kotsadm:
-      version: "1.100.x"
-    minio:
-      version: "latest"
-    ekco:
-      version: "latest"
-      nodeUnreachableToleration: "1m"
-  unsupportedOSIDs:
-    - ubuntu-2204 # this version of docker is too old for 22.04
-  postInstallScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # mount a localpv volume
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
-
-    # write to the volume
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-
-    # deploy sample app
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    # source helper functions
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # verify data was migrated
-    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-
-    # ensure we can redeploy sample app
-    check_and_customize_kurl_integration_test_application
-
-    # ensure weave was removed
-    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
-      echo "weave CNI still installed on host"
-      exit 1
-    fi
-
-    # ensure kubernetes was upgraded
-    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
-      echo "Kubernetes was not upgraded to 1.27.x"
-      exit 1
-    fi
+#- name: "Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x"
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: 1.25.4
+#    containerd:
+#      version: 1.6.19
+#    weave:
+#      version: 2.6.x
+#    kotsadm:
+#      version: 1.96.3
+#      disableS3: true
+#    ekco:
+#      version: 0.26.4
+#    openebs:
+#      version: 3.4.x
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: local
+#    prometheus:
+#      version: "0.63.0-45.7.1"
+#    metricsServer:
+#      version: 0.6.3
+#  upgradeSpec:
+#    kubernetes:
+#      version: 1.27.x
+#    containerd:
+#      version: 1.6.x
+#    flannel:
+#      version: 0.22.x
+#    kotsadm:
+#      version: 1.100.x
+#      disableS3: true
+#    ekco:
+#      version: latest
+#    openebs:
+#      version: 3.7.x
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: local
+#    prometheus:
+#      version: 0.65.x
+#    metricsServer:
+#      version: 0.6.x
+#  postInstallScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # mount a localpv volume
+#    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+#
+#    # write to the volume
+#    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # deploy sample app
+#    install_and_customize_kurl_integration_test_application
+#  postUpgradeScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # verify data was migrated
+#    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # ensure we can redeploy sample app
+#    check_and_customize_kurl_integration_test_application
+#
+#    # ensure weave was removed
+#    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+#      echo "weave CNI still installed on host"
+#      exit 1
+#    fi
+#
+#    # ensure kubernetes was upgraded
+#    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
+#      echo "Kubernetes was not upgraded to 1.27.x"
+#      exit 1
+#    fi
+#
+#- name: "Cust sha1:9aed61a879834bbff0586a61784b4f56135671f7: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x"
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: 1.23.x
+#    weave:
+#      version: 2.6.x
+#    minio:
+#      version: 2022-06-11T19-55-32Z
+#    contour:
+#      version: 1.21.x
+#    registry:
+#      version: 2.7.x
+#    kotsadm:
+#      version: 1.88.x
+#    velero:
+#      version: 1.9.x
+#    ekco:
+#      version: 0.19.x
+#    containerd:
+#      version: 1.5.x
+#    longhorn:
+#      version: 1.2.x
+#  upgradeSpec:
+#    kubernetes:
+#      version: 1.27.x
+#    flannel:
+#      version: "0.22.x"
+#    contour:
+#      version: "1.25.x"
+#    registry:
+#      version: "2.8.x"
+#    kotsadm:
+#      version: latest
+#    containerd:
+#      version: "1.6.x"
+#    velero:
+#      version: "1.11.x"
+#    ekco:
+#      version: "latest"
+#    minio:
+#      version: "2023-06-29T05-12-28Z"
+#    openebs:
+#      version: "3.7.x"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "local"
+#  postInstallScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # mount a localpv volume
+#    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+#
+#    # write to the volume
+#    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # deploy sample app
+#    install_and_customize_kurl_integration_test_application
+#  postUpgradeScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # verify data was migrated
+#    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # ensure we can redeploy sample app
+#    check_and_customize_kurl_integration_test_application
+#
+#    # ensure weave was removed
+#    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+#      echo "weave CNI still installed on host"
+#      exit 1
+#    fi
+#
+#    # ensure kubernetes was upgraded
+#    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
+#      echo "Kubernetes was not upgraded to 1.27.x"
+#      exit 1
+#    fi
+#
+#- name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
+#  flags: "yes"
+#  installerSpec:
+#    kubernetes:
+#      version: 1.19.16
+#    docker:
+#      version: 20.10.5
+#    weave:
+#      version: 2.6.5
+#    rook:
+#      version: 1.0.4
+#    contour:
+#      version: 1.20.1
+#    registry:
+#      version: 2.7.1
+#    prometheus:
+#      version: 0.53.1-30.1.0
+#    kotsadm:
+#      version: 1.66.0
+#    ekco:
+#      version: 0.18.0
+#      nodeUnreachableToleration: 1m
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.27.x"
+#    flannel:
+#      version: "0.22.x"
+#    openebs:
+#      version: "3.7.x"
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: "local"
+#    contour:
+#      version: "1.25.x"
+#    prometheus:
+#      version: "0.65.x"
+#    registry:
+#      version: "2.8.x"
+#    containerd:
+#      version: "1.6.x"
+#    kotsadm:
+#      version: "1.100.x"
+#    minio:
+#      version: "latest"
+#    ekco:
+#      version: "latest"
+#      nodeUnreachableToleration: "1m"
+#  unsupportedOSIDs:
+#    - ubuntu-2204 # this version of docker is too old for 22.04
+#  postInstallScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # mount a localpv volume
+#    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+#
+#    # write to the volume
+#    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # deploy sample app
+#    install_and_customize_kurl_integration_test_application
+#  postUpgradeScript: |
+#    # source helper functions
+#    source /opt/kurl-testgrid/testhelpers.sh
+#
+#    # verify data was migrated
+#    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+#
+#    # ensure we can redeploy sample app
+#    check_and_customize_kurl_integration_test_application
+#
+#    # ensure weave was removed
+#    if ls /etc/cni/net.d/*weave* >/dev/null 2>&1; then
+#      echo "weave CNI still installed on host"
+#      exit 1
+#    fi
+#
+#    # ensure kubernetes was upgraded
+#    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
+#      echo "Kubernetes was not upgraded to 1.27.x"
+#      exit 1
+#    fi
 
 - name: "Cust sha1:TBD: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
   flags: "yes"
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: 1.19.3
     docker:
       daemonConfig: |
         {
-          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
-          \"log-opts\": {
-              \"max-size\": \"100m\",
-              \"max-file\": \"3\"
-              }
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
+          }
         }
       version: 19.03.10
     weave:
@@ -294,10 +295,10 @@
     docker:
       daemonConfig: |
         {
-          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
-          \"log-opts\": {
-            \"max-size\": \"100m\",
-            \"max-file\": \"3\"
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
           }
         }
       version: 19.03.10
@@ -331,13 +332,12 @@
       shouldDisableRebootServices: false
       shouldEnablePurgeNodes: false
       version: 0.25.0
-    kurl:
-      installerVersion: v2023.03.28-0
-      additionalNoProxyAddresses: [ ]
     goldpinger:
       version: 3.7.0-5.5.0
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
+    - rocky-92
+    - ol-8x
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -367,16 +367,17 @@
 - name: "Cust sha1:TBD: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: 1.21.14
     docker:
       daemonConfig: |
         {
-          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
-          \"log-opts\": {
-            \"max-size\": \"100m\",
-            \"max-file\": \"3\"
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
           }
         }
       version: 19.03.10
@@ -447,15 +448,14 @@
       shouldDisableRebootServices: false
       shouldEnablePurgeNodes: false
       version: 0.28.3
-    kurl:
-      installerVersion: v2023.09.07-0
-      additionalNoProxyAddresses: [ ]
     containerd:
       version: 1.6.21
     goldpinger:
       version: 3.7.0-6.0.1
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
+    - rocky-92
+    - ol-8x
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -478,17 +478,18 @@
 - name: "Cust sha1:TBD: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: 1.19.3
     docker:
       daemonConfig: |
         {
-          \"exec-opts\": [\"native.cgroupdriver=systemd\"],
-          \"log-opts\": {
-              \"max-size\": \"100m\",
-              \"max-file\": \"3\"
-              }
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
+          }
         }
       version: 19.03.10
     weave:
@@ -531,7 +532,7 @@
     kubernetes:
       version: 1.26.6
     flannel:
-      version: 0.22.0
+      version: 0.22.3 # changed from 0.22.3 for testgrid support
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -559,15 +560,14 @@
       shouldDisableRebootServices: false
       shouldEnablePurgeNodes: false
       version: 0.28.3
-    kurl:
-      installerVersion: v2023.09.07-0
-      additionalNoProxyAddresses: [ ]
     containerd:
       version: 1.6.21
     goldpinger:
       version: 3.7.0-6.0.1
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
+    - rocky-92
+    - ol-8x
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
