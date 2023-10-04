@@ -2,9 +2,9 @@ export KUBECTL_PLUGINS_PATH=/usr/local/bin
 
 function install_plugins() {
     pushd "$DIR/krew"
-    tar xzf outdated.tar.gz && chown root:root outdated && mv outdated /usr/local/bin/kubectl-outdated
-    tar xzf preflight.tar.gz && chown root:root preflight && mv preflight /usr/local/bin/kubectl-preflight
-    tar xzf support-bundle.tar.gz && chown root:root support-bundle && mv support-bundle /usr/local/bin/kubectl-support_bundle
+    tar xzf outdated.tar.gz --no-same-owner && chown root:root outdated && mv outdated /usr/local/bin/kubectl-outdated
+    tar xzf preflight.tar.gz --no-same-owner && chown root:root preflight && mv preflight /usr/local/bin/kubectl-preflight
+    tar xzf support-bundle.tar.gz --no-same-owner && chown root:root support-bundle && mv support-bundle /usr/local/bin/kubectl-support_bundle
     popd
 
     # uninstall system-wide krew from old versions of kurl
