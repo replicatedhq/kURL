@@ -138,7 +138,7 @@ function addon_fetch_no_cache() {
 
     echo "Fetching $archiveName"
     curl -LO "$url"
-    tar xf $archiveName
+    tar xf $archiveName --no-same-owner
     rm $archiveName
 }
 
@@ -148,7 +148,7 @@ function addon_fetch_cache() {
 
     package_download "${package}" "${url_override}"
 
-    tar xf "$(package_filepath "${package}")"
+    tar xf "$(package_filepath "${package}")"  --no-same-owner
 
     # rm $archiveName
 }
@@ -182,7 +182,7 @@ function addon_fetch_airgap() {
     fi
 
     printf "Unpacking %s %s...\n" "$name" "$version"
-    tar xf "$package_path"
+    tar xf "$package_path" --no-same-owner
 
     # do not source the addon here as the kubernetes "addon" uses this function but is not an addon
 }
@@ -207,7 +207,7 @@ function addon_fetch_multiple_airgap() {
             printf "The package %s %s is already available locally.\n" "$name" "$version"
 
             printf "Unpacking %s...\n" "$package_name"
-            if ! tar xf "$package_path" ; then
+            if ! tar xf "$package_path" --no-same-owner ; then
                 bail "Failed to unpack $package_name"
             fi
         else
@@ -247,7 +247,7 @@ function addon_fetch_multiple_airgap() {
         fi
 
         printf "Unpacking %s...\n" "$package_name"
-        if ! tar xf "$package_path" ; then
+        if ! tar xf "$package_path" --no-same-owner ; then
             bail "Failed to unpack $package_name"
         fi
 

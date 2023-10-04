@@ -756,7 +756,7 @@ function install_host_dependencies_longhorn() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-longhorn.tar.gz"
         package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
+        tar xf "$(package_filepath "${package}")" --no-same-owner
     fi
 
     if [ "$pushed" == "1" ]; then
