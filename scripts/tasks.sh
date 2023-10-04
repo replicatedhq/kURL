@@ -273,6 +273,7 @@ function reset() {
     rm -rf /etc/haproxy
     rm -rf "$KURL_INSTALL_DIRECTORY"
     rm -rf "$KURL_INSTALL_DIRECTORY.repos"
+    rm -rf /var/lib/cni/flannel
 
     printf "Killing haproxy\n"
     pkill haproxy || true
