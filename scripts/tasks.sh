@@ -274,8 +274,19 @@ function reset() {
     rm -rf "$KURL_INSTALL_DIRECTORY"
     rm -rf "$KURL_INSTALL_DIRECTORY.repos"
 
+    printf "Removing flannel networks\n"
+    # if /var/lib/cni/flannel exists, remove it entirely
+    if [ -d /var/lib/cni/flannel ]; then
+        ip link set cni0 down && ip link set flannel.1 down
+        ip link delete cni0 && ip link delete flannel.1
+        rm -rf /var/lib/cni
+    fi
+
     printf "Killing haproxy\n"
     pkill haproxy || true
+
+    systemctl stop containerd || true
+    systemctl stop docker || true
 
     printf "Reset script completed\n"
 }
