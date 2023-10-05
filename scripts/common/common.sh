@@ -1548,8 +1548,16 @@ function common_prompt_task_missing_assets() {
     printf "The node(s) %s appear to be missing assets required for the %s upgrade from %s to %s.\n" \
         "$(echo "$nodes" | tr '\n' ' ' | xargs)" "$upgrade_name" "$from_version" "$to_version"
     printf "Please run the following on each of these nodes before continuing:\n"
-    printf "\n\t%b%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s %b\n\n" \
-        "$GREEN" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag" "$NC"
+
+    local command=
+    command=$(printf "%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag")
+
+    for node in $nodes; do
+        echo "$command" > "$DIR/remotes/$node"
+    done
+
+    printf "\n\t%b%s %b\n\n" \
+        "$GREEN" "$command" "$NC"
     printf "Are you ready to continue? "
     confirmY
 }
