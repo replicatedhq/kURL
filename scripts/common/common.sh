@@ -587,7 +587,7 @@ function get_common() {
         else
             curl -sSOL "$(get_dist_url)/common.tar.gz" || curl -sSOL "$(get_dist_url_fallback)/common.tar.gz"
         fi
-        tar xf common.tar.gz
+        tar xf common.tar.gz --no-same-owner
         rm common.tar.gz
     fi
 }
@@ -735,7 +735,7 @@ function install_host_dependencies_openssl() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-openssl.tar.gz"
         package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
+        tar xf "$(package_filepath "${package}")" --no-same-owner
     fi
     install_host_archives "${DIR}/packages/host/openssl" openssl
 }
