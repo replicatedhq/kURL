@@ -236,7 +236,7 @@
       exit 1
     fi
 
-- name: "Cust sha1:TBD: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
+- name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
   flags: "yes"
   numSecondaryNodes: 2
   installerApiEndpoint: https://kurl.sh
@@ -364,7 +364,7 @@
     fi
 
 
-- name: "Cust sha1:TBD: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
+- name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numSecondaryNodes: 2
   installerApiEndpoint: https://kurl.sh
@@ -475,7 +475,7 @@
       exit 1
     fi
 
-- name: "Cust sha1:TBD: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
+- name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numSecondaryNodes: 2
   installerApiEndpoint: https://kurl.sh
@@ -595,7 +595,7 @@
 
 
 
-- name: "Cust sha1:TBD2: k8s 1.17->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd, singlenode"
+- name: "Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd, singlenode"
   flags: "yes"
   numSecondaryNodes: 0
   installerSpec:
@@ -721,7 +721,7 @@
     fi
 
 
-- name: "Cust sha1:TBD2: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd"
+- name: "Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
   installerSpec:
