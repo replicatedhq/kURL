@@ -1,219 +1,111 @@
-- name: "flannel latest single node"
+- name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
+  flags: "yes"
+  numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "flannel latest single node upgrade"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "0.20.x"
+      version: 1.21.14
+    docker:
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
+          }
+        }
+      version: 19.03.10
+    weave:
+      version: 2.6.5-20221025
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    minio:
+      version: 2022-10-20T00-55-09Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.0
+    registry:
+      version: 2.8.1
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.90.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.90.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.9.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.25.0
+    kurl:
+      installerVersion: v2023.03.28-0
+      additionalNoProxyAddresses: [ ]
+    goldpinger:
+      version: 3.7.0-5.5.0
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
+      version: 1.26.6
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: "flannel latest multi node"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.8.0
+    minio:
+      version: 2023-09-04T19-57-37Z
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.25.0
+    registry:
+      version: 2.8.2
+    kotsadm:
+      applicationSlug: a-test-app
+      version: 1.102.0
+      s3Override: https://s3.kurl.sh/external/kotsadm-1.102.0.tar.gz
+    velero:
+      resticTimeout: 24h0m0s
+      version: 1.11.0
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.28.3
     containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
-- name: "flannel airgap latest multi node"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
-  airgap: true
-  preInstallScript: |
+      version: 1.6.21
+    goldpinger:
+      version: 3.7.0-6.0.1
+  unsupportedOSIDs:
+    - ubuntu-2204 # this version of docker is too old for 22.04
+    - rocky-92
+    - ol-8x
+  postInstallScript: |
+    # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: "weave to flannel single node"
-  installerSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "weave to flannel + docker to containerd multi node"
-  numSecondaryNodes: 2
-  installerSpec:
-    kubernetes:
-      version: "1.22.x"
-    docker:
-      version: "latest"
-    weave:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.22.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "weave to flannel single node with addons and openebs"
-  flags: "yes"
-  cpu: 6
-  installerSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
-  upgradeSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    openebs:
-      version: "latest"
-      isLocalPVEnabled: true
-      localPVStorageClassName: "local"
-- name: "weave to flannel single node with addons and rook"
-  flags: "yes"
-  cpu: 8
-  installerSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    rook:
-      version: "1.12.x"
-  upgradeSpec:
-    kubernetes:
-      version: "1.27.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    contour:
-      version: "latest"
-    prometheus:
-      version: "latest"
-    registry:
-      version: "latest"
-    ekco:
-      version: "latest"
-    minio:
-      version: "2023-05-18T00-05-36Z"
-    rook:
-      version: "1.12.x"
-  unsupportedOSIDs:
-    - centos-74 # Rook Pre-init: centos-7.4 Kernel 3.10.0-693.el7.x86_64 is not supported
-- name: "weave to flannel single node, custom IP ranges"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-      serviceCIDR: 172.16.0.0/16
-    containerd:
-      version: "latest"
-    weave:
-      version: "latest"
-      podCIDR: 172.17.0.0/16
-  upgradeSpec:
-    kubernetes:
-      version: "1.25.x"
-      serviceCIDR: 172.16.0.0/16
-    containerd:
-      version: "latest"
-    flannel:
-      podCIDR: 172.17.0.0/16
-      version: "__testver__"
-      s3Override: "__testdist__"
-- name: "weave to flannel, docker to containerd, single node"
-  installerSpec:
-    kubernetes:
-      version: "1.23.x"
-    docker:
-      version: "latest"
-    weave:
-      version: "latest"
-    ekco:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.23.x"
-    containerd:
-      version: "latest"
-    ekco:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - rocky-92 # docker is not supported on rhel 9 variants
-  - centos-81 # docker 20.10.17 is not supported on centos 8.1.
-  - centos-84 # docker 20.10.17 is not supported on centos 8.4.
-  - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+
+    # deploy sample app
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    # ensure we can redeploy sample app
+    check_and_customize_kurl_integration_test_application
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.26" ]]; then
+      echo "Kubernetes was not upgraded to 1.26.x"
+      exit 1
+    fi

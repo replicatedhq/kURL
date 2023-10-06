@@ -420,7 +420,7 @@
     kubernetes:
       version: 1.26.6
     flannel:
-      version: 0.22.0
+      version: 0.22.3 # changed from 0.22.0 for testgrid support
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -628,7 +628,7 @@
       version: 1.26.6
     flannel:
       podCIDRRange: /22
-      version: 0.22.2
+      version: 0.22.3 # changed from 0.22.2 for testgrid support
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: default
@@ -755,7 +755,7 @@
       version: 1.26.6
     flannel:
       podCIDRRange: /22
-      version: 0.22.2
+      version: 0.22.3 # changed from 0.22.2 for testgrid support
     rook:
 #      blockDeviceFilter: vd[b-z] # removed
       isBlockStorageEnabled: true

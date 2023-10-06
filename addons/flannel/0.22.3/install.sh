@@ -468,7 +468,7 @@ function weave_to_flannel() {
     fi
 
     log "Waiting for kube-flannel-ds to become healthy in kube-flannel"
-    if ! spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"; then
+    if ! spinner_until 240 flannel_true_daemonset_fully_updated "kube-flannel" "kube-flannel-ds"; then
        logWarn "Unable to fully update Kube Flannel daemonset"
     fi
 
@@ -631,4 +631,55 @@ function flannel_already_applied() {
 
     flannel_ready_spinner
     check_network
+}
+
+# this waits for a daemonset to have all replicas up-to-date and available
+function flannel_true_daemonset_fully_updated() {
+    local namespace=$1
+    local daemonset=$2
+
+    local totalNodes
+    totalNodes=$(kubectl get nodes --no-headers | wc -l)
+
+    local desiredNumberScheduled
+    desiredNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.desiredNumberScheduled}')
+
+    local currentNumberScheduled
+    currentNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.currentNumberScheduled}')
+
+    local numberAvailable
+    numberAvailable=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberAvailable}')
+
+    local numberReady
+    numberReady=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberReady}')
+
+    local updatedNumberScheduled
+    updatedNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.updatedNumberScheduled}')
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$currentNumberScheduled" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberReady" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$updatedNumberScheduled" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$totalNodes" ] ; then
+        echo "---------------------------------------- desiredNumberScheduled: $desiredNumberScheduled but totalNodes: $totalNodes --------------------------------------------"
+        return 1
+    fi
+
+    return 0
 }
