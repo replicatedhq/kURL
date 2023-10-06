@@ -1,6 +1,6 @@
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
-  numSecondaryNodes: 2
+  numPrimaryNodes: 3
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
