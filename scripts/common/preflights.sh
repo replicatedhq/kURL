@@ -43,7 +43,7 @@ function bail_if_kurl_pods_are_unhealthy() {
 
             # for each pod in UNHEALTHY_PODS, print it and its current status
             for pod in $UNHEALTHY_PODS; do
-                kubectl get pod -n kurl "$pod" -o jsonpath='pod {.metadata.name} has phase {.status.phase}'
+                kubectl get pod -n kurl "$pod" -o jsonpath='pod {.metadata.name} owned by a {.metadata.ownerReferences[*].kind} has phase {.status.phase} with containers {range .status.containerStatuses[*]}{.name} ready={.ready} restarts={.restartCount};{end}'
             done
 
             bail "Kurl has unhealthy Pod(s) $UNHEALTHY_PODS. Restarting the pod may fix the issue."
