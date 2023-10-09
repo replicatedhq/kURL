@@ -411,6 +411,7 @@ function weave_to_flannel() {
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
         if [ "$ASSUME_YES" = "1" ]; then
+            echo ""
             echo "The 'yes' flag has been passed, so we will wait for 5 minutes here for this to run on remote nodes"
             sleep 300
         else
