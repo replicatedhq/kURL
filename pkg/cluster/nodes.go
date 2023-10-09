@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/google/uuid"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"golang.org/x/sync/errgroup"
