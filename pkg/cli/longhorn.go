@@ -184,9 +184,6 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 			}
 			logger.Print("All Longhorn volumes and nodes are healthy.")
 
-			if err := scaleDownPodsUsingLonghorn(cmd.Context(), logger, cli); err != nil {
-				return fmt.Errorf("error scaling down pods using longhorn volumes: %w", err)
-			}
 			logger.Print("Environment is ready for the Longhorn migration.")
 			return nil
 		},
@@ -248,20 +245,6 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli clien
 	return nil
 }
 
-// scaleDownPodsUsingLonghorn scales down all pods using Longhorn volumes.
-func scaleDownPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli client.Client) error {
-	logger.Print("Scaling down kURL components using Longhorn volumes.")
-	if err := scaleEkco(ctx, logger, cli, 0); err != nil {
-		return fmt.Errorf("error scaling down ekco operator: %w", err)
-	}
-	if err := scaleDownPrometheus(ctx, logger, cli); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
-	}
-
-	logger.Print("kURL components using Longhorn volumes have been scaled down.")
-	return nil
-}
-
 func isPrometheusInstalled(ctx context.Context, cli client.Client) (bool, error) {
 	nsn := types.NamespacedName{Name: prometheusNamespace}
 	if err := cli.Get(ctx, nsn, &corev1.Namespace{}); err != nil {
@@ -271,67 +254,6 @@ func isPrometheusInstalled(ctx context.Context, cli client.Client) (bool, error)
 		return false, fmt.Errorf("error getting prometheus namespace: %w", err)
 	}
 	return true, nil
-}
-
-// scaleDownPrometheus scales down prometheus.
-func scaleDownPrometheus(ctx context.Context, logger *log.Logger, cli client.Client) error {
-	if installed, err := isPrometheusInstalled(ctx, cli); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
-	} else if !installed {
-		return nil
-	}
-
-	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
-	var prometheus promv1.Prometheus
-	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return fmt.Errorf("error getting prometheus: %w", err)
-	}
-
-	patch := map[string]interface{}{
-		"spec": map[string]interface{}{
-			"replicas": 0,
-		},
-	}
-	if _, ok := prometheus.Annotations[pvmigrateScaleDownAnnotation]; !ok {
-		promReplicas := int32(0)
-		if prometheus.Spec.Replicas != nil {
-			promReplicas = *prometheus.Spec.Replicas
-		}
-		patch["metadata"] = map[string]interface{}{
-			"annotations": map[string]string{
-				pvmigrateScaleDownAnnotation: fmt.Sprintf("%d", promReplicas),
-			},
-		}
-	}
-
-	rawPatch, err := json.Marshal(patch)
-	if err != nil {
-		return fmt.Errorf("error creating prometheus patch: %w", err)
-	}
-	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
-		return fmt.Errorf("error scaling prometheus: %w", err)
-	}
-
-	var st appsv1.StatefulSet
-	if err := wait.PollUntilContextTimeout(ctx, 3*time.Second, 5*time.Minute, true, func(ctx2 context.Context) (bool, error) {
-		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusStatefulSetName}
-		if err := cli.Get(ctx2, nsn, &st); err != nil {
-			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
-		}
-		return st.Status.Replicas == 0 && st.Status.UpdatedReplicas == 0, nil
-	}); err != nil {
-		return fmt.Errorf("error waiting for prometheus statefulset to scale: %w", err)
-	}
-
-	logger.Print("Waiting for prometheus StatefulSet to scale down.")
-	selector := labels.SelectorFromSet(st.Spec.Selector.MatchLabels)
-	if err := waitForPodsToBeScaledDown(ctx, logger, cli, ekcoNamespace, selector); err != nil {
-		return fmt.Errorf("error waiting for prometheus to scale down: %w", err)
-	}
-	return nil
 }
 
 // scaleUpPrometheus scales up prometheus.
