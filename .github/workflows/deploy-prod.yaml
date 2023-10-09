@@ -238,6 +238,7 @@ jobs:
           --project=kurl \
           --release-branch=main \
           --since-tag="$lastTag" \
+          --max-issues=200 \
           --no-issues \
           --no-author
         sed -i '/This Changelog was automatically generated/d' ./CHANGELOG.md
