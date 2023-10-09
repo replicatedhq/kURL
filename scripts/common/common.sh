@@ -1178,17 +1178,16 @@ function check_for_running_pods() {
     for pod in $ns_pods; do
         status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
 
-        # determine if pod is manged by a Job
-        if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
-            is_job_controller=1
-        fi
-
         # ignore pods that have been Evicted
         if [ "$status" == "Failed" ] && [[ $(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.reason}') == "Evicted" ]]; then
             continue
         fi
 
-        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ] && [ "$status" != "Completed" ]; then
+        if [ "$status" == "Succeeded" ]; then
+            continue
+        fi
+
+        if [ "$status" != "Running" ]; then
             unhealthy_podnames="$unhealthy_podnames $pod"
             continue
         fi
@@ -1197,8 +1196,7 @@ function check_for_running_pods() {
         for container in $containers; do
             container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
             
-            # ignore container ready status for pods managed by the Job controller
-            if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
+            if [ "$container_status" != "true" ]; then
                 unhealthy_podnames="$unhealthy_podnames $pod"
                 continue
             fi
