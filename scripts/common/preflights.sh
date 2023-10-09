@@ -40,6 +40,12 @@ function bail_if_kurl_pods_are_unhealthy() {
         log "Awaiting 2 minutes to check kURL Pod(s) are Running"
         if ! spinner_until 120 check_for_running_pods kurl; then
             kubectl get pods -n kurl
+
+            # for each pod in UNHEALTHY_PODS, print it and its current status
+            for pod in $UNHEALTHY_PODS; do
+                kubectl get pod -n kurl "$pod" -o jsonpath='pod {.metadata.name} has phase {.status.phase}'
+            done
+
             bail "Kurl has unhealthy Pod(s) $UNHEALTHY_PODS. Restarting the pod may fix the issue."
         fi
     fi
