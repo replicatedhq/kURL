@@ -9,7 +9,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/chzyer/readline v1.5.1
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/docker/distribution v2.8.2+incompatible
+	github.com/docker/distribution v2.8.3+incompatible
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.9
@@ -98,6 +98,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/distribution/v3 v3.0.0-20221208165359-362910506bc2 // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/cli v24.0.6+incompatible // indirect
 	github.com/docker/docker v24.0.6+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.0 // indirect
