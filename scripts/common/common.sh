@@ -720,6 +720,7 @@ function path_add() {
 
 function install_host_dependencies() {
     install_host_dependencies_openssl
+    install_host_dependencies_fio
 }
 
 function install_host_dependencies_openssl() {
@@ -738,6 +739,24 @@ function install_host_dependencies_openssl() {
         tar xf "$(package_filepath "${package}")" --no-same-owner
     fi
     install_host_archives "${DIR}/packages/host/openssl" openssl
+}
+
+function install_host_dependencies_fio() {
+    if commandExists "fio"; then
+        return
+    fi
+
+    if is_rhel_9_variant ; then
+        yum_ensure_host_package fio
+        return
+    fi
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        local package="host-fio.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")" --no-same-owner
+    fi
+    install_host_archives "${DIR}/packages/host/fio" fio
 }
 
 function maybe_read_kurl_config_from_cluster() {
