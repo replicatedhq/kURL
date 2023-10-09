@@ -189,9 +189,6 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 			}
 			logger.Print("All Longhorn volumes and nodes are healthy.")
 
-			if err := scaleDownPodsUsingLonghorn(cmd.Context(), logger, cli); err != nil {
-				return fmt.Errorf("error scaling down pods using longhorn volumes: %w", err)
-			}
 			logger.Print("Environment is ready for the Longhorn migration.")
 			return nil
 		},
@@ -250,28 +247,6 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli clien
 	}
 
 	logger.Print("Pods using Longhorn volumes have been scaled up.")
-	return nil
-}
-
-// scaleDownPodsUsingLonghorn scales down all pods using Longhorn volumes.
-func scaleDownPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli client.Client) error {
-	logger.Print("Scaling down pods using Longhorn volumes.")
-	if err := scaleEkco(ctx, logger, cli, 0); err != nil {
-		return fmt.Errorf("error scaling down ekco operator: %w", err)
-	}
-	if err := scaleDownPrometheus(ctx, logger, cli); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
-	}
-	objects, err := getObjectsUsingLonghorn(ctx, cli)
-	if err != nil {
-		return fmt.Errorf("error getting objects using longhorn: %w", err)
-	}
-	for _, obj := range objects {
-		if err := scaleDownObject(ctx, logger, cli, obj); err != nil {
-			return err
-		}
-	}
-	logger.Print("Pods using Longhorn volumes have been scaled down.")
 	return nil
 }
 
