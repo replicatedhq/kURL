@@ -38,6 +38,14 @@ function prometheus_pods_gone() {
     return 0
 }
 
+function prometheus_operator_pods_gone() {
+    if kubectl -n monitoring get pods -l app=kube-prometheus-stack-operator 2>/dev/null | grep 'prometheus' &>/dev/null ; then
+        return 1
+    fi
+
+    return 0
+}
+
 function ekco_pods_gone() {
     pods_gone_by_selector kurl app=ekc-operator
 }
@@ -225,9 +233,11 @@ function rook_ceph_to_sc_migration() {
                 fi
             fi
 
-            kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
-            echo "Waiting for prometheus pods to be removed"
-            spinner_until 300 prometheus_pods_gone
+            # scale down prometheus operator pods, not the actual prometheus pods
+            # this way pvmigrate can place PVCs on the correct nodes if migrating to OpenEBS
+            kubectl scale deployment -n monitoring prometheus-operator --replicas=0
+            log "Waiting for prometheus operator pods to be removed"
+            spinner_until 300 prometheus_operator_pods_gone
         fi
     fi
 
@@ -280,7 +290,7 @@ function rook_ceph_to_sc_migration() {
     # reset prometheus scale
     if kubectl get namespace monitoring &>/dev/null; then
         if kubectl get prometheus -n monitoring k8s &>/dev/null; then
-            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
+            kubectl scale deployment -n monitoring prometheus-operator --replicas=1
         fi
     fi
 
