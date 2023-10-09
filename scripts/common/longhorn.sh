@@ -83,6 +83,7 @@ function longhorn_run_pvmigrate() {
 
     if ! $BIN_PVMIGRATE --source-sc "$longhornStorageClass" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" "$skipFreeSpaceCheckFlag" "$skipPreflightValidationFlag" "$setDefaultsFlag"; then
         longhorn_restore_migration_replicas
+        kubectl -n kurl scale deploy ekc-operator --replicas=1
         return 1
     fi
     return 0
