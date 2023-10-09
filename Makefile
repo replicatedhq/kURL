@@ -205,6 +205,12 @@ dist/host-openssl.tar.gz:
 	mkdir -p dist
 	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
 
+dist/host-fio.tar.gz:
+	mkdir -p build/packages/host/fio
+	bin/save-manifest-assets.sh "host-fio" packages/host/fio/Manifest $(CURDIR)/build/packages/host/fio
+	mkdir -p dist
+	tar cf - -C build packages/host/fio | gzip > dist/host-fio.tar.gz
+
 dist/host-longhorn.tar.gz:
 	mkdir -p build/packages/host/longhorn
 	bin/save-manifest-assets.sh "host-longhorn" packages/host/longhorn/Manifest $(CURDIR)/build/packages/host/longhorn
