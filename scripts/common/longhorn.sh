@@ -118,9 +118,11 @@ function longhorn_to_sc_migration() {
                 fi
             fi
 
-            kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
-            log "Waiting for prometheus pods to be removed"
-            spinner_until 300 prometheus_pods_gone
+            # scale down prometheus operator pods, not the actual prometheus pods
+            # this way pvmigrate can place PVCs on the correct nodes if migrating to OpenEBS
+            kubectl scale deployment -n monitoring prometheus-operator --replicas=0
+            log "Waiting for prometheus operator pods to be removed"
+            spinner_until 300 prometheus_operator_pods_gone
         fi
     fi
 
@@ -156,6 +158,18 @@ function longhorn_to_sc_migration() {
     done
 
     longhorn_restore_migration_replicas
+
+    # reset ekco scale
+    if [ "$ekcoScaledDown" = "1" ] ; then
+        kubectl -n kurl scale deploy ekc-operator --replicas=1
+    fi
+
+    # reset prometheus scale
+    if kubectl get namespace monitoring &>/dev/null; then
+        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
+            kubectl scale deployment -n monitoring prometheus-operator --replicas=1
+        fi
+    fi
 
     # print success message
     logSuccess "Migration from longhorn to $scProvisioner completed successfully!"

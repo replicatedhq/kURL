@@ -2,20 +2,15 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -27,11 +22,6 @@ import (
 var scaleDownReplicasWaitTime = 5 * time.Minute
 
 const (
-	prometheusNamespace          = "monitoring"
-	prometheusName               = "k8s"
-	prometheusStatefulSetName    = "prometheus-k8s"
-	ekcoNamespace                = "kurl"
-	ekcoDeploymentName           = "ekc-operator"
 	pvmigrateScaleDownAnnotation = "kurl.sh/pvcmigrate-scale"
 	longhornNamespace            = "longhorn-system"
 	overProvisioningSetting      = "storage-over-provisioning-percentage"
@@ -114,9 +104,6 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 			}
 			logger.Print("Longhorn volumes have been rolled back to their original replica count.")
 
-			if err := scaleUpPodsUsingLonghorn(context.Background(), logger, cli); err != nil {
-				return fmt.Errorf("error scaling up pods using longhorn: %w", err)
-			}
 			return nil
 		},
 	}
@@ -188,162 +175,6 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 			return nil
 		},
 	}
-}
-
-// scaleUpPodsUsingLonghorn scales up any deployment or statefulset that has been previously
-// scaled down by scaleDownPodsUsingLonghorn. uses the default annotation used by pvmigrate.
-func scaleUpPodsUsingLonghorn(ctx context.Context, logger *log.Logger, cli client.Client) error {
-	if err := scaleEkco(ctx, logger, cli, 1); err != nil {
-		return fmt.Errorf("error scaling ekco operator back up: %w", err)
-	}
-	if err := scaleUpPrometheus(ctx, cli); err != nil {
-		return fmt.Errorf("error scaling prometheus back up: %w", err)
-	}
-
-	logger.Print("Scaling up pods using Longhorn volumes.")
-	var deps appsv1.DeploymentList
-	if err := cli.List(ctx, &deps); err != nil {
-		return fmt.Errorf("error listing longhorn deployments: %w", err)
-	}
-	for _, dep := range deps.Items {
-		if _, ok := dep.Annotations[pvmigrateScaleDownAnnotation]; !ok {
-			continue
-		}
-		replicas, err := strconv.Atoi(dep.Annotations[pvmigrateScaleDownAnnotation])
-		if err != nil {
-			return fmt.Errorf("error parsing replica count for deployment %s/%s: %w", dep.Namespace, dep.Name, err)
-		}
-		dep.Spec.Replicas = ptr.To(int32(replicas))
-		delete(dep.Annotations, pvmigrateScaleDownAnnotation)
-		logger.Printf("Scaling up deployment %s/%s", dep.Namespace, dep.Name)
-		if err := cli.Update(ctx, &dep); err != nil {
-			return fmt.Errorf("error scaling up deployment %s/%s: %w", dep.Namespace, dep.Name, err)
-		}
-	}
-
-	var sts appsv1.StatefulSetList
-	if err := cli.List(ctx, &sts); err != nil {
-		return fmt.Errorf("error listing longhorn statefulsets: %w", err)
-	}
-	for _, st := range sts.Items {
-		if _, ok := st.Annotations[pvmigrateScaleDownAnnotation]; !ok {
-			continue
-		}
-		replicas, err := strconv.Atoi(st.Annotations[pvmigrateScaleDownAnnotation])
-		if err != nil {
-			return fmt.Errorf("error parsing replica count for statefulset %s/%s: %w", st.Namespace, st.Name, err)
-		}
-		st.Spec.Replicas = ptr.To(int32(replicas))
-		delete(st.Annotations, pvmigrateScaleDownAnnotation)
-		logger.Printf("Scaling up statefulset %s/%s", st.Namespace, st.Name)
-		if err := cli.Update(ctx, &st); err != nil {
-			return fmt.Errorf("error scaling up statefulset %s/%s: %w", st.Namespace, st.Name, err)
-		}
-	}
-
-	logger.Print("Pods using Longhorn volumes have been scaled up.")
-	return nil
-}
-
-func isPrometheusInstalled(ctx context.Context, cli client.Client) (bool, error) {
-	nsn := types.NamespacedName{Name: prometheusNamespace}
-	if err := cli.Get(ctx, nsn, &corev1.Namespace{}); err != nil {
-		if errors.IsNotFound(err) {
-			return false, nil
-		}
-		return false, fmt.Errorf("error getting prometheus namespace: %w", err)
-	}
-	return true, nil
-}
-
-// scaleUpPrometheus scales up prometheus.
-func scaleUpPrometheus(ctx context.Context, cli client.Client) error {
-	if installed, err := isPrometheusInstalled(ctx, cli); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
-	} else if !installed {
-		return nil
-	}
-
-	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
-	var prometheus promv1.Prometheus
-	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return fmt.Errorf("error getting prometheus: %w", err)
-	}
-	replicasStr, ok := prometheus.Annotations[pvmigrateScaleDownAnnotation]
-	if !ok {
-		return fmt.Errorf("error reading original replicas from the prometheus annotation: not found")
-	}
-	origReplicas, err := strconv.Atoi(replicasStr)
-	if err != nil {
-		return fmt.Errorf("error converting replicas annotation to integer: %w", err)
-	}
-	patch := map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"annotations": map[string]interface{}{
-				pvmigrateScaleDownAnnotation: nil,
-			},
-		},
-		"spec": map[string]interface{}{
-			"replicas": origReplicas,
-		},
-	}
-	rawPatch, err := json.Marshal(patch)
-	if err != nil {
-		return fmt.Errorf("error creating prometheus patch: %w", err)
-	}
-	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
-		return fmt.Errorf("error scaling prometheus: %w", err)
-	}
-	return nil
-}
-
-// scaleEkco scales ekco operator to the number of provided replicas.
-func scaleEkco(ctx context.Context, logger *log.Logger, cli client.Client, replicas int32) error {
-	nsn := types.NamespacedName{Namespace: ekcoNamespace, Name: ekcoDeploymentName}
-	var dep appsv1.Deployment
-	if err := cli.Get(ctx, nsn, &dep); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return fmt.Errorf("error reading ekco deployment: %w", err)
-	}
-	dep.Spec.Replicas = &replicas
-	if err := cli.Update(ctx, &dep); err != nil {
-		return fmt.Errorf("error scaling ekco deployment: %w", err)
-	}
-	if replicas != 0 {
-		return nil
-	}
-	logger.Print("Waiting for ekco operator to scale down.")
-	if err := waitForPodsToBeScaledDown(
-		ctx, logger, cli, ekcoNamespace, labels.SelectorFromSet(dep.Spec.Selector.MatchLabels),
-	); err != nil {
-		return fmt.Errorf("error waiting for ekco operator to scale down: %w", err)
-	}
-	return nil
-}
-
-// waitForPodsToBeScaledDown waits for all pods using matching the provided selector to disappear in the provided
-// namespace.
-func waitForPodsToBeScaledDown(ctx context.Context, logger *log.Logger, cli client.Client, ns string, sel labels.Selector) error {
-	return wait.PollUntilContextTimeout(ctx, 3*time.Second, 5*time.Minute, true, func(ctx2 context.Context) (bool, error) {
-		var pods corev1.PodList
-		opts := []client.ListOption{
-			client.InNamespace(ns),
-			client.MatchingLabelsSelector{Selector: sel},
-		}
-		if err := cli.List(ctx2, &pods, opts...); err != nil {
-			return false, fmt.Errorf("error listing pods: %w", err)
-		}
-		if len(pods.Items) > 0 {
-			logger.Printf("%d pods found, waiting for them to be scaled down.", len(pods.Items))
-			return false, nil
-		}
-		return true, nil
-	})
 }
 
 // scaleDownReplicas scales down the number of replicas for all volumes to 1. Returns a bool indicating if any
