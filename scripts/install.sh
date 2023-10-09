@@ -556,6 +556,7 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_fetch
     kubernetes_get_packages
     preflights_require_host_packages
+    install_host_dependencies # this installs fio, which is used by host preflight checks
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
         cluster_preflights "1" "0" "0"
@@ -563,7 +564,6 @@ function main() {
         host_preflights "1" "0" "1"
         cluster_preflights "1" "0" "1"
     fi
-    install_host_dependencies
     get_common
     setup_kubeadm_kustomize
     rook_upgrade_maybe_report_upgrade_rook
