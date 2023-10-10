@@ -513,6 +513,9 @@ spec:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
+          - warn:
+              when: "fileNotCollected"
+              message: "Filesystem latency benchmark failed to collect data"
           - pass:
               when: "p99 < 10ms"
               message: "Write latency is ok (p99 target < 10ms, actual: {{ .P99 }})"
