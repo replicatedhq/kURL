@@ -56,15 +56,15 @@
     containerd:
       version: 1.6.x
     flannel:
-      version: 0.21.x
+      version: latest
     registry:
-      version: 2.8.1
+      version: latest
     kotsadm:
       version: latest
     ekco:
       version: latest
     openebs:
-      version: 3.4.x
+      version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: local
     minio:
@@ -114,17 +114,17 @@
     kubernetes:
       version: 1.24.x
     containerd:
-      version: 1.6.x
+      version: latest
     flannel:
-      version: 0.21.x
+      version: latest
     registry:
-      version: 2.8.1
+      version: latest
     kotsadm:
       version: latest
     ekco:
       version: latest
     openebs:
-      version: 3.4.x
+      version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: local
     minio:
