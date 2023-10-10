@@ -751,6 +751,13 @@ function install_host_dependencies_fio() {
         return
     fi
 
+    # if this is Ubuntu 18.04, do not install fio - there are python issues
+    if [ "$LSB_DIST$DIST_VERSION" = "ubuntu18.04" ]; then
+        logWarn "Skipping fio install on Ubuntu 18.04"
+        return
+    fi
+
+
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-fio.tar.gz"
         package_download "${package}"
