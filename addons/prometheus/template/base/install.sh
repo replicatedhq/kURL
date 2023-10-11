@@ -117,6 +117,9 @@ function prometheus_crd_ready() {
     if ! kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com &>/dev/null; then
         return 1
     fi
+    if ! kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com -o yaml | grep "enableHttp2" &>/dev/null; then
+        return 1
+    fi
     if ! kubectl get servicemonitors --all-namespaces &>/dev/null; then
         return 1
     fi
