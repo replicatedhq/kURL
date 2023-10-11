@@ -108,6 +108,8 @@ fs.readdir(specDir, (err, files) => {
   supportedVersions.docker = preferredVersions.docker;
   supportedVersions.docker.unshift("latest");
 
+  supportedVersions.fio = ["host"]; // fio serves as a signal that the 'fio' host package should be included
+
   // Build JSON files
   const addonsFile = {
     _comment: `This file is generated, do not change! Last generated on ${new Date()}. To regenerate run 'make generate-addons'`,
