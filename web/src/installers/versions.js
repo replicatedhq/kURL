@@ -616,8 +616,5 @@ module.exports.InstallerVersions = {
   ],
   aws: [
     "0.1.0",
-  ],
-  fio: [ // used as a signal that fio should be included in airgap bundles
-    "host",
-  ],
+  ]
 };
