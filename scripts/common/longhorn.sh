@@ -157,7 +157,9 @@ function longhorn_to_sc_migration() {
         kubectl annotate storageclass "$longhornStorageClass" storageclass.kubernetes.io/is-default-class-
     done
 
-    longhorn_restore_migration_replicas
+    if ! longhorn_restore_migration_replicas; then
+        log "Failed to restore the scale of Longhorn volumes and replicas. All data was successfully migrated to $destStorageClass and no action needs to be taken."
+    fi
 
     # reset ekco scale
     if [ "$ekcoScaledDown" = "1" ] ; then

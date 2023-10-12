@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -20,7 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	lhv1b1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
-	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +26,6 @@ var scaleDownReplicasWaitTime = 5 * time.Minute
 
 const (
 	prometheusNamespace          = "monitoring"
-	prometheusName               = "k8s"
-	prometheusStatefulSetName    = "prometheus-k8s"
 	ekcoNamespace                = "kurl"
 	ekcoDeploymentName           = "ekc-operator"
 	pvmigrateScaleDownAnnotation = "kurl.sh/pvcmigrate-scale"
@@ -64,7 +60,6 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 				return fmt.Errorf("error creating client: %s", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
-			promv1.AddToScheme(cli.Scheme())
 
 			var l1b1Volumes lhv1b1.VolumeList
 			if err := cli.List(cmd.Context(), &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
@@ -136,7 +131,6 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 				return fmt.Errorf("error creating client: %s", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
-			promv1.AddToScheme(cli.Scheme())
 
 			var scaledDown bool
 			var nodes corev1.NodeList
@@ -256,46 +250,22 @@ func isPrometheusInstalled(ctx context.Context, cli client.Client) (bool, error)
 	return true, nil
 }
 
-// scaleUpPrometheus scales up prometheus.
+// scaleUpPrometheus scales up the prometheus operator.
 func scaleUpPrometheus(ctx context.Context, cli client.Client) error {
 	if installed, err := isPrometheusInstalled(ctx, cli); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
+		return fmt.Errorf("error scaling up prometheus: %w", err)
 	} else if !installed {
 		return nil
 	}
 
-	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
-	var prometheus promv1.Prometheus
-	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return fmt.Errorf("error getting prometheus: %w", err)
+	var dep appsv1.Deployment
+	if err := cli.Get(ctx, types.NamespacedName{Namespace: prometheusNamespace, Name: "prometheus-operator"}, &dep); err != nil {
+		return fmt.Errorf("error getting prometheus operator deployment: %w", err)
 	}
-	replicasStr, ok := prometheus.Annotations[pvmigrateScaleDownAnnotation]
-	if !ok {
-		return fmt.Errorf("error reading original replicas from the prometheus annotation: not found")
-	}
-	origReplicas, err := strconv.Atoi(replicasStr)
-	if err != nil {
-		return fmt.Errorf("error converting replicas annotation to integer: %w", err)
-	}
-	patch := map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"annotations": map[string]interface{}{
-				pvmigrateScaleDownAnnotation: nil,
-			},
-		},
-		"spec": map[string]interface{}{
-			"replicas": origReplicas,
-		},
-	}
-	rawPatch, err := json.Marshal(patch)
-	if err != nil {
-		return fmt.Errorf("error creating prometheus patch: %w", err)
-	}
-	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
-		return fmt.Errorf("error scaling prometheus: %w", err)
+
+	dep.Spec.Replicas = ptr.To(int32(1))
+	if err := cli.Update(ctx, &dep); err != nil {
+		return fmt.Errorf("error scaling up prometheus operator: %w", err)
 	}
 	return nil
 }
