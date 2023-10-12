@@ -43,9 +43,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
 - name: "prometheus upgrade from 0.49.x"
-  cpu: 5
-  unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   installerSpec:
     kubernetes:
       version: "1.21.x"
