@@ -61,9 +61,10 @@
       version: "1.23.x"
     flannel:
       version: latest
-    rook:
-      version: "1.10.x"
-      isBlockStorageEnabled: true
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: localpv
     containerd:
       version: "latest"
     prometheus:
