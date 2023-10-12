@@ -42,6 +42,34 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "prometheus upgrade from 0.49.x"
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: localpv
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "0.49.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.23.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: localpv
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
 - name: "prometheus upgrade from latest"
   installerSpec:
     kubernetes:
