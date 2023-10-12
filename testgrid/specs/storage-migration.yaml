@@ -162,6 +162,7 @@
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
   flags: "yes"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -179,6 +180,8 @@
       version: 1.3.x
     minio:
       version: latest
+    prometheus:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.24.x
@@ -193,10 +196,12 @@
     ekco:
       version: latest
     openebs:
-      version: 3.4.x
+      version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: local
     minio:
+      version: latest
+    prometheus:
       version: latest
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
