@@ -1,0 +1,12 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: contour-certgen-v1-26-1
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      containers:
+      - name: contour
+        imagePullPolicy: IfNotPresent
