@@ -182,6 +182,7 @@ function generate_admin_user() {
     printf "\n"
 }
 
+RESET_UNREMOVED_FILES=
 function reset() {
     if ! reset_impl "$@"; then
         printf "\n"
@@ -189,7 +190,21 @@ function reset() {
         printf "\n"
         return
     fi
-    printf "${GREEN}Successfully reset this system.${NC}\n"
+
+    # if RESET_UNREMOVED_FILES is set, then we tried and failed to remove those files
+    # we will tell the user that the system has not been successfully reset and direct them to remove the files themselves
+    if [ -n "$RESET_UNREMOVED_FILES" ]; then
+        printf "\n"
+        printf "${RED}Failed to remove the following files. Please remove them manually.${NC}\n"
+        printf "\n"
+        printf "${YELLOW}"
+        printf "%s\n" "$RESET_UNREMOVED_FILES"
+        printf "${NC}"
+        printf "\n"
+        return
+    else
+        printf "${GREEN}Successfully reset this system.${NC}\n"
+    fi
 }
 
 # TODO kube-proxy ipvs cleanup
@@ -311,6 +326,14 @@ function reset_retry_rm() {
             printf "\n"
             printf "${RED}Failed to remove %s after 10 attempts${NC}\n" "$path"
             printf "\n"
+
+            # add this path to RESET_UNREMOVED_FILES
+            if [ -z "$RESET_UNREMOVED_FILES" ]; then
+                RESET_UNREMOVED_FILES="$path"
+            else
+                RESET_UNREMOVED_FILES="$RESET_UNREMOVED_FILES\n$path"
+            fi
+
             return 0
         fi
         if ! rm -rf "$path" ; then
