@@ -43,7 +43,7 @@ function tasks() {
             generate_admin_user
             ;;
         reset)
-            reset
+            reset $@
             ;;
         kotsadm-accept-tls-uploads|kotsadm_accept_tls_uploads)
             kotsadm_accept_tls_uploads
@@ -182,8 +182,18 @@ function generate_admin_user() {
     printf "\n"
 }
 
-# TODO kube-proxy ipvs cleanup
 function reset() {
+    if ! reset_impl "$@"; then
+        printf "\n"
+        printf "${RED}Failed to reset this system. Please correct any errors manually and try again.${NC}\n"
+        printf "\n"
+        return
+    fi
+    printf "${GREEN}Successfully reset this system.${NC}\n"
+}
+
+# TODO kube-proxy ipvs cleanup
+function reset_impl() {
     set +e
 
     shift # the first param is reset
