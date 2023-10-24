@@ -43,7 +43,7 @@ function tasks() {
             generate_admin_user
             ;;
         reset)
-            reset
+            reset $@
             ;;
         kotsadm-accept-tls-uploads|kotsadm_accept_tls_uploads)
             kotsadm_accept_tls_uploads
@@ -182,8 +182,33 @@ function generate_admin_user() {
     printf "\n"
 }
 
-# TODO kube-proxy ipvs cleanup
+RESET_UNREMOVED_FILES=
 function reset() {
+    if ! reset_impl "$@"; then
+        printf "\n"
+        printf "${RED}Failed to reset this system. Please correct any errors manually and try again.${NC}\n"
+        printf "\n"
+        return
+    fi
+
+    # if RESET_UNREMOVED_FILES is set, then we tried and failed to remove those files
+    # we will tell the user that the system has not been successfully reset and direct them to remove the files themselves
+    if [ -n "$RESET_UNREMOVED_FILES" ]; then
+        printf "\n"
+        printf "${RED}Failed to remove the following files. Please remove them manually.${NC}\n"
+        printf "\n"
+        printf "${YELLOW}"
+        printf "%s\n" "$RESET_UNREMOVED_FILES"
+        printf "${NC}"
+        printf "\n"
+        return
+    else
+        printf "${GREEN}Successfully reset this system.${NC}\n"
+    fi
+}
+
+# TODO kube-proxy ipvs cleanup
+function reset_impl() {
     set +e
 
     shift # the first param is reset
@@ -258,28 +283,28 @@ function reset() {
     systemctl disable kubelet || true
 
     printf "Removing host files\n"
-    rm -rf /etc/cni
-    rm -rf /etc/kubernetes
-    rm -rf /opt/cni
-    rm -rf /opt/replicated
+    reset_retry_rm /etc/cni
+    reset_retry_rm /etc/kubernetes
+    reset_retry_rm /opt/cni
+    reset_retry_rm /opt/replicated
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl /usr/bin/crtctl
     rm -f /usr/local/bin/kustomize*
-    rm -rf /var/lib/calico
-    rm -rf /var/lib/etcd
-    rm -rf /var/lib/kubelet
-    rm -rf /var/lib/rook
-    rm -rf /var/lib/weave
-    rm -rf /var/lib/longhorn
-    rm -rf /etc/haproxy
-    rm -rf "$KURL_INSTALL_DIRECTORY"
-    rm -rf "$KURL_INSTALL_DIRECTORY.repos"
+    reset_retry_rm /var/lib/calico
+    reset_retry_rm /var/lib/etcd
+    reset_retry_rm /var/lib/kubelet
+    reset_retry_rm /var/lib/rook
+    reset_retry_rm /var/lib/weave
+    reset_retry_rm /var/lib/longhorn
+    reset_retry_rm /etc/haproxy
+    reset_retry_rm "$KURL_INSTALL_DIRECTORY"
+    reset_retry_rm "$KURL_INSTALL_DIRECTORY.repos"
 
     printf "Removing flannel networks\n"
     # if /var/lib/cni/flannel exists, remove it entirely
     if [ -d /var/lib/cni/flannel ]; then
         ip link set cni0 down && ip link set flannel.1 down
         ip link delete cni0 && ip link delete flannel.1
-        rm -rf /var/lib/cni
+        reset_retry_rm /var/lib/cni
     fi
 
     printf "Killing haproxy\n"
@@ -289,6 +314,34 @@ function reset() {
     systemctl stop docker || true
 
     printf "Reset script completed\n"
+}
+
+# reset_retry_rm attempts 10x to remove the path passed as an argument
+# if the path still exists after 10 attempts, the function prints the path that failed to be removed and returns 0
+function reset_retry_rm() {
+    local path="$1"
+    local attempts=0
+    while [ -e "$path" ]; do
+        if [ "$attempts" -gt "10" ]; then
+            printf "\n"
+            printf "${RED}Failed to remove %s after 10 attempts${NC}\n" "$path"
+            printf "\n"
+
+            # add this path to RESET_UNREMOVED_FILES
+            if [ -z "$RESET_UNREMOVED_FILES" ]; then
+                RESET_UNREMOVED_FILES="$path"
+            else
+                RESET_UNREMOVED_FILES="$RESET_UNREMOVED_FILES\n$path"
+            fi
+
+            return 0
+        fi
+        if ! rm -rf "$path" ; then
+            sleep 1
+        fi
+        attempts=$((attempts+1))
+    done
+    return 0
 }
 
 function kotsadm_accept_tls_uploads() {
