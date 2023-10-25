@@ -720,7 +720,7 @@ function path_add() {
 
 function install_host_dependencies() {
     install_host_dependencies_openssl
-    install_host_dependencies_fio
+    install_host_dependencies_fio || true # fio is not a hard requirement, just a nice-to-have
 }
 
 function install_host_dependencies_openssl() {
@@ -747,7 +747,9 @@ function install_host_dependencies_fio() {
     fi
 
     if is_rhel_9_variant ; then
-        yum_ensure_host_package fio
+        if !  yum_ensure_host_package fio ; then
+            logWarn "Failed to install fio, continuing anyways"
+        fi
         return
     fi
 
@@ -763,7 +765,9 @@ function install_host_dependencies_fio() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")" --no-same-owner
     fi
-    install_host_archives "${DIR}/packages/host/fio" fio
+    if ! install_host_archives "${DIR}/packages/host/fio" fio; then
+        logWarn "Failed to install fio, continuing anyways"
+    fi
 }
 
 function maybe_read_kurl_config_from_cluster() {
