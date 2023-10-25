@@ -282,6 +282,11 @@ function reset_impl() {
     systemctl stop kubelet || true
     systemctl disable kubelet || true
 
+    ROOK_DIR_EXISTS=
+    if [ -d "/var/lib/rook" ]; then
+        ROOK_DIR_EXISTS=1
+    fi
+
     printf "Removing host files\n"
     reset_retry_rm /etc/cni
     reset_retry_rm /etc/kubernetes
@@ -312,6 +317,13 @@ function reset_impl() {
 
     systemctl stop containerd || true
     systemctl stop docker || true
+
+    # if the Rook dir existed, tell people that they might need to clear rook disks/partitions
+    if [ -n "$ROOK_DIR_EXISTS" ]; then
+        printf "\n"
+        printf "${YELLOW}The directory /var/lib/rook existed before reset. If you are reusing this instance, you may need to clear Rook's disks/partitions before reinstalling.${NC}\n"
+        printf "\n"
+    fi
 
     printf "Reset script completed\n"
 }
