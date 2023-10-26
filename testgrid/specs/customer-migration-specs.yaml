@@ -699,7 +699,7 @@
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
 
-    # deploy sample app 
+    # deploy sample app
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     # source helper functions
@@ -713,3 +713,113 @@
       echo "Kubernetes was not upgraded to 1.26.x"
       exit 1
     fi
+
+- name: "Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs"
+  flags: "yes"
+  cpu: 8
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "2.6.x"
+    contour:
+      version: "1.20.x"
+    docker:
+      version: "20.10.x"
+    prometheus:
+      version: "0.60.x"
+    registry:
+      version: "2.7.x"
+    velero:
+      version: "1.7.x"
+    kotsadm:
+      version: "1.80.x"
+    ekco:
+      version: "0.27.x"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    longhorn:
+      version: "1.2.x"
+    metricsServer:
+      version: "0.4.x"
+    certManager:
+      version: "1.9.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: "0.22.x"
+    openebs:
+      version: "3.9.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    contour:
+      version: "1.25.x"
+    containerd:
+      version: "1.6.x"
+    prometheus:
+      version: "0.68.x"
+    registry:
+      version: "2.8.x"
+    velero:
+      version: "1.11.x"
+    kotsadm:
+      version: "1.103.x"
+    ekco:
+      version: "latest"
+    minio:
+      version: "2023-09-30T07-02-29Z"
+    metricsServer:
+      version: "0.6.x"
+    certManager:
+      version: "1.9.x"
+  unsupportedOSIDs:
+    - rocky-92
+    - ol-8x
+  postInstallScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+    
+    # if on ubuntu or amazon linux, the test application doesn't deploy:
+    echo $OS_NAME
+    if [[ "$OS_NAME" == "Ubuntu" || "$OS_NAME" == "Amazon Linux" ]]; then
+      # mount a localpv volume
+      create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.7.1"
+    
+      # write to the volume
+      create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    
+      # test object store
+      minio_object_store_info
+      validate_read_write_object_store rwtest testfile.txt
+    else
+      # deploy sample app 
+      install_and_customize_kurl_integration_test_application
+    fi
+  postUpgradeScript: |
+    # source helper functions
+    source /opt/kurl-testgrid/testhelpers.sh
+    
+    # if on ubuntu or amazon linux, the test application wasn't deploy:
+    if [[ "$OS_NAME" == "Ubuntu" || "$OS_NAME" == "Amazon Linux" ]]; then
+      # verify data was migrated
+      download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    
+      # ensure object store is still working
+      minio_object_store_info
+      validate_testfile rwtest testfile.txt
+    
+      # install the app now
+      install_and_customize_kurl_integration_test_application
+    else
+      # ensure we can redeploy sample app
+      check_and_customize_kurl_integration_test_application
+    fi
+
+    # ensure kubernetes was upgraded
+    if [[ ! "$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')" =~ "1.27" ]]; then
+      echo "Kubernetes was not upgraded to 1.27.x"
+      exit 1
+    fi
+
+
