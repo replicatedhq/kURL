@@ -56,7 +56,7 @@ func (o *OpenEBSDiskSpaceValidator) NodesWithoutSpace(ctx context.Context) ([]st
 
 		var reservedMsg string
 		if vol.RootVolume {
-			reservedMsg = "(15% of the root disk is reserved for the OS)"
+			reservedMsg = "(15% of the root disk is reserved to prevent diskpressure evictions)"
 		}
 
 		faultyNodes[node] = true
