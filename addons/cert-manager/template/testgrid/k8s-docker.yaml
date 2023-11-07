@@ -18,7 +18,7 @@
     kubectl describe certificates | grep "The certificate has been successfully issued"
     
     # setup cmctl
-    curl -fsSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/v__testver__/download/cmctl-linux-amd64.tar.gz
+    curl -fsSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/v__testver__/cmctl-linux-amd64.tar.gz
     tar xzf cmctl.tar.gz
     sudo mv cmctl /usr/local/bin
     
