@@ -27,7 +27,7 @@
 - name: upgrade from earliest
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.19.x"
     flannel:
       version: "latest"
     containerd:
