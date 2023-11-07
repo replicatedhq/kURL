@@ -1,0 +1,110 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-config
+  labels:
+    app: registry
+data:
+  config.yml: |-
+    health:
+      storagedriver:
+        enabled: true
+        interval: 10s
+        threshold: 3
+    auth:
+      htpasswd:
+        realm: basic-realm
+        path: /auth/htpasswd
+    http:
+      addr: :443
+      headers:
+        X-Content-Type-Options:
+        - nosniff
+      tls:
+        certificate: /etc/pki/registry.crt
+        key: /etc/pki/registry.key
+    log:
+      fields:
+        service: registry
+      accesslog:
+        disabled: true
+    storage:
+      delete:
+        enabled: true
+      filesystem:
+        rootdirectory: /var/lib/registry
+      cache:
+        blobdescriptor: inmemory
+      maintenance:
+        uploadpurging:
+          enabled: false
+    version: 0.1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+spec:
+  selector:
+    matchLabels:
+      app: registry
+  replicas: 1
+  strategy:
+    type:
+      Recreate
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: registry
+        image: registry:2.8.3
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/registry
+        - serve
+        - /etc/docker/registry/config.yml
+        ports:
+        - containerPort: 443
+          protocol: TCP
+        volumeMounts:
+        - name: registry-data
+          mountPath: /var/lib/registry
+        - name: registry-config
+          mountPath: /etc/docker/registry
+        - name: registry-pki
+          mountPath: /etc/pki
+        - name: registry-htpasswd
+          mountPath: /auth
+        env:
+        - name: REGISTRY_HTTP_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: haSharedSecret
+              name: registry-session-secret
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 1
+          successThreshold: 2
+          timeoutSeconds: 1
+          httpGet:
+            path: /
+            port: 443
+            scheme: HTTPS
+      volumes:
+      - name: registry-data
+        persistentVolumeClaim:
+          claimName: registry-pvc
+      - name: registry-config
+        configMap:
+          name: registry-config
+      - name: registry-pki
+        secret:
+          secretName: registry-pki
+      - name: registry-htpasswd
+        secret:
+          secretName: registry-htpasswd

@@ -12,7 +12,7 @@ function rook_pre_init() {
         if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ] && [ "$current_version" = "1.0.4" ]; then
             export KUBERNETES_UPGRADE=0
             export KUBERNETES_VERSION
-            KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+            KUBERNETES_VERSION=$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')
             parse_kubernetes_target_version
             # There's no guarantee the packages from this version of Kubernetes are still available
             export SKIP_KUBERNETES_HOST=1

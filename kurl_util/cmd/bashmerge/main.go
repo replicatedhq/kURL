@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -265,6 +264,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.SkipSystemPackageInstall = true
+		case "storage-migration-ready-timeout":
+			continue
 		case "exclude-builtin-host-preflights", "exclude-builtin-preflights":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
@@ -322,13 +323,6 @@ func mergeConfig(currentYAMLPath string, bashFlags string) error {
 
 	if err := parseBashFlags(currentConfig, bashFlags); err != nil {
 		return errors.Wrapf(err, "failed to parse flag string %q", bashFlags)
-	}
-
-	// Hack to get around the serialization of this field to "null" in YAML, which is not a valid Object type
-	// int the installer CRD when sending the installer spec back to k8s.
-	// See https://github.com/kubernetes/kubernetes/issues/67610
-	if currentConfig.Spec.Kurl != nil && currentConfig.Spec.Kurl.HostPreflights != nil {
-		currentConfig.Spec.Kurl.HostPreflights.ObjectMeta.CreationTimestamp = metav1.Now()
 	}
 
 	s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)

@@ -39,7 +39,14 @@ function bail_if_kurl_pods_are_unhealthy() {
         fi
         log "Awaiting 2 minutes to check kURL Pod(s) are Running"
         if ! spinner_until 120 check_for_running_pods kurl; then
-            bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
+            kubectl get pods -n kurl
+
+            # for each pod in UNHEALTHY_PODS, print it and its current status
+            for pod in $UNHEALTHY_PODS; do
+                kubectl get pod -n kurl "$pod" -o jsonpath='pod {.metadata.name} owned by a {.metadata.ownerReferences[*].kind} has phase {.status.phase} with containers {range .status.containerStatuses[*]}{.name} ready={.ready} restarts={.restartCount};{end}'
+            done
+
+            bail "Kurl has unhealthy Pod(s) $UNHEALTHY_PODS. Restarting the pod may fix the issue."
         fi
     fi
 }
@@ -77,7 +84,7 @@ function bailIfUnsupportedOS() {
             ;;
         ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel8.8|rhel9.0|rhel9.1)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel8.8|rhel9.0|rhel9.1|rhel9.2)
             ;;
         rocky9.0|rocky9.1|rocky9.2)
             ;;
@@ -324,7 +331,7 @@ function cri_preflights() {
 
 function require_cri() {
     if is_rhel_9_variant && [ -z "$CONTAINERD_VERSION" ]; then
-        bail "Containerd is required"
+        bail "Containerd is required on RHEL 9 variants. Docker is not supported."
     fi
 
     if commandExists docker ; then

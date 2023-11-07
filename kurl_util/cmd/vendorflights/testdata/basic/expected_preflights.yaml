@@ -1,7 +1,5 @@
 apiVersion: troubleshoot.sh/v1beta2
 kind: HostPreflight
-metadata:
-  creationTimestamp: null
 spec:
   analyzers:
   - cpu:
@@ -14,4 +12,3 @@ spec:
           message: This server has at least 4 CPU cores
   collectors:
   - cpu: {}
-status: {}

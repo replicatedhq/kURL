@@ -122,6 +122,9 @@ spec:
             path: /
             port: 443
             scheme: HTTPS
+        resources:
+          requests:
+            ephemeral-storage: 10Mi
       volumes:
       - name: registry-config
         configMap:

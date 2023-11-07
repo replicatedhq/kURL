@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/pkg/errors"
 	"github.com/vishvananda/netlink"
 )
 
@@ -32,12 +31,14 @@ func main() {
 	debug := *debugFlag
 
 	if cidrRange < 1 || cidrRange > 32 {
-		panic(fmt.Sprintf("subnet-size %d invalid", cidrRange))
+		fmt.Printf("cidr-range %d invalid, must be between 1 and 32\n", cidrRange)
+		os.Exit(1)
 	}
 
 	_, subnetAllocRange, err := net.ParseCIDR(*subnetAllocRangeFlag)
 	if err != nil {
-		panic(errors.Wrap(err, "failed to parse subnet-alloc-range cidr"))
+		fmt.Printf("failed to parse subnet-alloc-range cidr: %s\n", err.Error())
+		os.Exit(1)
 	}
 
 	var excludeSubnets []*net.IPNet
@@ -45,7 +46,8 @@ func main() {
 		for _, s := range strings.Split(*excludeSubnetFlag, ",") {
 			_, subnet, err := net.ParseCIDR(s)
 			if err != nil {
-				panic(errors.Wrap(err, "failed to parse exclude-subnet cidr"))
+				fmt.Printf("failed to parse exclude-subnet cidr: %s\n", err.Error())
+				os.Exit(1)
 			}
 			excludeSubnets = append(excludeSubnets, subnet)
 		}
@@ -53,7 +55,8 @@ func main() {
 
 	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
 	if err != nil {
-		panic(errors.Wrap(err, "failed to list routes"))
+		fmt.Printf("failed to list routes: %s\n", err.Error())
+		os.Exit(1)
 	}
 	if debug {
 		for _, route := range routes {
@@ -74,7 +77,8 @@ func main() {
 
 	subnet, err := FindAvailableSubnet(cidrRange, subnetAllocRange, routes, debug)
 	if err != nil {
-		panic(errors.Wrap(err, "failed to find available subnet"))
+		fmt.Printf("failed to find available subnet: %s\n", err.Error())
+		os.Exit(1)
 	}
 
 	fmt.Print(subnet)
@@ -88,7 +92,7 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 
 	_, subnet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", startIP, cidrRange))
 	if err != nil {
-		return nil, errors.Wrap(err, "parse cidr")
+		return nil, fmt.Errorf("parse cidr: %w", err)
 	}
 	if debug {
 		fmt.Fprintf(os.Stderr, "First subnet %s\n", subnet)
@@ -97,7 +101,7 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 	for {
 		firstIP, lastIP := cidr.AddressRange(subnet)
 		if !subnetRange.Contains(firstIP) || !subnetRange.Contains(lastIP) {
-			return nil, errors.New("no available subnet found")
+			return nil, fmt.Errorf("no available subnet found within %s", subnet.String())
 		}
 
 		route := findFirstOverlappingRoute(subnet, routes)

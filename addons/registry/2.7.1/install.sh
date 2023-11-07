@@ -179,11 +179,12 @@ function registry_cred_secrets() {
 }
 
 function registry_docker_ca() {
-    if [ -z "$DOCKER_REGISTRY_IP" ]; then
-        bail "Docker registry address required"
-    fi
-
     if [ -n "$DOCKER_VERSION" ]; then
+        if [ -z "$DOCKER_REGISTRY_IP" ]; then
+            bail "Docker registry address required"
+        fi
+
+        log "Gathering CA from server to configure Docker"
         local ca_crt="$(${K8S_DISTRO}_get_server_ca)"
 
         mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP

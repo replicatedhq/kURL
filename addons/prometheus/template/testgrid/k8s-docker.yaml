@@ -1,11 +1,11 @@
-- name: "prometheus minimal k8s 1.25"
+- name: "prometheus minimal k8s 1.28"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.28.x"
     flannel:
       version: latest
     openebs:
-      version: "3.3.0"
+      version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
@@ -42,14 +42,42 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: "prometheus upgrade from latest"
+- name: "prometheus upgrade from 0.49.x"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.21.x"
     flannel:
       version: latest
     openebs:
-      version: "3.3.0"
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: localpv
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "0.49.x"
+  upgradeSpec:
+    kubernetes:
+      version: "1.23.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: localpv
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "prometheus upgrade from latest"
+  installerSpec:
+    kubernetes:
+      version: "1.28.x"
+    flannel:
+      version: latest
+    openebs:
+      version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
@@ -58,11 +86,11 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.28.x"
     flannel:
       version: latest
     openebs:
-      version: "3.3.0"
+      version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
@@ -86,11 +114,11 @@
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.28.x"
     flannel:
       version: latest
     rook:
-      version: "1.7.x"
+      version: "1.12.x"
       isBlockStorageEnabled: true
     containerd:
       version: "latest"

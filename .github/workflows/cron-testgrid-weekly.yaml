@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: pull tgrun image
       run: docker pull replicated/tgrun:latest
@@ -25,3 +25,45 @@ jobs:
             --spec ./testgrid/specs/full.yaml \
             --os-spec ./testgrid/specs/os-firstlast.yaml \
             --priority -2
+
+  testgrid-weekly-customer-migration-specs:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: pull tgrun image
+      run: docker pull replicated/tgrun:latest
+
+    - name: testgrid-queue-prod
+      env:
+        TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+      run: |
+        docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+          replicated/tgrun:latest queue \
+            --ref "PROD-weekly-customer-migration-specs-$(date --utc +%FT%TZ)" \
+            --spec ./testgrid/specs/customer-migration-specs.yaml \
+            --os-spec ./testgrid/specs/os-customer-common.yaml \
+            --priority -2
+
+  testgrid-weekly-storage-migration-specs:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pull tgrun image
+        run: docker pull replicated/tgrun:latest
+
+      - name: testgrid-queue-prod
+        env:
+          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+        run: |
+          docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+            replicated/tgrun:latest queue \
+              --ref "PROD-weekly-storage-migration-specs-$(date --utc +%FT%TZ)" \
+              --spec ./testgrid/specs/storage-migration.yaml \
+              --os-spec ./testgrid/specs/os-customer-common.yaml \
+              --priority -2

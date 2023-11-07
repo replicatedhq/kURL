@@ -65,6 +65,23 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "weave to flannel + docker to containerd multi node"
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: "1.22.x"
+    docker:
+      version: "latest"
+    weave:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.22.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 6
@@ -132,7 +149,7 @@
     minio:
       version: "2023-05-18T00-05-36Z"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
   upgradeSpec:
     kubernetes:
       version: "1.27.x"
@@ -152,7 +169,7 @@
     minio:
       version: "2023-05-18T00-05-36Z"
     rook:
-      version: "1.11.x"
+      version: "1.12.x"
   unsupportedOSIDs:
     - centos-74 # Rook Pre-init: centos-7.4 Kernel 3.10.0-693.el7.x86_64 is not supported
 - name: "weave to flannel single node, custom IP ranges"

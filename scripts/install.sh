@@ -298,22 +298,6 @@ function init() {
         if kubernetes_has_remotes; then
             if commandExists ekco_handle_load_balancer_address_change_kubeconfigs; then
                 ekco_handle_load_balancer_address_change_kubeconfigs
-            else
-                # Manual steps for ekco < 0.11.0
-                printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
-                printf "\n"
-                if [ "$AIRGAP" = "1" ]; then
-                    printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
-                else
-                    local prefix=
-                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
-
-                    printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
-                fi
-
-                printf "\n"
-                printf "Continue? "
-                confirmN
             fi
 
             if commandExists ekco_handle_load_balancer_address_change_post_init; then
@@ -559,6 +543,7 @@ function main() {
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start
+    setup_remote_commands_dirs
     trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
@@ -571,6 +556,7 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_fetch
     kubernetes_get_packages
     preflights_require_host_packages
+    install_host_dependencies # this installs fio, which is used by host preflight checks
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
         cluster_preflights "1" "0" "0"
@@ -578,7 +564,6 @@ function main() {
         host_preflights "1" "0" "1"
         cluster_preflights "1" "0" "1"
     fi
-    install_host_dependencies
     get_common
     setup_kubeadm_kustomize
     rook_upgrade_maybe_report_upgrade_rook
@@ -595,6 +580,7 @@ function main() {
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
     maybe_set_kurl_cluster_uuid
+    kurl_install_support_bundle_configmap
     ${K8S_DISTRO}_addon_for_each addon_install
     maybe_cleanup_rook
     maybe_cleanup_longhorn

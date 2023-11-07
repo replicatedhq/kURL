@@ -29,6 +29,9 @@ function minio_pre_init() {
             bail "Not enough disk space found for minio migration."
         fi
     fi
+
+    # if rook is being uninstalled, install minio and then migrate the object store
+    minio_migrate_from_rgw_early
 }
 
 function minio() {
@@ -234,6 +237,24 @@ function minio_endpoint_exists() {
         return 1
     fi
     return 0
+}
+
+# check if the rook to minio migration should be run later. If it should be, then run the minio install now, and then run the rook removal script (if PVCs have been migrated too)
+function minio_migrate_from_rgw_early() {
+    if [ -n "$ROOK_VERSION" ]; then # if rook is still specified in the kURL spec, don't migrate
+        return
+    fi
+
+    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then # if rook is not installed, don't migrate
+        return
+    fi
+
+    report_addon_start "minio-preinstall" "$MINIO_VERSION"
+    addon_load "minio" "$MINIO_VERSION"
+    addon_install "minio" "$MINIO_VERSION"
+    report_addon_success "minio-preinstall" "$MINIO_VERSION"
+
+    maybe_cleanup_rook
 }
 
 function minio_migrate_from_rgw() {

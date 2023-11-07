@@ -12,7 +12,7 @@ function rook_pre_init() {
         if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ] && [ "$current_version" = "1.0.4" ]; then
             export KUBERNETES_UPGRADE=0
             export KUBERNETES_VERSION
-            KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+            KUBERNETES_VERSION=$(kubectl get nodes --sort-by='{.status.nodeInfo.kubeletVersion}' -o=jsonpath='{.items[0].status.nodeInfo.kubeletVersion}' | sed 's/^v*//')
             parse_kubernetes_target_version
             # There's no guarantee the packages from this version of Kubernetes are still available
             export SKIP_KUBERNETES_HOST=1
@@ -57,9 +57,11 @@ function rook_post_init() {
     fi
 }
 
+ROOK_CEPH_IMAGE=
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
+    export ROOK_CEPH_IMAGE="__CEPH_IMAGE__"
 
     if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
@@ -89,8 +91,8 @@ function rook() {
 
     if [ -n "$ROOK_MINIMUM_NODE_COUNT" ] && [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
         # check if there is already a CephCluster - if there is, this code should manage it
-        if ! kubectl get cephcluster -n rook-ceph rook-ceph; then
-            log "Not setting up a Ceph Cluster until there are at least ${ROOK_MINIMUM_NODE_COUNT} nodes"
+        if ! kubectl get cephcluster -n rook-ceph rook-ceph >/dev/null 2>&1; then
+            log "Rook minimumNodeCount parameter set to ${ROOK_MINIMUM_NODE_COUNT}. Ceph Cluster will be managed by EKCO."
             return 0 # do not create a ceph cluster if it should instead be managed by ekco
         fi
     fi
@@ -138,6 +140,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    export ROOK_CEPH_IMAGE="__CEPH_IMAGE__"
     rook_set_ceph_pool_replicas
     "$DIR"/bin/kurl rook wait-for-health 120
     rook_maybe_wait_for_rollout
@@ -153,6 +156,20 @@ function rook_operator_crds_deploy() {
     # replace the CRDs if they already exist otherwise create them
     # replace or create rather than apply to avoid the error "metadata.annotations: Too long"
     if ! kubectl replace -f "$dst/crds.yaml" 2>/dev/null ; then
+
+        if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
+            # Rook 1.12 introduced a new CRD "cephcosidrivers.ceph.rook.io" which will cause
+            # `kubectl create` to fail on upgrades. The following logic will extract the new CRD yaml and create it.
+            semverParse "$ROOK_VERSION"
+            local rook_major_version="$major"
+            local rook_minor_version="$minor"
+            if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "12" ]; then
+                get_yaml_from_multidoc_yaml "$dst/crds.yaml" "cephcosidrivers.ceph.rook.io" | kubectl create -f -
+            fi
+
+            return
+        fi
+
         kubectl create -f "$dst/crds.yaml"
     fi
 }

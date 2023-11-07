@@ -29,9 +29,15 @@ function insert_patches_strategic_merge() {
     local kustomization_file="$1"
     local patch_file="$2"
 
+    # we care about the current kubernetes version here, not the target version - this function can be called from pre-init addons
+    local kubeletVersion=
+    kubeletVersion="$(kubelet_version)"
+    semverParse "$kubeletVersion"
+    local kubeletMinor="$minor"
+
     # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
     # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
+    if [ "$kubeletMinor" -ge "27" ]; then
         if [[ $kustomization_file =~ "prometheus" ]] || [[ $kustomization_file =~ "rook" ]]; then
             # TODO: multi-doc patches is not currently supported in kustomize v5
             # continue using the deprecated 'patchesStrategicMerge' field until this is fixed
@@ -73,7 +79,7 @@ function insert_bases() {
 
     local kubectl_client_minor_version=
     if commandExists "kubectl" ; then
-        kubectl_client_minor_version="$(kubectl version --short | grep -i client | awk '{ print $3 }' | cut -d '.' -f2)"
+        kubectl_client_minor_version="$(kubectl_client_version | cut -d '.' -f2)"
     else
         kubectl_client_minor_version="$(echo "$KUBERNETES_VERSION" | cut -d '.' -f2)"
     fi
@@ -241,4 +247,22 @@ function yaml_escape_string_quotes() {
 # yaml_newline_to_literal replaces newlines with \n
 function yaml_newline_to_literal() {
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
+}
+
+# get_yaml_from_multidoc_yaml reads a single file multi-doc yaml and finds a particular embedded yaml doc
+# based on the `name:` field and outputs the doc to stdout.
+function get_yaml_from_multidoc_yaml() {
+    local multidoc_yaml="$1"
+    local resource_name="$2"
+
+    # use awk to split the multidoc file using `---`separator
+    awk -v RS='---\n' -v ORS='---\n' -v RESOURCE_NAME="$resource_name" '
+        $0 ~ ("name: " RESOURCE_NAME) {
+            found = 1
+            print $0
+        }
+        END {
+            exit !found
+        }
+    ' "$multidoc_yaml"
 }

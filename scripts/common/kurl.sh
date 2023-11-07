@@ -22,6 +22,32 @@ function kurl_set_current_version() {
     kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"kurl-version\":\"${KURL_VERSION}\"}}"
 }
 
+function kurl_install_support_bundle_configmap() {
+    cat <<EOF | kubectl apply -n kurl -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kurl-supportbundle-spec
+  namespace: kurl
+  labels:
+    troubleshoot.io/kind: support-bundle
+stringData:
+  support-bundle-spec: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: SupportBundle
+    metadata:
+      name: kurl
+    spec:
+      collectors:
+        - copyFromHost:
+            collectorName: "copy kURL logs"
+            image: alpine
+            hostPath: "/var/log/kurl/"
+            name: "logs"
+            extractArchive: true
+EOF
+}
+
 function kurl_get_current_version() {
     kubectl get configmap -n kurl kurl-current-config -o jsonpath="{.data.kurl-version}"
 }

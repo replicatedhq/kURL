@@ -2,7 +2,7 @@
 function download_util_binaries() {
     if [ -z "$AIRGAP" ] && [ -n "$DIST_URL" ]; then
         package_download "${KURL_BIN_UTILS_FILE}"
-        tar xzf "$(package_filepath "${KURL_BIN_UTILS_FILE}")"
+        tar xzf "$(package_filepath "${KURL_BIN_UTILS_FILE}")" --no-same-owner
     fi
 
     export BIN_KURL=$DIR/bin/kurl
@@ -145,6 +145,9 @@ function get_patch_yaml() {
                 NODE_LABELS="$_value"
                 ;;
             load-balancer-address)
+                ;;
+            storage-migration-ready-timeout)
+                STORAGE_MIGRATION_READY_TIMEOUT="${_value}"
                 ;;
             # Legacy Command
             preflight-ignore)

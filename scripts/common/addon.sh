@@ -138,7 +138,7 @@ function addon_fetch_no_cache() {
 
     echo "Fetching $archiveName"
     curl -LO "$url"
-    tar xf $archiveName
+    tar xf $archiveName --no-same-owner
     rm $archiveName
 }
 
@@ -148,7 +148,7 @@ function addon_fetch_cache() {
 
     package_download "${package}" "${url_override}"
 
-    tar xf "$(package_filepath "${package}")"
+    tar xf "$(package_filepath "${package}")"  --no-same-owner
 
     # rm $archiveName
 }
@@ -182,7 +182,7 @@ function addon_fetch_airgap() {
     fi
 
     printf "Unpacking %s %s...\n" "$name" "$version"
-    tar xf "$package_path"
+    tar xf "$package_path" --no-same-owner
 
     # do not source the addon here as the kubernetes "addon" uses this function but is not an addon
 }
@@ -207,7 +207,7 @@ function addon_fetch_multiple_airgap() {
             printf "The package %s %s is already available locally.\n" "$name" "$version"
 
             printf "Unpacking %s...\n" "$package_name"
-            if ! tar xf "$package_path" ; then
+            if ! tar xf "$package_path" --no-same-owner ; then
                 bail "Failed to unpack $package_name"
             fi
         else
@@ -247,7 +247,7 @@ function addon_fetch_multiple_airgap() {
         fi
 
         printf "Unpacking %s...\n" "$package_name"
-        if ! tar xf "$package_path" ; then
+        if ! tar xf "$package_path" --no-same-owner ; then
             bail "Failed to unpack $package_name"
         fi
 
@@ -307,12 +307,20 @@ function addon_outro() {
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
+            local command=
+            command=$(printf "cat ./upgrade.sh | sudo bash -s airgap${common_flags}")
+            echo "$command yes" > "$DIR/remotes/allnodes"
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
 
-            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
+            local command=
+            command=$(printf "${prefix}upgrade.sh | sudo bash -s${common_flags}")
+            echo "$command yes" > "$DIR/remotes/allnodes"
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         fi
 
         if [ "${KURL_IGNORE_REMOTE_UPGRADE_PROMPT}" != "1" ]; then

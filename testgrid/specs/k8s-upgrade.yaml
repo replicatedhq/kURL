@@ -1,0 +1,24 @@
+- name: 119 to 128
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  cpu: 3
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.28.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: latest
+  postInstallScript: |
+    kubectl get nodes
+  postUpgradeScript: |
+    kubectl get nodes
+    kubectl get nodes | grep 1.28

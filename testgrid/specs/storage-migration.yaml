@@ -55,7 +55,7 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: Migrate from Rook 1.11.x to OpenEBS + Minio
+- name: Migrate from Rook 1.12.x to OpenEBS + Minio
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -71,7 +71,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -162,6 +162,7 @@
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
   flags: "yes"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -179,6 +180,8 @@
       version: 1.3.x
     minio:
       version: latest
+    prometheus:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.24.x
@@ -193,10 +196,12 @@
     ekco:
       version: latest
     openebs:
-      version: 3.4.x
+      version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: local
     minio:
+      version: latest
+    prometheus:
       version: latest
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -261,7 +266,7 @@
       echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
-- name: Migrate from Rook 1.11.x to OpenEBS (S3 disabled)
+- name: Migrate from Rook 1.12.x to OpenEBS (S3 disabled)
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -275,7 +280,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -513,7 +518,7 @@
     #    echo  Rook Data directory not removed.
     #    exit 1
     # fi
-- name: Migrate from Rook 1.8.x to Rook 1.11.x
+- name: Migrate from Rook 1.8.x to Rook 1.12.x
   flags: "yes"
   cpu: 4
   numPrimaryNodes: 1
@@ -547,7 +552,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
   postInstallScript: |
     # wait for ekco to scale up the Ceph cluster
     while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
@@ -568,7 +573,7 @@
     #    echo  Rook Data directory not removed.
     #    exit 1
     # fi
-- name: Migrate from Longhorn + Minio to Rook 1.11.x
+- name: Migrate from Longhorn + Minio to Rook 1.12.x
   flags: "yes"
   cpu: 4
   numPrimaryNodes: 1
@@ -604,7 +609,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -662,6 +667,8 @@
     minio:
       version: latest
   postInstallScript: |
+    # wait for ekco to scale up the Ceph cluster
+    while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
@@ -682,7 +689,7 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: Migrate from Rook 1.11.x to OpenEBS + Minio (multi-node)
+- name: Migrate from Rook 1.12.x to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
   numPrimaryNodes: 1
@@ -701,7 +708,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
   upgradeSpec:
     kubernetes:
       version: 1.26.x
@@ -800,7 +807,7 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-- name: Migrate from Rook 1.11.x to OpenEBS 3.4.0 with localpv migrate
+- name: Migrate from Rook 1.12.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -810,7 +817,7 @@
     containerd:
       version: latest
     rook:
-      version: 1.11.x
+      version: 1.12.x
     kotsadm:
       version: latest
   upgradeSpec:
@@ -1422,3 +1429,90 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
     check_and_customize_kurl_integration_test_application
+
+- name: Install Rook with minimum node count of 3
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.28.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+    minio:
+      version: latest
+    rook:
+      version: 1.12.0
+      minimumNodeCount: 3
+    goldpinger:
+      version: latest
+    openebs:
+      version: 3.6.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    echo "waiting up to 10m for scaling storageclass to be removed"
+    x=0
+    while [ "$(kubectl get storageclass scaling --no-headers | wc -l)" -eq 1 ] && [ "$x" -le 6 ] ; do sleep 100 && x=$(( $x + 1 )) ; done
+    
+    sleep 30 # wait a little longer to make sure that the kotsadm pods have time to come up
+    
+    echo "all pods"
+    kubectl get pods -A
+    echo "ekco logs"
+    kubectl get pods -n kurl
+    kubectl logs -n kurl deployment/ekc-operator
+    echo "PVCs"
+    kubectl get pvc -A
+    echo "SCs"
+    kubectl get sc -A
+    echo "ceph pools"
+    kubectl describe cephblockpool -n rook-ceph
+    #    echo "all pods description"
+    #    kubectl describe pod -A
+    
+    kubectl get pods -n rook-ceph
+    kubectl get cephcluster -n rook-ceph
+    echo "ceph status"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph status
+    echo "ceph health detail"
+    kubectl exec -n rook-ceph deployment/rook-ceph-tools -- ceph health detail
+    
+    # 'scaling' storage class should have been deleted after the migration
+    if kubectl get sc scaling >/dev/null 2>&1 ; then
+        echo "OpenEBS 'scaling' storage class was not deleted"
+        exit 1
+    fi
+    # 'distributed' should be the only default storage class after the migration
+    if [ "$(kubectl get sc distributed -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" != "true" ]; then
+        echo "Rook 'distributed' storage class is not the default"
+        exit 1
+    fi
+
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
+
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt

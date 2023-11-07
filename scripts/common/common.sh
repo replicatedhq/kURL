@@ -587,7 +587,7 @@ function get_common() {
         else
             curl -sSOL "$(get_dist_url)/common.tar.gz" || curl -sSOL "$(get_dist_url_fallback)/common.tar.gz"
         fi
-        tar xf common.tar.gz
+        tar xf common.tar.gz --no-same-owner
         rm common.tar.gz
     fi
 }
@@ -720,6 +720,7 @@ function path_add() {
 
 function install_host_dependencies() {
     install_host_dependencies_openssl
+    install_host_dependencies_fio || true # fio is not a hard requirement, just a nice-to-have
 }
 
 function install_host_dependencies_openssl() {
@@ -735,9 +736,38 @@ function install_host_dependencies_openssl() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-openssl.tar.gz"
         package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
+        tar xf "$(package_filepath "${package}")" --no-same-owner
     fi
     install_host_archives "${DIR}/packages/host/openssl" openssl
+}
+
+function install_host_dependencies_fio() {
+    if commandExists "fio"; then
+        return
+    fi
+
+    if is_rhel_9_variant ; then
+        if !  yum_ensure_host_package fio ; then
+            logWarn "Failed to install fio, continuing anyways"
+        fi
+        return
+    fi
+
+    # if this is Ubuntu 18.04, do not install fio - there are python issues
+    if [ "$LSB_DIST$DIST_VERSION" = "ubuntu18.04" ]; then
+        logWarn "Skipping fio install on Ubuntu 18.04"
+        return
+    fi
+
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        local package="host-fio.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")" --no-same-owner
+    fi
+    if ! install_host_archives "${DIR}/packages/host/fio" fio; then
+        logWarn "Failed to install fio, continuing anyways"
+    fi
 }
 
 function maybe_read_kurl_config_from_cluster() {
@@ -1091,8 +1121,14 @@ function retag_gcr_images() {
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
+            # if the image name matches `coredns`, extract the tag and also retag `$image` to registry.k8s.io/coredns:$tag
+            # this handles issues where kubernetes expects coredns to be at registry.k8s.io/coredns:1.6.2 but it is at registry.k8s.io/coredns/coredns:v1.6.2
+            if [[ "$image" =~ "coredns" ]]; then
+                tag=$(echo "$image" | awk -F':' '{print $2}')
+                docker tag "$image" "registry.k8s.io/coredns:$tag" 2>/dev/null || true
+            fi
         done
-        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F registry.gcr.io || true; })
+        images=$(docker images --format '{{.Repository}}:{{.Tag}}' | { grep -F registry.k8s.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             docker tag "$image" "$new_image" 2>/dev/null || true
@@ -1102,8 +1138,14 @@ function retag_gcr_images() {
         for image in $images ; do
             new_image="${image//k8s.gcr.io/registry.k8s.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
+            # if the image name matches `coredns`, extract the tag and also retag `$image` to registry.k8s.io/coredns:$tag
+            # this handles issues where kubernetes expects coredns to be at registry.k8s.io/coredns:1.6.2 but it is at registry.k8s.io/coredns/coredns:v1.6.2
+            if [[ "$image" =~ "coredns" ]]; then
+                tag=$(echo "$image" | awk -F':' '{print $2}')
+                ctr -n k8s.io images tag "$image" "registry.k8s.io/coredns:$tag" 2>/dev/null || true
+            fi
         done
-        images=$(ctr -n=k8s.io images list --quiet | { grep -F registry.gcr.io || true; })
+        images=$(ctr -n=k8s.io images list --quiet | { grep -F registry.k8s.io || true; })
         for image in $images ; do
             new_image="${image//registry.k8s.io/k8s.gcr.io}"
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
@@ -1127,12 +1169,16 @@ function canonical_image_name() {
 
 # check_for_running_pods scans for pod(s) in a namespace and checks whether their status is running/completed
 # note: Evicted pods are exempt from this check
+# exports a variable UNHEALTHY_PODS containing the names of pods that are not running/completed
+UNHEALTHY_PODS=
 function check_for_running_pods() {
     local namespace=$1
     local is_job_controller=0
     local ns_pods=
     local status=
     local containers=
+
+    local unhealthy_podnames=
 
     ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
 
@@ -1143,30 +1189,36 @@ function check_for_running_pods() {
     for pod in $ns_pods; do
         status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
 
-        # determine if pod is manged by a Job
-        if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
-            is_job_controller=1
-        fi
-
         # ignore pods that have been Evicted
         if [ "$status" == "Failed" ] && [[ $(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.reason}') == "Evicted" ]]; then
             continue
         fi
 
-        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
-            return 1
+        if [ "$status" == "Succeeded" ]; then
+            continue
+        fi
+
+        if [ "$status" != "Running" ]; then
+            unhealthy_podnames="$unhealthy_podnames $pod"
+            continue
         fi
 
         containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
         for container in $containers; do
             container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
             
-            # ignore container ready status for pods managed by the Job controller
-            if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
-                return 1
+            if [ "$container_status" != "true" ]; then
+                unhealthy_podnames="$unhealthy_podnames $pod"
+                continue
             fi
         done
     done
+
+    # if there are unhealthy pods, return 1
+    if [ -n "$unhealthy_podnames" ]; then
+        export UNHEALTHY_PODS="$unhealthy_podnames"
+        return 1
+    fi
 
     return 0
 }
@@ -1524,8 +1576,16 @@ function common_prompt_task_missing_assets() {
     printf "The node(s) %s appear to be missing assets required for the %s upgrade from %s to %s.\n" \
         "$(echo "$nodes" | tr '\n' ' ' | xargs)" "$upgrade_name" "$from_version" "$to_version"
     printf "Please run the following on each of these nodes before continuing:\n"
-    printf "\n\t%b%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s %b\n\n" \
-        "$GREEN" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag" "$NC"
+
+    local command=
+    command=$(printf "%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag")
+
+    for node in $nodes; do
+        echo "$command" > "$DIR/remotes/$node"
+    done
+
+    printf "\n\t%b%s %b\n\n" \
+        "$GREEN" "$command" "$NC"
     printf "Are you ready to continue? "
     confirmY
 }
@@ -1568,4 +1628,42 @@ function get_ekco_storage_migration_auth_token() {
     auth_token=$(kubectl get cm -n kurl ekco-config -ojsonpath='{.data.config\.yaml}' | grep "storage_migration_auth_token:" | awk '{print $2}')
 
     echo "$auth_token"
+}
+
+# determine storage migration ready timeout
+function storage_migration_ready_timeout() {
+    if [ -z "$STORAGE_MIGRATION_READY_TIMEOUT" ]; then
+        STORAGE_MIGRATION_READY_TIMEOUT="10m0s"
+    fi
+    echo "$STORAGE_MIGRATION_READY_TIMEOUT"
+}
+
+# return the version of kubernetes that is currently installed on the server
+function kubectl_server_version() {
+    local kubectl_server_version=
+    if kubectl version --short > /dev/null 2>&1 ; then
+        kubectl_server_version="$(kubectl version --short | grep -i server | awk '{ print $3 }')"
+    else
+        # kubectl version --short is not supported in kubectl > 1.27, but is now the default behavior
+        kubectl_server_version="$(kubectl version | grep -i server | awk '{ print $3 }')"
+    fi
+    echo "$kubectl_server_version"
+}
+
+# return the version of kubernetes that is currently installed on the client
+function kubectl_client_version() {
+    local kubectl_client_version=
+    if kubectl version --short > /dev/null 2>&1 ; then
+        kubectl_client_version="$(kubectl version --short | grep -i client | awk '{ print $3 }')"
+    else
+        # kubectl version --short is not supported in kubectl > 1.27, but is now the default behavior
+        kubectl_client_version="$(kubectl version | grep -i client | awk '{ print $3 }')"
+    fi
+    echo "$kubectl_client_version"
+}
+
+# create directories for remote commands to be placed within, and ensure they are empty
+function setup_remote_commands_dirs() {
+    mkdir -p "$DIR/remotes"
+    rm -f "$DIR/remotes/*"
 }

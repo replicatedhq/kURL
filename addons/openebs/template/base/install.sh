@@ -146,6 +146,16 @@ function openebs_prompt_migrate_from_rook() {
         bail "Not migrating"
     fi
 
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 18 ] ; then
+        # if the current version of k8s is compatible with OpenEBS, install it and migrate the data before upgrading k8s
+        printf "    Starting OpenEBS installation and migration from Rook to OpenEBS.\n"
+
+        report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
+        addon_load "openebs" "$OPENEBS_VERSION"
+        addon_install "openebs" "$OPENEBS_VERSION"
+        report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
+    fi
 }
 
 function openebs_apply_crds() {
@@ -174,6 +184,9 @@ function openebs_apply_operator() {
 
     logStep "Waiting for OpenEBS CustomResourceDefinitions to be ready"
     spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
+
+    logStep "Waiting for the OpenEBS Operator to be ready"
+    spinner_until 300 deployment_fully_updated openebs openebs-localpv-provisioner
 
     openebs_cleanup_kubesystem
     logSuccess "OpenEBS CustomResourceDefinitions are ready"
@@ -408,18 +421,23 @@ function openebs_prompt_migrate_from_longhorn() {
     logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
     logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
 
-    semverParse "$KUBERNETES_VERSION"
-    if [ "$minor" -gt 24 ] ; then
-        logFail "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
-        logFail "    on your cluster. As a result, it is not possible to migrate data from Longhorn to OpenEBS. To successfully migrate data, please choose a Kubernetes"
-        logFail "    version that is compatible with the version of Longhorn running on your cluster (note: Longhorn is compatible with Kubernetes versions up to and"
-        logFail "    including 1.24)."
-        bail "Not migrating"
-    fi
-
     log "Would you like to continue? "
     if ! confirmN; then
         bail "Not migrating"
+    fi
+
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 18 ] ; then
+        # if the current version of k8s is compatible with OpenEBS, install it and migrate the data before upgrading k8s
+        printf "    Starting OpenEBS installation and migration from Longhorn to OpenEBS.\n"
+
+        longhorn_prepare_for_migration
+        report_addon_start "openebs-preinstall" "$OPENEBS_VERSION"
+        addon_load "openebs" "$OPENEBS_VERSION"
+        addon_install "openebs" "$OPENEBS_VERSION"
+        report_addon_success "openebs-preinstall" "$OPENEBS_VERSION"
+        maybe_cleanup_longhorn
+        return
     fi
 
     if ! longhorn_prepare_for_migration; then

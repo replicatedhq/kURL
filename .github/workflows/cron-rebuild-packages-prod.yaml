@@ -8,7 +8,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - id: set-matrix
         name: Build image matrix
@@ -32,7 +32,7 @@ jobs:
         with:
           go-version: '1.20'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "${{ matrix.batch }} : Build batch"
         env:

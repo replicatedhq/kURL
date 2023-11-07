@@ -24,6 +24,7 @@ fileContents=$(cat "$tmpdir"/contour.yaml)
 upstreamContourVersionPattern='/projectcontour/contour:v([0-9]+\.[0-9]+\.[0-9]+)' # hosted on docker.io and ghcr depending on version
 [[ "$fileContents" =~ $upstreamContourVersionPattern ]]
 CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
+CONTOUR_VERSION_DASH="${CONTOUR_VERSION//./-}" # 1-11-0
 
 echo "contour version: $CONTOUR_VERSION"
 echo "contour_version=$CONTOUR_VERSION" >> "$GITHUB_OUTPUT"
@@ -50,7 +51,7 @@ grep 'image: '  "$tmpdir/contour.yaml" | sort -u | sed 's/ *image: "*\(.*\)\/\(.
 
 # template 'install.sh' and 'job-image.yaml' with versions
 sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/install.sh"
-sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/patches/job-image.yaml"
+sed -i "s/__releasever_dash__/$CONTOUR_VERSION_DASH/g" "../$CONTOUR_VERSION/patches/job-image.yaml"
 
 # insert upstream URL into contour.yaml header
 sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"

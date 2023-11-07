@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func Test_deleteTmpPVCs(t *testing.T) {
@@ -324,7 +324,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			expectedName: "disk-free-node0-",
 			scname:       "xyz",
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
-				StorageClassName: pointer.String("xyz"),
+				StorageClassName: ptr.To("xyz"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{
@@ -339,7 +339,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			expectedName: "disk-free-this-is-a-relly-long-and-this-should-be-trimmed-",
 			scname:       "default",
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
-				StorageClassName: pointer.String("default"),
+				StorageClassName: ptr.To("default"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{

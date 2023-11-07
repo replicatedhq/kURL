@@ -54,13 +54,19 @@ func (o *OpenEBSDiskSpaceValidator) NodesWithoutSpace(ctx context.Context) ([]st
 			continue
 		}
 
+		var reservedMsg string
+		if vol.RootVolume {
+			reservedMsg = "(15% of the root disk is reserved to prevent DiskPressure evictions)"
+		}
+
 		faultyNodes[node] = true
 		o.log.Printf(
-			"Node %q has %s available, which is less than the %s that would be migrated from the %q storage class",
+			"Node %q has %s available, which is less than the %s that would be migrated from the %q storage class %s",
 			node,
 			bytefmt.ByteSize(uint64(free)),
 			bytefmt.ByteSize(uint64(reservedPerNode[node])),
 			o.srcSC,
+			reservedMsg,
 		)
 	}
 

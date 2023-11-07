@@ -570,7 +570,11 @@ function discover_pod_subnet() {
         return 0
     fi
 
-    bail "Failed to find available subnet for pod network. Use the pod-cidr flag to set a pod network"
+    if [ -n "$WEAVE_VERSION" ] ; then
+        bail "Failed to find an available /${size} subnet for the pod network within either 10.32.0.0/16 or 10.0.0.0/8. \n  Use Weave's podCIDR parameter to set a pod network that is not already in use. \n  https://kurl.sh/docs/add-ons/weave#advanced-install-options"
+    else
+        bail "Failed to find an available /${size} subnet for the pod network within either 10.32.0.0/16 or 10.0.0.0/8. \n  Use Flannel's podCIDR parameter to set a pod network that is not already in use. \n  https://kurl.sh/docs/add-ons/flannel#advanced-install-options"
+    fi
 }
 
 # This must run after discover_pod_subnet since it excludes the pod cidr
@@ -641,7 +645,7 @@ function discover_service_subnet() {
         return 0
     fi
 
-    bail "Failed to find available subnet for service network. Use the service-cidr flag to set a service network"
+    bail "Failed to find an available /${size} subnet for the service network within either 10.32.0.0/16 or 10.0.0.0/8. \n  Use Kubernetes's serviceCIDR parameter to set a pod network that is not already in use. \n  https://kurl.sh/docs/add-ons/kubernetes#advanced-install-options"
 }
 
 function kubernetes_node_images() {

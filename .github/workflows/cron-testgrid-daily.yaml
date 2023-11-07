@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: pull tgrun image
       run: docker pull replicated/tgrun:latest
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: pull tgrun image
       run: docker pull replicated/tgrun:latest
@@ -46,5 +46,27 @@ jobs:
           replicated/tgrun:latest queue --staging \
             --ref "${REF}" \
             --spec ./testgrid/specs/storage-migration.yaml \
-            --os-spec ./testgrid/specs/os-latest.yaml \
-            --priority -2
+            --os-spec ./testgrid/specs/os-customer-common.yaml \
+            --priority -1
+
+  testgrid-daily-customer-migration:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pull tgrun image
+        run: docker pull replicated/tgrun:latest
+
+      - name: testgrid-queue-staging
+        env:
+          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+        run: |
+          REF="STAGING-daily-customer-migration-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
+          docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+            replicated/tgrun:latest queue --staging \
+              --ref "${REF}" \
+              --spec ./testgrid/specs/customer-migration-specs.yaml \
+              --os-spec ./testgrid/specs/os-customer-common.yaml \
+              --priority -1
