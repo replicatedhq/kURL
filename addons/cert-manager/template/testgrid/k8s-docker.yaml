@@ -15,7 +15,7 @@
     kubectl create -f https://raw.githubusercontent.com/cert-manager/cert-manager/v__testver__/test/fixtures/cert-manager-resources.yaml
     sleep 10s
     kubectl describe certificates
-    kubectl describe certificates | grep "Certificate issued successfully"
+    kubectl describe certificates | grep "The certificate has been successfully issued"
     
     # setup cmctl
     OS=$(go env GOOS); ARCH=$(go env GOARCH); curl -fsSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/v__testver__/download/cmctl-$OS-$ARCH.tar.gz
@@ -47,7 +47,7 @@
   postInstallScript: |
     kubectl get crds
     kubectl get all -n cert-manager
-    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/staging-issuer.yaml
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/80e45cea5374c15fe784b2544e2e5d14b22b5416/content/docs/tutorials/acme/example/staging-issuer.yaml
     kubectl get issuers letsencrypt-staging
   postUpgradeScript: |
     # todo validate that cert-manager is actually working (TBD how)
@@ -77,7 +77,7 @@
   postInstallScript: |
     kubectl get crds
     kubectl get all -n cert-manager
-    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/staging-issuer.yaml
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/80e45cea5374c15fe784b2544e2e5d14b22b5416/content/docs/tutorials/acme/example/staging-issuer.yaml
     kubectl get issuers letsencrypt-staging
   postUpgradeScript: |
     # todo validate that cert-manager is actually working (TBD how)
