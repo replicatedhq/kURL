@@ -1,7 +1,7 @@
-# resources downloaded from https://github.com/cert-manager/cert-manager/releases/download/v1.12.2/cert-manager.yaml
+# resources downloaded from https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.yaml
 
 cert-manager() {
-  local src="$DIR/addons/cert-manager/1.12.2"
+  local src="$DIR/addons/cert-manager/1.13.2"
   local dst="$DIR/kustomize/cert-manager"
 
   cp "$src/cert-manager.yaml" "$dst"
