@@ -1,8 +1,8 @@
 - name: fresh install
   installerSpec:
     kubernetes:
-      version: "1.25.x"
-    weave:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -27,8 +27,8 @@
 - name: upgrade from earliest
   installerSpec:
     kubernetes:
-      version: "latest"
-    weave:
+      version: "1.25.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -36,8 +36,8 @@
       version: "1.0.3"
   upgradeSpec:
     kubernetes:
-      version: "latest"
-    weave:
+      version: "1.25.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -57,8 +57,8 @@
 - name: upgrade from latest
   installerSpec:
     kubernetes:
-      version: "latest"
-    weave:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -66,8 +66,8 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
-    weave:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -88,8 +88,8 @@
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.25.x"
-    weave:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
