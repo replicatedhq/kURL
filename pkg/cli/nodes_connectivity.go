@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -20,7 +21,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/kustomize/api/types"
+	"sigs.k8s.io/yaml"
 
 	"github.com/google/uuid"
 	"github.com/replicatedhq/plumber/v2"
@@ -56,6 +60,14 @@ type nodeConnectivityOptions struct {
 	port      int32
 	cli       client.Client
 	wait      time.Duration
+	verbose   bool
+}
+
+func (n nodeConnectivityOptions) debugf(format string, args ...interface{}) {
+	if !n.verbose || n.printf == nil {
+		return
+	}
+	n.printf(format, args...)
 }
 
 func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
@@ -101,13 +113,17 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
 			defer cancel()
+			k8slogger := zap.New(func(o *zap.Options) { o.DestWriter = io.Discard })
+			log.SetLogger(k8slogger)
 
 			defer func() {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 				defer cancel()
+				opts.debugf("Deleting listener DaemonSet")
 				if err := deleteListeners(ctx, opts); err != nil {
 					opts.printf("Failed to delete DaemonSet listeners overlay: %s\n", err)
 				}
+				opts.debugf("Deleting pinger job")
 				if err := deletePinger(ctx, opts); err != nil {
 					opts.printf("Failed to delete pinger job: %s\n", err)
 				}
@@ -132,6 +148,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 	cmd.Flags().StringVar(&opts.image, "image", "replicated/kurl-util:latest", "The image to use for the test (image must contain bash, nc and echo).")
 	cmd.Flags().Int32Var(&opts.port, "port", 0, "The port to use for the test.")
 	cmd.Flags().IntVar(&opts.attempts, "udp-attempts", 5, "The number of connection attempts when using udp.")
+	cmd.Flags().BoolVar(&opts.verbose, "verbose", false, "Enable verbose output.")
 	return cmd
 }
 
@@ -189,15 +206,19 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 					{Name: "PORT", Value: fmt.Sprintf("%d", opts.port)},
 				}
 			}
+			data, _ := yaml.Marshal(obj)
+			opts.debugf("Creating object:\n%s", string(data))
 			return nil
 		}),
 		plumber.WithPostApplyAction(func(ctx context.Context, obj client.Object) error {
 			if ds, ok := obj.(*appsv1.DaemonSet); ok {
+				opts.debugf("Waiting for DaemonSet %s to rollout\n", ds.Name)
 				err := k8sutil.WaitForDaemonsetRollout(ctx, opts.cliset, ds, time.Minute)
 				if err != nil {
 					printDaemonsetStatus(ctx, opts, ds)
 					return fmt.Errorf("failed to wait for DaemonSet rollout: %w", err)
 				}
+				opts.debugf("DaemonSet %s ready\n", ds.Name)
 			}
 			return nil
 		}),
@@ -205,7 +226,7 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 	overlay := fmt.Sprintf("%s-listeners", strings.ToLower(opts.proto))
 	renderer := plumber.NewRenderer(opts.cli, nodes_connectivity.Static, options...)
 	if err := renderer.Apply(ctx, overlay); err != nil {
-		return fmt.Errorf("failed to create listeners daemonset: %w", err)
+		return fmt.Errorf("failed to create listeners DaemonSet: %w", err)
 	}
 	opts.printf("Listeners DaemonSet deployed successfully.\n")
 	return nil
@@ -213,30 +234,41 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 
 // attachToListenersPods attaches to all provided pod logs. returns a channel from where printed messages (or errors) can
 // be read.
-func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, pods []corev1.Pod) <-chan logLine {
+func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, pods []corev1.Pod) (<-chan logLine, error) {
 	var out = make(chan logLine)
 	for _, pod := range pods {
+		opts.printf("Attaching to pod %s\n", pod.Name)
+		errs := make(chan error)
 		go func(pod corev1.Pod) {
 			logopts := &corev1.PodLogOptions{Follow: true}
 			req := opts.cliset.CoreV1().Pods(opts.namespace).GetLogs(pod.Name, logopts)
 			stream, err := req.Stream(ctx)
 			if err != nil {
-				out <- logLine{err: fmt.Errorf("failed to get logs for pod %s: %w", pod.Name, err)}
+				errs <- fmt.Errorf("failed to attach to pod %s: %w", pod.Name, err)
 				return
 			}
 			defer stream.Close()
 
+			errs <- nil
 			scanner := bufio.NewScanner(stream)
 			scanner.Split(bufio.ScanLines)
+			opts.debugf("Waiting for logs on pod %s\n", pod.Name)
 			for scanner.Scan() {
+				txt := scanner.Text()
+				opts.debugf("Pod %s log: %s\n", pod.Name, txt)
 				out <- logLine{message: scanner.Text()}
 			}
 			if err := scanner.Err(); err != nil {
+				opts.debugf("Error closing scanner on pod %s: %v\n", pod.Name, err)
 				out <- logLine{err: fmt.Errorf("failed to read logs for pod %s: %w", pod.Name, err)}
 			}
 		}(pod)
+		if err := <-errs; err != nil {
+			opts.debugf("Fail to attach to pod %s: %v\n", pod.Name, err)
+			return nil, err
+		}
 	}
-	return out
+	return out, nil
 }
 
 // kustomizeMutator returns a kustomize mutator that sets the namespace and image.
@@ -302,13 +334,17 @@ func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.P
 				//job.Spec.Template.Spec.Tolerations = model.Spec.Tolerations
 				job.Spec.Template.Spec.Containers[0].Env = env
 			}
+			data, _ := yaml.Marshal(obj)
+			opts.debugf("Creating object:\n%s", string(data))
 			return nil
 		}),
 		plumber.WithPostApplyAction(func(ctx context.Context, obj client.Object) error {
 			if job, ok := obj.(*batchv1.Job); ok {
+				opts.debugf("Waiting for job %s to finish\n", string(job.Name))
 				if _, err := k8sutil.WaitForJob(ctx, opts.cliset, job, time.Minute); err != nil {
 					return fmt.Errorf("failed to create job: %s", err)
 				}
+				opts.debugf("Job %s finished\n", string(job.Name))
 			}
 			return nil
 		}),
@@ -329,7 +365,13 @@ func testNodesConnectivity(ctx context.Context, opts nodeConnectivityOptions) er
 	if err != nil {
 		return fmt.Errorf("failed to get listener pods: %w", err)
 	}
-	receiver := attachToListenersPods(ctx, opts, pods.Items)
+	for _, pod := range pods.Items {
+		opts.debugf("Found %s as part of the listeners DaemonSet\n", pod.Name)
+	}
+	receiver, err := attachToListenersPods(ctx, opts, pods.Items)
+	if err != nil {
+		return fmt.Errorf("failed to attach to listeners: %w", err)
+	}
 	var nodes corev1.NodeList
 	if err := opts.cli.List(ctx, &nodes); err != nil {
 		return fmt.Errorf("failed to list nodes: %w", err)
@@ -345,10 +387,12 @@ func testNodesConnectivity(ctx context.Context, opts nodeConnectivityOptions) er
 func readLogLine(ctx context.Context, opts nodeConnectivityOptions, receiver <-chan logLine) (string, error) {
 	select {
 	case line := <-receiver:
+		opts.debugf("Event received from listener pods: message: %s err: %v\n", line.message, line.err)
 		return line.message, line.err
 	case <-ctx.Done():
 		return "", fmt.Errorf("failed while waiting for logs: %w", ctx.Err())
 	case <-time.After(opts.wait):
+		opts.debugf("Timeout while waiting for logs\n")
 		return "", nil
 	}
 }
@@ -376,15 +420,17 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 			if err != nil {
 				return fmt.Errorf("failed to connect node %s from node %s: %v", src, dst, err)
 			}
+			opts.debugf("Reading logs from listeners\n")
 			line, err := readLogLine(ctx, opts, receiver)
 			if err != nil {
 				return fmt.Errorf("failed to read log line: %w", err)
 			}
+			opts.debugf("Received %s, expected %s\n", line, id)
 			if success = line == id; success {
 				opts.printf("Success, packet received.\n")
 				break
 			}
-			opts.printf("Failed to connect from %s to %s, %s\n", src, dst)
+			opts.printf("Failed to connect from %s to %s\n", src, dst)
 		}
 		if success {
 			continue
