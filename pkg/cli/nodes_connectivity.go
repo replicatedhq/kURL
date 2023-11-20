@@ -78,11 +78,11 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 		Example: usageExamples,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.port == 0 {
-				return fmt.Errorf("--port flag is required.")
+				return fmt.Errorf("--port flag is required")
 			}
 			opts.proto = strings.ToUpper(opts.proto)
 			if proto := corev1.Protocol(opts.proto); proto != corev1.ProtocolTCP && proto != corev1.ProtocolUDP {
-				return fmt.Errorf("--protocol must be either tcp or udp.")
+				return fmt.Errorf("--protocol must be either tcp or udp")
 			}
 			// now that all input args have been validated we can silence the usage print upon error.
 			cmd.SilenceUsage = true
@@ -256,7 +256,13 @@ func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, po
 			for scanner.Scan() {
 				txt := scanner.Text()
 				opts.debugf("Pod %s log: %s\n", pod.Name, txt)
-				out <- logLine{message: scanner.Text()}
+				if _, err := uuid.Parse(txt); err != nil {
+					opts.debugf("Pod line is not a UUID\n")
+					out <- logLine{err: fmt.Errorf("invalid output found: %s", txt)}
+					continue
+				}
+				opts.debugf("Pod line is a UUID\n")
+				out <- logLine{message: txt}
 			}
 			if err := scanner.Err(); err != nil {
 				opts.debugf("Error closing scanner on pod %s: %v\n", pod.Name, err)
