@@ -257,11 +257,11 @@ func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, po
 				txt := scanner.Text()
 				opts.debugf("Pod %s log: %s\n", pod.Name, txt)
 				if _, err := uuid.Parse(txt); err != nil {
-					opts.debugf("Pod line is not an UUID\n")
+					opts.debugf("Pod line is not a UUID\n")
 					out <- logLine{err: fmt.Errorf("invalid output found: %s", txt)}
 					continue
 				}
-				opts.debugf("Pod line is an UUID\n")
+				opts.debugf("Pod line is a UUID\n")
 				out <- logLine{message: txt}
 			}
 			if err := scanner.Err(); err != nil {
