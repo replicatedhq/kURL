@@ -75,9 +75,9 @@ function containerd_install() {
         systemctl restart containerd || true
         sleep 120
         log "containerd status"
-        systemctl status containerd.service
+        systemctl status containerd.service || true
         log "containerd logs"
-        journalctl -u containerd.service
+        journalctl -xeu containerd.service
         bail "Failed to restart containerd"
         CONTAINERD_NEEDS_RESTART=0
     fi
