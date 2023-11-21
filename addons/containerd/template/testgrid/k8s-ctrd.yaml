@@ -23,7 +23,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 
-- name: basic containerd and flannel, internal LB, airgap, 1.26 to 1.28, airgap
+- name: basic containerd and flannel, internal LB, airgap, 1.26 to 1.27, airgap
   airgap: true
   installerSpec:
     kubernetes:
@@ -46,7 +46,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: "1.28.x"
+      version: "1.27.x"
     flannel:
       version: latest
     containerd:
