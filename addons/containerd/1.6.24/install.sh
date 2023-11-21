@@ -72,7 +72,13 @@ function containerd_install() {
     if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
         log "Re-starting containerd"
         systemctl daemon-reload
-        restart_systemd_and_wait containerd
+        if ! restart_systemd_and_wait containerd; then
+            log "containerd status"
+            systemctl status containerd.service
+            log "containerd logs"
+            journalctl -u containerd.service
+            bail "Failed to restart containerd"
+        fi
         CONTAINERD_NEEDS_RESTART=0
     fi
 
