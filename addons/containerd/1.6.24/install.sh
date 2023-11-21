@@ -142,8 +142,8 @@ EOF
     local pause_image=
     pause_image="$(containerd_kubernetes_pause_image "$KUBERNETES_VERSION")"
     if [ -n "$pause_image" ]; then
-        # replace the line 'sandbox_image = ""' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
-        sed -i "/sandbox_image/c\\  sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
+        # replace the line 'sandbox_image = "whatever the image previously was"' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
+        sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
         echo "Set containerd sandbox_image to $pause_image"
         cat /etc/containerd/config.toml
