@@ -139,9 +139,19 @@ function containerd_configure() {
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
   SystemdCgroup = true
 EOF
+    local pause_image=
+    pause_image="$(containerd_kubernetes_pause_image "$KUBERNETES_VERSION_MINOR")"
+    if [ -n "$pause_image" ]; then
+        cat >> /etc/containerd/config.toml <<EOF
+[plugins."io.containerd.grpc.v1.cri"]
+  sandbox_image = "$pause_image"
+EOF
+        echo "Set containerd sandbox_image to $pause_image"
+        cat /etc/containerd/config.toml
+    fi
 
-	  if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
-	      log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
+    if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
+        log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
         local tmp=$(mktemp)
         echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
         "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
@@ -342,4 +352,18 @@ function _containerd_migrate_images_from_docker() {
     for image in $tmpdir/* ; do
         (set -x; ctr -n=k8s.io images import $image)
     done
+}
+
+# return the pause image for the specified minor version of kubernetes
+# versions 1.26 and earlier return the empty string as they can be overridden to use a different image
+function containerd_kubernetes_pause_image() {
+    version="$1"
+    local minor_version=
+    minor_version="$(kubernetes_version_minor "$version")"
+
+    if [ "$minor_version" -gt "27" ]; then
+        echo "registry.k8s.io/pause:3.9"
+    else
+        echo ""
+    fi
 }

@@ -1,4 +1,27 @@
-- name: basic containerd and flannel, internal LB
+- name: basic containerd and flannel, internal LB, airgap, 1.28
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "1.28.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+    kotsadm:
+      version: latest
+
+- name: basic containerd and flannel, internal LB, airgap, 1.26
+  airgap: true
   installerSpec:
     kubernetes:
       version: "1.26.x"

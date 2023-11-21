@@ -7,4 +7,3 @@ dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.6.24
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.6.21
 dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.6.24
 dockerout ubuntu-22.04 addons/containerd/template/Dockerfile.ubuntu22 1.6.24
-image pause registry.k8s.io/pause:3.6
