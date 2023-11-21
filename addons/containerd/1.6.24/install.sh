@@ -358,8 +358,10 @@ function _containerd_migrate_images_from_docker() {
 # versions 1.26 and earlier return the empty string as they can be overridden to use a different image
 function containerd_kubernetes_pause_image() {
     version="$1"
+    echo "kubernetes_version = $version"
     local minor_version=
     minor_version="$(kubernetes_version_minor "$version")"
+    echo "minor_version = $minor_version"
 
     if [ "$minor_version" -gt "27" ]; then
         echo "registry.k8s.io/pause:3.9"
