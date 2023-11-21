@@ -72,7 +72,7 @@ function containerd_install() {
     if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
         log "Re-starting containerd"
         systemctl daemon-reload
-        systemctl restart containerd
+        systemctl restart containerd || true
         sleep 120
         log "containerd status"
         systemctl status containerd.service
