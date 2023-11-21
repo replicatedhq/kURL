@@ -146,7 +146,6 @@ EOF
         sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
         echo "Set containerd sandbox_image to $pause_image"
-        cat /etc/containerd/config.toml
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then

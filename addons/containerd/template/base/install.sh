@@ -139,9 +139,17 @@ function containerd_configure() {
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
   SystemdCgroup = true
 EOF
+    local pause_image=
+    pause_image="$(containerd_kubernetes_pause_image "$KUBERNETES_VERSION")"
+    if [ -n "$pause_image" ]; then
+        # replace the line 'sandbox_image = "whatever the image previously was"' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
+        sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
-	  if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
-	      log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
+        echo "Set containerd sandbox_image to $pause_image"
+    fi
+
+    if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
+        log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
         local tmp=$(mktemp)
         echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
         "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
@@ -258,7 +266,7 @@ function containerd_migrate_from_docker() {
 
     local node=
     node="$(get_local_node_name)"
-    kubectl "$kubeconfigFlag" cordon "$node" 
+    kubectl "$kubeconfigFlag" cordon "$node"
 
     echo "Deleting pods"
     local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
@@ -342,4 +350,18 @@ function _containerd_migrate_images_from_docker() {
     for image in $tmpdir/* ; do
         (set -x; ctr -n=k8s.io images import $image)
     done
+}
+
+# return the pause image for the specified minor version of kubernetes
+# versions 1.26 and earlier return the empty string as they can be overridden to use a different image
+function containerd_kubernetes_pause_image() {
+    version="$1"
+    local minor_version=
+    minor_version="$(kubernetes_version_minor "$version")"
+
+    if [ "$minor_version" -gt "27" ]; then
+        echo "registry.k8s.io/pause:3.9"
+    else
+        echo ""
+    fi
 }
