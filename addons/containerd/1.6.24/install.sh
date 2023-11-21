@@ -72,13 +72,7 @@ function containerd_install() {
     if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
         log "Re-starting containerd"
         systemctl daemon-reload
-        systemctl restart containerd || true
-        sleep 120
-        log "containerd status"
-        systemctl status containerd.service || true
-        log "containerd logs"
-        journalctl -xeu containerd.service
-        bail "Failed to restart containerd"
+        restart_systemd_and_wait containerd
         CONTAINERD_NEEDS_RESTART=0
     fi
 
@@ -148,10 +142,9 @@ EOF
     local pause_image=
     pause_image="$(containerd_kubernetes_pause_image "$KUBERNETES_VERSION")"
     if [ -n "$pause_image" ]; then
-        cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri"]
-  sandbox_image = "$pause_image"
-EOF
+        # replace the line 'sandbox_image = ""' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
+        sed -i "/sandbox_image/c\\  sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
+
         echo "Set containerd sandbox_image to $pause_image"
         cat /etc/containerd/config.toml
     fi
