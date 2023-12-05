@@ -1,4 +1,37 @@
-- name: basic containerd and flannel, internal LB
+- name: basic containerd and flannel, internal LB, airgap, 1.28
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "1.28.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+    kotsadm:
+      version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  postInstallScript: |
+    echo "checking /etc/containerd/config.toml"
+    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
+    cat /etc/containerd/config.toml | grep pause:3.9
+    echo "checking /var/lib/kubelet/kubeadm-flags.env"
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
+
+- name: basic containerd and flannel, internal LB, airgap, 1.26 to 1.27, airgap
+  airgap: true
   installerSpec:
     kubernetes:
       version: "1.26.x"
@@ -18,6 +51,44 @@
       enableInternalLoadBalancer: true
     kotsadm:
       version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.27.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+    kotsadm:
+      version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  postInstallScript: |
+    echo "checking /etc/containerd/config.toml"
+    cat /etc/containerd/config.toml | grep pause # should be 3.6, this is for debugging
+    cat /etc/containerd/config.toml | grep pause:3.6 
+    echo "checking /var/lib/kubelet/kubeadm-flags.env"
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.6, this is for debugging
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.6
+  postUpgradeScript: |
+    echo "checking /etc/containerd/config.toml"
+    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
+    cat /etc/containerd/config.toml | grep pause:3.9 
+    echo "checking /var/lib/kubelet/kubeadm-flags.env"
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
+
+
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   flags: "yes"
