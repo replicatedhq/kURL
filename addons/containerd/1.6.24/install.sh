@@ -266,7 +266,7 @@ function containerd_migrate_from_docker() {
 
     local node=
     node="$(get_local_node_name)"
-    kubectl "$kubeconfigFlag" cordon "$node" 
+    kubectl "$kubeconfigFlag" cordon "$node"
 
     echo "Deleting pods"
     local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
