@@ -150,7 +150,7 @@ EOF
         # if containerd is running, this is an upgrade and we can load the pause image
         if systemctl is-active --quiet containerd; then
             log "Loading Kubernetes $KUBERNETES_VERSION pause image"
-            ctr -n=k8s.io images import "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz"
+            cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz" | gunzip | ctr -n=k8s.io images import -
             log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
         fi
     fi
