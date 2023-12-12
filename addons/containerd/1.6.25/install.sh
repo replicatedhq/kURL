@@ -146,6 +146,8 @@ EOF
         sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
         echo "Set containerd sandbox_image to $pause_image"
+        ctr -n=k8s.io images import "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz"
+        echo "Loaded Kubernetes $KUBERNETES_VERSION pause image"
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
