@@ -126,7 +126,7 @@ function containerd_install_libzstd_if_missing() {
 
 function containerd_configure() {
     if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
-        echo "Skipping containerd configuration in order to preserve config."
+        log "Skipping containerd configuration in order to preserve config."
         return
     fi
     mkdir -p /etc/containerd
@@ -145,9 +145,14 @@ EOF
         # replace the line 'sandbox_image = "whatever the image previously was"' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
         sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
-        echo "Set containerd sandbox_image to $pause_image"
-        ctr -n=k8s.io images import "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz"
-        echo "Loaded Kubernetes $KUBERNETES_VERSION pause image"
+        log "Set containerd sandbox_image to $pause_image"
+
+        # if containerd is running, this is an upgrade and we can load the pause image
+        if systemctl is-active --quiet containerd; then
+            log "Loading Kubernetes $KUBERNETES_VERSION pause image"
+            ctr -n=k8s.io images import "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz"
+            log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
+        fi
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
@@ -250,7 +255,7 @@ function containerd_migrate_from_docker() {
 
     # steps from https://kubernetes.io/docs/tasks/administer-cluster/migrating-from-dockershim/change-runtime-containerd/
 
-    echo "Draining node to prepare for migration from docker to containerd"
+    log "Draining node to prepare for migration from docker to containerd"
 
     # Delete pods that depend on other pods on the same node
     if [ -f "$DIR/addons/ekco/$EKCO_VERSION/reboot/shutdown.sh" ]; then
@@ -264,13 +269,13 @@ function containerd_migrate_from_docker() {
         fi
     fi
 
-    echo "Cordoning node"
+    log "Cordoning node"
 
     local node=
     node="$(get_local_node_name)"
     kubectl "$kubeconfigFlag" cordon "$node"
 
-    echo "Deleting pods"
+    log "Deleting pods"
     local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
 
     # Drain remaining pods using only the permissions available to kubelet
@@ -285,7 +290,7 @@ function containerd_migrate_from_docker() {
         kubectl "$kubeconfigFlag" delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
     done < <(ls /var/lib/kubelet/pods)
 
-    echo "Stopping kubelet"
+    log "Stopping kubelet"
     systemctl stop kubelet
 
     if kubectl "$kubeconfigFlag" get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock" ; then
@@ -302,7 +307,7 @@ function containerd_migrate_from_docker() {
 
     systemctl daemon-reload
 
-    echo "Migrated to containerd"
+    log "Migrated to containerd"
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
 }
 
