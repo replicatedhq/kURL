@@ -1,2 +1,2 @@
 image ekco docker.io/replicated/ekco:v0.28.3
-image haproxy haproxy:2.9.0-alpine3.18
+image haproxy haproxy:2.9.0-alpine3.19
