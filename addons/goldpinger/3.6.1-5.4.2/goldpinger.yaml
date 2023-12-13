@@ -112,12 +112,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: PING_TIMEOUT
-              value: 2s
-            - name: CHECK_TIMEOUT
-              value: 3s
-            - name: CHECK_ALL_TIMEOUT
-              value: 10s
           ports:
             - name: http
               containerPort: 80
