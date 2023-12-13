@@ -29,10 +29,10 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
-- id: rocky-92
+- id: rocky-9
   name: Rocky Linux
-  version: "9.2"
-  vmimageuri: https://download.rockylinux.org/pub/rocky/9.2/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+  version: "9.3"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9.3/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
     yum install -y fio
 - id: ubuntu-1804
