@@ -1,8 +1,8 @@
-- name: basic containerd and flannel, internal LB, airgap, 1.28
+- name: basic containerd and flannel, internal LB, airgap, 1.29
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.28.x"
+      version: "1.29.x"
     flannel:
       version: latest
     containerd:
