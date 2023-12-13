@@ -32,7 +32,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-    - rocky-92 # docker is not supported on rhel 9 variants
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.25 to 1.28, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
