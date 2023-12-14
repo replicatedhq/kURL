@@ -3,10 +3,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get -y install curl apt-transport-https gnupg tzdata
+RUN apt-get -y install curl apt-transport-https gnupg tzdata ca-certificates
 
-RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] http://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg
+
+ARG KUBERNETES_MINOR_VERSION
+
+RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_MINOR_VERSION}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+RUN apt-get update
+
 RUN apt-get update
 RUN mkdir -p /packages/archives
 
