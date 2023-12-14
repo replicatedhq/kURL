@@ -510,6 +510,7 @@ build/packages/docker/%/rhel-8:
 build/packages/kubernetes/%/ubuntu-18.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/ubuntu-1804-k8s:$* \
 		-f bundles/k8s-ubuntu1804/Dockerfile \
 		bundles/k8s-ubuntu1804
@@ -522,6 +523,7 @@ build/packages/kubernetes/%/ubuntu-18.04:
 build/packages/kubernetes/%/ubuntu-20.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/ubuntu-2004-k8s:$* \
 		-f bundles/k8s-ubuntu2004/Dockerfile \
 		bundles/k8s-ubuntu2004
@@ -534,6 +536,7 @@ build/packages/kubernetes/%/ubuntu-20.04:
 build/packages/kubernetes/%/ubuntu-22.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/ubuntu-2204-k8s:$* \
 		-f bundles/k8s-ubuntu2204/Dockerfile \
 		bundles/k8s-ubuntu2204
@@ -546,6 +549,7 @@ build/packages/kubernetes/%/ubuntu-22.04:
 build/packages/kubernetes/%/rhel-7:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/rhel-7-k8s:$* \
 		-f bundles/k8s-rhel7/Dockerfile \
 		bundles/k8s-rhel7
@@ -558,6 +562,7 @@ build/packages/kubernetes/%/rhel-7:
 build/packages/kubernetes/%/rhel-7-force:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/rhel-7-force-k8s:$* \
 		-f bundles/k8s-rhel7-force/Dockerfile \
 		bundles/k8s-rhel7-force
@@ -570,6 +575,7 @@ build/packages/kubernetes/%/rhel-7-force:
 build/packages/kubernetes/%/rhel-8:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/rhel-8-k8s:$* \
 		-f bundles/k8s-rhel8/Dockerfile \
 		bundles/k8s-rhel8
@@ -584,6 +590,7 @@ build/packages/kubernetes/%/rhel-8:
 build/packages/kubernetes/%/rhel-9:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
 		-t kurl/rhel-9-k8s:$* \
 		-f bundles/k8s-rhel9/Dockerfile \
 		bundles/k8s-rhel9

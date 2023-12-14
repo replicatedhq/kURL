@@ -7,6 +7,8 @@ RUN yum install -y yum-utils createrepo modulemd-tools
 
 COPY ./containertools /opt/containertools
 COPY ./kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+ARG KUBERNETES_MINOR_VERSION
+RUN sed -i "s/__KUBERNETES_MINOR_VERSION__/v${KUBERNETES_MINOR_VERSION}/g" /etc/yum.repos.d/kubernetes.repo
 
 RUN mkdir -p /packages/archives
 RUN /opt/containertools/yumdownloader.sh "kubelet-$KUBERNETES_VERSION kubectl-$KUBERNETES_VERSION kubernetes-cni"
