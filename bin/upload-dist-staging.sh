@@ -30,9 +30,9 @@ function package_has_changes() {
     fi
 
     if is_old_kubernetes "${key}" ; then
-        # if old kubernetes package then we can't calculate changes
+        # we cannot rebuild old kubernetes packages, so we should always say there were no changes
         echo "Old kubernetes package ${package}"
-        return 0
+        return 1
     fi
 
     local upstream_gitsha=
@@ -51,7 +51,7 @@ function package_has_changes() {
     fi
 }
 
-# kubernetes packages before 1.24 are not available in the new repo, and so should be copied
+# kubernetes packages before 1.24 are not available in the new yum/apt repo, and so should be copied
 function is_old_kubernetes() {
     local package="$1"
     if echo "${package}" | grep -q "kubernetes-1.15" ; then
