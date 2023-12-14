@@ -81,6 +81,7 @@ function is_old_kubernetes() {
     if echo "${package}" | grep -q "kubernetes-1.23" ; then
         return 0
     fi
+    return 1
 }
 
 function build_and_upload() {
