@@ -29,6 +29,12 @@ function package_has_changes() {
         return 0
     fi
 
+    if is_old_kubernetes "${key}" ; then
+        # if old kubernetes package then we can't calculate changes
+        echo "Old kubernetes package ${package}"
+        return 0
+    fi
+
     local upstream_gitsha=
     upstream_gitsha="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}" | grep '"gitsha":' | sed 's/[",:]//g' | awk '{print $2}')"
 
@@ -41,6 +47,38 @@ function package_has_changes() {
     if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ) ; then
         return 1
     else
+        return 0
+    fi
+}
+
+# kubernetes packages before 1.24 are not available in the new repo, and so should be copied
+function is_old_kubernetes() {
+    local package="$1"
+    if echo "${package}" | grep -q "kubernetes-1.15" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.16" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.17" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.18" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.19" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.20" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.21" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.22" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.23" ; then
         return 0
     fi
 }
