@@ -9,7 +9,7 @@ function require() {
     fi
 }
 
-batch_size=3
+batch_size=4
 i=0
 start=0
 
