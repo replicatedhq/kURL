@@ -5,27 +5,29 @@ set -euo pipefail
 # Populate VERSIONS array latest kURL-support versions (1.21, 1.22, 1.23, 1.24) available
 VERSIONS=()
 function find_available_versions() {
-    docker build -t k8s - < Dockerfile
-
-    local versions129=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.29\.[0-9]+' | sort -rV | uniq))
+    docker build -t k8s129 - < Dockerfile.129
+    local versions129=($(docker run k8s129 apt list -a kubelet 2>/dev/null | grep -Eo '1\.29\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions129[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.29: ${versions129[0]}"
         VERSIONS+=("${versions129[0]}")
     fi
 
-    local versions128=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.28\.[0-9]+' | sort -rV | uniq))
+    docker build -t k8s128 - < Dockerfile.128
+    local versions128=($(docker run k8s128 apt list -a kubelet 2>/dev/null | grep -Eo '1\.28\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions128[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.28: ${versions128[0]}"
         VERSIONS+=("${versions128[0]}")
     fi
 
-    local versions127=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.27\.[0-9]+' | sort -rV | uniq))
+    docker build -t k8s127 - < Dockerfile.127
+    local versions127=($(docker run k8s127 apt list -a kubelet 2>/dev/null | grep -Eo '1\.27\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions127[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.27: ${versions127[0]}"
         VERSIONS+=("${versions127[0]}")
     fi
 
-    local versions126=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.26\.[0-9]+' | sort -rV | uniq))
+    docker build -t k8s126 - < Dockerfile.126
+    local versions126=($(docker run k8s126 apt list -a kubelet 2>/dev/null | grep -Eo '1\.26\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions126[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.26: ${versions126[0]}"
         VERSIONS+=("${versions126[0]}")
