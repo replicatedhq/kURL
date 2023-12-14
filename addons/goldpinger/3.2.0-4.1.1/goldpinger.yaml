@@ -86,7 +86,7 @@ spec:
         app.kubernetes.io/name: goldpinger
         app.kubernetes.io/instance: goldpinger
     spec:
-      priorityClassName:
+      priorityClassName: 
       serviceAccountName: goldpinger
       containers:
       - name: goldpinger-daemon
