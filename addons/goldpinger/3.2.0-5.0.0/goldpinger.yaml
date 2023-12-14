@@ -91,7 +91,7 @@ spec:
         app.kubernetes.io/name: goldpinger
         app.kubernetes.io/instance: goldpinger
     spec:
-      priorityClassName: 
+      priorityClassName:
       serviceAccountName: goldpinger
       containers:
       - name: goldpinger-daemon
@@ -112,6 +112,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          - name: PING_TIMEOUT_MS
+            value: 2000
+          - name: CHECK_TIMEOUT_MS
+            value: 3000
+          - name: CHECK_ALL_TIMEOUT_MS
+            value: 10000
         ports:
         - name: http
           containerPort: 80
