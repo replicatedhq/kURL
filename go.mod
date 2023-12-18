@@ -13,7 +13,7 @@ require (
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.6.0
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.5.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/itchyny/gojq v0.12.14
 	github.com/longhorn/longhorn-manager v1.4.1
