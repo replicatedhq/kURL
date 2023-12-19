@@ -6,7 +6,6 @@ function goldpinger() {
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/goldpinger.yaml" "$dst/"
     cp "$src/servicemonitor.yaml" "$dst/"
-    cp "$src/troubleshoot.yaml" "$dst/"
 
     if [ -n "${PROMETHEUS_VERSION}" ]; then
         insert_resources "$dst/kustomization.yaml" servicemonitor.yaml
