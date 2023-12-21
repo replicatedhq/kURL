@@ -22,7 +22,7 @@ serviceAccount:
   name: goldpinger # originally "" (replicated)
 
 goldpinger:
-  port: 80
+  port: 8080
 
 extraEnv:
   # added block from https://github.com/bloomberg/goldpinger/blob/4f8d872/extras/example-serviceaccounts.yml#L44-L48 (replicated)
