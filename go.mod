@@ -1,6 +1,8 @@
 module github.com/replicatedhq/kurl
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
@@ -23,7 +25,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.5.0
 	github.com/replicatedhq/plumber/v2 v2.2.0
-	github.com/replicatedhq/pvmigrate v0.11.0
+	github.com/replicatedhq/pvmigrate v0.11.1
 	github.com/replicatedhq/troubleshoot v0.78.1
 	github.com/rook/rook v1.12.2
 	github.com/rook/rook/pkg/apis v0.0.0-20230822134130-9803bd5aa7b5
@@ -320,21 +322,21 @@ exclude (
 	k8s.io/client-go v1.5.0
 	k8s.io/client-go v1.5.1
 	k8s.io/client-go v1.5.2
-	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/client-go v2.0.0+incompatible
 	k8s.io/client-go v2.0.0-alpha.1+incompatible
-	k8s.io/client-go v3.0.0+incompatible
+	k8s.io/client-go v2.0.0+incompatible
 	k8s.io/client-go v3.0.0-beta.0+incompatible
-	k8s.io/client-go v4.0.0+incompatible
+	k8s.io/client-go v3.0.0+incompatible
 	k8s.io/client-go v4.0.0-beta.0+incompatible
+	k8s.io/client-go v4.0.0+incompatible
 	k8s.io/client-go v5.0.0+incompatible
 	k8s.io/client-go v5.0.1+incompatible
 	k8s.io/client-go v6.0.0+incompatible
 	k8s.io/client-go v7.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
-	k8s.io/client-go v9.0.0+incompatible
 	k8s.io/client-go v9.0.0-invalid+incompatible
+	k8s.io/client-go v9.0.0+incompatible
+	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 )
