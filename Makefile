@@ -652,7 +652,7 @@ GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin v1.52.2 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin v1.55.2 ;\
 	}
 
 .PHONY: lint
