@@ -326,7 +326,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
 				StorageClassName: ptr.To("xyz"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-				Resources: corev1.ResourceRequirements{
+				Resources: corev1.VolumeResourceRequirements{
 					Requests: corev1.ResourceList{
 						corev1.ResourceStorage: resource.MustParse("1Mi"),
 					},
@@ -341,7 +341,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
 				StorageClassName: ptr.To("default"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-				Resources: corev1.ResourceRequirements{
+				Resources: corev1.VolumeResourceRequirements{
 					Requests: corev1.ResourceList{
 						corev1.ResourceStorage: resource.MustParse("1Mi"),
 					},
