@@ -38,7 +38,7 @@ func WaitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job,
 	}
 }
 
-// RunJob runs the provided job and awaits until it finishes or the timeout is reached.
+// RunJob runs the provided job and waits until it finishes or the timeout is reached.
 // returns the job's pod logs (indexed by container name) and the state of each of the
 // containers (also indexed by container name).
 func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, job *batchv1.Job, timeout time.Duration) (map[string][]byte, map[string]corev1.ContainerState, error) {
@@ -50,10 +50,10 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 
 	defer func() {
 		propagation := metav1.DeletePropagationForeground
-		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
+		deleteOpts := metav1.DeleteOptions{PropagationPolicy: &propagation}
 		// Cleanup should use background context so as not to fail if context has already been canceled
 		if err = cli.BatchV1().Jobs(job.Namespace).Delete(
-			context.Background(), job.Name, delopts,
+			context.Background(), job.Name, deleteOpts,
 		); err != nil {
 			logger.Printf("failed to delete job: %s", err)
 		}
@@ -68,14 +68,14 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		LabelSelector: labels.SelectorFromSet(job.Spec.Selector.MatchLabels).String(),
 	}
 
-	var jobPod corev1.Pod
-	if pods, err := cli.CoreV1().Pods(job.Namespace).List(ctx, listOptions); err != nil {
+	var pods *corev1.PodList
+	if pods, err = cli.CoreV1().Pods(job.Namespace).List(ctx, listOptions); err != nil {
 		return nil, nil, fmt.Errorf("failed to list pods for job: %w", err)
 	} else if len(pods.Items) == 0 {
 		return nil, nil, fmt.Errorf("pod for job not found")
-	} else {
-		jobPod = pods.Items[0]
 	}
+
+	jobPod := pods.Items[0]
 
 	lastContainerStatuses := map[string]corev1.ContainerState{}
 	for _, status := range jobPod.Status.ContainerStatuses {
@@ -85,7 +85,7 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 	logs := map[string][]byte{}
 	for _, container := range jobPod.Spec.Containers {
 		options := &corev1.PodLogOptions{Container: container.Name}
-		plogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
+		podLogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
 		if err != nil && jobSucceeded {
 			// if the job succeed to execute but there is an error to read the container logs we bail.
 			return nil, nil, fmt.Errorf("failed to read container %s logs: %w", container.Name, err)
@@ -100,9 +100,9 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 			if err := stream.Close(); err != nil {
 				logger.Printf("failed to close pod log stream: %s", err)
 			}
-		}(plogs)
+		}(podLogs)
 
-		output, err := io.ReadAll(plogs)
+		output, err := io.ReadAll(podLogs)
 		if err != nil {
 			return nil, lastContainerStatuses, fmt.Errorf("failed to read pod logs: %w", err)
 		}
