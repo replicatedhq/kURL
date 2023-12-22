@@ -188,7 +188,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildTmpPVC(node string) *corev1.Persistent
 		Spec: corev1.PersistentVolumeClaimSpec{
 			StorageClassName: ptr.To(o.scname),
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-			Resources: corev1.ResourceRequirements{
+			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceStorage: resource.MustParse("1Mi"),
 				},

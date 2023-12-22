@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const test_num_cpu_warn_string = " Number of CPUs: At least 4 CPU cores are required\n"
+
 var installerYAML = `apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
@@ -45,7 +47,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 					IsPass:  true,
 				},
 			},
-			stdout: OutputPassGreen() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: OutputPassGreen() + test_num_cpu_warn_string,
 			stderr: "",
 		},
 		{
@@ -59,7 +61,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isWarn:  true,
-			stdout:  OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:  OutputWarnYellow() + test_num_cpu_warn_string,
 			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
@@ -75,7 +77,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:         OutputWarnYellow() + test_num_cpu_warn_string,
 			stderr:         "Warnings ignored by CLI flag \"ignore-warnings\"\n",
 		},
 		{
@@ -89,7 +91,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: OutputFailRed() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: OutputFailRed() + test_num_cpu_warn_string,
 			stderr: "Error: host preflights have failures\n",
 		},
 	}
@@ -198,7 +200,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 				},
 			},
 			isWarn:  true,
-			stdout:  OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:  OutputWarnYellow() + test_num_cpu_warn_string,
 			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
@@ -214,7 +216,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:         OutputWarnYellow() + test_num_cpu_warn_string,
 			stderr:         "Warnings ignored by CLI flag \"ignore-warnings\"\n",
 		},
 		{
@@ -228,7 +230,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: OutputFailRed() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: OutputFailRed() + test_num_cpu_warn_string,
 			stderr: "Error: preflights have failures\n",
 		},
 	}
