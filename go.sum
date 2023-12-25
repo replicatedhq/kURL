@@ -2170,8 +2170,8 @@ github.com/replicatedhq/kurlkinds v1.5.0 h1:zZ0PKNeh4kXvSzVGkn62DKTo314GxhXg1TSB
 github.com/replicatedhq/kurlkinds v1.5.0/go.mod h1:rUpBMdC81IhmJNCWMU/uRsMETv9P0xFoMvdSP/TAr5A=
 github.com/replicatedhq/plumber/v2 v2.2.0 h1:vjG8hZKO7tvLdPzWFqLBmjfpNtpSXhWrOmYdwTNdQR0=
 github.com/replicatedhq/plumber/v2 v2.2.0/go.mod h1:seRCMUymCb8PPFw+pH1OefvKVSi5EgSo4HEMYpCW6Io=
-github.com/replicatedhq/pvmigrate v0.11.1 h1:ZJcHaAoX68RawCDRKQfjk/iDkvIgqD+LUKEOUSq/OmA=
-github.com/replicatedhq/pvmigrate v0.11.1/go.mod h1:Lt1fWw0VihCcYjNOgjGyHnFY1d7r7sYFESyW3N1DTSA=
+github.com/replicatedhq/pvmigrate v0.11.2 h1:jOJanJlxHiVHjzrPQKG50gu0yv2JW/1wPSpGfwYJbOk=
+github.com/replicatedhq/pvmigrate v0.11.2/go.mod h1:Lt1fWw0VihCcYjNOgjGyHnFY1d7r7sYFESyW3N1DTSA=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.78.1 h1:b/Y3gR+xjVYWCSJN7sfLzJSXQ8hI2IQLg2KGie8pp94=
