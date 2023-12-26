@@ -25,7 +25,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.5.0
 	github.com/replicatedhq/plumber/v2 v2.2.0
-	github.com/replicatedhq/pvmigrate v0.11.1
+	github.com/replicatedhq/pvmigrate v0.11.2
 	github.com/replicatedhq/troubleshoot v0.78.1
 	github.com/rook/rook v1.12.2
 	github.com/rook/rook/pkg/apis v0.0.0-20230822134130-9803bd5aa7b5
