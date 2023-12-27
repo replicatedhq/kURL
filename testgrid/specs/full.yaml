@@ -680,7 +680,7 @@
       bypassUpgradeWarning: true
       version: 1.10.x
     kotsadm:
-      version: 1.93.x
+      version: latest
     containerd:
       version: 1.6.x
     ekco:
