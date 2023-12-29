@@ -32,7 +32,7 @@ spec:
     - tcpLoadBalancer:
         collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
-        address: {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}
+        address: '{{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}'
         timeout: 3m
         # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
