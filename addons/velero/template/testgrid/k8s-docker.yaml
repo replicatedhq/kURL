@@ -19,6 +19,13 @@
     install_and_customize_kurl_integration_test_application
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
+
+    # Check if the support bundle spec was installed
+    echo "test whether the velero support bundle spec was installed"
+    supportBundle=$(kubectl get cm -n velero kurl-velero-supportbundle-spec -ojsonpath='{.data.support-bundle-spec}')
+    echo "$supportBundle"
+    echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
+    kubectl get cm -n velero kurl-velero-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
 - name: "Velero Minimal Airgap"
   cpu: 6
   airgap: true
@@ -178,4 +185,3 @@
       echo "Restic pods still running after upgrade"
       exit 1
     fi
-

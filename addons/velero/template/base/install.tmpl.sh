@@ -63,6 +63,7 @@ function velero() {
     fi
 
     kubectl apply -k "$dst"
+    render_yaml_file "$src/tmpl-troubleshoot.yaml" | kubectl apply -f -
 
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 
