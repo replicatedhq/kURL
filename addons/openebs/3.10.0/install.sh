@@ -50,7 +50,7 @@ function openebs() {
     openebs_cleanup_ndm
 }
 
-# if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from
 # rook-ceph to OpenEBS local pv hostpath
 function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
@@ -190,6 +190,9 @@ function openebs_apply_operator() {
 
     openebs_cleanup_kubesystem
     logSuccess "OpenEBS CustomResourceDefinitions are ready"
+
+    # install troubleshoot spec
+    render_yaml_file_2 "$src/tmpl-troubleshoot.yaml" | kubectl apply -f -
 }
 
 function openebs_apply_storageclasses() {
