@@ -558,7 +558,7 @@ spec:
         checkName: "Kots and Kubernetes Compatibility"
         # Kubernetes 1.29+ requires kots 1.96.2+, so we exclude this check if kots/kubernetes are not installed, if kots is nightly, if kots > 1.96.2, or if kubernetes < 1.29
         # if the check runs, it will always fail - excluding it is the only way to pass
-        exclude: '{{kurl or (not .Installer.Spec.Kotsadm.Version) (not .Installer.Spec.Kubernetes.Version) (.Installer.Spec.Kotsadm.Version | strings.Contains "nightly") (semverCompare "> v1.96.2" .Installer.Spec.Kotsadm.Version) (semverCompare "< 1.29.0" .Installer.Spec.Kubernetes.Version) }}'
+        exclude: '{{kurl or (not .Installer.Spec.Kotsadm.Version) (not .Installer.Spec.Kubernetes.Version) (.Installer.Spec.Kotsadm.Version | contains "nightly") (semverCompare "> v1.96.2" .Installer.Spec.Kotsadm.Version) (semverCompare "< 1.29.0" .Installer.Spec.Kubernetes.Version) }}'
         outcomes:
           - fail:
               message: "Kots < 1.96.2 is not compatible with Kubernetes >= 1.29.0"
