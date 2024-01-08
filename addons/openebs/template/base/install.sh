@@ -178,6 +178,7 @@ function openebs_apply_operator() {
 
     render_yaml_file_2 "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file_2 "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
+    render_yaml_file_2 "$src/tmpl-troubleshoot.yaml" > "$dst/troubleshoot.yaml"
     cat "$src/openebs.tmpl.yaml" | sed "s/__OPENEBS_NAMESPACE__/$OPENEBS_NAMESPACE/" > "$dst/openebs.yaml"
 
     kubectl apply -k "$dst/"
@@ -190,9 +191,6 @@ function openebs_apply_operator() {
 
     openebs_cleanup_kubesystem
     logSuccess "OpenEBS CustomResourceDefinitions are ready"
-
-    # install troubleshoot spec
-    render_yaml_file_2 "$src/tmpl-troubleshoot.yaml" | kubectl apply -f -
 }
 
 function openebs_apply_storageclasses() {
