@@ -29,6 +29,7 @@ function velero() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
+    render_yaml_file "$src/tmpl-troubleshoot.yaml" > "$dst/troubleshoot.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
 
     velero_binary
@@ -63,7 +64,6 @@ function velero() {
     fi
 
     kubectl apply -k "$dst"
-    render_yaml_file "$src/tmpl-troubleshoot.yaml" | kubectl apply -f -
 
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 
