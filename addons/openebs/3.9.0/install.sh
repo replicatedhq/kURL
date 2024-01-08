@@ -50,7 +50,7 @@ function openebs() {
     openebs_cleanup_ndm
 }
 
-# if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from
 # rook-ceph to OpenEBS local pv hostpath
 function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
@@ -178,6 +178,7 @@ function openebs_apply_operator() {
 
     render_yaml_file_2 "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file_2 "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
+    render_yaml_file_2 "$src/tmpl-troubleshoot.yaml" > "$dst/troubleshoot.yaml"
     cat "$src/openebs.tmpl.yaml" | sed "s/__OPENEBS_NAMESPACE__/$OPENEBS_NAMESPACE/" > "$dst/openebs.yaml"
 
     kubectl apply -k "$dst/"
