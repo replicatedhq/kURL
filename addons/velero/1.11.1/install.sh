@@ -29,6 +29,7 @@ function velero() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
+    render_yaml_file "$src/tmpl-troubleshoot.yaml" > "$dst/troubleshoot.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
 
     velero_binary

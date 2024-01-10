@@ -29,6 +29,7 @@ function velero() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
+    render_yaml_file "$src/tmpl-troubleshoot.yaml" > "$dst/troubleshoot.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
 
     velero_binary
@@ -88,7 +89,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    velero_install_nfs_utils_if_missing 
+    velero_install_nfs_utils_if_missing
 }
 
 function velero_install_nfs_utils_if_missing() {
@@ -159,7 +160,7 @@ function velero_install() {
         --namespace $VELERO_NAMESPACE \
         --plugins velero/velero-plugin-for-aws:v1.7.0,velero/velero-plugin-for-gcp:v1.7.0,velero/velero-plugin-for-microsoft-azure:v1.7.0,replicated/local-volume-provider:v0.5.4,"$KURL_UTIL_IMAGE" \
         --use-volume-snapshots=false \
-        --dry-run -o yaml > "$dst/velero.yaml" 
+        --dry-run -o yaml > "$dst/velero.yaml"
 
     rm -f velero-credentials
 }
@@ -169,7 +170,7 @@ function velero_already_applied() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
-    # If we need to migrate, we're going to need to basically reconstruct the original install 
+    # If we need to migrate, we're going to need to basically reconstruct the original install
     # underneath the migration
     if velero_should_migrate_from_object_store; then
 
@@ -177,7 +178,7 @@ function velero_already_applied() {
 
         determine_velero_pvc_size
 
-        velero_binary 
+        velero_binary
         velero_install "$src" "$dst"
         velero_patch_node_agent_privilege "$src" "$dst"
         velero_patch_args "$src" "$dst"
@@ -223,7 +224,7 @@ function velero_already_applied() {
 
 # The --secret-file flag should be used so that the generated velero deployment uses the
 # cloud-credentials secret. Use the contents of that secret if it exists to avoid overwriting
-# any changes. 
+# any changes.
 function velero_credentials() {
     if kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials; then
         kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > velero-credentials
@@ -332,7 +333,7 @@ function velero_patch_http_proxy() {
     fi
 }
 
-# If this cluster is used to restore a snapshot taken on a cluster where Rook or OpenEBS was the 
+# If this cluster is used to restore a snapshot taken on a cluster where Rook or OpenEBS was the
 # default storage provisioner, the storageClassName on PVCs will need to be changed from "default"
 # to "longhorn" by velero
 # https://velero.io/docs/v1.6/restore-reference/#changing-pvpvc-storage-classes
@@ -360,18 +361,18 @@ EOF
 
 function velero_should_migrate_from_object_store() {
     # If KOTSADM_DISABLE_S3 is set, force the migration
-    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then
         return 1
     fi
 
     # if the PVC already exists, we've already migrated
-    if kubernetes_resource_exists "${VELERO_NAMESPACE}" pvc velero-internal-snapshots; then 
+    if kubernetes_resource_exists "${VELERO_NAMESPACE}" pvc velero-internal-snapshots; then
         return 1
     fi
 
     # if an object store isn't installed don't migrate
     # TODO (dans): this doeesn't support minio in a non-standard namespace
-    if (! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a) && (! kubernetes_resource_exists minio deployment minio); then 
+    if (! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a) && (! kubernetes_resource_exists minio deployment minio); then
         return 1
     fi
 
@@ -384,7 +385,7 @@ function velero_should_migrate_from_object_store() {
 }
 
 function velero_did_migrate_from_object_store() {
-    
+
     # If KOTSADM_DISABLE_S3 is set, force the migration
     if [ -f "$DIR/kustomize/velero/kustomization.yaml" ] && cat "$DIR/kustomize/velero/kustomization.yaml" | grep -q "s3-migration-deployment-patch.yaml"; then
         return 0
@@ -399,12 +400,12 @@ function velero_migrate_from_object_store() {
     export VELERO_S3_HOST=
     export VELERO_S3_ACCESS_KEY_ID=
     export VELERO_S3_ACCESS_KEY_SECRET=
-    if kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then 
+    if kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then
         echo "Previous installation of Rook Ceph detected."
         VELERO_S3_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
         VELERO_S3_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
         VELERO_S3_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
-    else 
+    else
         echo "Previous installation of Minio detected."
         VELERO_S3_HOST="minio.minio"
         VELERO_S3_ACCESS_KEY_ID=$(kubectl -n minio get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
@@ -430,8 +431,8 @@ function velero_migrate_from_object_store() {
     insert_resources "$dst/kustomization.yaml" s3-migration-bsl.yaml
 }
 
-# add patches for the velero and node-agent to the current kustomization file that setup the PVC setup like the 
-# velero LVP plugin requires 
+# add patches for the velero and node-agent to the current kustomization file that setup the PVC setup like the
+# velero LVP plugin requires
 function velero_patch_internal_pvc_snapshots() {
     local src="$1"
     local dst="$2"
