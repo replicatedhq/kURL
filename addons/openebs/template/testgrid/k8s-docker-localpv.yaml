@@ -21,6 +21,13 @@
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
+    # Check if the support bundle spec was installed
+    echo "test whether the openebs support bundle spec was installed"
+    supportBundle=$(kubectl get cm -n openebs kurl-openebs-supportbundle-spec -ojsonpath='{.data.support-bundle-spec}')
+    echo "$supportBundle"
+    echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
+    kubectl get cm -n openebs kurl-openebs-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+
 - name: localpv upgrade from 2.6.0
   flags: "yes"
   installerSpec:
