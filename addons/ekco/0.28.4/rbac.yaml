@@ -190,5 +190,6 @@ rules:
       - backuprepositories
     verbs:
       - get
+      - list
       - update
 ---
