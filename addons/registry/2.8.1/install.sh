@@ -49,19 +49,22 @@ function registry_install() {
     if registry_will_migrate_pvc; then
         logWarn "Registry migration in progres......"
 
-        # Object store credentials already live in the previously created secret 
+        # Object store credentials already live in the previously created secret
         render_yaml_file "$DIR/addons/registry/2.8.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
         cp "$DIR/addons/registry/2.8.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
     fi
+
+    render_yaml_file "$DIR/addons/registry/2.8.1/tmpl-troubleshoot.yaml" > "$DIR/kustomize/registry/troubleshoot.yaml"
+    insert_resources "$DIR/kustomize/registry/kustomization.yaml" troubleshoot.yaml
 }
 
 # The regsitry will migrate from object store to pvc is there isn't already a PVC, the object store was remove from the installer, BUT
 # it is still detected as running in the cluster. The latter 2 conditions happen during a CSI migration.
 function registry_will_migrate_pvc() {
     # If KOTSADM_DISABLE_S3 is not set, don't allow the migration
-    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then
         return 1
     fi
     if ! registry_pvc_exists && ! object_store_exists && object_store_running ; then
@@ -98,7 +101,7 @@ function registry_pre_init() {
 function registry_init() {
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
-  
+
     regsitry_init_service
 
     kubectl apply -k "$DIR/kustomize/registry"
@@ -109,7 +112,7 @@ function registry_init() {
 function regsitry_init_service() {
     mkdir -p "$DIR/kustomize/registry"
     cp "$DIR/addons/registry/2.8.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
-    
+
     cp "$DIR/addons/registry/2.8.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
     insert_resources "$DIR/kustomize/registry/kustomization.yaml" service.yaml
 

@@ -56,12 +56,16 @@ function registry_install() {
     if registry_will_migrate_pvc; then
         logWarn "Registry migration in progres......"
 
-        # Object store credentials already live in the previously created secret 
+        # Object store credentials already live in the previously created secret
         render_yaml_file "$DIR/addons/registry/2.8.3/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
         cp "$DIR/addons/registry/2.8.3/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
     fi
+
+    render_yaml_file "$DIR/addons/registry/2.8.3/tmpl-troubleshoot.yaml" > "$DIR/kustomize/registry/troubleshoot.yaml"
+    insert_resources "$DIR/kustomize/registry/kustomization.yaml" troubleshoot.yaml
+
     logSuccess "Registry installed successfully"
 }
 
@@ -69,7 +73,7 @@ function registry_install() {
 # it is still detected as running in the cluster. The latter 2 conditions happen during a CSI migration.
 function registry_will_migrate_pvc() {
     # If KOTSADM_DISABLE_S3 is not set, don't allow the migration
-    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then
         return 1
     fi
     if ! registry_pvc_exists && ! object_store_exists && object_store_running ; then
@@ -106,7 +110,7 @@ function registry_pre_init() {
 function registry_init() {
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
-  
+
     regsitry_init_service
 
     kubectl apply -k "$DIR/kustomize/registry"
@@ -118,7 +122,7 @@ function regsitry_init_service() {
     log "Applying resources"
     mkdir -p "$DIR/kustomize/registry"
     cp "$DIR/addons/registry/2.8.3/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
-    
+
     cp "$DIR/addons/registry/2.8.3/service.yaml" "$DIR/kustomize/registry/service.yaml"
     insert_resources "$DIR/kustomize/registry/kustomization.yaml" service.yaml
 
@@ -268,7 +272,7 @@ EOF
 
     log "Generating a private key and a corresponding Certificate Signing Request (CSR) using OpenSSL"
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -sha256 -config registry.cnf
-    
+
     log "Generating a self-signed X.509 certificate using OpenSSL"
     openssl x509 -req -days 365 -in registry.csr -CA "${ca_crt}" -CAkey "${ca_key}" -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf -sha256
 
