@@ -56,7 +56,7 @@ function registry_install() {
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
     fi
 
-    render_yaml_file "$DIR/addons/registry/__registry_version__/tmpl-troubleshoot.yaml" > "$DIR/kustomize/registry/troubleshoot.yaml"
+    render_yaml_file "$DIR/addons/registry/2.8.1/tmpl-troubleshoot.yaml" > "$DIR/kustomize/registry/troubleshoot.yaml"
     insert_resources "$DIR/kustomize/registry/kustomization.yaml" troubleshoot.yaml
 }
 
