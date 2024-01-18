@@ -14,7 +14,6 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
-
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
@@ -31,6 +30,13 @@
 
     # pull it from the registry
     ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # Check if the support bundle spec was installed
+    echo "test whether the registry support bundle spec was installed"
+    supportBundle=$(kubectl get cm -n kurl kurl-registry-supportbundle-spec -ojsonpath='{.data.support-bundle-spec}')
+    echo "$supportBundle"
+    echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
+    kubectl get cm -n kurl kurl-registry-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
 
 - name: registry_latest_longhorn
   installerSpec:
