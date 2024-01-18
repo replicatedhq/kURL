@@ -151,8 +151,27 @@ function flannel() {
        kubectl rollout restart --namespace=kube-flannel daemonset/kube-flannel-ds
     fi
 
+    flannel_install_ethtool_service "$src"
+
     flannel_ready_spinner
     check_network
+}
+
+function flannel_install_ethtool_service() {
+    local src="$1"
+
+    logStep "Installing flannel ethtool service"
+
+    cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
+
+    systemctl daemon-reload
+    systemctl enable flannel-ethtool.service
+    if ! timeout 30s systemctl start flannel-ethtool.service; then
+        log "Failed to start flannel-ethtool.service within 30s, restarting it"
+        systemctl restart flannel-ethtool.service
+    fi
+
+    logSuccess "Flannel ethtool service installed"
 }
 
 function flannel_init_pod_subnet() {
