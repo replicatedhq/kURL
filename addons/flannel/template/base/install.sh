@@ -176,8 +176,6 @@ function flannel_install_ethtool_service() {
     # the kernel.
     local src="$1"
 
-    logStep "
-
     logStep "Installing flannel ethtool service"
 
     cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
