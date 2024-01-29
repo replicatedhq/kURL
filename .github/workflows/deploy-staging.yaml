@@ -177,7 +177,7 @@ jobs:
     steps:
 
     - name: Sleep for 3 minutes
-      uses: juliangruber/sleep-action@v1
+      uses: juliangruber/sleep-action@v2
       with:
         time: "3m"
 
