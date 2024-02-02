@@ -149,6 +149,7 @@ function retry {
 
 function main() {
     local batch="$1"
+    echo "Uploading ${batch} packages to s3://${S3_BUCKET}/staging/"
 
     git fetch
 

@@ -32,6 +32,12 @@ function package_has_changes() {
         return 0
     fi
 
+    if is_old_kubernetes "${key}" ; then
+        # we cannot rebuild old kubernetes packages, so we should always say there were no changes
+        echo "Old kubernetes package ${package}"
+        return 1
+    fi
+
     local upstream_gitsha=
     upstream_gitsha="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}" | grep '"gitsha":' | sed 's/[",:]//g' | awk '{print $2}')"
 
@@ -46,6 +52,39 @@ function package_has_changes() {
     else
         return 0
     fi
+}
+
+# kubernetes packages before 1.24 are not available in the new yum/apt repo, and so should be copied
+function is_old_kubernetes() {
+    local package="$1"
+    if echo "${package}" | grep -q "kubernetes-1.15" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.16" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.17" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.18" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.19" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.20" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.21" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.22" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "kubernetes-1.23" ; then
+        return 0
+    fi
+    return 1
 }
 
 function build_and_upload() {
@@ -153,6 +192,7 @@ function retry {
 
 function main() {
     local batch="$1"
+    echo "Uploading ${batch} packages to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ and s3://${S3_BUCKET}/${PACKAGE_PREFIX}/"
 
     git fetch
 
