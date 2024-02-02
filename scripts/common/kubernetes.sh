@@ -67,17 +67,17 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
+    local mod_nf_conntrack="nf_conntrack_ipv4"
     if [ "$KERNEL_MAJOR" -gt "4" ] || \
         { [ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]; } || \
         {
             { [ "$LSB_DIST" = "ol" ] || [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "centos" ] || [ "$LSB_DIST" = "rocky" ]; } && \
             { [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ]; }; \
         }; then
-        modprobe nf_conntrack
-    else
-        modprobe nf_conntrack_ipv4
+        mod_nf_conntrack="nf_conntrack"
     fi
 
+    modprobe $mod_nf_conntrack
     rm -f /etc/modules-load.d/replicated-ipvs.conf
 
     echo "Adding kernel modules ip_vs, ip_vs_rr, ip_vs_wrr, and ip_vs_sh"
@@ -86,7 +86,7 @@ function kubernetes_load_ipvs_modules() {
     modprobe ip_vs_wrr
     modprobe ip_vs_sh
 
-    echo "nf_conntrack_ipv4" > /etc/modules-load.d/99-replicated-ipvs.conf
+    echo $mod_nf_conntrack > /etc/modules-load.d/99-replicated-ipvs.conf
     # shellcheck disable=SC2129
     echo "ip_vs" >> /etc/modules-load.d/99-replicated-ipvs.conf
     echo "ip_vs_rr" >> /etc/modules-load.d/99-replicated-ipvs.conf
