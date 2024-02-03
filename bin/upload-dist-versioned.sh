@@ -161,7 +161,7 @@ function deploy() {
             copy_package_staging "${package}"
         fi
     else
-        if package_has_changes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "${path}" ; then
+        if package_has_changes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "${path}" || ! is_old_kubernetes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" ; then
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
             copy_package_dist "${package}"
         else
