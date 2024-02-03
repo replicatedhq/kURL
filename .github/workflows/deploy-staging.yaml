@@ -66,7 +66,7 @@ jobs:
       env:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
-  b-u-p: # shortened to allow reading what job is being run within github's UI
+  bup: # shortened to allow reading what job is being run within github's UI
     runs-on: ubuntu-20.04
     needs:
     - get-tag
@@ -145,7 +145,7 @@ jobs:
     needs:
     - get-tag
     - build-addons
-    - b-u-p
+    - bup
     steps:
     - name: Set VERSION file in s3
       run: |
