@@ -135,6 +135,19 @@ function copy_package_dist() {
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
+# we are unable to rebuild old k8s releases due to the new yum/apt repo
+# this function copies the builds we have from the last time that k8s version was built
+function copy_package_last_k8s_release() {
+    local package="$1"
+
+    local md5=
+    md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "dist/v2024.01.09-0/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
+
+    echo "copying package ${package} from s3://${S3_BUCKET}/dist/v2024.01.09-0/ to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/dist/v2024.01.09-0/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
+}
+
 function deploy() {
     local package="$1"
     local path="$2"
@@ -167,7 +180,7 @@ function deploy() {
         else
             if is_old_kubernetes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" ; then
                 echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} old kubernetes package"
-                copy_package_dist "${package}"
+                copy_package_last_k8s_release "${package}"
             else
                 echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
             fi
