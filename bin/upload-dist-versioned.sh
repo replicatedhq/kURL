@@ -165,7 +165,12 @@ function deploy() {
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
             copy_package_dist "${package}"
         else
-            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
+            if is_old_kubernetes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" ; then
+                echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} old kubernetes package"
+                copy_package_dist "${package}"
+            else
+                echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
+            fi
         fi
     fi
 }
