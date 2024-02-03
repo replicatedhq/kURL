@@ -53,7 +53,7 @@ jobs:
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "matrix=$OUTPUT" >> $GITHUB_OUTPUT
 
-  build-upload-packages:
+  b-u-p: # shortened to allow reading what job is being run within github's UI
     runs-on: ubuntu-20.04
     needs:
     - build-go-bins-matrix
@@ -290,7 +290,7 @@ jobs:
   set-current-version:
     runs-on: ubuntu-20.04
     needs:
-    - build-upload-packages
+    - b-u-p
     - copy-stage-packages-to-prod
     steps:
     - name: Set VERSION file in s3
