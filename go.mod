@@ -26,7 +26,7 @@ require (
 	github.com/replicatedhq/kurlkinds v1.5.0
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.11.2
-	github.com/replicatedhq/troubleshoot v0.81.0
+	github.com/replicatedhq/troubleshoot v0.81.2
 	github.com/rook/rook v1.12.2
 	github.com/rook/rook/pkg/apis v0.0.0-20230822134130-9803bd5aa7b5
 	github.com/sirupsen/logrus v1.9.3
@@ -88,7 +88,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/containerd/cgroups/v3 v3.0.2 // indirect
-	github.com/containerd/containerd v1.7.11 // indirect
+	github.com/containerd/containerd v1.7.13 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect
 	github.com/containers/image/v5 v5.29.0 // indirect
@@ -152,7 +152,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.2 // indirect
+	github.com/hashicorp/go-getter v1.7.3 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
