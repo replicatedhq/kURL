@@ -1,5 +1,0 @@
-namespace: ${MINIO_NAMESPACE}
-resources:
-- deployment.yaml
-- service.yaml
-- original-service.yaml
