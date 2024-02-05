@@ -35,7 +35,7 @@ function minio_pre_init() {
 }
 
 function minio() {
-    local src="$DIR/addons/minio/2024-01-31T20-20-33Z"
+    local src="$DIR/addons/minio/2024-02-04T22-36-13Z"
     local dst="$DIR/kustomize/minio"
 
     if minio_already_uninstalled; then
@@ -51,10 +51,10 @@ function minio() {
 
     if [ -n "$minio_ha_exists" ]; then
         # don't update the statefulset or deployment, just change the images they use
-        kubectl set image -n minio statefulset/ha-minio minio=minio/minio:RELEASE.2024-01-31T20-20-33Z
+        kubectl set image -n minio statefulset/ha-minio minio=minio/minio:RELEASE.2024-02-04T22-36-13Z
 
         # the deployment will have been deleted if data has been migrated to the statefulset, so don't error if the image isn't updated
-        kubectl set image -n minio deployment/minio minio=minio/minio:RELEASE.2024-01-31T20-20-33Z 2>/dev/null || true
+        kubectl set image -n minio deployment/minio minio=minio/minio:RELEASE.2024-02-04T22-36-13Z 2>/dev/null || true
     else
         # create the statefulset/deployment/service/secret/etc
         render_yaml_file_2 "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
@@ -399,7 +399,7 @@ function minio_ask_user_hostpath_for_migration() {
 # 'minio-migrate-fs-backend'. this new deployment uses the same credentials used by the original minio
 # deployment. if the installation uses host path and not a pvc, a temporary path is requested from the user.
 function minio_create_fs_migration_deployment() {
-    local src="$DIR/addons/minio/2024-01-31T20-20-33Z/migrate-fs"
+    local src="$DIR/addons/minio/2024-02-04T22-36-13Z/migrate-fs"
     local dst="$DIR/kustomize/minio/migrate-fs"
 
     if [ -n "$MINIO_HOSTPATH" ]; then
@@ -456,7 +456,7 @@ function minio_destroy_fs_migration_deployment() {
 function minio_swap_fs_migration_pvs() {
     local minio_pv=$1
     local migration_pv=$2
-    local src="$DIR/addons/minio/2024-01-31T20-20-33Z"
+    local src="$DIR/addons/minio/2024-02-04T22-36-13Z"
     local dst="$DIR/kustomize/minio"
 
     MINIO_ORIGINAL_CLAIM_SIZE=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o template="{{.spec.resources.requests.storage}}" 2>/dev/null)
