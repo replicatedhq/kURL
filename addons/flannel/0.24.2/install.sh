@@ -160,13 +160,10 @@ function flannel() {
 }
 
 function flannel_detect_vmware_nic() {
-    local vmxnet3=false
-
     if lspci -v | grep Ethernet | grep -q "VMware VMXNET3"; then
-        vmxnet3=true
+        true
     fi
-
-    return $vmxnet3
+    false
 }
 
 
