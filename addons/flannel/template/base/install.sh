@@ -161,9 +161,9 @@ function flannel() {
 
 function flannel_detect_vmware_nic() {
     if lspci -v | grep Ethernet | grep -q "VMware VMXNET3"; then
-        true
+        return 0
     fi
-    false
+    return 1
 }
 
 function flannel_install_ethtool_service() {
