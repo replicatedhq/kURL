@@ -290,7 +290,7 @@ require (
 	gopkg.in/evanphx/json-patch.v5 v5.6.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	helm.sh/helm/v3 v3.14.0 // indirect
+	helm.sh/helm/v3 v3.14.1 // indirect
 	k8s.io/apiextensions-apiserver v0.29.0 // indirect
 	k8s.io/apiserver v0.29.0 // indirect
 	k8s.io/component-base v0.29.0 // indirect
