@@ -174,6 +174,7 @@ function flannel_install_ethtool_service() {
     local src="$1"
 
     logStep "Installing flannel ethtool service"
+    logStep "Disabling TCP checksum offloading on flannel interface for VMWare VMXNET3 NICs"
 
     cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
 
