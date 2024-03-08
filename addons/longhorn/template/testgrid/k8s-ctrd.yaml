@@ -27,7 +27,7 @@
     containerd:
       version: "latest"
     minio:
-      version: "2020-01-25T02-50-51Z"
+      version: "latest"
     longhorn:
       version: "latest"
   upgradeSpec:
@@ -146,7 +146,7 @@
     containerd:
       version: "latest"
     minio:
-      version: "2020-01-25T02-50-51Z"
+      version: "latest"
     longhorn:
       version: "1.1.2" # 1.1.0 is failing in testgrid
   upgradeSpec:
@@ -182,7 +182,7 @@
     containerd:
       version: "latest"
     minio:
-      version: "2020-01-25T02-50-51Z"
+      version: "latest"
     longhorn:
       version: "1.2.2"
   upgradeSpec:
@@ -227,7 +227,7 @@
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
