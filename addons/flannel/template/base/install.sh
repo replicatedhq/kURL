@@ -160,15 +160,11 @@ function flannel() {
 }
 
 function flannel_detect_vmware_nic() {
-    local vmxnet3=false
-
     if lspci -v | grep Ethernet | grep -q "VMware VMXNET3"; then
-        vmxnet3=true
+        return 0
     fi
-
-    return $vmxnet3
+    return 1
 }
-
 
 function flannel_install_ethtool_service() {
     # this disables the tcp checksum offloading on flannel interface - this is a workaround for
@@ -177,6 +173,7 @@ function flannel_install_ethtool_service() {
     local src="$1"
 
     logStep "Installing flannel ethtool service"
+    logStep "Disabling TCP checksum offloading on flannel interface for VMWare VMXNET3 NICs"
 
     cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
 

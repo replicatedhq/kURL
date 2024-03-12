@@ -151,8 +151,41 @@ function flannel() {
        kubectl rollout restart --namespace=kube-flannel daemonset/kube-flannel-ds
     fi
 
+    if flannel_detect_vmware_nic; then
+        flannel_install_ethtool_service "$src"
+    fi
+
     flannel_ready_spinner
     check_network
+}
+
+function flannel_detect_vmware_nic() {
+    if lspci -v | grep Ethernet | grep -q "VMware VMXNET3"; then
+        return 0
+    fi
+    return 1
+}
+
+
+function flannel_install_ethtool_service() {
+    # this disables the tcp checksum offloading on flannel interface - this is a workaround for
+    # certain VMWare NICs that use NSX and have a conflict with the way the checksum is handled by
+    # the kernel.
+    local src="$1"
+
+    logStep "Installing flannel ethtool service"
+    logStep "Disabling TCP checksum offloading on flannel interface for VMWare VMXNET3 NICs"
+
+    cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
+
+    systemctl daemon-reload
+    systemctl enable flannel-ethtool.service
+    if ! timeout 30s systemctl start flannel-ethtool.service; then
+        log "Failed to start flannel-ethtool.service within 30s, restarting it"
+        systemctl restart flannel-ethtool.service
+    fi
+
+    logSuccess "Flannel ethtool service installed"
 }
 
 function flannel_init_pod_subnet() {
