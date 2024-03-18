@@ -2360,8 +2360,8 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17
 github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1YX8=
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
-github.com/vmware-tanzu/velero v1.13.0 h1:8lqFM1orSnaCZ52UMOhi9AkgJWGnI46AYxup5CCskz4=
-github.com/vmware-tanzu/velero v1.13.0/go.mod h1:87DH9gnd/uTRmsjLk7wc2JWsK+RjIqX4VEt6z5qkAfA=
+github.com/vmware-tanzu/velero v1.13.1 h1:CDEikGxZOjz4sxhrad6oMo5IW9xf+SdC5rwRWIe19YE=
+github.com/vmware-tanzu/velero v1.13.1/go.mod h1:87DH9gnd/uTRmsjLk7wc2JWsK+RjIqX4VEt6z5qkAfA=
 github.com/vmware/govmomi v0.18.0 h1:f7QxSmP7meCtoAmiKZogvVbLInT+CZx6Px6K5rYsJZo=
 github.com/vmware/govmomi v0.18.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
