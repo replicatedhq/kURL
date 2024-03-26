@@ -1,0 +1,42 @@
+# Source: rook-ceph/templates/configmap.yaml
+# Operator settings that can be updated without an operator restart
+# Operator settings that require an operator restart are found in the operator env vars
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rook-ceph-operator-config
+  namespace: rook-ceph # namespace:operator
+data:
+  ROOK_LOG_LEVEL: "INFO"
+  ROOK_CEPH_COMMANDS_TIMEOUT_SECONDS: "15"
+  ROOK_OBC_WATCH_OPERATOR_NAMESPACE: "true"
+  ROOK_CEPH_ALLOW_LOOP_DEVICES: "false"
+  ROOK_ENABLE_DISCOVERY_DAEMON: "true"
+  ROOK_CSI_ENABLE_RBD: "true"
+  ROOK_CSI_ENABLE_CEPHFS: "true"
+  CSI_ENABLE_CEPHFS_SNAPSHOTTER: "true"
+  CSI_ENABLE_NFS_SNAPSHOTTER: "true"
+  CSI_ENABLE_RBD_SNAPSHOTTER: "true"
+  CSI_PLUGIN_ENABLE_SELINUX_HOST_MOUNT: "false"
+  CSI_ENABLE_ENCRYPTION: "false"
+  CSI_ENABLE_OMAP_GENERATOR: "false"
+  CSI_ENABLE_HOST_NETWORK: "true"
+  CSI_ENABLE_METADATA: "false"
+  CSI_PLUGIN_PRIORITY_CLASSNAME: "system-node-critical"
+  CSI_PROVISIONER_PRIORITY_CLASSNAME: "system-cluster-critical"
+  CSI_RBD_FSGROUPPOLICY: "File"
+  CSI_CEPHFS_FSGROUPPOLICY: "File"
+  CSI_NFS_FSGROUPPOLICY: "File"
+  ROOK_CSI_IMAGE_PULL_POLICY: "IfNotPresent"
+  CSI_ENABLE_CSIADDONS: "false"
+  ROOK_CSIADDONS_IMAGE: "quay.io/csiaddons/k8s-sidecar:v0.8.0"
+  CSI_ENABLE_TOPOLOGY: "false"
+  CSI_ENABLE_READ_AFFINITY: "false"
+  ROOK_CSI_ENABLE_NFS: "false"
+  CSI_FORCE_CEPHFS_KERNEL_CLIENT: "true"
+  CSI_GRPC_TIMEOUT_SECONDS: "150"
+  CSI_PROVISIONER_REPLICAS: "2"
+  CSI_CEPHFS_ATTACH_REQUIRED: "true"
+  CSI_RBD_ATTACH_REQUIRED: "true"
+  CSI_NFS_ATTACH_REQUIRED: "true"
+---
