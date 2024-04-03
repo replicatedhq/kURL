@@ -18,19 +18,19 @@ function generate() {
     # localpv
     tmpdir="$dir/tmpdir"
     mkdir -p "$tmpdir"
-    helm template -n '__OPENEBS_NAMESPACE__' openebs openebs/openebs --version "$chart_version" \
+    helm template -n '__OPENEBS_NAMESPACE__' openebs openebs-localpv/localpv-provisioner --version "$chart_version" \
         --include-crds \
-        --set defaultStorageConfig.enabled=false \
-        --set localprovisioner.enableDeviceClass=false \
-        --set localprovisioner.enableHostpathClass=false \
-        --set ndm.enabled=false \
-        --set ndmOperator.enabled=false \
-        --set localprovisioner.imageTag="4.0.0" \
+        --set analytics.enabled=false \
+        --set hostpathClass.enabled=false \
+        --set localpv.resources.requests.cpu=100m \
+        --set localpv.resources.limits.cpu=100m \
+        --set localpv.resources.requests.memory=128Mi \
+        --set localpv.resources.limits.memory=128Mi \
         > "$tmpdir/openebs.tmpl.yaml"
 
     $ksplit_path crdsplit "$tmpdir/"
     mv "$tmpdir/AllResources.yaml" "$dir/spec/openebs.tmpl.yaml"
-    mv "$tmpdir/CustomResourceDefinitions.yaml" "$dir/spec/crds/crds.yaml"
+#    mv "$tmpdir/CustomResourceDefinitions.yaml" "$dir/spec/crds/crds.yaml"
     rm -rf "$tmpdir"
 
     # get images in files
@@ -52,10 +52,10 @@ function get_ksplit() {
 }
 
 function get_latest_release_version() {
-    app_version=$(helm show chart --version "$version_flag" openebs/openebs | \
+    app_version=$(helm show chart --version "$version_flag" openebs-localpv/localpv-provisioner | \
         grep -i "^appVersion" | \
         grep -Eo "[0-9]\.[0-9]+\.[0-9]+")
-    chart_version=$(helm show chart --version "$version_flag" openebs/openebs | \
+    chart_version=$(helm show chart --version "$version_flag" openebs-localpv/localpv-provisioner | \
         grep -i "^version" | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 }
@@ -92,7 +92,7 @@ function main() {
     parse_flags "$@"
 
     # run the helm commands
-    helm repo add openebs https://openebs.github.io/charts
+    helm repo add openebs-localpv https://openebs.github.io/dynamic-localpv-provisioner
     helm repo update
 
     local app_version=
