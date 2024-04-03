@@ -11,7 +11,7 @@ function openebs_pre_init() {
         bail "cstor is not supported on OpenEBS $OPENEBS_APP_VERSION."
     fi
 
-    export OPENEBS_APP_VERSION="__OPENEBS_APP_VERSION__"
+    export OPENEBS_APP_VERSION="4.0.0"
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
@@ -168,9 +168,6 @@ function openebs_apply_operator() {
     cat "$src/openebs.tmpl.yaml" | sed "s/__OPENEBS_NAMESPACE__/$OPENEBS_NAMESPACE/" > "$dst/openebs.yaml"
 
     kubectl apply -k "$dst/"
-
-    logStep "Waiting for OpenEBS CustomResourceDefinitions to be ready"
-    spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
 
     logStep "Waiting for the OpenEBS Operator to be ready"
     spinner_until 300 deployment_fully_updated openebs openebs-localpv-provisioner
