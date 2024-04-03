@@ -116,7 +116,7 @@ spec:
       serviceAccountName: openebs
       containers:
       - name: openebs-localpv-provisioner
-        image: "openebs/provisioner-localpv:3.5.0"
+        image: "openebs/provisioner-localpv:4.0.0"
         imagePullPolicy: IfNotPresent
         args:
           - "--bd-time-out=$(BDC_BD_BIND_RETRIES)"

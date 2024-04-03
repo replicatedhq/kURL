@@ -25,6 +25,7 @@ function generate() {
         --set localprovisioner.enableHostpathClass=false \
         --set ndm.enabled=false \
         --set ndmOperator.enabled=false \
+        --set localprovisioner.imageTag="4.0.0" \
         > "$tmpdir/openebs.tmpl.yaml"
 
     $ksplit_path crdsplit "$tmpdir/"
