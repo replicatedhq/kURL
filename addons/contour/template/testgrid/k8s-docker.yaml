@@ -1,6 +1,6 @@
 - installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.29.x"
     flannel:
       version: latest
     containerd:
@@ -9,7 +9,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.29.xx"
     flannel:
       version: latest
     containerd:
@@ -40,7 +40,7 @@
 
 - installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.29.x"
     flannel:
       version: latest
     containerd:
