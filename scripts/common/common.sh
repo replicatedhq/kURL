@@ -759,6 +759,19 @@ function install_host_dependencies_fio() {
         return
     fi
 
+    # we can't install fio on amazon linux because it brings, as a dependency,
+    # a package called `centos-release` that ends up overwriting the amazon
+    # linux release file, making it look like a centos machine.
+    if [ "$LSB_DIST" = "amzn" ]; then
+        logWarn "Skipping fio installation on Amazon Linux. If you prefer, you can cancel this"
+        logWarn "installation now and manually install fio using 'yum install fio'. Ignoring this"
+        logWarn "message may cause some of the preflight checks to generate warnings later on."
+        logWarn "Do you want to continue with the installation without fio?"
+        if ! confirmY ; then
+            bail "Installation cancelled by user"
+        fi
+        return
+    fi
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-fio.tar.gz"
