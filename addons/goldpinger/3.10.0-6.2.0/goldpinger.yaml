@@ -1,0 +1,160 @@
+---
+# Source: goldpinger/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: goldpinger
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: goldpinger/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goldpinger-zap
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  zap.json: "{\n  \"level\": \"info\",\n  \"encoding\": \"json\",\n  \"outputPaths\": [\n      \"stdout\"\n  ],\n  \"errorOutputPaths\": [\n      \"stderr\"\n  ],\n  \"initialFields\": {\n  },\n  \"encoderConfig\": {\n      \"messageKey\": \"message\",\n      \"levelKey\": \"level\",\n      \"levelEncoder\": \"lowercase\",\n      \"timeKey\": \"ts\",\n      \"timeEncoder\": \"ISO8601\",\n      \"callerKey\": \"caller\",\n      \"callerEncoder\": \"Short\"\n  }\n}\n"
+---
+# Source: goldpinger/templates/clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: goldpinger-clusterrole
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list"]
+---
+# Source: goldpinger/templates/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: goldpinger-clusterrolebinding
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+subjects:
+  - kind: ServiceAccount
+    name: goldpinger
+    namespace: kurl
+roleRef:
+  kind: ClusterRole
+  name: goldpinger-clusterrole
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: goldpinger/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: goldpinger
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+---
+# Source: goldpinger/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: goldpinger
+  labels:
+    helm.sh/chart: goldpinger-6.2.0
+    app.kubernetes.io/name: goldpinger
+    app.kubernetes.io/instance: goldpinger
+    app.kubernetes.io/version: "3.10.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: goldpinger
+      app.kubernetes.io/instance: goldpinger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: goldpinger
+        app.kubernetes.io/instance: goldpinger
+    spec:
+      priorityClassName: 
+      serviceAccountName: goldpinger
+      containers:
+        - name: goldpinger-daemon
+          image: "bloomberg/goldpinger:3.10.0"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: zap
+              mountPath: /config
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "8080"
+            - name: LABEL_SELECTOR
+              value: "app.kubernetes.io/name=goldpinger"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PING_TIMEOUT
+              value: 2s
+            - name: CHECK_TIMEOUT
+              value: 3s
+            - name: CHECK_ALL_TIMEOUT
+              value: 10s
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 50m
+              memory: 128Mi
+            requests:
+              cpu: 20m
+              memory: 64Mi
+      volumes:
+        - name: zap
+          configMap:
+            name: goldpinger-zap
