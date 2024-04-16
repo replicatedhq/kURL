@@ -103,6 +103,7 @@ function containerd_install() {
 }
 
 function containerd_host_init() {
+    require_centos8_containerd
     containerd_install_libzstd_if_missing
 }
 
@@ -369,5 +370,30 @@ function containerd_kubernetes_pause_image() {
         cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
     else
         echo ""
+    fi
+}
+
+function require_centos8_containerd() {
+    if [ "$LSB_DIST" == "centos" ] || [ "$DIST_VERSION_MAJOR" == "8" ]; then
+        # if this is not centos 8 Stream, require preinstallation of containerd on 1.6.31+
+
+        if cat /etc/centos-release | grep -q "CentOS Stream"; then
+            # this is centos 8 stream, no need to check for containerd being installed
+            return
+        fi
+
+        containerd_version_minor=
+        containerd_version_minor=$(echo "$CONTAINERD_VERSION" | cut -d. -f2)
+        containerd_version_patch=
+        containerd_version_patch=$(echo "$CONTAINERD_VERSION" | cut -d. -f3)
+
+        if [ "$containerd_version_minor" -eq "6" ] && [ "$containerd_version_patch" -ge "31" ]; then
+            # if containerd is not installed, require preinstallation on 1.6.31+
+            if yum_is_host_package_installed containerd.io ; then
+                return
+            fi
+
+            bail "Containerd $CONTAINERD_VERSION is required to be preinstalled on CentOS 8.4 and earlier"
+        fi
     fi
 }
