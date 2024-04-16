@@ -42,7 +42,7 @@
   name: CentOS
   version: "8.2024-04"
   vmimageuri: https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20240415.0.x86_64.qcow2
-  preinit: ""
+  preinit: "yum update -y && yum install -y traceroute iptables"
 - id: ol-79
   name: Oracle Linux
   version: "7.9"
