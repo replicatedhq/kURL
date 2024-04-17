@@ -8,11 +8,6 @@
   version: "7.9"
   vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2
   preinit: ""
-- id: centos-84
-  name: CentOS
-  version: "8.4"
-  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
-  preinit: ""
 - id: centos-8-stream-2024-04
   name: CentOS
   version: "8.2024-04"
