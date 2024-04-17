@@ -374,7 +374,7 @@ function containerd_kubernetes_pause_image() {
 }
 
 function require_centos8_containerd() {
-    if [ "$LSB_DIST" == "centos" ] || [ "$DIST_VERSION_MAJOR" == "8" ]; then
+    if [ "$LSB_DIST" == "centos" ] && [ "$DIST_VERSION_MAJOR" == "8" ]; then
         # if this is not centos 8 Stream, require preinstallation of containerd on 1.6.31+
 
         if cat /etc/centos-release | grep -q "CentOS Stream"; then
