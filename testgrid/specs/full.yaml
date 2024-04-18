@@ -687,6 +687,7 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s19x_rook_upgrade_143_18x_docker
   flags: "yes"
   cpu: 6
@@ -866,6 +867,7 @@
       version: latest
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -891,6 +893,7 @@
       version: latest
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "K8s 1.22x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -946,6 +949,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.29 airgap"
   flags: "yes"
   installerSpec:
@@ -1062,6 +1066,7 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -1172,6 +1177,8 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
+  unsupportedOSIDs:
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s129-all-the-flags
   installerSpec:
     kubernetes:
@@ -1196,6 +1203,8 @@
   postInstallScript: |
     kubectl get node -oyaml | grep ' gpu: enabled'
     kubectl get node -oyaml | grep ' pods: "200"'
+  unsupportedOSIDs:
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
@@ -1229,6 +1238,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s123x_124x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -1253,6 +1264,8 @@
     echo "running  CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.7.0/kube-bench_0.7.0_linux_amd64.tar.gz | tar -xz
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s129x_reserved_resources
   installerSpec:
     kubernetes:
@@ -1279,6 +1292,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: less_command
   installerSpec:
     kubernetes:
@@ -1294,6 +1309,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "weave latest multinode"
   installerSpec:
     kubernetes:
@@ -1306,6 +1323,8 @@
       version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
@@ -1318,6 +1337,8 @@
       version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s121x_openebs_containerd
   installerSpec:
     kubernetes:
@@ -1348,6 +1369,8 @@
       version: "0.53.x"
     metricsServer:
       version: "0.4.x"
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: rook-upgrade-to-1.5
   flags: "yes"
   installerSpec:
@@ -1410,6 +1433,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: rook-upgrade-to-1.5-airgap
   flags: "yes"
   airgap: true
@@ -1485,6 +1510,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "k8s_125x containerd 1.5.x upgrade to latest"
   installerSpec:
     kubernetes:
@@ -1702,6 +1729,8 @@
       localPVStorageClassName: local
     ekco:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
     touch /var/lib/kurl
@@ -1731,6 +1760,8 @@
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.29
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
   flags: "yes"
   installerSpec:
@@ -1770,6 +1801,8 @@
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep 1.5.12
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   flags: "yes kubernetes-upgrade-ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   installerSpec:
@@ -1869,6 +1902,7 @@
     validate_read_write_object_store rwtest testfile.txt
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "1.29 with all metrics and kots"
   flags: "yes"
   installerSpec:
@@ -1900,6 +1934,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: (k8s 1.29) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1938,6 +1974,7 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: (k8s 1.29) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1976,6 +2013,7 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     FOLDER=/testsymbolic
     
@@ -2047,6 +2085,8 @@
       localPVStorageClassName: default
     minio:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: longhorn
   installerSpec:
     contour:
@@ -2073,6 +2113,8 @@
       version: latest
     kotsadm:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s119-minimal
   flags: "yes"
   installerSpec:
@@ -2113,6 +2155,7 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -2139,6 +2182,7 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -2152,6 +2196,8 @@
       version: 1.24.x
     flannel:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: minimal-125
   installerSpec:
     containerd:
@@ -2162,6 +2208,8 @@
       version: 1.25.x
     flannel:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: minimal-126
   installerSpec:
     containerd:
@@ -2175,6 +2223,8 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: minimal-127
   installerSpec:
     containerd:
@@ -2188,6 +2238,8 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: minimal-128
   installerSpec:
     containerd:
@@ -2201,6 +2253,8 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: minimal-129
   installerSpec:
     containerd:
@@ -2214,6 +2268,8 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -2235,6 +2291,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s129x_reserved_resources
   installerSpec:
     kubernetes:
@@ -2263,6 +2321,8 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s129-openebs
   installerSpec:
     kubernetes:
@@ -2289,6 +2349,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2315,6 +2377,7 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -2454,6 +2517,7 @@
       version: "1.12.x"
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "k8s_129x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
@@ -2470,6 +2534,8 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: merge-installer-hostpreflight-and-upgrade
   installerSpec:
     kubernetes:
@@ -2556,6 +2622,8 @@
                       message: Unexpected port status" > /opt/kurl-testgrid/patchfile.yaml
   postUpgradeScript: |
     kubectl get installer -A -o yaml | grep 8888
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 
 - name: reset and reinstall
   installerSpec:
@@ -2579,3 +2647,5 @@
   postUpgradeScript: |
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.27
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
