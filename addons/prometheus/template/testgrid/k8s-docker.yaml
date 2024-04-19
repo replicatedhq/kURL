@@ -1,7 +1,7 @@
-- name: "prometheus minimal k8s 1.29"
+- name: "prometheus minimal k8s 1.30"
   installerSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.30.x"
     flannel:
       version: latest
     openebs:
@@ -73,7 +73,7 @@
 - name: "prometheus upgrade from latest"
   installerSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.30.x"
     flannel:
       version: latest
     openebs:
@@ -86,7 +86,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.30.x"
     flannel:
       version: latest
     openebs:
@@ -114,7 +114,7 @@
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.30.x"
     flannel:
       version: latest
     rook:

@@ -34,7 +34,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
-- name: "Upgrade to 1.25 to 1.29, Migrate from Rook 1.12.x to OpenEBS + Minio"
+- name: "Upgrade to 1.25 to 1.30, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -53,7 +53,7 @@
       version: 1.12.x
   upgradeSpec:
     kubernetes:
-      version: 1.29.x
+      version: 1.30.x
     containerd:
       version: 1.6.x
     flannel:
@@ -147,7 +147,7 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-- name: "Upgrade from k8s 1.27 to 1.29 - Airgap"
+- name: "Upgrade from k8s 1.27 to 1.30 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
@@ -170,7 +170,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.29.x
+      version: 1.30.x
     kurl:
       installerVersion: ""
     flannel:
@@ -217,7 +217,7 @@
 - name: "k8s_129x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.30.x"
     containerd:
       version: latest
     flannel:
