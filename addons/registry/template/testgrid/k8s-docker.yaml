@@ -1,11 +1,11 @@
 - name: registry_latest_rook
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.30.x"
     flannel:
       version: latest
     rook:
-      version: 1.9.x
+      version: 1.12.x
     containerd:
       version: "latest"
     registry:
