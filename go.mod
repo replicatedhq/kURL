@@ -1,8 +1,7 @@
 module github.com/replicatedhq/kurl
 
 go 1.21
-
-toolchain go1.21.3
+toolchain go1.22.2
 
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
@@ -44,10 +43,10 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.29.3
-	k8s.io/apimachinery v0.29.3
-	k8s.io/cli-runtime v0.29.3
-	k8s.io/client-go v0.29.3
+	k8s.io/api v0.30.0
+	k8s.io/apimachinery v0.30.0
+	k8s.io/cli-runtime v0.30.0
+	k8s.io/client-go v0.30.0
 	k8s.io/code-generator v0.29.3
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/controller-runtime v0.17.3
@@ -292,7 +291,7 @@ require (
 	k8s.io/apiserver v0.29.3 // indirect
 	k8s.io/component-base v0.29.3 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
+	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/kubectl v0.29.0 // indirect
 	k8s.io/kubelet v0.29.3 // indirect
 	k8s.io/metrics v0.29.3 // indirect
