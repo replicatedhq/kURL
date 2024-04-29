@@ -364,38 +364,24 @@ function preflights_require_host_packages() {
 
     logStep "Checking required host packages"
 
-    local distro=rhel-9
-
     local fail=0
-
-    local dir=
-    for dir in addons/*/ packages/*/ ; do
-        local addon=
-        addon=$(basename "$dir")
-        if [ "$addon" = "*" ]; then
-            # the directory is empty. this is likely a bug
-            logWarn "No add-ons found in $(dirname "$dir")"
-            continue
-        fi
-        local varname="${addon^^}_VERSION"
-        varname="${varname//-/_}"
-        local addon_version="${!varname}"
-        if [ -z "$addon_version" ]; then
-            continue
-        fi
-        local deps_file="${dir}$addon_version/$distro/Deps"
-        if [ ! -f "$deps_file" ]; then
-            continue
-        fi
-        local dep=
+    # shellcheck disable=SC2044
+    for deps_file in $(find . -name Deps); do
         while read -r dep ; do
-            if ! yum_is_host_package_installed_or_available "$dep" ; then
-                if [ "$fail" = "0" ]; then
-                    echo ""
-                    fail=1
-                fi
-                logFail "Host package $dep is required by $addon $addon_version"
+            if ! echo "$deps_file" | grep -q "rhel-9"; then
+                continue
             fi
+            if yum_is_host_package_installed_or_available "$dep" ; then
+                continue
+            fi
+            fail=1
+            component=$(echo "$deps_file" | awk -F'/' '{print $3}')
+            if [ "$component" = "host" ]; then
+                logFail "Host package $dep is required"
+                continue
+            fi
+            version=$(echo "$deps_file" | awk -F'/' '{print $4}')
+            logFail "Host package $dep is required for $component version $version"
         done <"$deps_file"
     done
 
