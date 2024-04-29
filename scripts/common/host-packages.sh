@@ -279,10 +279,18 @@ gpgcheck=0
 repo_gpgcheck=0
 EOF
 
-    if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
-        yum install --allowerasing -y "${packages[@]}"
+    if [ -n "$KURL_USE_RHEL9_REMOTE_YUM_REPOS" ] ; then
+        if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
+            yum install --allowerasing -y "${packages[@]}"
+        else
+            yum install -y "${packages[@]}"
+        fi
     else
-        yum install -y "${packages[@]}"
+        if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
+            yum install --disablerepo=* --enablerepo="$reponame" --allowerasing -y "${packages[@]}"
+        else
+            yum install --disablerepo=* --enablerepo="$reponame" -y "${packages[@]}"
+        fi
     fi
 
     logSuccess "Host packages ${packages[*]} installed"
@@ -413,6 +421,7 @@ function yum_is_host_package_installed_or_available() {
     fi
 
     if yum list available "$package" >/dev/null 2>&1 ; then
+        KURL_USE_RHEL9_REMOTE_YUM_REPOS=1
         return 0
     fi
 
