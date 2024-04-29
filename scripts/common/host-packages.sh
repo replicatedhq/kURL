@@ -280,9 +280,9 @@ repo_gpgcheck=0
 EOF
 
     if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
-        yum install --allowerasing -y "${packages[@]}"
+        yum install "$KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS" --enablerepo="$reponame" --allowerasing -y "${packages[@]}"
     else
-        yum install -y "${packages[@]}"
+        yum install "$KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS" --enablerepo="$reponame" -y "${packages[@]}"
     fi
 
     logSuccess "Host packages ${packages[*]} installed"
@@ -404,15 +404,23 @@ function yum_is_host_package_installed() {
     yum list installed "$package" >/dev/null 2>&1
 }
 
+# we start with all upstream yum repositories disabled for RHEL 9.
+# we only enable them if one of our dependencies need to be installed
+# from there. se yum_is_host_package_installed_or_available function.
+export KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS="--disablerepo=*"
+
 # yum_is_host_package_installed_or_available returns 0 if the package is installed or available
 function yum_is_host_package_installed_or_available() {
     local package="$1"
 
-    if yum list installed "$package" >/dev/null 2>&1 ; then
+    if rpm -q "$package" >/dev/null 2>&1 ; then
         return 0
     fi
 
+    # if the package if available in the upstream yum repos we need to
+    # enable them so we reset KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS.
     if yum list available "$package" >/dev/null 2>&1 ; then
+        KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS=""
         return 0
     fi
 
