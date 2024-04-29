@@ -20,7 +20,7 @@ jobs:
         ./generate.sh
 
     - name: Create Pull Request # creates a PR if there are differences
-      uses: peter-evans/create-pull-request@v6.0.4
+      uses: peter-evans/create-pull-request@v6.0.5
       id: cpr
       with:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
