@@ -280,9 +280,9 @@ repo_gpgcheck=0
 EOF
 
     if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
-        yum install "$KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS" --enablerepo="$reponame" --allowerasing -y "${packages[@]}"
+        yum install --disableplugin amazon-id,subscription-manager --repo="$reponame" --allowerasing -y "${packages[@]}"
     else
-        yum install "$KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS" --enablerepo="$reponame" -y "${packages[@]}"
+        yum install --disableplugin amazon-id,subscription-manager --repo="$reponame" -y "${packages[@]}"
     fi
 
     logSuccess "Host packages ${packages[*]} installed"
@@ -355,8 +355,7 @@ function yum_ensure_host_package() {
     fi
 }
 
-# preflights_require_host_packages ensures that all required host packages are installed or
-# available.
+# preflights_require_host_packages ensures that all required host packages are installed.
 function preflights_require_host_packages() {
     if ! is_rhel_9_variant ; then
         return # only rhel 9 requires this
@@ -371,7 +370,7 @@ function preflights_require_host_packages() {
             if ! echo "$deps_file" | grep -q "rhel-9"; then
                 continue
             fi
-            if yum_is_host_package_installed_or_available "$dep" ; then
+            if rpm -q "$dep" >/dev/null 2>&1 ; then
                 continue
             fi
             fail=1
@@ -388,41 +387,15 @@ function preflights_require_host_packages() {
     if [ "$fail" = "1" ]; then
         echo ""
         log "Host packages are missing. Please install them and re-run the install script."
-        if [ "$KURL_DISMISS_HOST_PACKAGES_PREFLIGHT" != "1" ]; then
-            log "Run the script again with flag \"dismiss-host-packages-preflight\" to continue."
-            exit 1
-        fi
-    else
-        logSuccess "Required host packages are installed or available"
+        exit 1
     fi
+    logSuccess "Required host packages are installed or available"
 }
 
 # yum_is_host_package_installed returns 0 if the package is installed on the host
 function yum_is_host_package_installed() {
     local package="$1"
 
+    log "Checking if $package is installed"
     yum list installed "$package" >/dev/null 2>&1
-}
-
-# we start with all upstream yum repositories disabled for RHEL 9.
-# we only enable them if one of our dependencies need to be installed
-# from there. se yum_is_host_package_installed_or_available function.
-export KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS="--disablerepo=*"
-
-# yum_is_host_package_installed_or_available returns 0 if the package is installed or available
-function yum_is_host_package_installed_or_available() {
-    local package="$1"
-
-    if rpm -q "$package" >/dev/null 2>&1 ; then
-        return 0
-    fi
-
-    # if the package if available in the upstream yum repos we need to
-    # enable them so we reset KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS.
-    if yum list available "$package" >/dev/null 2>&1 ; then
-        KURL_DISABLE_RHEL9_UPSTREAM_YUM_REPOS=""
-        return 0
-    fi
-
-    return 1
 }
