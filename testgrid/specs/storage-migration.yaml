@@ -34,6 +34,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -91,6 +94,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -145,6 +151,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -203,6 +212,9 @@
       version: latest
     prometheus:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -251,6 +263,9 @@
       version: 3.4.x
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -297,6 +312,9 @@
       version: 3.4.x
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -346,6 +364,9 @@
       version: 3.4.x
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -396,6 +417,9 @@
       version: 3.4.x
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -450,6 +474,9 @@
       version: 3.4.x
       isLocalPVEnabled: true
       localPVStorageClassName: local
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -498,6 +525,9 @@
       version: latest
     rook:
       version: 1.8.x
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # wait for ekco to scale up the Ceph cluster
     while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
@@ -553,6 +583,9 @@
       version: latest
     rook:
       version: 1.12.x
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # wait for ekco to scale up the Ceph cluster
     while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
@@ -610,6 +643,9 @@
       version: latest
     rook:
       version: 1.12.x
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -666,6 +702,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # wait for ekco to scale up the Ceph cluster
     while [ "$(kubectl -n rook-ceph get pod --no-headers -l app=rook-ceph-osd | wc -l)" != "3" ]; do sleep 10 ; done
@@ -728,6 +767,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -790,6 +832,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -838,6 +883,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -973,6 +1021,9 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
@@ -1466,6 +1517,9 @@
       localPVStorageClassName: local
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"

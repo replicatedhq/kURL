@@ -13,6 +13,9 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
@@ -51,6 +54,9 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
 
     # get the registry address and credentials
@@ -100,6 +106,9 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
 
     # wait for the pod to be ready
@@ -161,6 +170,9 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
 
     # wait for the pod to be ready
@@ -214,6 +226,9 @@
       publishPort: 8443
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: registry_remove_all_object_storage
   cpu: 5
   installerSpec:
@@ -246,6 +261,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: registry_airgap_openebs
   airgap: true
   installerSpec:

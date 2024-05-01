@@ -15,6 +15,9 @@
     minio:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -56,6 +59,8 @@
     registry:
       version: "latest"
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
     # this pulls from prod because we don't keep old staging versions in s3
     curl -LO https://kurl.sh/bundle/version/v2023.08.15-0/latest/packages/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
     mkdir -p /var/lib/kurl/assets
@@ -97,6 +102,9 @@
       version: "__testver__"
       claimSize: "20Gi"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -118,6 +126,9 @@
       version: "__testver__"
       hostPath: "/opt/minio"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -150,6 +161,9 @@
       version: "__testver__"
       claimSize: "20Gi"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -189,6 +203,9 @@
     minio:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -229,6 +246,9 @@
     minio:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -269,6 +289,9 @@
       version: "__testver__"
       claimSize: "20Gi"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info

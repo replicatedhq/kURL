@@ -17,6 +17,9 @@
       version: 1.6.x
     flannel:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     kubectl get nodes
   postUpgradeScript: |

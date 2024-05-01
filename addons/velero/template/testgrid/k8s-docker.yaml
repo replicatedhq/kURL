@@ -14,6 +14,9 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -69,6 +72,9 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -91,6 +97,9 @@
       s3Override: "__testdist__"
     minio:
       version: "latest"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "Velero Remove Object Storage"
   cpu: 8
   installerSpec:
@@ -131,6 +140,9 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -170,6 +182,9 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application

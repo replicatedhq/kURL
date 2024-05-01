@@ -7,6 +7,9 @@
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     echo "host iptables version"
     iptables --version
@@ -30,6 +33,9 @@
       s3Override: "__testdist__"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave airgap latest multi node"
   installerSpec:
     kubernetes:

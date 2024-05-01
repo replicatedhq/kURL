@@ -688,6 +688,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: k8s19x_rook_upgrade_143_18x_docker
   flags: "yes"
   cpu: 6
@@ -868,6 +871,9 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -894,6 +900,9 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "K8s 1.22x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -920,6 +929,9 @@
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variantsl
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "K8s 1.22x Airgap"
   cpu: 6
   installerSpec:
@@ -1067,6 +1079,9 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -1200,6 +1215,9 @@
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights kubernetes-max-pods-per-node=200"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     kubectl get node -oyaml | grep ' gpu: enabled'
     kubectl get node -oyaml | grep ' pods: "200"'
@@ -1223,6 +1241,9 @@
       version: "latest"
       podImageOverrides:
         - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     sleep 120
 
@@ -1260,6 +1281,9 @@
       version: latest
     ekco:
       version: "latest"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.7.0/kube-bench_0.7.0_linux_amd64.tar.gz | tar -xz
@@ -1277,6 +1301,9 @@
       version: "latest"
     flannel:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     set -eo pipefail
     echo "validating kubelet config contains reserved resources"
@@ -1302,6 +1329,9 @@
       version: latest
     flannel:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     echo "this is to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
@@ -1325,6 +1355,9 @@
   numSecondaryNodes: 2
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
@@ -1339,6 +1372,9 @@
   numSecondaryNodes: 2
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: k8s121x_openebs_containerd
   installerSpec:
     kubernetes:
@@ -1371,6 +1407,9 @@
       version: "0.4.x"
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: rook-upgrade-to-1.5
   flags: "yes"
   installerSpec:
@@ -1403,6 +1442,9 @@
       version: "latest"
     minio:
       version: "latest"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -1733,6 +1775,8 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
     touch /var/lib/kurl
     mkdir -p /custom
 - name: "Upgrade Kubernetes from 1.19 to 1.30"
@@ -1755,6 +1799,9 @@
       version: latest
     ekco:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
 
@@ -1786,6 +1833,9 @@
       version: latest
     rook:
       version: "1.5.12"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -1823,6 +1873,9 @@
       version: latest
     ekco:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   # add a customization to the coredns configmap
   # kubeadm upgrade will warn with CoreDNSUnsupportedPlugins
   postInstallScript: |
@@ -1858,6 +1911,9 @@
       version: latest
     kurl:
       nameserver: 8.8.8.8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
   postUpgradeScript: |
@@ -1879,6 +1935,8 @@
     ekco:
       version: latest
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
     mkdir -p /opt/kurl-testgrid/
     echo "apiVersion: cluster.kurl.sh/v1beta1
     kind: Installer
@@ -1936,6 +1994,9 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: (k8s 1.30) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1975,6 +2036,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: (k8s 1.30) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -2015,6 +2079,8 @@
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
     FOLDER=/testsymbolic
     
     # create directories
@@ -2087,6 +2153,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: longhorn
   installerSpec:
     contour:
@@ -2113,6 +2182,9 @@
       version: latest
     kotsadm:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s119-minimal
@@ -2156,6 +2228,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -2198,6 +2273,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-125
   installerSpec:
     containerd:
@@ -2210,6 +2288,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-126
   installerSpec:
     containerd:
@@ -2225,6 +2306,9 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-127
   installerSpec:
     containerd:
@@ -2240,6 +2324,9 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-128
   installerSpec:
     containerd:
@@ -2255,6 +2342,9 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-129
   installerSpec:
     containerd:
@@ -2270,6 +2360,9 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: minimal-130
   installerSpec:
     containerd:
@@ -2285,6 +2378,9 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -2298,6 +2394,9 @@
       version: latest
     ekco:
       version: "latest"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.7.0/kube-bench_0.7.0_linux_amd64.tar.gz | tar -xz
@@ -2321,6 +2420,9 @@
       version: "latest"
     flannel:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     set -eo pipefail
     echo "validating kubelet config contains reserved resources"
@@ -2366,6 +2468,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2533,6 +2638,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "k8s_130x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
@@ -2551,6 +2659,9 @@
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: merge-installer-hostpreflight-and-upgrade
   installerSpec:
     kubernetes:
@@ -2567,6 +2678,8 @@
     flannel:
       version: latest
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
     mkdir -p /opt/kurl-testgrid/
     echo "apiVersion: cluster.kurl.sh/v1beta1
     kind: Installer
@@ -2655,6 +2768,9 @@
       version: latest
     flannel:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     echo "export FORCE_RESET=1" > tasks2.sh
     cat tasks.sh >> tasks2.sh

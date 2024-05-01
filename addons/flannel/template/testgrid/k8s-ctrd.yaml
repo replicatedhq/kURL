@@ -7,6 +7,9 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "flannel latest single node upgrade"
   installerSpec:
     kubernetes:
@@ -23,6 +26,9 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "flannel latest multi node"
   installerSpec:
     kubernetes:
@@ -34,6 +40,9 @@
       s3Override: "__testdist__"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "flannel airgap latest multi node"
   installerSpec:
     kubernetes:
@@ -65,6 +74,9 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave to flannel + docker to containerd multi node"
   numSecondaryNodes: 2
   installerSpec:
@@ -82,6 +94,9 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 6
@@ -128,6 +143,9 @@
       version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: "local"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave to flannel single node with addons and rook"
   flags: "yes"
   cpu: 8
@@ -172,6 +190,9 @@
       version: "1.12.x"
   unsupportedOSIDs:
     - centos-74 # Rook Pre-init: centos-7.4 Kernel 3.10.0-693.el7.x86_64 is not supported
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave to flannel single node, custom IP ranges"
   installerSpec:
     kubernetes:
@@ -192,6 +213,9 @@
       podCIDR: 172.17.0.0/16
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "weave to flannel, docker to containerd, single node"
   installerSpec:
     kubernetes:

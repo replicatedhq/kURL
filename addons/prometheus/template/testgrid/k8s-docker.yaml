@@ -13,6 +13,9 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "prometheus upgrade from 0.33.0"
   cpu: 5
   unsupportedOSIDs:
@@ -42,6 +45,9 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "prometheus upgrade from 0.49.x"
   installerSpec:
     kubernetes:
@@ -70,6 +76,9 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "prometheus upgrade from latest"
   installerSpec:
     kubernetes:
@@ -98,6 +107,9 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "prometheus with longhorn and containerd"
   installerSpec:
     kubernetes:
@@ -111,6 +123,9 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:

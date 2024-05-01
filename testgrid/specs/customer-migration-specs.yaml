@@ -40,6 +40,9 @@
       version: 0.65.x
     metricsServer:
       version: 0.6.x
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -120,6 +123,9 @@
       version: "3.7.x"
       isLocalPVEnabled: true
       localPVStorageClassName: "local"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -202,6 +208,9 @@
       nodeUnreachableToleration: "1m"
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
