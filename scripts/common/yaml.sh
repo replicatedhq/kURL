@@ -219,7 +219,7 @@ function apply_installer_crd() {
         cat > $ORIGINAL_INSTALLER_SPEC <<EOL
 ${INSTALLER_YAML}
 EOL
-        kubectl apply -f "$ORIGINAL_INSTALLER_SPEC"
+        try_1m kubectl apply -f "$ORIGINAL_INSTALLER_SPEC"
     fi
 
     try_1m kubectl apply -f "$MERGED_YAML_SPEC"
