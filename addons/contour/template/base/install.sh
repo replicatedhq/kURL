@@ -41,4 +41,6 @@ function contour() {
 
     printf "awaiting contour deployment\n"
     spinner_until 300 deployment_fully_updated projectcontour contour
+    printf "awaiting envoy daemonset\n"
+    spinner_until 300 daemonset_fully_updated projectcontour envoy
 }
