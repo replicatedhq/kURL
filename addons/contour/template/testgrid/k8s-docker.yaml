@@ -1,4 +1,5 @@
-- installerSpec:
+- name: "upgrade from latest contour"
+  installerSpec:
     kubernetes:
       version: "1.30.x"
     flannel:
@@ -38,7 +39,49 @@
 
     curl -v "http://$private_address:80"
 
-- installerSpec:
+- name: "upgrade from 1.20.1 contour"
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    contour:
+      version: "1.20.1"
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    contour:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    echo "YXBpVmVyc2lvbjogYXBwcy92MQpraW5kOiBEZXBsb3ltZW50Cm1ldGFkYXRhOgogIGxhYmVsczoKICAgIGFwcDogaHR0cGJpbgogIG5hbWU6IGh0dHBiaW4Kc3BlYzoKICByZXBsaWNhczogMwogIHNlbGVjdG9yOgogICAgbWF0Y2hMYWJlbHM6CiAgICAgIGFwcDogaHR0cGJpbgogIHRlbXBsYXRlOgogICAgbWV0YWRhdGE6CiAgICAgIGxhYmVsczoKICAgICAgICBhcHA6IGh0dHBiaW4KICAgIHNwZWM6CiAgICAgIGNvbnRhaW5lcnM6CiAgICAgIC0gaW1hZ2U6IGRvY2tlci5pby9rZW5uZXRocmVpdHovaHR0cGJpbgogICAgICAgIG5hbWU6IGh0dHBiaW4KLS0tCmFwaVZlcnNpb246IHYxCmtpbmQ6IFNlcnZpY2UKbWV0YWRhdGE6CiAgbGFiZWxzOgogICAgYXBwOiBodHRwYmluCiAgbmFtZTogaHR0cGJpbgpzcGVjOgogIHBvcnRzOgogIC0gcG9ydDogODAKICAgIHByb3RvY29sOiBUQ1AKICAgIHRhcmdldFBvcnQ6IDgwCiAgc2VsZWN0b3I6CiAgICBhcHA6IGh0dHBiaW4KICBzZXNzaW9uQWZmaW5pdHk6IE5vbmUKICB0eXBlOiBDbHVzdGVySVAKLS0tCmFwaVZlcnNpb246IG5ldHdvcmtpbmcuazhzLmlvL3YxCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZTogaHR0cGJpbgogIGxhYmVsczoKICAgIGFwcDogaHR0cGJpbgpzcGVjOgogIGRlZmF1bHRCYWNrZW5kOgogICAgc2VydmljZToKICAgICAgbmFtZTogaHR0cGJpbgogICAgICBwb3J0OgogICAgICAgIG51bWJlcjogODAK" | base64 --decode > /tmp/httpbin.yaml
+    kubectl apply -f /tmp/httpbin.yaml
+    kubectl get po,svc,ing -l app=httpbin
+    sleep 30
+    kubectl get po,svc,ing -l app=httpbin
+
+    export private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml | awk -F'=' '{ print $2 }' | tr -d '\n')"
+    echo "Discovered private address: $private_address"
+
+    curl -v "http://$private_address:80"
+  postUpgradeScript: |
+    kubectl get po,svc,ing -l app=httpbin
+    sleep 30
+    kubectl get pods -A
+
+    export private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml | awk -F'=' '{ print $2 }' | tr -d '\n')"
+    echo "Discovered private address: $private_address"
+
+    curl -v "http://$private_address:80"
+
+- name: "k8s 1.30"
+  installerSpec:
     kubernetes:
       version: "1.30.x"
     flannel:
@@ -60,9 +103,10 @@
 
     curl -v "http://$private_address:80"
 
-- installerSpec:
+- name: "k8s 1.21"
+  installerSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.21.x"
     flannel:
       version: latest
     containerd:
