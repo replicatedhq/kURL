@@ -39,7 +39,7 @@
 
     curl -v "http://$private_address:80"
 
-- name: "upgrade from 1.7.0 contour"
+- name: "upgrade from 1.10.1 contour"
   installerSpec:
     kubernetes:
       version: "1.30.x"
@@ -48,7 +48,7 @@
     containerd:
       version: "latest"
     contour:
-      version: "1.7.0"
+      version: "1.10.1"
   upgradeSpec:
     kubernetes:
       version: "1.30.x"
