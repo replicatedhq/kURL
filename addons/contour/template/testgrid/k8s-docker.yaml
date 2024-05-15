@@ -42,7 +42,7 @@
 - name: "upgrade from 1.10.1 contour"
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.21.x"
     flannel:
       version: latest
     containerd:
@@ -51,7 +51,7 @@
       version: "1.10.1"
   upgradeSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.21.x"
     flannel:
       version: latest
     containerd:
