@@ -16,6 +16,8 @@
 #       examples/contour/02-service-envoy.yaml
 #       examples/contour/03-contour.yaml
 #       examples/contour/03-envoy.yaml
+#
+# 'x-kubernetes-validations' entries were manually removed.
 
 ---
 apiVersion: v1
@@ -5217,10 +5219,6 @@ spec:
                 - caSecret
                 - subjectName
                 type: object
-                x-kubernetes-validations:
-                - message: subjectNames[0] must equal subjectName if set
-                  rule: 'has(self.subjectNames) ? self.subjectNames[0] == self.subjectName
-                    : true'
             required:
             - services
             type: object
@@ -6873,10 +6871,6 @@ spec:
                             - caSecret
                             - subjectName
                             type: object
-                            x-kubernetes-validations:
-                            - message: subjectNames[0] must equal subjectName if set
-                              rule: 'has(self.subjectNames) ? self.subjectNames[0]
-                                == self.subjectName : true'
                           weight:
                             description: Weight defines percentage of traffic to balance
                               traffic
@@ -7281,10 +7275,6 @@ spec:
                           - caSecret
                           - subjectName
                           type: object
-                          x-kubernetes-validations:
-                          - message: subjectNames[0] must equal subjectName if set
-                            rule: 'has(self.subjectNames) ? self.subjectNames[0] ==
-                              self.subjectName : true'
                         weight:
                           description: Weight defines percentage of traffic to balance
                             traffic
@@ -7634,11 +7624,6 @@ spec:
                               - caSecret
                               - subjectName
                               type: object
-                              x-kubernetes-validations:
-                              - message: subjectNames[0] must equal subjectName if
-                                  set
-                                rule: 'has(self.subjectNames) ? self.subjectNames[0]
-                                  == self.subjectName : true'
                           required:
                           - uri
                           type: object
