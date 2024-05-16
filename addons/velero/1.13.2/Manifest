@@ -4,7 +4,7 @@ image velero-restore-helper-gcr gcr.io/velero-gcp/velero-restore-helper:v1.13.2
 image velero-aws velero/velero-plugin-for-aws:v1.9.2
 image velero-gcp velero/velero-plugin-for-gcp:v1.9.1
 image velero-azure velero/velero-plugin-for-microsoft-azure:v1.9.2
-image local-volume-provider replicated/local-volume-provider:v0.6.2
+image local-volume-provider replicated/local-volume-provider:v0.6.4
 image s3cmd kurlsh/s3cmd:20230406-9a6d89f
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz
