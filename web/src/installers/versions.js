@@ -209,6 +209,7 @@ module.exports.InstallerVersions = {
   ],
   flannel: [
     // cron-flannel-update
+    "0.25.2",
     "0.25.1",
     "0.24.4",
     "0.24.2",
