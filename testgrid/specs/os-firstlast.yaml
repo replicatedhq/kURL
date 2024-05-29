@@ -41,8 +41,8 @@
     bash centos2ol.sh -r
 - id: rocky-9
   name: Rocky Linux
-  version: "9.3"
-  vmimageuri: https://download.rockylinux.org/pub/rocky/9.3/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+  version: "9.4"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
     yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: ubuntu-1804
