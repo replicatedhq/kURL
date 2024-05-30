@@ -220,7 +220,7 @@
     weave:
       version: 2.8.1
     contour:
-      version: latest
+      version: 1.28.0
   unsupportedOSIDs:
   - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants4
@@ -241,7 +241,7 @@
     weave:
       version: 2.6.5
     contour:
-      version: latest
+      version: 1.28.0
     containerd:
       version: 1.6.x
   unsupportedOSIDs:
