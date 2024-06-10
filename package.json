@@ -9,6 +9,6 @@
   "dependencies": {
     "aws-sdk": "^2.1610.0",
     "gaze-run-interrupt": "^2.0.0",
-    "semver": "^7.6.0"
+    "semver": "^7.6.2"
   }
 }
