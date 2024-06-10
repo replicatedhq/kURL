@@ -40,7 +40,7 @@ require (
 	golang.org/x/crypto v0.23.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/sync v0.7.0
-	golang.org/x/text v0.15.0
+	golang.org/x/text v0.16.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
@@ -273,7 +273,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.21.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
