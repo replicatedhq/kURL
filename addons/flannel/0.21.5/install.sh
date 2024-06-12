@@ -590,4 +590,162 @@ function flannel_already_applied() {
 
     flannel_ready_spinner
     check_network
+    check_connection
+}
+
+function flannel_post_init() {
+    check_connection
+}
+
+
+# flannel_find_free_port will check any free port to be used to do the check
+function flannel_find_free_port() {
+    while :
+    do
+        PORT=$(shuf -i 2000-65000 -n 1)
+        if ss -lau | grep $PORT > /dev/null; then
+            echo $PORT
+            return 0
+        fi
+    done
+}
+
+# check_connection will check the connection using any port available
+# note that when we have a multi node install we will create the Pods in each node to verify
+# the connection across nodes
+function check_connection() {
+    local PORT=$(flannel_find_free_port)
+
+    logStep "Checking Flannel Connection over port $PORT"
+
+    local num_nodes=$(kubectl get nodes --selector='!node-role.kubernetes.io/master' --no-headers | wc -l)
+
+    echo "Creating Pods to check communication"
+    if [[ $num_nodes -gt 1 ]]; then
+      echo "Create pod to do the test using podAntiAffinity to check the communication across nodes"
+      kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: udp-receiver
+  labels:
+    app: udp-receiver
+spec:
+  containers:
+  - name: udp-receiver
+    image: busybox
+    command: ["sh", "-c", "nc -lu $PORT"]
+    ports:
+    - containerPort: $PORT
+      protocol: UDP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - udp-sender
+        topologyKey: "kubernetes.io/hostname"
+EOF
+    else
+      echo "Create pod to do the test without use podAntiAffinity because has only one node"
+
+      kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: udp-receiver
+spec:
+  containers:
+  - name: udp-receiver
+    image: busybox
+    command: ["sh", "-c", "nc -lu $PORT"]
+    ports:
+    - containerPort: $PORT
+      protocol: UDP
+EOF
+    fi
+
+    if ! spinner_until 120 check_udp_receiver_status; then
+      logWarn "Timeout waiting for udp-receiver Pod to be in the 'Running' state"
+    fi
+
+    receiver_ip=$(kubectl get pod udp-receiver -o jsonpath="{.status.podIP}")
+
+    if [[ $num_nodes -gt 1 ]]; then
+      echo "Creating udp-sender with podAntiAffinity"
+      kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: udp-sender
+  labels:
+    app: udp-sender
+spec:
+  containers:
+  - name: udp-sender
+    image: busybox
+    command: ["sh", "-c", "echo 'Test message' | nc -u $receiver_ip $PORT"]
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - udp-receiver
+        topologyKey: "kubernetes.io/hostname"
+EOF
+    else
+      echo "Creating udp-sender without podAntiAffinity"
+      kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: udp-sender
+spec:
+  containers:
+  - name: udp-sender
+    image: busybox
+    command: ["sh", "-c", "echo 'Test message' | nc -u $receiver_ip $PORT"]
+EOF
+    fi
+
+    echo "Waiting up to 2 minutes to check pods created to perform the test are successfully running"
+    if ! spinner_until 120 udp_pods_are_running; then
+        logWarn "Pods to check communication with did not become Ready within the expected time."
+    fi
+
+    echo "Waiting up to 2 minutes to check if the message will be received"
+    if ! spinner_until 120 message_received; then
+        logWarn "Unable to check that Pods communication is working correctly"
+    else
+        logSuccess "Connection check using port $PORT successfully worked"
+    fi
+
+    echo "Clean up the pods created to do the check"
+    kubectl delete pod udp-receiver udp-sender
+}
+
+function check_udp_receiver_status() {
+    local pod_status=$(kubectl get pod udp-receiver -o 'jsonpath={..status.phase}')
+    [[ "$pod_status" == "Running" ]]
+}
+
+function udp_pods_are_running() {
+    if [[ $(kubectl get pod udp-receiver -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') == "True" ]] && \
+       [[ $(kubectl get pod udp-sender -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') == "True" ]]; then
+        return 0
+    fi
+    return 1
+}
+
+function message_received() {
+    if kubectl logs udp-receiver | grep -q "Test message"; then
+        return 0
+    fi
+    return 1
 }
