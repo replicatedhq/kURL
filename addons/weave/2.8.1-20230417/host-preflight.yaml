@@ -17,10 +17,10 @@ spec:
         port: 6783
         exclude: '{{kurl .IsUpgrade }}'
 {{kurl- if and .IsJoin (not .IsUpgrade)}}
-  {{kurl- range .RemoteHosts}}
+  {{kurl- range $index, $address := .RemoteHosts}}
     - tcpConnect:
-        collectorName: "weave {{kurl . }}"
-        address: '{{kurl . }}:6783'
+        collectorName: "weave {{kurl $address }} {{kurl $index}}"
+        address: '{{kurl $address }}:6783'
         timeout: 5s
   {{kurl- end}}
 {{kurl- end}}
@@ -89,24 +89,25 @@ spec:
           - warn:
               message: Unexpected port status
 {{kurl- if and .IsJoin (not .IsUpgrade)}}
-  {{kurl- range .RemoteHosts}}
+  {{kurl- range $index, $address := .RemoteHosts}}
     - tcpConnect:
-        checkName: "weave {{kurl . }}:6783 TCP connection status"
-        collectorName: "weave {{kurl . }}"
+        checkName: "weave {{kurl $address }}:6783 TCP connection status #{{kurl $index}}"
+        collectorName: "weave {{kurl $address }} {{kurl $index}}"
         outcomes:
           - warn:
               when: "connection-refused"
-              message: Connection to weave {{kurl . }}:6783 was refused
+              message: Connection to weave {{kurl $address }}:6783 was refused #{{kurl $index}}
           - warn:
               when: "connection-timeout"
-              message: Timed out connecting to weave {{kurl . }}:6783
+              message: Timed out connecting to weave {{kurl $address }}:6783 #{{kurl $index}}
           - warn:
               when: "error"
-              message: Unexpected error connecting to weave {{kurl . }}:6783
+              message: Unexpected error connecting to weave {{kurl $address }}:6783 #{{kurl $index}}
           - pass:
               when: "connected"
-              message: Successfully connected to weave {{kurl . }}:6783
+              message: Successfully connected to weave {{kurl $address }}:6783 #{{kurl $index}}
           - warn:
-              message: Unexpected TCP connection status for weave {{kurl . }}:6783
+              message: Unexpected TCP connection status for weave {{kurl $address }}:6783 #{{kurl $index}}
   {{kurl- end}}
 {{kurl- end}}
+
