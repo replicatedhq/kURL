@@ -1,0 +1,25 @@
+- id: centos-81
+  name: CentOS
+  version: "8.1"
+  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+  preinit: ""
+- id: centos-82
+  name: CentOS
+  version: "8.2"
+  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2
+  preinit: ""
+- id: centos-83
+  name: CentOS
+  version: "8.3"
+  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2
+  preinit: ""
+- id: centos-84
+  name: CentOS
+  version: "8.4"
+  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
+  preinit: ""
+- id: centos-8-stream-2024-04
+  name: CentOS
+  version: "8.2024-04"
+  vmimageuri: https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20240415.0.x86_64.qcow2
+  preinit: "yum update -y && yum install -y traceroute iptables bind-utils"

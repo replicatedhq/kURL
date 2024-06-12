@@ -88,7 +88,7 @@ function bailIfUnsupportedOS() {
             ;;
         rocky9.0|rocky9.1|rocky9.2|rocky9.3|rocky9.4)
             ;;
-        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
+        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9)
             ;;
         amzn2)
             ;;
