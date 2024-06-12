@@ -1,0 +1,9 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longhorn-driver-deployer
+  namespace: longhorn-system
+spec:
+  template:
+    spec:
+      priorityClassName: system-cluster-critical

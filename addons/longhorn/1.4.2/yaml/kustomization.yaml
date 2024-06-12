@@ -1,0 +1,28 @@
+resources:
+- serviceaccount.1.yaml
+- serviceaccount.yaml
+- default-setting.yaml
+- storageclass.yaml
+- clusterrole.yaml
+- clusterrolebinding.1.yaml
+- clusterrolebinding.yaml
+- daemonset-sa.1.yaml
+- deployment-ui.1.yaml
+- services.4.yaml
+- services.3.yaml
+- services.2.yaml
+- services.1.yaml
+- services.yaml
+- daemonset-sa.yaml
+- deployment-driver.yaml
+- deployment-recovery-backend.yaml
+- deployment-ui.yaml
+- deployment-webhook.1.yaml
+- deployment-webhook.yaml
+
+patchesStrategicMerge:
+- patch-ui-service.yaml
+- patch-ui-deployment.yaml
+- patch-manager-priority.yaml
+- patch-driver-priority.yaml
+- patch-defaults-cm.yaml
