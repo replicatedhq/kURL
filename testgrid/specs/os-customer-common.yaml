@@ -1,8 +1,9 @@
-- id: centos-8-stream-2024-04
-  name: CentOS
-  version: "8.2024-04"
-  vmimageuri: https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20240415.0.x86_64.qcow2
-  preinit: "yum update -y && yum install -y traceroute iptables bind-utils"
+- id: rocky-9
+  name: Rocky Linux
+  version: "9.4"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+  preinit: |
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: ubuntu-2204
   name: Ubuntu
   version: "22.04"
