@@ -198,7 +198,7 @@ function reset() {
         printf "${RED}Failed to remove the following files. Please remove them manually.${NC}\n"
         printf "\n"
         printf "${YELLOW}"
-        printf "%s\n" "$RESET_UNREMOVED_FILES"
+        printf "%s \n " "$RESET_UNREMOVED_FILES"
         printf "${NC}"
         printf "\n"
         return
@@ -316,7 +316,9 @@ function reset_impl() {
     pkill haproxy || true
 
     systemctl stop containerd || true
+    reset_retry_rm /var/lib/containerd
     systemctl stop docker || true
+    reset_retry_rm /var/lib/docker
 
     # if the Rook dir existed, tell people that they might need to clear rook disks/partitions
     if [ -n "$ROOK_DIR_EXISTS" ]; then
