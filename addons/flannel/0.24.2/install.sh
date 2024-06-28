@@ -195,7 +195,7 @@ function flannel_init_pod_subnet() {
     cp "$src/kubeadm.yaml" "$DIR/kustomize/kubeadm/init-patches/flannel.yaml"
 
     if commandExists kubectl; then
-        EXISTING_POD_CIDR=$(kubectl -n kube-system get cm kubeadm-config -oyaml 2>/dev/null | grep podSubnet | awk '{ print $NF }')
+        EXISTING_POD_CIDR=$(awk -F '=' '/--cluster-cidr/{print $2}' /etc/kubernetes/manifests/kube-controller-manager.yaml 2>/dev/null)
     fi
 }
 
