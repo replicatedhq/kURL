@@ -24,7 +24,7 @@ function build_rhel_7() {
     # packages are included.
     docker run \
         --name "rhel-7-$PACKAGE_NAME" \
-        centos:7.4.1708 \
+        oraclelinux:7.9 \
         /bin/bash -c "\
             set -x
             yum update -y ca-certificates && \
@@ -46,7 +46,7 @@ function build_rhel_7_force() {
     # packages are included.
     docker run \
         --name "rhel-7-force-$PACKAGE_NAME" \
-        centos:7.4.1708 \
+        oraclelinux:7.9 \
         /bin/bash -c "\
             set -x
             yum update -y ca-certificates && \
@@ -65,7 +65,7 @@ function createrepo_rhel_7() {
     docker run \
         --name "rhel-7-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
-        centos:7.4.1708 \
+        oraclelinux:7.9 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
@@ -221,7 +221,7 @@ function build_ol_7() {
     # packages are included.
     docker run \
         --name "ol-7-$PACKAGE_NAME" \
-        centos:7.4.1708 \
+        oraclelinux:7.9 \
         /bin/bash -c "\
             set -x && \
             yum-config-manager --add-repo=http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/ && \
@@ -239,7 +239,7 @@ function createrepo_ol_7() {
     docker run \
         --name "ol-7-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
-        centos:7.4.1708 \
+        oraclelinux:7.9 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
@@ -409,16 +409,16 @@ while read -r line || [ -n "$line" ]; do
     esac
 done < "$MANIFEST_PATH"
 
-#if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-#    build_rhel_7 "${pkgs_rhel7[@]}"
-#fi
-#if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
-#    createrepo_rhel_7
-#fi
-#
-#if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-#    build_rhel_7_force "${pkgs_rhel7[@]}"
-#fi
+if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+    build_rhel_7 "${pkgs_rhel7[@]}"
+fi
+if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+    createrepo_rhel_7
+fi
+
+if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+    build_rhel_7_force "${pkgs_rhel7[@]}"
+fi
 
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
