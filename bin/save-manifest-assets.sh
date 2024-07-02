@@ -409,16 +409,16 @@ while read -r line || [ -n "$line" ]; do
     esac
 done < "$MANIFEST_PATH"
 
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7 "${pkgs_rhel7[@]}"
-fi
-if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
-    createrepo_rhel_7
-fi
-
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7_force "${pkgs_rhel7[@]}"
-fi
+#if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+#    build_rhel_7 "${pkgs_rhel7[@]}"
+#fi
+#if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+#    createrepo_rhel_7
+#fi
+#
+#if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+#    build_rhel_7_force "${pkgs_rhel7[@]}"
+#fi
 
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
