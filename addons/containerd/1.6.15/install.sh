@@ -78,14 +78,18 @@ function containerd_install() {
 
     logSuccess "Containerd is successfully configured"
 
-    log "Checking if is required to migrate images from Docker"
+    log "Checking if it is required to migrate images from Docker"
     if [ "$AIRGAP" = "1" ] && [ "$CONTAINERD_DID_MIGRATE_FROM_DOCKER" = "1" ]; then
         logStep "Migrating images from Docker to Containerd..."
         containerd_migrate_images_from_docker
         logSuccess "Images migrated successfully"
+    else
+        log "Migration of images from Docker to Containerd is not required"
     fi
 
+    logStep "Loading images into containerd"
     load_images $src/images
+    logSuccess "Images loaded successfully"
 
     log "Checking if the kubelet service is enabled"
     if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service ; then

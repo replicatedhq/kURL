@@ -1,4 +1,4 @@
-FROM centos:7.4.1708
+FROM oraclelinux:7.9
 
 RUN yum install -y createrepo
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
