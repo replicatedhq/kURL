@@ -1,4 +1,4 @@
-FROM centos:7
+FROM oraclelinux:7.9
 
 WORKDIR /src
 
