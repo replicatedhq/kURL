@@ -153,16 +153,12 @@ UNSUPPORTED_CONTAINERD_MINORS="01234"
 
 VERSIONS=()
 function find_common_versions() {
-    docker build --no-cache --pull -t centos7 -f Dockerfile.centos7 .
     docker build --no-cache --pull -t centos8 -f Dockerfile.centos8 .
     docker build --no-cache --pull -t rhel9 -f Dockerfile.rhel9 .
     docker build --no-cache --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
     docker build --no-cache --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
     docker build --no-cache --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
     docker build --no-cache --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
-
-    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
-    echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
 
     CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS8_VERSIONS[*]} containerd versions for CentOS 8: ${CENTOS8_VERSIONS[*]}"
@@ -183,25 +179,12 @@ function find_common_versions() {
     echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
 
     # Get the union of versions available for all operating systems
-    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
+    local ALL_VERSIONS=("${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
 
     for version in ${ALL_VERSIONS[@]}; do
         init_preflight_file $version
         init_manifest_file $version
-
-        if ! contains "$version" ${CENTOS7_VERSIONS[*]}; then
-            echo "CentOS 7 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "centos" "7"
-            add_unsupported_os_to_preflight_file "$version" "rhel" "7"
-            add_unsupported_os_to_preflight_file "$version" "ol" "7"
-        else
-            add_supported_os_to_preflight_file "$version" "centos" "7"
-            add_supported_os_to_preflight_file "$version" "rhel" "7"
-            add_supported_os_to_preflight_file "$version" "ol" "7"
-            add_supported_os_to_manifest_file "$version" "rhel-7" "Dockerfile.centos7"
-            add_supported_os_to_manifest_file "$version" "rhel-7-force" "Dockerfile.centos7-force"
-        fi
 
         if ! contains "$version" ${CENTOS8_VERSIONS[*]}; then
             echo "CentOS 8 lacks version $version"
