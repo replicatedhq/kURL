@@ -6,8 +6,6 @@ PACKAGE_NAME=$1
 MANIFEST_PATH=$2
 OUT_DIR=$3
 
-export DOCKER_ENABLE_DEPRECATED_PULL_SCHEMA_1_IMAGE=1
-
 if ! test -f "$MANIFEST_PATH"; then
     echo "$MANIFEST_PATH does not exist"
     exit 1
