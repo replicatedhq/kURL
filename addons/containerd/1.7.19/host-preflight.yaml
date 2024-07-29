@@ -1,0 +1,43 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - hostOS: {}
+  analyzers:
+    - hostOS:
+        outcomes:
+          - fail:
+              when: "centos = 8"
+              message: "containerd addon does not support centos 8"
+          - fail:
+              when: "rhel = 8"
+              message: "containerd addon does not support rhel 8"
+          - fail:
+              when: "ol = 8"
+              message: "containerd addon does not support ol 8"
+          - pass:
+              when: "centos = 9"
+              message: "containerd addon supports centos 9"
+          - pass:
+              when: "rhel = 9"
+              message: "containerd addon supports rhel 9"
+          - pass:
+              when: "rocky = 9"
+              message: "containerd addon supports rocky 9"
+          - fail:
+              when: "ol = 9"
+              message: "containerd addon does not support ol 9"
+          - fail:
+              when: "ubuntu = 16.04"
+              message: "containerd addon does not support ubuntu 16.04"
+          - warn:
+              when: "ubuntu = 18.04"
+              message: "containerd addon supports ubuntu 18.04, but only up to containerd 1.6.21, which will be installed instead of 1.7.19"
+          - pass:
+              when: "ubuntu = 20.04"
+              message: "containerd addon supports ubuntu 20.04"
+          - pass:
+              when: "ubuntu = 22.04"
+              message: "containerd addon supports ubuntu 22.04"
