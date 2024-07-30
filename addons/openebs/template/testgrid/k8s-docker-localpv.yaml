@@ -286,7 +286,7 @@
     ekco:
       version: "latest"
     prometheus:
-      version: "0.60.1-41.7.3"
+      version: "latest"
     minio:
       version: "latest"
     registry:
@@ -401,7 +401,7 @@
     ekco:
       version: "latest"
     prometheus:
-      version: "0.60.1-41.7.3"
+      version: "latest"
     minio:
       version: "latest"
     registry:
