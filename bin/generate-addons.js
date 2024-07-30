@@ -105,9 +105,6 @@ fs.readdir(specDir, (err, files) => {
   supportedVersions.kubernetes = preferredVersions.kubernetes;
   supportedVersions.kubernetes.unshift("latest");
 
-  supportedVersions.docker = preferredVersions.docker;
-  supportedVersions.docker.unshift("latest");
-
   supportedVersions.fio = ["host"]; // fio serves as a signal that the 'fio' host package should be included
 
   // Build JSON files
