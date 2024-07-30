@@ -7,4 +7,3 @@ image prometheus quay.io/prometheus/prometheus:v2.53.1
 image prometheus-adapter registry.k8s.io/prometheus-adapter/prometheus-adapter:v0.11.2
 image prometheus-config-reloader quay.io/prometheus-operator/prometheus-config-reloader:v0.75.2
 image prometheus-operator quay.io/prometheus-operator/prometheus-operator:v0.75.2
-
