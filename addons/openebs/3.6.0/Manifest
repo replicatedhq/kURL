@@ -1,2 +1,0 @@
-image linux-utils openebs/linux-utils:3.4.0
-image provisioner-localpv openebs/provisioner-localpv:3.4.0
