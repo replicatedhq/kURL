@@ -172,16 +172,6 @@ dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
-dist/docker-%.tar.gz:
-	${MAKE} build/packages/docker/$*/ubuntu-18.04
-	${MAKE} build/packages/docker/$*/ubuntu-20.04
-	${MAKE} build/packages/docker/$*/ubuntu-22.04
-	${MAKE} build/packages/docker/$*/rhel-8
-	mkdir -p dist
-	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
-	chmod +x build/packages/docker/$*/runc
-	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
-
 dist/containerd-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh "containerd-$*" addons/containerd/$*/Manifest $(CURDIR)/build/addons/containerd/$*
 	mkdir -p dist
@@ -439,45 +429,6 @@ build/helm:
 build/shared: kurl-util-image
 	mkdir -p build/shared
 	docker save $(KURL_UTIL_IMAGE) > build/shared/kurl-util.tar
-
-build/packages/docker/%/ubuntu-18.04:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/ubuntu-1804-docker:$* \
-		-f bundles/docker-ubuntu1804/Dockerfile \
-		bundles/docker-ubuntu1804
-	-docker rm -f docker-ubuntu1804-$* 2>/dev/null
-	docker create --name docker-ubuntu1804-$* kurl/ubuntu-1804-docker:$*
-	mkdir -p build/packages/docker/$*/ubuntu-18.04
-	docker cp docker-ubuntu1804-$*:/packages/archives/. build/packages/docker/$*/ubuntu-18.04
-	docker rm docker-ubuntu1804-$*
-
-build/packages/docker/%/ubuntu-20.04:
-	./bundles/docker-ubuntu2004/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-20.04
-
-build/packages/docker/%/ubuntu-22.04:
-	./bundles/docker-ubuntu2204/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-22.04
-
-build/packages/docker/18.09.8/rhel-8:
-	${MAKE} build/packages/docker/18.09.8/amzn-force
-
-build/packages/docker/19.03.4/rhel-8:
-	${MAKE} build/packages/docker/19.03.4/amzn-force
-
-build/packages/docker/19.03.10/rhel-8:
-	${MAKE} build/packages/docker/19.03.10/amzn-force
-
-build/packages/docker/%/rhel-8:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/rhel-8-docker:$* \
-		-f bundles/docker-rhel8/Dockerfile \
-		bundles/docker-rhel8
-	-docker rm -f docker-rhel8 2>/dev/null
-	docker create --name docker-rhel8-$* kurl/rhel-8-docker:$*
-	mkdir -p build/packages/docker/$*/rhel-8
-	docker cp docker-rhel8-$*:/packages/archives/. build/packages/docker/$*/rhel-8
-	docker rm docker-rhel8-$*
 
 build/packages/kubernetes/%/ubuntu-18.04:
 	docker build \

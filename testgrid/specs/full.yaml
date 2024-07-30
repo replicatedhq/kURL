@@ -1,59 +1,3 @@
-- name: k8s121x_docker19034
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.21.x
-    docker:
-      daemonConfig: "{\n\t\"exec-opts\": [\"native.cgroupdriver=systemd\"],\n\t\"default-address-pools\":
-        [ {\"base\":\"10.69.0.0/16\",\"size\":16} ]\n}"
-      version: 19.03.4
-    weave:
-      version: 2.8.1
-    contour:
-      version: 1.7.0
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.4.3
-    registry:
-      version: 2.7.1
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.5.1
-    ekco:
-      version: 0.7.0
-  unsupportedOSIDs:
-  - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s119x
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.10
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd149
   installerSpec:
     kubernetes:
@@ -80,69 +24,6 @@
   - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s117x_openebs_minio
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.17.13
-    docker:
-      version: latest
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: 1.57.x # greater versions fail with --dry-run=client when running create configmap kotsadm-application-metadata
-    velero:
-      version: 1.2.0
-    minio:
-      namespace: minio
-      version: latest
-    openebs:
-      cstorStorageClassName: default
-      isCstorEnabled: true
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 1.12.0
-    ekco:
-      version: 0.6.0
-  unsupportedOSIDs:
-  - rocky-91 # doc:
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s120x_docker
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.20.x
-    docker:
-      version: 19.03.10
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    longhorn:
-      version: 1.2.2
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    minio:
-      version: latest
-    ekco:
-      version: latest
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -173,58 +54,6 @@
   - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s119x-airgap
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.10
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-  airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s1184_1202
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.18.4
-    docker:
-      version: 20.10.5
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-  upgradeSpec:
-    kubernetes:
-      version: 1.20.2
-    docker:
-      version: 20.10.5
-    weave:
-      version: 2.8.1
-    contour:
-      version: 1.28.3
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -300,61 +129,6 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s119
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.15
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s119-airgap
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.15
-    weave:
-      version: 2.6.5
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-  airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -573,13 +347,13 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s119_selinux
+- name: k8s129_selinux
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: 1.19.3
-    docker:
-      version: 19.03.15
+      version: 1.29.x
+    containerd:
+      version: latest
     weave:
       version: 2.8.1
     selinuxConfig:
@@ -593,10 +367,6 @@
         - s0-s0:c0.c1023
         - my_staff_u
       type: targeted
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants4
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -688,146 +458,6 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: k8s19x_rook_upgrade_143_18x_docker
-  flags: "yes"
-  cpu: 6
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    weave:
-      version: 2.8.1
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.4.3
-    docker:
-      version: 20.10.17
-    ekco:
-      version: latest
-  upgradeSpec:
-    kubernetes:
-      version: 1.22.x
-    weave:
-      version: 2.8.1
-    rook:
-      bypassUpgradeWarning: true
-      version: 1.8.x
-    docker:
-      version: 20.10.17
-    ekco:
-      version: latest
-  unsupportedOSIDs:
-  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - rocky-91 # docker is not supported on rhel 9 variantsl
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s121
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.21.x
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.4.9
-    registry:
-      version: latest
-    kotsadm:
-      version: latest
-    velero:
-      version: latest
-    ekco:
-      version: latest
-  unsupportedOSIDs:
-  - rocky-91 # doc:
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s121-airgap
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.21.x
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      isSharedFilesystemDisabled: true
-      version: 1.4.9
-    registry:
-      version: latest
-    kotsadm:
-      version: latest
-    velero:
-      version: latest
-    ekco:
-      version: latest
-  airgap: true
-  unsupportedOSIDs:
-  - rocky-91 # doc:
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s1210_openebs260_minio
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.20.5
-    docker:
-      version: latest
-    weave:
-      version: 2.8.1
-    registry:
-      version: 2.7.1
-    kotsadm:
-      version: latest
-    minio:
-      namespace: minio
-      version: latest
-    openebs:
-      cstorStorageClassName: default
-      isCstorEnabled: true
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 2.6.0
-    ekco:
-      version: 0.10.1
-  unsupportedOSIDs:
-  - rocky-91 # doc:
-  - rocky-9 # docker is not supported on rhel 9 variants
-- name: k8s1210_openebs260_minio-airgap
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.20.5
-    docker:
-      version: latest
-    weave:
-      version: 2.8.1
-    registry:
-      version: 2.7.1
-    kotsadm:
-      version: latest
-    minio:
-      namespace: minio
-      version: latest
-    openebs:
-      cstorStorageClassName: default
-      isCstorEnabled: true
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 2.6.0
-    ekco:
-      version: 0.10.1
-  airgap: true
-  unsupportedOSIDs:
-  - rocky-91 # doc:
-  - rocky-9 # docker is not supported on rhel 9 variants
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -952,7 +582,10 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.30 airgap"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave: # flannel has errors with dns and docker
@@ -1099,7 +732,10 @@
 - name: "Upgrade to 1.24, disable s3, weave to flannel"
   flags: "yes"
   cpu: 7
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave:
@@ -2115,21 +1751,6 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: k8s119-minimal
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    kurl:
-      installerVersion: ""
-    docker:
-      version: 19.03.x
-    weave:
-      version: latest
-  unsupportedOSIDs:
-    - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-    - rocky-91 # docker is not supported on rhel 9 variants
-    - rocky-9 # docker is not supported on rhel 9 variants
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -2422,7 +2043,10 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave: # flannel has errors with dns and docker

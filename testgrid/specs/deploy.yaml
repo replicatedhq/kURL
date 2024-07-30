@@ -1,7 +1,10 @@
 #file: noinspection YAMLSchemaValidation
 - name: "Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave:
@@ -94,7 +97,10 @@
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.22.x
     containerd:
@@ -195,10 +201,10 @@
   preUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: k8s124x_cis_benchmarks_checks
+- name: k8s130x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.30.x"
       cisCompliance: true
     containerd:
       version: "latest"
@@ -214,7 +220,7 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: "k8s_129x with kurl in-cluster support bundle spec"
+- name: "k8s_130x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
       version: "1.30.x"
