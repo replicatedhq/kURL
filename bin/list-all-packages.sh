@@ -32,7 +32,7 @@ function pkgs() {
 }
 
 function list_all_addons() {
-    pkgs addons | sort | grep -v "rookupgrade" | grep -v "prometheus-0.33.0" | grep -v "openebs-1.6.0"
+    pkgs addons | sort | grep -v "rookupgrade"
 }
 
 function list_all_packages() {
