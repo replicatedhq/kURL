@@ -1,6 +1,0 @@
-namespace: ${OPENEBS_NAMESPACE}
-
-resources:
-- namespace.yaml
-- operator.yaml
-- snapshot-operator.yaml

@@ -1,5 +1,0 @@
-namespace: ${OPENEBS_NAMESPACE}
-
-resources:
-- namespace.yaml
-- openebs.yaml

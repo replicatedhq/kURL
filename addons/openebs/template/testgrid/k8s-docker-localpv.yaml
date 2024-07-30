@@ -30,7 +30,10 @@
 
 - name: localpv upgrade from 2.6.0
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.21.x" # this is the latest version of k8s that supports openebs 2.6
     flannel:
@@ -100,7 +103,10 @@
 
 - name: localpv upgrade from 1.12.0
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
     weave:
@@ -145,7 +151,10 @@
 
 - name: localpv migrate from Rook 1.0.4 with old versions
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.19.x" # this is the latest version of k8s that supports rook 1.0.4
     flannel:
@@ -195,7 +204,10 @@
 
 - name: localpv migrate from rook 1.10.x and from k8s 1.24.x
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.24.x"
     flannel:
@@ -244,7 +256,10 @@
 
 - name: localpv migrate from longhorn
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.24.9"
     flannel:
@@ -309,7 +324,10 @@
 
 - name: localpv upgrade from latest
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.25.x"
     flannel:
@@ -353,7 +371,10 @@
 
 - name: localpv migrate from longhorn with kubernetes upgrade
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.24.9"
     flannel:
