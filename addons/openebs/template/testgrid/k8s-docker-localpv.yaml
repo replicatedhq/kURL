@@ -125,7 +125,7 @@
       version: "1.21.x"
     weave:
       version: latest
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
