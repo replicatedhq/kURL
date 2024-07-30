@@ -11,7 +11,7 @@ function openebs_pre_init() {
         bail "cstor is not supported on OpenEBS $OPENEBS_APP_VERSION."
     fi
 
-    export OPENEBS_APP_VERSION="__OPENEBS_APP_VERSION__"
+    export OPENEBS_APP_VERSION="4.1.0"
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
