@@ -166,7 +166,7 @@ function velero_install() {
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
-        --plugins velero/velero-plugin-for-aws:v1.10.0,velero/velero-plugin-for-gcp:v1.10.0,velero/velero-plugin-for-microsoft-azure:v1.10.0,replicated/local-volume-provider:v0.6.6,"$KURL_UTIL_IMAGE" \
+        --plugins velero/velero-plugin-for-aws:v1.10.0,velero/velero-plugin-for-gcp:v1.10.0,velero/velero-plugin-for-microsoft-azure:v1.10.0,replicated/local-volume-provider:v0.6.7,"$KURL_UTIL_IMAGE" \
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml"
 
