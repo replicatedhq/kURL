@@ -169,14 +169,11 @@ function openebs_apply_operator() {
 
     kubectl apply -k "$dst/"
 
-    logStep "Waiting for OpenEBS CustomResourceDefinitions to be ready"
-    spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
-
     logStep "Waiting for the OpenEBS Operator to be ready"
     spinner_until 300 deployment_fully_updated openebs openebs-localpv-provisioner
 
     openebs_cleanup_kubesystem
-    logSuccess "OpenEBS CustomResourceDefinitions are ready"
+    logSuccess "OpenEBS is ready"
 }
 
 function openebs_apply_storageclasses() {
