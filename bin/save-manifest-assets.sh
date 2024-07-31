@@ -29,7 +29,7 @@ function build_rhel_7() {
             set -x
             yum-config-manager --disable main --disable base --disable extras --disable updates && \
             yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
-            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/extras/x86_64/ && \
             curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
             rpm --import vault.gpg.key
             yum update -y ca-certificates && \
@@ -56,7 +56,7 @@ function build_rhel_7_force() {
             set -x
             yum-config-manager --disable main --disable base --disable extras --disable updates && \
             yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
-            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/extras/x86_64/ && \
             curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
             rpm --import vault.gpg.key
             yum update -y ca-certificates && \
