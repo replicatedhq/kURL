@@ -13,6 +13,67 @@ fi
 
 mkdir -p "$OUT_DIR"
 
+function build_rhel_7() {
+    local packages=("$@")
+    local outdir="$OUT_DIR/rhel-7"
+
+    mkdir -p "$outdir"
+
+    docker rm -f "rhel-7-$PACKAGE_NAME" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "rhel-7-$PACKAGE_NAME" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum update -y ca-certificates && \
+            yum install -y epel-release && \
+            mkdir -p /packages/archives && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "rhel-7-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
+function build_rhel_7_force() {
+    local packages=("$@")
+    local outdir="$OUT_DIR/rhel-7-force"
+
+    mkdir -p "$outdir"
+
+    docker rm -f "rhel-7-force-$PACKAGE_NAME" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "rhel-7-force-$PACKAGE_NAME" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum update -y ca-certificates && \
+            yum install -y epel-release && \
+            mkdir -p /packages/archives && \
+            yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "rhel-7-force-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
+function createrepo_rhel_7() {
+    local outdir=
+    outdir="$(realpath "$OUT_DIR")/rhel-7"
+
+    docker rm -f "rhel-7-createrepo-$PACKAGE_NAME" 2>/dev/null || true
+    docker run \
+        --name "rhel-7-createrepo-$PACKAGE_NAME" \
+        -v "$outdir/archives":/packages/archives \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
+            createrepo /packages/archives"
+    sudo docker cp "rhel-7-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
 function build_rhel_8() {
     local packages=("$@")
     local outdir="$OUT_DIR/rhel-8"
@@ -147,6 +208,44 @@ function build_deps_rhel_9() {
 
     sort "$OUT_DIR/rhel-9/Deps" | uniq | grep -v '^[[:space:]]*$' > "$OUT_DIR/rhel-9/Deps.tmp" # remove duplicates and empty lines
     mv "$OUT_DIR/rhel-9/Deps.tmp" "$OUT_DIR/rhel-9/Deps"
+}
+
+function build_ol_7() {
+    local packages=("$@")
+    local outdir="$OUT_DIR/ol-7"
+
+    mkdir -p "$outdir"
+
+    docker rm -f "ol-7-$PACKAGE_NAME" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "ol-7-$PACKAGE_NAME" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x && \
+            yum-config-manager --add-repo=http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/ && \
+            mkdir -p /packages/archives && \
+            yumdownloader --disablerepo=* --enablerepo=public-yum.oracle.com_repo_OracleLinux_OL7_latest_x86_64_ --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "ol-7-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
+function createrepo_ol_7() {
+    local outdir=
+    outdir="$(realpath "$OUT_DIR")/ol-7"
+
+    docker rm -f "ol-7-createrepo-$PACKAGE_NAME" 2>/dev/null || true
+    docker run \
+        --name "ol-7-createrepo-$PACKAGE_NAME" \
+        -v "$outdir/archives":/packages/archives \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
+            createrepo /packages/archives"
+    sudo docker cp "ol-7-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
 }
 
 function try_5_times() {
@@ -309,6 +408,24 @@ while read -r line || [ -n "$line" ]; do
             ;;
     esac
 done < "$MANIFEST_PATH"
+
+if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+    build_rhel_7 "${pkgs_rhel7[@]}"
+fi
+if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+    createrepo_rhel_7
+fi
+
+if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+    build_rhel_7_force "${pkgs_rhel7[@]}"
+fi
+
+if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
+    build_ol_7 "${pkgs_ol7[@]}"
+fi
+if [ "$(find "$OUT_DIR"/ol-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+    createrepo_ol_7
+fi
 
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
