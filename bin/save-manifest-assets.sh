@@ -27,6 +27,10 @@ function build_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum-config-manager --disable main --disable base --disable extras --disable updates && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
+            rpm --import vault.gpg.key
             yum update -y ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
@@ -49,6 +53,10 @@ function build_rhel_7_force() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum-config-manager --disable main --disable base --disable extras --disable updates && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
+            rpm --import vault.gpg.key
             yum update -y ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
@@ -68,6 +76,10 @@ function createrepo_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum-config-manager --disable main --disable base --disable extras --disable updates && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
+            rpm --import vault.gpg.key
             yum install -y createrepo && \
             createrepo /packages/archives"
     sudo docker cp "rhel-7-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
@@ -224,6 +236,10 @@ function build_ol_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x && \
+            yum-config-manager --disable main --disable base --disable extras --disable updates && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
+            rpm --import vault.gpg.key && \
             yum-config-manager --add-repo=http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/ && \
             mkdir -p /packages/archives && \
             yumdownloader --disablerepo=* --enablerepo=public-yum.oracle.com_repo_OracleLinux_OL7_latest_x86_64_ --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
@@ -242,6 +258,10 @@ function createrepo_ol_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum-config-manager --disable main --disable base --disable extras --disable updates && \
+            yum-config-manager --add-repo https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/ && \
+            curl https://archive.kernel.org/centos-vault/7.9.2009/os/x86_64/RPM-GPG-KEY-CentOS-7 > vault.gpg.key && \
+            rpm --import vault.gpg.key
             yum install -y createrepo && \
             createrepo /packages/archives"
     sudo docker cp "ol-7-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
