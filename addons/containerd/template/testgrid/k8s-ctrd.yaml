@@ -270,6 +270,7 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    containerd --version
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
     - centos-74
@@ -319,6 +320,7 @@
     kotsadm:
       version: latest
   postUpgradeScript: |
+    containerd --version
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
@@ -369,4 +371,5 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    containerd --version
     containerd --version | grep "__testver__"
