@@ -192,9 +192,9 @@ function find_common_versions() {
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "8"
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "8"
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
-            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "8"
-            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "8"
-            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "Dockerfile.centos8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "Dockerfile.centos8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "Dockerfile.centos8"
         else
             add_supported_os_to_preflight_file "$version" "centos" "8"
             add_supported_os_to_preflight_file "$version" "rhel" "8"
