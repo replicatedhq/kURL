@@ -8,15 +8,15 @@ spec:
   analyzers:
     - hostOS:
         outcomes:
-          - fail:
+          - warn:
               when: "centos = 8"
-              message: "containerd addon does not support centos 8"
-          - fail:
+              message: "containerd addon supports centos 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
+          - warn:
               when: "rhel = 8"
-              message: "containerd addon does not support rhel 8"
-          - fail:
+              message: "containerd addon supports rhel 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
+          - warn:
               when: "ol = 8"
-              message: "containerd addon does not support ol 8"
+              message: "containerd addon supports ol 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
           - pass:
               when: "centos = 9"
               message: "containerd addon supports centos 9"

@@ -1,5 +1,8 @@
 yum libzstd
 asset runc https://github.com/opencontainers/runc/releases/download/v1.1.13/runc.amd64
+dockerout centos addons/containerd/template/Dockerfile.centos8 1.6.32
+dockerout rhel addons/containerd/template/Dockerfile.centos8 1.6.32
+dockerout ol addons/containerd/template/Dockerfile.centos8 1.6.32
 dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.6.33
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.6.21
 dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.6.33
