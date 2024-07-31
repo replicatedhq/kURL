@@ -94,7 +94,10 @@
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave: # flannel has errors with dns and docker
@@ -147,11 +150,14 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - rocky-91 # docker is not supported on rhel 9 variants
-  - rocky-9 # docker is not supported on rhel 9 variants
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave: # flannel has errors with dns and docker
@@ -209,11 +215,14 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - rocky-91 # docker is not supported on rhel 9 variants
-  - rocky-9 # docker is not supported on rhel 9 variants
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.4.x to __testver__
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.25.x"
     flannel:
@@ -263,15 +272,18 @@
     validate_read_write_object_store postupgrade upgradefile.txt
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
-  - centos-74
-  - centos-79
-  - ol-79
-  - ubuntu-2204
-  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+    - centos-74
+    - centos-79
+    - ol-79
+    - ubuntu-2204
+    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.5.x to __testver__
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.25.x"
     flannel:
@@ -309,8 +321,8 @@
   postUpgradeScript: |
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
-  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
