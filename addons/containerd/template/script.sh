@@ -153,7 +153,7 @@ UNSUPPORTED_CONTAINERD_MINORS="01234"
 
 VERSIONS=()
 function find_common_versions() {
-    docker build --no-cache --pull -t centos8 -f Dockerfile.centos7 .
+    docker build --no-cache --pull -t centos7 -f Dockerfile.centos7 .
     docker build --no-cache --pull -t centos8 -f Dockerfile.centos8 .
     docker build --no-cache --pull -t rhel9 -f Dockerfile.rhel9 .
     docker build --no-cache --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
