@@ -181,16 +181,20 @@ function find_common_versions() {
     # Get the union of versions available for all operating systems
     local ALL_VERSIONS=("${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
+    ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' ')) # remove 7.x versions
 
     for version in ${ALL_VERSIONS[@]}; do
         init_preflight_file $version
         init_manifest_file $version
 
         if ! contains "$version" ${CENTOS8_VERSIONS[*]}; then
-            echo "CentOS 8 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "centos" "8"
-            add_unsupported_os_to_preflight_file "$version" "rhel" "8"
-            add_unsupported_os_to_preflight_file "$version" "ol" "8"
+            echo "Rocky 8 lacks version $version, using ${CENTOS8_VERSIONS[0]} instead"
+            add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "8"
+            add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "8"
+            add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
         else
             add_supported_os_to_preflight_file "$version" "centos" "8"
             add_supported_os_to_preflight_file "$version" "rhel" "8"
@@ -216,35 +220,35 @@ function find_common_versions() {
 
         if ! contains "$version" ${UBUNTU16_VERSIONS[*]}; then
             echo "Ubuntu 16 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "ubuntu" "16.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "16.04"
         else
-            add_supported_os_to_preflight_file $version "ubuntu" "16.04"
-            add_supported_os_to_manifest_file $version "ubuntu-16.04" "Dockerfile.ubuntu16"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "16.04"
+            add_supported_os_to_manifest_file "$version" "ubuntu-16.04" "Dockerfile.ubuntu16"
         fi
 
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
             echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
-            add_override_os_to_preflight_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
-            add_override_os_to_manifest_file $version "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
+            add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
+            add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
         else
-            add_supported_os_to_preflight_file $version "ubuntu" "18.04"
-            add_supported_os_to_manifest_file $version "ubuntu-18.04" "Dockerfile.ubuntu18"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "18.04"
+            add_supported_os_to_manifest_file "$version" "ubuntu-18.04" "Dockerfile.ubuntu18"
         fi
 
         if ! contains "$version" ${UBUNTU20_VERSIONS[*]}; then
             echo "Ubuntu 20 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "ubuntu" "20.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "20.04"
         else
-            add_supported_os_to_preflight_file $version "ubuntu" "20.04"
-            add_supported_os_to_manifest_file $version "ubuntu-20.04" "Dockerfile.ubuntu20"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "20.04"
+            add_supported_os_to_manifest_file "$version" "ubuntu-20.04" "Dockerfile.ubuntu20"
         fi
 
         if ! contains "$version" ${UBUNTU22_VERSIONS[*]}; then
             echo "Ubuntu 22 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "ubuntu" "22.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "22.04"
         else
-            add_supported_os_to_preflight_file $version "ubuntu" "22.04"
-            add_supported_os_to_manifest_file $version "ubuntu-22.04" "Dockerfile.ubuntu22"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "22.04"
+            add_supported_os_to_manifest_file "$version" "ubuntu-22.04" "Dockerfile.ubuntu22"
         fi
 
         VERSIONS+=("$version")
