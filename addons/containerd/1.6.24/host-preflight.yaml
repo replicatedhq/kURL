@@ -9,6 +9,15 @@ spec:
     - hostOS:
         outcomes:
           - pass:
+              when: "centos = 7"
+              message: "containerd addon supports centos 7"
+          - pass:
+              when: "rhel = 7"
+              message: "containerd addon supports rhel 7"
+          - pass:
+              when: "ol = 7"
+              message: "containerd addon supports ol 7"
+          - pass:
               when: "centos = 8"
               message: "containerd addon supports centos 8"
           - pass:
