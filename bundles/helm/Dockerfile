@@ -13,6 +13,6 @@ RUN curl -fsSLO "https://get.helm.sh/helm-v3.15.3-linux-amd64.tar.gz" && \
 	rm -rf ./linux-amd64 && \
 	rm helm-*
 
-RUN curl -fsSLO "https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64" && \
+RUN curl -fsSLO "https://github.com/helmfile/helmfile/releases/download/v0.167.0/helmfile_linux_amd64" && \
 	mv helmfile_linux_amd64 helmfile && \
 	chmod +x helmfile
