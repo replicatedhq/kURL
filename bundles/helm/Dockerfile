@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install curl tzdata
@@ -7,12 +7,12 @@ RUN mkdir -p /helm
 WORKDIR /helm
 
 
-RUN curl -fsSLO "https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz" && \
-	tar zxvf helm-v3.5.1-linux-amd64.tar.gz && \
+RUN curl -fsSLO "https://get.helm.sh/helm-v3.15.3-linux-amd64.tar.gz" && \
+	tar zxvf helm-v3.15.3-linux-amd64.tar.gz && \
 	mv linux-amd64/helm ./helm && \
 	rm -rf ./linux-amd64 && \
 	rm helm-*
 
-RUN curl -fsSLO "https://github.com/roboll/helmfile/releases/download/v0.138.2/helmfile_linux_amd64" && \
+RUN curl -fsSLO "https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64" && \
 	mv helmfile_linux_amd64 helmfile && \
 	chmod +x helmfile
