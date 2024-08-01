@@ -1,0 +1,4 @@
+image linux-utils openebs/linux-utils:3.2.0
+image node-disk-manager openebs/node-disk-manager:1.9.0
+image node-disk-operator openebs/node-disk-operator:1.9.0
+image provisioner-localpv openebs/provisioner-localpv:3.2.0
