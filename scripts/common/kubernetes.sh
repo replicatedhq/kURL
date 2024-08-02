@@ -25,8 +25,6 @@ function kubernetes_host() {
     install_plugins
 
     install_kustomize
-
-    kubernetes_cis_chmod_kubelet_config_file
 }
 
 function kubernetes_load_images() {
