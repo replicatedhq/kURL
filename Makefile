@@ -231,6 +231,8 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
+	${MAKE} build/packages/kubernetes/$*/rhel-7
+	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
 	${MAKE} build/packages/kubernetes/$*/rhel-9
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
@@ -469,6 +471,32 @@ build/packages/kubernetes/%/ubuntu-22.04:
 	docker cp k8s-ubuntu2204-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-22.04/
 	docker rm k8s-ubuntu2204-$*
 
+build/packages/kubernetes/%/rhel-7:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
+		-t kurl/rhel-7-k8s:$* \
+		-f bundles/k8s-rhel7/Dockerfile \
+		bundles/k8s-rhel7
+	-docker rm -f k8s-rhel7-$* 2>/dev/null
+	docker create --name k8s-rhel7-$* kurl/rhel-7-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-7
+	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
+	docker rm k8s-rhel7-$*
+
+build/packages/kubernetes/%/rhel-7-force:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
+		-t kurl/rhel-7-force-k8s:$* \
+		-f bundles/k8s-rhel7-force/Dockerfile \
+		bundles/k8s-rhel7-force
+	-docker rm -f k8s-rhel7-force-$* 2>/dev/null
+	docker create --name k8s-rhel7-force-$* kurl/rhel-7-force-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-7-force
+	docker cp k8s-rhel7-force-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7-force/
+	docker rm k8s-rhel7-force-$*
+
 build/packages/kubernetes/%/rhel-8:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -579,10 +607,12 @@ test: lint vet ## Check the code with linters and vet
 
 .PHONY: docker-test-shell
 docker-test-shell: ## Run tests for code in shell but containerized. (Used in build-test github action)
+	docker build -t kurl-test-shell-rhel-7 -f hack/test-shell/Dockerfile.rhel-7 hack/test-shell
 	docker build -t kurl-test-shell-rhel-8 -f hack/test-shell/Dockerfile.rhel-8 hack/test-shell
 	docker build -t kurl-test-shell-rhel-9 -f hack/test-shell/Dockerfile.rhel-9 hack/test-shell
 	docker build -t kurl-test-shell-ubuntu-20.04 -f hack/test-shell/Dockerfile.ubuntu-20.04 hack/test-shell
 	docker build -t kurl-test-shell-ubuntu-22.04 -f hack/test-shell/Dockerfile.ubuntu-22.04 hack/test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-7 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-8 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-9 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-20.04 make /usr/local/bin/shunit2 test-shell
