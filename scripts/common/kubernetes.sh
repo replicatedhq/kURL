@@ -25,6 +25,8 @@ function kubernetes_host() {
     install_plugins
 
     install_kustomize
+
+    kubernetes_cis_chmod_kubelet_config_file
 }
 
 function kubernetes_load_images() {
@@ -229,6 +231,14 @@ EOF
 function kubernetes_cis_chmod_kubelet_service_file() {
     if [ -f /etc/systemd/system/kubelet.service.d/10-kubeadm.conf ]; then
         chmod 600 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    fi
+}
+
+# kubernetes_cis_chmod_kubelet_config_file fixes the following CIS benchmark test:
+# [FAIL] 4.1.9 If the kubelet config.yaml configuration file is being used validate permissions set to 600 or more restrictive (Automated)
+function kubernetes_cis_chmod_kubelet_config_file() {
+    if [ -f /var/lib/kubelet/config.yaml ]; then
+        chmod 600 /var/lib/kubelet/config.yaml
     fi
 }
 
