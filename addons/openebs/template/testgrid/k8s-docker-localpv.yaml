@@ -326,8 +326,6 @@
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.25.x"
     flannel:

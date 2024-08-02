@@ -89,7 +89,7 @@ bin/rook-pv-migrator:
 	rm -rf .tmp/persistent-volume-migrator
 	mkdir -p .tmp/persistent-volume-migrator
 	cd .tmp/persistent-volume-migrator \
-		&& git clone -b csi-source-sc https://github.com/replicatedhq/persistent-volume-migrator.git . \
+		&& git clone https://github.com/ceph/persistent-volume-migrator.git . \
 		&& go build -o ../../bin/rook-pv-migrator
 	chmod +x ./bin/rook-pv-migrator
 	rm -rf .tmp/persistent-volume-migrator
