@@ -201,10 +201,10 @@
   preUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: k8s128x_cis_benchmarks_checks
+- name: k8s130x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
-      version: "1.28.x"
+      version: "1.30.x"
       cisCompliance: true
     containerd:
       version: "latest"

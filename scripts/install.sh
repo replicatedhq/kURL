@@ -339,6 +339,8 @@ function init() {
 
     # install the kurl in-cluster troubleshoot supportbundle spec
     kubectl -n kurl apply -f "$DIR/manifests/troubleshoot.yaml"
+
+    kubernetes_cis_chmod_kubelet_config_file
 }
 
 function kubeadm_post_init() {
