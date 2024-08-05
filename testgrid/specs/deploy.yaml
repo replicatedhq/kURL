@@ -236,3 +236,22 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+- name: "k8s_130x with rook"
+  installerSpec:
+    kubernetes:
+      version: "1.30.x"
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    rook:
+      version: "1.12.x"
+    registry:
+      version: latest
+    unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    postInstallScript: |
+      source /opt/kurl-testgrid/testhelpers.sh
+      create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
+      create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+      test_push_image_to_registry
