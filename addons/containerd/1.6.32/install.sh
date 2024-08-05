@@ -109,6 +109,7 @@ function containerd_install() {
 function containerd_host_init() {
     require_centos8_containerd
     containerd_install_libzstd_if_missing
+    containerd_install_container_selinux_if_missing
 }
 
 function containerd_install_libzstd_if_missing() {
@@ -125,6 +126,24 @@ function containerd_install_libzstd_if_missing() {
             else
                 yum_install_host_archives "$src" libzstd
             fi
+            ;;
+    esac
+}
+
+# install container-selinux independently of containerd.io on centos/rhel/ol 7
+function containerd_install_container_selinux_if_missing() {
+    local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
+
+    if [ "$DIST_VERSION_MAJOR" != "7" ]; then
+        return
+    fi
+
+    case "$LSB_DIST" in
+        centos|rhel|ol)
+            if yum_is_host_package_installed container-selinux ; then
+                return
+            fi
+            yum_install_host_archives "$src" container-selinux
             ;;
     esac
 }

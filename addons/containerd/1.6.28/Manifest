@@ -1,4 +1,5 @@
 yum libzstd
+yum container-selinux
 asset runc https://github.com/opencontainers/runc/releases/download/v1.1.13/runc.amd64
 dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.28
 dockerout rhel-7-force addons/containerd/template/Dockerfile.centos7-force 1.6.28
