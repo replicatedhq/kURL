@@ -32,7 +32,7 @@ function pkgs() {
 }
 
 function list_all_addons() {
-    pkgs addons | sort | grep -v "rookupgrade"
+    pkgs addons | sort | grep -v "rookupgrade" | grep -v "rook-1.4"
 }
 
 function list_all_packages() {
