@@ -1,6 +1,9 @@
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -57,7 +60,10 @@
     fi
 - name: Migrate from Rook 1.12.x to OpenEBS + Minio
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -114,7 +120,10 @@
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -163,7 +172,10 @@
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
   flags: "yes"
   cpu: 6
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -222,7 +234,10 @@
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -268,7 +283,10 @@
     fi
 - name: Migrate from Rook 1.12.x to OpenEBS (S3 disabled)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -314,7 +332,10 @@
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -363,7 +384,10 @@
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS (S3 disabled)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -413,7 +437,10 @@
     fi
 - name: Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -468,7 +495,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -523,7 +553,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -578,7 +611,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.21.x
     containerd:
@@ -632,7 +668,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -694,7 +733,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -754,7 +796,10 @@
   cpu: 4
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -809,7 +854,10 @@
     fi
 - name: Migrate from Rook 1.12.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.24.x
     flannel:
@@ -859,7 +907,10 @@
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (Docker config)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     docker:
@@ -936,7 +987,10 @@
   - ubuntu-2204 # Docker versions < 20.10.17 not supported on ubuntu 22.04
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -992,6 +1046,8 @@
   airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     docker:

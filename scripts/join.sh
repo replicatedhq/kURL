@@ -129,6 +129,8 @@ function join() {
     if commandExists ekco_cleanup_bootstrap_internal_lb; then
         ekco_cleanup_bootstrap_internal_lb
     fi
+
+    kubernetes_cis_chmod_kubelet_config_file
 }
 
 outro() {

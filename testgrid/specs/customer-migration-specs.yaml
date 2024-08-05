@@ -1,6 +1,9 @@
 - name: "Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.25.4
     containerd:
@@ -76,7 +79,10 @@
 
 - name: "Cust sha1:9aed61a879834bbff0586a61784b4f56135671f7: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.23.x
     weave:
@@ -156,7 +162,10 @@
 
 - name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.16
     docker:
@@ -599,7 +608,10 @@
 - name: "Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.17.13
     weave:
@@ -721,7 +733,10 @@
 - name: "Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs"
   flags: "yes"
   cpu: 8
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.23.x"
     weave:

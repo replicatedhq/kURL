@@ -24,6 +24,7 @@ function init_manifest_file() {
 
     cat <<EOT >> $file
 yum libzstd
+yum container-selinux
 EOT
     # Note that containerd requires runc and each release officially uses one specific version in their
     # tests. Therefore, that is the version of runc which is supported and should be used by each
