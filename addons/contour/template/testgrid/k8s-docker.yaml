@@ -1,4 +1,5 @@
 - name: "upgrade from latest contour"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: "1.30.x"
@@ -40,6 +41,7 @@
     curl -v "http://$private_address:80"
 
 - name: "upgrade from 1.20.1 contour"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: "1.21.x"
