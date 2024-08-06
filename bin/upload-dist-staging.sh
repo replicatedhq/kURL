@@ -129,7 +129,7 @@ function build_and_upload() {
 function copy_from_prod() {
     local package="$1"
 
-    echo "downloading package ${package} from s3://${S3_BUCKET}/staging/"
+    echo "downloading package ${package} from prod (s3://${S3_BUCKET}/dist/${package})"
     retry 5 aws s3 cp "s3://${S3_BUCKET}/dist/${package}" "dist/${package}"
 
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
