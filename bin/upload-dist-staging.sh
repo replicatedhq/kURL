@@ -84,6 +84,30 @@ function is_old_kubernetes() {
     return 1
 }
 
+# containerd before 1.6, rook-ceph 1.4.x, and the rook-ceph 1.0 to 1.4 migration package do not build properly today
+# as such they should be copied from prod's previous release
+function is_old_addon() {
+    if echo "${package}" | grep -q "containerd-1.2" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "containerd-1.3" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "containerd-1.4" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "containerd-1.5" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "rook-1.4" ; then
+        return 0
+    fi
+    if echo "${package}" | grep -q "rookupgrade" ; then
+        return 0
+    fi
+    return 1
+}
+
 function build_and_upload() {
     local package="$1"
 
@@ -102,16 +126,34 @@ function build_and_upload() {
     fi
 }
 
+function copy_from_prod() {
+    local package="$1"
+
+    echo "downloading package ${package} from s3://${S3_BUCKET}/staging/"
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/dist/${package}" "dist/${package}"
+
+    MD5="$(openssl md5 -binary "dist/${package}" | base64)"
+    echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "cleaning up after uploading ${package}"
+    make clean
+    if [ -n "$DOCKER_PRUNE" ]; then
+        docker system prune --all --force
+    fi
+}
+
 function deploy() {
     local package="$1"
     local path="$2"
 
     # always upload small packages that change often
-    if [ "$package" = "install.tmpl" ] \
+    if [ "$package" = "common.tar.gz" ] \
         || [ "$package" = "join.tmpl" ] \
         || [ "$package" = "upgrade.tmpl" ] \
         || [ "$package" = "tasks.tmpl" ] \
-        || [ "$package" = "common.tar.gz" ] \
+        || [ "$package" = "install.tmpl" ] \
         || echo "${package}" | grep -q "kurl-bin-utils" ; then
 
         echo "s3://${S3_BUCKET}/staging/${package} build and upload"
@@ -121,7 +163,11 @@ function deploy() {
 
     if package_has_changes "staging/${package}" "${path}" ; then
         echo "s3://${S3_BUCKET}/staging/${package} has changes"
-        build_and_upload "${package}"
+        if is_old_addon "${package}" ; then
+            copy_from_prod "${package}"
+        else
+            build_and_upload "${package}"
+        fi
     else
         echo "s3://${S3_BUCKET}/staging/${package} no changes in package"
     fi
