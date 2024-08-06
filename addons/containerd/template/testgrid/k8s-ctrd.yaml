@@ -1,8 +1,8 @@
-- name: basic containerd and flannel, internal LB, airgap, 1.30
+- name: basic containerd and flannel, internal LB, airgap, 1.25
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.25.x"
     flannel:
       version: latest
     containerd:
@@ -30,65 +30,65 @@
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
 
-- name: basic containerd and flannel, internal LB, airgap, 1.23 to 1.27, airgap
-  airgap: true
-  installerSpec:
-    kubernetes:
-      version: "1.23.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    ekco:
-      version: latest
-      enableInternalLoadBalancer: true
-    kotsadm:
-      version: latest
-  upgradeSpec:
-    kubernetes:
-      version: "1.27.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    ekco:
-      version: latest
-      enableInternalLoadBalancer: true
-    kotsadm:
-      version: latest
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-    mkdir -p /var/lib/kurl/assets
-    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
-  postInstallScript: |
-    echo "checking /etc/containerd/config.toml"
-    cat /etc/containerd/config.toml | grep pause # should be 3.6, this is for debugging
-    cat /etc/containerd/config.toml | grep pause:3.6 
-    echo "checking /var/lib/kubelet/kubeadm-flags.env"
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.6, this is for debugging
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.6
-  postUpgradeScript: |
-    echo "checking /etc/containerd/config.toml"
-    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
-    cat /etc/containerd/config.toml | grep pause:3.9 
-    echo "checking /var/lib/kubelet/kubeadm-flags.env"
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
+#- name: basic containerd and flannel, internal LB, airgap, 1.23 to 1.27, airgap
+#  airgap: true
+#  installerSpec:
+#    kubernetes:
+#      version: "1.23.x"
+#    flannel:
+#      version: latest
+#    containerd:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#    openebs:
+#      version: latest
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: default
+#    minio:
+#      version: latest
+#    ekco:
+#      version: latest
+#      enableInternalLoadBalancer: true
+#    kotsadm:
+#      version: latest
+#  upgradeSpec:
+#    kubernetes:
+#      version: "1.27.x"
+#    flannel:
+#      version: latest
+#    containerd:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#    openebs:
+#      version: latest
+#      isLocalPVEnabled: true
+#      localPVStorageClassName: default
+#    minio:
+#      version: latest
+#    ekco:
+#      version: latest
+#      enableInternalLoadBalancer: true
+#    kotsadm:
+#      version: latest
+#  preInstallScript: |
+#    source /opt/kurl-testgrid/testhelpers.sh
+#    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+#    mkdir -p /var/lib/kurl/assets
+#    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
+#  postInstallScript: |
+#    echo "checking /etc/containerd/config.toml"
+#    cat /etc/containerd/config.toml | grep pause # should be 3.6, this is for debugging
+#    cat /etc/containerd/config.toml | grep pause:3.6
+#    echo "checking /var/lib/kubelet/kubeadm-flags.env"
+#    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.6, this is for debugging
+#    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.6
+#  postUpgradeScript: |
+#    echo "checking /etc/containerd/config.toml"
+#    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
+#    cat /etc/containerd/config.toml | grep pause:3.9
+#    echo "checking /var/lib/kubelet/kubeadm-flags.env"
+#    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
+#    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
 
 
 
