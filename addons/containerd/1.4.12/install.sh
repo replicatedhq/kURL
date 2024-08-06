@@ -38,10 +38,15 @@ function containerd_install() {
     esac
 
     chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
-    # If the runc binary is executing the cp command will fail with "text file busy" error.
-    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
-    # as soon as the container starts
-    try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+    # if runc does not exist, just move this to the correct location
+    if ! commandExists runc; then
+        mv ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc /usr/bin/runc
+    else
+        # If the runc binary is executing the cp command will fail with "text file busy" error.
+        # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+        # as soon as the container starts
+        try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+    fi
 
     containerd_configure
 
