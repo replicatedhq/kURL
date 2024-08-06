@@ -87,6 +87,9 @@ function is_old_kubernetes() {
 # containerd before 1.6, rook-ceph 1.4.x, and the rook-ceph 1.0 to 1.4 migration package do not build properly today
 # as such they should be copied from prod's previous release
 function is_old_addon() {
+    if echo "${package}" | grep -q "containerd-1.2" ; then
+        return 0
+    fi
     if echo "${package}" | grep -q "containerd-1.3" ; then
         return 0
     fi
