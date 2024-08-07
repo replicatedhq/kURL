@@ -373,3 +373,17 @@
     validate_read_write_object_store postupgrade upgradefile.txt
     containerd --version
     containerd --version | grep "__testver__"
+
+- name: "flannel latest multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.30.x"
+    flannel:
+      version: "latest"
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    goldpinger:
+      version: "latest"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
