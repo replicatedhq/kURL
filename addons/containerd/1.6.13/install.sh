@@ -34,6 +34,7 @@ function containerd_install() {
 
     containerd_migrate_from_docker
 
+    containerd_install_container_selinux_if_missing
     install_host_packages "$src" containerd.io
 
     chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
@@ -109,7 +110,6 @@ function containerd_install() {
 function containerd_host_init() {
     require_centos8_containerd
     containerd_install_libzstd_if_missing
-    containerd_install_container_selinux_if_missing
 }
 
 function containerd_install_libzstd_if_missing() {
