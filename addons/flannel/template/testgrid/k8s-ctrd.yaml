@@ -1,7 +1,7 @@
 - name: "flannel latest single node"
   installerSpec:
     kubernetes:
-      version: "1.27.x"
+      version: "1.30.x"
     containerd:
       version: "latest"
     flannel:
@@ -218,3 +218,12 @@
   - centos-81 # docker 20.10.17 is not supported on centos 8.1.
   - centos-84 # docker 20.10.17 is not supported on centos 8.4.
   - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+- name: "flannel 1.19 single node"
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
