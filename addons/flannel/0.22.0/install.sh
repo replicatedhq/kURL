@@ -131,6 +131,10 @@ function flannel() {
     mkdir -p "$dst"
     cp "$src"/yaml/* "$dst/"
 
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "21" ]; then
+       sed -i 's/  - path:/  -/' "$dst/kustomization.yaml"
+    fi
+
     # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
     # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
     kubernetes_kustomize_config_migrate "$dst"
@@ -151,8 +155,40 @@ function flannel() {
        kubectl rollout restart --namespace=kube-flannel daemonset/kube-flannel-ds
     fi
 
+    if flannel_detect_vmware_nic; then
+        flannel_install_ethtool_service "$src"
+    fi
+
     flannel_ready_spinner
     check_network
+}
+
+function flannel_detect_vmware_nic() {
+    if lspci -v | grep Ethernet | grep -q "VMware VMXNET3"; then
+        return 0
+    fi
+    return 1
+}
+
+function flannel_install_ethtool_service() {
+    # this disables the tcp checksum offloading on flannel interface - this is a workaround for
+    # certain VMWare NICs that use NSX and have a conflict with the way the checksum is handled by
+    # the kernel.
+    local src="$1"
+
+    logStep "Installing flannel ethtool service"
+    logStep "Disabling TCP checksum offloading on flannel interface for VMWare VMXNET3 NICs"
+
+    cp "$src/flannel-ethtool.service" /etc/systemd/system/flannel-ethtool.service
+
+    systemctl daemon-reload
+    systemctl enable flannel-ethtool.service
+    if ! timeout 30s systemctl start flannel-ethtool.service; then
+        log "Failed to start flannel-ethtool.service within 30s, restarting it"
+        systemctl restart flannel-ethtool.service
+    fi
+
+    logSuccess "Flannel ethtool service installed"
 }
 
 function flannel_init_pod_subnet() {
@@ -330,15 +366,15 @@ function flannel_scale_up_rook() {
         logWarn "Failed to scale up Rook Operator within the timeout period."
     fi
 
-    log "Waiting Ceph become healthy"
+    log "Waiting for Ceph to become healthy"
     if ! "$DIR"/bin/kurl rook wait-for-health 1200 ; then
         kubectl logs -n rook-ceph -l app=rook-ceph-operator --all-containers --tail 10 || true
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
-        logWarn "RookCeph is not healthy. Migration from Weave to Flannel does not seems to be completed successfully"
+        logWarn "Rook Ceph is not healthy. Migration from Weave to Flannel does not seems to have been completed successfully"
         return
     fi
 
-    logSuccess "Rook Ceph is scale up"
+    logSuccess "Rook Ceph scale has been restored"
 }
 
 function weave_to_flannel() {
@@ -348,7 +384,7 @@ function weave_to_flannel() {
     # midair this ensure this function will be ran once more.
     kubectl create configmap -n kurl migration-from-weave --from-literal=started="true" --dry-run=client -o yaml | kubectl apply -f -
 
-    logStep "Scale down services prior remove Weave"
+    logStep "Scaling down services prior to removing Weave"
     flannel_scale_down_ekco
     flannel_scale_down_rook
     flannel_scale_down_prometheus
@@ -387,15 +423,36 @@ function weave_to_flannel() {
         rm /tmp/kotsadm-cert-key
 
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary airgap cert-key=${cert_key}${NC}\n\n"
+            local command=
+            command=$(printf "cat ./tasks.sh | sudo bash -s weave-to-flannel-primary airgap cert-key=%s" "$cert_key")
+
+            for nodeName in $other_master_nodes; do
+                echo "$command" > "$DIR/remotes/$nodeName"
+            done
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
+
+            local command=
+            command=$(printf "%stasks.sh | sudo bash -s weave-to-flannel-primary cert-key=%s" "$prefix" "$cert_key")
+
+            for nodeName in $other_master_nodes; do
+                echo "$command" > "$DIR/remotes/$nodeName"
+            done
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
-        prompt
+        if [ "$ASSUME_YES" = "1" ]; then
+            echo ""
+            echo "The 'yes' flag has been passed, so we will wait for 5 minutes here for this to run on remote nodes"
+            sleep 300
+        else
+            prompt
+        fi
 
         logSuccess "User confirmation about nodes execution."
         log "Deleting Pods from kube-flannel"
@@ -414,15 +471,36 @@ function weave_to_flannel() {
         printf "${worker_node_names}\n"
 
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-secondary airgap${NC}\n\n"
+            local command=
+            command="cat ./tasks.sh | sudo bash -s weave-to-flannel-secondary airgap"
+
+            for nodeName in $worker_node_names; do
+                echo "$command" > "$DIR/remotes/$nodeName"
+            done
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}" "${PROXY_HTTPS_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
+
+            local command=
+            command=$(printf "%stasks.sh | sudo bash -s weave-to-flannel-secondary" "$prefix")
+
+            for nodeName in $worker_node_names; do
+                echo "$command" > "$DIR/remotes/$nodeName"
+            done
+
+            printf "\n\t${GREEN}%s${NC}\n\n" "$command"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
-        prompt
+        if [ "$ASSUME_YES" = "1" ]; then
+            echo "The 'yes' flag has been passed, so we will wait for 5 minutes here for this to run on remote nodes"
+            sleep 300
+        else
+            prompt
+        fi
+
         kubectl -n kube-flannel delete pods --all
     fi
 

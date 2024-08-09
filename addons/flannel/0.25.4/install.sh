@@ -131,6 +131,10 @@ function flannel() {
     mkdir -p "$dst"
     cp "$src"/yaml/* "$dst/"
 
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "21" ]; then
+       sed -i 's/  - path:/  -/' "$dst/kustomization.yaml"
+    fi
+
     # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
     # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
     kubernetes_kustomize_config_migrate "$dst"
