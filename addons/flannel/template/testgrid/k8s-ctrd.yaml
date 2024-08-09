@@ -1,7 +1,7 @@
 - name: "flannel latest single node"
   installerSpec:
     kubernetes:
-      version: "1.27.x"
+      version: "1.30.x"
     containerd:
       version: "latest"
     flannel:
@@ -67,7 +67,10 @@
       s3Override: "__testdist__"
 - name: "weave to flannel + docker to containerd multi node"
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.22.x"
     docker:
@@ -82,6 +85,12 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-81 # docker 20.10.17 is not supported on centos 8.1.
+    - centos-84 # docker 20.10.17 is not supported on centos 8.4.
+    - ol-8x # docker 20.10.17 is not supported on ol 8.7.
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 6
@@ -193,9 +202,12 @@
       version: "__testver__"
       s3Override: "__testdist__"
 - name: "weave to flannel, docker to containerd, single node"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
-      version: "1.23.x"
+      version: "1.20.x"
     docker:
       version: "latest"
     weave:
@@ -218,3 +230,12 @@
   - centos-81 # docker 20.10.17 is not supported on centos 8.1.
   - centos-84 # docker 20.10.17 is not supported on centos 8.4.
   - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+- name: "flannel 1.19 single node"
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
