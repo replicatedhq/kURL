@@ -67,7 +67,10 @@
       s3Override: "__testdist__"
 - name: "weave to flannel + docker to containerd multi node"
   numSecondaryNodes: 2
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: "1.22.x"
     docker:
@@ -193,9 +196,12 @@
       version: "__testver__"
       s3Override: "__testdist__"
 - name: "weave to flannel, docker to containerd, single node"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
     kubernetes:
-      version: "1.23.x"
+      version: "1.20.x"
     docker:
       version: "latest"
     weave:
