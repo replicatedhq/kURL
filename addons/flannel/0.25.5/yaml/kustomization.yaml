@@ -2,5 +2,5 @@ resources:
   - kube-flannel.yml
   - troubleshoot.yaml
 
-patchesStrategicMerge:
+patches:
   - path: kube-flannel-cfg.patch.yaml
