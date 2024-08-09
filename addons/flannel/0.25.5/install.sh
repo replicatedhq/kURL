@@ -133,6 +133,8 @@ function flannel() {
 
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "21" ]; then
        sed -i 's/  - path:/  -/' "$dst/kustomization.yaml"
+       echo "updated kustomization"
+       cat "$dst/kustomization.yaml"
     fi
 
     # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
