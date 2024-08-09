@@ -85,6 +85,12 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-81 # docker 20.10.17 is not supported on centos 8.1.
+    - centos-84 # docker 20.10.17 is not supported on centos 8.4.
+    - ol-8x # docker 20.10.17 is not supported on ol 8.7.
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 6
