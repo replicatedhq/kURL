@@ -95,12 +95,13 @@ EOT
 function add_unsupported_os_to_preflight_file() {
     local version=$1
     local os_distro=$2
-    local os_version=$3
+    local operator=$3
+    local os_version=$4
 
     local file=/tmp/containerd/$version/host-preflight.yaml
     cat <<EOT >> $file
           - fail:
-              when: "$os_distro = $os_version"
+              when: "$os_distro $operator $os_version"
               message: "containerd addon does not support $os_distro $os_version"
 EOT
 }
@@ -108,12 +109,13 @@ EOT
 function add_supported_os_to_preflight_file() {
     local version=$1
     local os_distro=$2
-    local os_version=$3
+    local operator=$3
+    local os_version=$4
 
     local file=/tmp/containerd/$version/host-preflight.yaml
     cat <<EOT >> $file
           - pass:
-              when: "$os_distro = $os_version"
+              when: "$os_distro $operator $os_version"
               message: "containerd addon supports $os_distro $os_version"
 EOT
 }
@@ -200,9 +202,9 @@ function find_common_versions() {
             add_override_os_to_manifest_file "$version" "${CENTOS7_VERSIONS[0]}" "rhel-7" "Dockerfile.centos7"
             add_override_os_to_manifest_file "$version" "${CENTOS7_VERSIONS[0]}" "rhel-7-force" "Dockerfile.centos7-force"
         else
-            add_supported_os_to_preflight_file "$version" "centos" "7"
-            add_supported_os_to_preflight_file "$version" "rhel" "7"
-            add_supported_os_to_preflight_file "$version" "ol" "7"
+            add_supported_os_to_preflight_file "$version" "centos" "=" "7"
+            add_supported_os_to_preflight_file "$version" "rhel" "=" "7"
+            add_supported_os_to_preflight_file "$version" "ol" "=" "7"
             add_supported_os_to_manifest_file "$version" "rhel-7" "Dockerfile.centos7"
             add_supported_os_to_manifest_file "$version" "rhel-7-force" "Dockerfile.centos7-force"
         fi
@@ -214,33 +216,33 @@ function find_common_versions() {
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
             add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel-8" "Dockerfile.centos8"
         else
-            add_supported_os_to_preflight_file "$version" "centos" "8"
-            add_supported_os_to_preflight_file "$version" "rhel" "8"
-            add_supported_os_to_preflight_file "$version" "ol" "8"
+            add_supported_os_to_preflight_file "$version" "centos" "=" "8"
+            add_supported_os_to_preflight_file "$version" "rhel" "=" "8"
+            add_supported_os_to_preflight_file "$version" "ol" "=" "8"
             add_supported_os_to_manifest_file "$version" "rhel-8" "Dockerfile.centos8"
         fi
 
         if ! contains "$version" ${RHEL9_VERSIONS[*]}; then
             echo "RHEL 9 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "centos" "9"
-            add_unsupported_os_to_preflight_file "$version" "rhel" "9"
-            add_unsupported_os_to_preflight_file "$version" "ol" "9"
-            add_unsupported_os_to_preflight_file "$version" "rocky" "9"
+            add_unsupported_os_to_preflight_file "$version" "centos" "=" "9"
+            add_unsupported_os_to_preflight_file "$version" "rhel" "=" "9"
+            add_unsupported_os_to_preflight_file "$version" "ol" "=" "9"
+            add_unsupported_os_to_preflight_file "$version" "rocky" "=" "9"
         else
-            add_supported_os_to_preflight_file "$version" "centos" "9"
-            add_supported_os_to_preflight_file "$version" "rhel" "9"
-            add_supported_os_to_preflight_file "$version" "rocky" "9"
+            add_supported_os_to_preflight_file "$version" "centos" "=" "9"
+            add_supported_os_to_preflight_file "$version" "rhel" "=" "9"
+            add_supported_os_to_preflight_file "$version" "rocky" "=" "9"
             add_supported_os_to_manifest_file "$version" "rhel-9" "Dockerfile.rhel9"
 
             # exclude Oracle Linux 9 (OL 9) until we officially support it
-            add_unsupported_os_to_preflight_file "$version" "ol" "9"
+            add_unsupported_os_to_preflight_file "$version" "ol" "=" "9"
         fi
 
         if ! contains "$version" ${UBUNTU16_VERSIONS[*]}; then
             echo "Ubuntu 16 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "ubuntu" "16.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "16.04"
         else
-            add_supported_os_to_preflight_file "$version" "ubuntu" "16.04"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "=" "16.04"
             add_supported_os_to_manifest_file "$version" "ubuntu-16.04" "Dockerfile.ubuntu16"
         fi
 
@@ -249,25 +251,30 @@ function find_common_versions() {
             add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
             add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
         else
-            add_supported_os_to_preflight_file "$version" "ubuntu" "18.04"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
             add_supported_os_to_manifest_file "$version" "ubuntu-18.04" "Dockerfile.ubuntu18"
         fi
 
         if ! contains "$version" ${UBUNTU20_VERSIONS[*]}; then
             echo "Ubuntu 20 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "ubuntu" "20.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "20.04"
         else
-            add_supported_os_to_preflight_file "$version" "ubuntu" "20.04"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "=" "20.04"
             add_supported_os_to_manifest_file "$version" "ubuntu-20.04" "Dockerfile.ubuntu20"
         fi
 
         if ! contains "$version" ${UBUNTU22_VERSIONS[*]}; then
             echo "Ubuntu 22 lacks version $version"
-            add_unsupported_os_to_preflight_file "$version" "ubuntu" "22.04"
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "22.04"
         else
-            add_supported_os_to_preflight_file "$version" "ubuntu" "22.04"
+            add_supported_os_to_preflight_file "$version" "ubuntu" "=" "22.04"
             add_supported_os_to_manifest_file "$version" "ubuntu-22.04" "Dockerfile.ubuntu22"
         fi
+
+        # for amazon 2023 we use the containerd version provided by the
+        # operating system. on this case we just set all found versions as
+        # supported.
+        add_supported_os_to_preflight_file "$version" "amazon" ">=" "2023"
 
         VERSIONS+=("$version")
     done

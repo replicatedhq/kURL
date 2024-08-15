@@ -112,7 +112,7 @@ function longhorn_install_iscsi_if_missing() {
                 ;;
 
             centos|rhel|ol|rocky|amzn)
-                if is_rhel_9_variant ; then
+                if ! host_packages_shipped ; then
                     yum_ensure_host_package iscsi-initiator-utils
                 else
                     yum_install_host_archives "$src" iscsi-initiator-utils
@@ -140,7 +140,7 @@ function longhorn_install_nfs_utils_if_missing() {
                 ;;
 
             centos|rhel|ol|rocky|amzn)
-                if is_rhel_9_variant ; then
+                if ! host_packages_shipped ; then
                     yum_ensure_host_package nfs-utils
                 else
                     yum_install_host_archives "$src" nfs-utils

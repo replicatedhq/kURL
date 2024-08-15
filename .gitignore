@@ -13,6 +13,7 @@ addons/*/*/assets
 addons/*/*/images
 addons/*/*/rhel-*
 addons/*/*/ubuntu-*
+addons/*/*/amazon-*
 packages/*/*/assets
 packages/*/*/images
 packages/*/*/rhel-*
