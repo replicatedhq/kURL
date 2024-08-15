@@ -39,7 +39,7 @@ function _install_host_packages() {
             ;;
 
         centos|rhel|ol|rocky)
-            if [ "$DIST_VERSION_MAJOR" = "9" ]; then
+            if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
                 _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
             else
                 _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -47,12 +47,16 @@ function _install_host_packages() {
             ;;
 
         amzn)
-            local fullpath=
-            fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
-            if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
-                _rpm_force_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+            if is_amazon_2023; then
+                _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
             else
-                _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+                local fullpath=
+                fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
+                if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
+                    _rpm_force_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+                else
+                    _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+                fi
             fi
             ;;
 
@@ -149,7 +153,7 @@ function yum_install_host_archives() {
     local dir="$1"
     local dir_prefix="/archives"
     local packages=("${@:2}")
-    if [ "$DIST_VERSION_MAJOR" = "9" ]; then
+    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
         _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
     else
         _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -160,7 +164,7 @@ function yum_install_host_packages() {
     local dir="$1"
     local dir_prefix=""
     local packages=("${@:2}")
-    if [ "$DIST_VERSION_MAJOR" = "9" ]; then
+    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
         _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
     else
         _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -309,6 +313,8 @@ function _yum_get_host_packages_path() {
 
     if [ "$DIST_VERSION_MAJOR" = "9" ]; then
         echo "$(realpath "${dir}")/rhel-9${dir_prefix}"
+    elif [ "$DIST_VERSION_MAJOR" = "2023" ]; then
+        echo "$(realpath "${dir}")/amazon-2023${dir_prefix}"
     elif [ "$DIST_VERSION_MAJOR" = "8" ]; then
         echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
     else
@@ -322,6 +328,15 @@ function _yum_get_host_packages_path() {
 # because it cannot resolve modular dependencies.
 function reset_dnf_module_kurl_local() {
     yum module reset -y kurl.local 2>/dev/null || true
+}
+
+# host_packages_shipped returns true if we do ship host packages for the distro
+# we are running the installation on.
+function host_packages_shipped() {
+    if ! is_rhel_9_variant && ! is_amazon_2023; then
+        return 0
+    fi
+    return 1
 }
 
 # is_rhel_9_variant returns 0 if the current distro is RHEL 9 or a derivative
@@ -338,6 +353,17 @@ function is_rhel_9_variant() {
             return 1
             ;;
     esac
+}
+
+# is_amazon_2023 returns 0 if the current distro is Amazon 2023.
+function is_amazon_2023() {
+    if [ "$DIST_VERSION_MAJOR" != "2023" ]; then
+        return 1
+    fi
+    if [ "$LSB_DIST" != "amzn" ]; then
+        return 1
+    fi
+    return 0
 }
 
 # yum_ensure_host_package ensures that a package is installed on the host
@@ -357,18 +383,35 @@ function yum_ensure_host_package() {
 
 # preflights_require_host_packages ensures that all required host packages are installed.
 function preflights_require_host_packages() {
-    if ! is_rhel_9_variant ; then
-        return # only rhel 9 requires this
+    if host_packages_shipped ; then
+        return
     fi
 
     logStep "Checking required host packages"
 
+    local seen=()
     local fail=0
+    local skip=0
     # shellcheck disable=SC2044
     for deps_file in $(find . -name Deps); do
         while read -r dep ; do
-            if ! echo "$deps_file" | grep -q "rhel-9"; then
+
+            skip=0
+            for seen_item in "${seen[@]}"; do
+                if [ "$dep" = "$seen_item" ]; then
+                    skip=1
+                    break
+                fi
+            done
+            if [ "$skip" = "1" ]; then
                 continue
+            fi
+            seen+=("$dep")
+
+            if ! echo "$deps_file" | grep -q "rhel-9"; then
+                if ! echo "$deps_file" | grep -q "amazon-2023"; then
+                    continue
+                fi
             fi
             if rpm -q "$dep" >/dev/null 2>&1 ; then
                 continue
@@ -389,6 +432,7 @@ function preflights_require_host_packages() {
         log "Host packages are missing. Please install them and re-run the install script."
         exit 1
     fi
+
     logSuccess "Required host packages are installed or available"
 }
 

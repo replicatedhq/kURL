@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function kubernetes_pre_init() {
-    if is_rhel_9_variant ; then
+    if ! host_packages_shipped ; then
         # git is packaged in the bundle and installed in other oses by
         # kubernetes_install_host_packages
         yum_ensure_host_package git
@@ -157,7 +157,7 @@ function kubernetes_install_host_packages() {
         kubernetes_cis_chmod_kubelet_service_file
 
         # less command is broken if libtinfo.so.5 is missing in amazon linux 2
-        if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
+        if [ "$LSB_DIST" == "amzn" ] && [ "$DIST_VERSION_MAJOR" != "2023" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
             if [ -d "$DIR/packages/kubernetes/${k8sVersion}/assets" ]; then
                 install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
             fi
@@ -194,7 +194,7 @@ EOF
         ;;
     esac
 
-    if is_rhel_9_variant ; then
+    if ! host_packages_shipped ; then
         # ensure git in kubernetes_pre_init
         install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}"
     else

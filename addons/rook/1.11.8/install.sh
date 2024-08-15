@@ -677,7 +677,7 @@ function rook_lvm2() {
         return
     fi
 
-    if is_rhel_9_variant; then
+    if ! host_packages_shipped ; then
         yum_ensure_host_package lvm2
     else
         install_host_archives "$src" lvm2

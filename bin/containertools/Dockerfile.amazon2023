@@ -1,0 +1,16 @@
+# amazonlinux does not have the modulemd-tools package so we use rockylinux
+# version instead, this is used only at build time.
+FROM rockylinux:9 as builder
+RUN yum install yum-utils -y
+RUN yumdownloader modulemd-tools
+
+FROM amazonlinux:2023
+COPY --from=builder /modulemd-tools-*.noarch.rpm /modulemd-tools.rpm
+RUN yum install -y /modulemd-tools.rpm
+
+ARG PACKAGES
+
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
+RUN yum install -y yum-utils createrepo findutils
+
+RUN [ -z "$PACKAGES" ] || yum install -y $PACKAGES

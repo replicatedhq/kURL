@@ -441,6 +441,12 @@ function report_install_containerd() {
         return 0
     fi
 
+    # on amazon 2023 we are using the default containerd version that comes with the OS.
+    if is_amazon_2023 ; then
+        addon_install "containerd" "$CONTAINERD_VERSION"
+        return 0
+    fi
+
     # if we can't find containerd in the local filesystem then we can also install regardless
     # of version.
     if [ ! -f "/usr/bin/containerd" ]; then
@@ -728,7 +734,7 @@ function install_host_dependencies_openssl() {
         return
     fi
 
-    if is_rhel_9_variant ; then
+    if ! host_packages_shipped ; then
         yum_ensure_host_package openssl
         return
     fi
@@ -746,7 +752,7 @@ function install_host_dependencies_fio() {
         return
     fi
 
-    if is_rhel_9_variant ; then
+    if ! host_packages_shipped ; then
         if !  yum_ensure_host_package fio ; then
             logWarn "Failed to install fio, continuing anyways"
         fi

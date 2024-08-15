@@ -13,7 +13,7 @@ function collectd() {
                 ;;
 
             centos|rhel|ol|rocky|amzn)
-                if [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ]; then
+                if [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ] ; then
                     yum_install_host_archives "$src" collectd collectd-rrdtool collectd-disk
                 else
                     yum_install_host_archives "$src" collectd collectd-rrdtool

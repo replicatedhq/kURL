@@ -93,7 +93,7 @@ function bailIfUnsupportedOS() {
             ;;
         centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
-        amzn2)
+        amzn2|amzn2023)
             ;;
         ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7|ol8.8|ol8.9|ol8.10)
             ;;
@@ -333,8 +333,10 @@ function cri_preflights() {
 }
 
 function require_cri() {
-    if is_rhel_9_variant && [ -z "$CONTAINERD_VERSION" ]; then
-        bail "Containerd is required on RHEL 9 variants. Docker is not supported."
+    if is_rhel_9_variant || is_amazon_2023; then
+        if [ -z "$CONTAINERD_VERSION" ]; then
+            bail "Containerd is required on RHEL 9 variants and Amazon Linux 2023. Docker is not supported."
+        fi
     fi
 
     if commandExists docker ; then
