@@ -1,0 +1,2 @@
+image conformance registry.k8s.io/conformance:v1.29.8
+image nginx-1-14-4 registry.k8s.io/e2e-test-images/nginx:1.14-4
