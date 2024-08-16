@@ -42,10 +42,8 @@ function containerd_install() {
 
     if ! is_amazon_2023; then
         containerd_migrate_from_docker
-
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
-
         chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
         # If the runc binary is executing the cp command will fail with "text file busy" error.
         # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
