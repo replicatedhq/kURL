@@ -29,7 +29,9 @@ function containerd_install() {
     if is_amazon_2023; then
         require_amazon2023_containerd
         log "Using containerd version provided by the Operating System."
-        systemctl restart containerd || true
+        if ! systemctl is-active --quiet containerd; then
+            systemctl start containerd
+        fi
     fi
 
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
