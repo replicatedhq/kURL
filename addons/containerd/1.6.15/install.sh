@@ -26,22 +26,30 @@ function containerd_join() {
 }
 
 function containerd_install() {
+    if is_amazon_2023; then
+        require_amazon2023_containerd
+        log "Using containerd version provided by the Operating System."
+        if ! systemctl is-active --quiet containerd; then
+            systemctl start containerd
+        fi
+    fi
+
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     if ! containerd_xfs_ftype_enabled; then
         bail "The filesystem mounted at /var/lib/containerd does not have ftype enabled"
     fi
 
-    containerd_migrate_from_docker
-
-    containerd_install_container_selinux_if_missing
-    install_host_packages "$src" containerd.io
-
-    chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
-    # If the runc binary is executing the cp command will fail with "text file busy" error.
-    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
-    # as soon as the container starts
-    try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+    if ! is_amazon_2023; then
+        containerd_migrate_from_docker
+        containerd_install_container_selinux_if_missing
+        install_host_packages "$src" containerd.io
+        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
+        # If the runc binary is executing the cp command will fail with "text file busy" error.
+        # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+        # as soon as the container starts
+        try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+    fi
 
     logStep "Containerd configuration"
     containerd_configure
@@ -109,7 +117,22 @@ function containerd_install() {
 
 function containerd_host_init() {
     require_centos8_containerd
+    require_amazon2023_containerd
     containerd_install_libzstd_if_missing
+}
+
+# require_amazon2023_containerd makes sure the OS version of containerd is
+# installed.
+function require_amazon2023_containerd() {
+    if ! is_amazon_2023 ; then
+        return
+    fi
+
+    if yum_is_host_package_installed containerd ; then
+        return
+    fi
+
+    bail "Containerd is not installed, please install it using the following command: yum install -y containerd"
 }
 
 function containerd_install_libzstd_if_missing() {

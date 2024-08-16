@@ -3,6 +3,10 @@ CONTAINERD_NEEDS_RESTART=0
 CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 
 function containerd_pre_init() {
+    if is_amazon_2023 ; then
+        bail "Containerd versions < 1.5.10 are not supported on Amazon Linux 2023"
+    fi
+
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
