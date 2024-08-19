@@ -1,10 +1,4 @@
 
-function containerd_pre_init() {
-    if is_amazon_2023 ; then
-        bail "Containerd versions < 1.5.10 are not supported on Amazon Linux 2023"
-    fi
-}
-
 function containerd_install() {
     local src="$DIR/addons/containerd/1.2.13"
 

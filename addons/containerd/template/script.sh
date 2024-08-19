@@ -152,6 +152,7 @@ function copy_generated_files() {
 
 UNSUPPORTED_CONTAINERD_MINORS="01234"
 
+
 VERSIONS=()
 function find_common_versions() {
     docker build --no-cache --pull -t centos7 -f Dockerfile.centos7 .
@@ -161,6 +162,7 @@ function find_common_versions() {
     docker build --no-cache --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
     docker build --no-cache --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
     docker build --no-cache --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
+    docker build --no-cache --pull -t amazon2023 -f Dockerfile.amazon2023 .
 
     CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
@@ -182,6 +184,9 @@ function find_common_versions() {
 
     UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
+
+    AMAZON2023_VERSIONS=($(docker run --rm -i amazon2023 yum list --showduplicates containerd | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    echo "Found ${#AMAZON2023_VERSIONS[*]} containerd versions for Amazon 2023: ${AMAZON2023_VERSIONS[*]}"
 
     # Get the union of versions available for all operating systems
     local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
@@ -268,6 +273,14 @@ function find_common_versions() {
             add_supported_os_to_preflight_file "$version" "ubuntu" "22.04"
             add_supported_os_to_manifest_file "$version" "ubuntu-22.04" "Dockerfile.ubuntu22"
         fi
+
+        if ! contains "$version" ${AMAZON2023_VERSIONS[*]}; then
+            echo "Amazon 2023 lacks version $version"
+            add_unsupported_os_to_preflight_file "$version" "amzn" "2023"
+        else
+            add_supported_os_to_preflight_file "$version" "amzn" "2023"
+        fi
+
 
         VERSIONS+=("$version")
     done

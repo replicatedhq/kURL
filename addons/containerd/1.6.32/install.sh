@@ -412,11 +412,16 @@ function require_amazon2023_containerd() {
         return
     fi
 
-    if yum_is_host_package_installed containerd ; then
-        return
+    if ! yum_is_host_package_installed containerd ; then
+        bail "Containerd is not installed, please install it using the following command: yum install -y containerd-${CONTAINERD_VERSION}"
     fi
 
-    bail "Containerd is not installed, please install it using the following command: yum install -y containerd"
+    local installed_containerd_version=
+    installed_containerd_version=$(rpm -q --queryformat '%{VERSION}' containerd)
+    if [ "$installed_containerd_version" != "$CONTAINERD_VERSION" ]; then
+        logWarn "Containerd version $CONTAINERD_VERSION is required, but version $installed_containerd_version is installed."
+        bail "Please install containerd version ${CONTAINERD_VERSION} before proceeding."
+    fi
 }
 
 function require_centos8_containerd() {

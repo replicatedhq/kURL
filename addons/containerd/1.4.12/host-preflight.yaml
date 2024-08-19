@@ -26,3 +26,6 @@ spec:
           - fail:
               when: "ubuntu = 22.04"
               message: "containerd addon does not support ubuntu 22.04"
+          - fail:
+              when: "amzn = 2023"
+              message: "containerd addon does not support amzn 2023"

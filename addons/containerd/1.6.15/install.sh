@@ -121,20 +121,6 @@ function containerd_host_init() {
     containerd_install_libzstd_if_missing
 }
 
-# require_amazon2023_containerd makes sure the OS version of containerd is
-# installed.
-function require_amazon2023_containerd() {
-    if ! is_amazon_2023 ; then
-        return
-    fi
-
-    if yum_is_host_package_installed containerd ; then
-        return
-    fi
-
-    bail "Containerd is not installed, please install it using the following command: yum install -y containerd"
-}
-
 function containerd_install_libzstd_if_missing() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
@@ -144,7 +130,7 @@ function containerd_install_libzstd_if_missing() {
                 return
             fi
 
-            if is_rhel_9_variant ; then
+            if ! host_packages_shipped ; then
                 yum_ensure_host_package libzstd
             else
                 yum_install_host_archives "$src" libzstd
@@ -416,6 +402,25 @@ function containerd_kubernetes_pause_image() {
         cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
     else
         echo ""
+    fi
+}
+
+# require_amazon2023_containerd makes sure the OS version of containerd is
+# installed.
+function require_amazon2023_containerd() {
+    if ! is_amazon_2023 ; then
+        return
+    fi
+
+    if ! yum_is_host_package_installed containerd ; then
+        bail "Containerd is not installed, please install it using the following command: yum install -y containerd-${CONTAINERD_VERSION}"
+    fi
+
+    local installed_containerd_version=
+    installed_containerd_version=$(rpm -q --queryformat '%{VERSION}' containerd)
+    if [ "$installed_containerd_version" != "$CONTAINERD_VERSION" ]; then
+        logWarn "Containerd version $CONTAINERD_VERSION is required, but version $installed_containerd_version is installed."
+        bail "Please install containerd version ${CONTAINERD_VERSION} before proceeding."
     fi
 }
 

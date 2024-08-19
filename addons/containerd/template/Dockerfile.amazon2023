@@ -1,0 +1,2 @@
+FROM amazonlinux:2023
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
