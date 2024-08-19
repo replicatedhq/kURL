@@ -37,6 +37,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-9 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.25 to 1.30, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
@@ -153,6 +154,8 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+    - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
 - name: "Upgrade from k8s 1.27 to 1.30 - Airgap"
   airgap: true
   installerSpec:

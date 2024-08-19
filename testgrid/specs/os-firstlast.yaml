@@ -36,7 +36,7 @@
   preinit: |
     yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: centos-9
-  name: CentOS 9 Stream
+  name: CentOS 9
   version: "stream"
   vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
   preinit: |

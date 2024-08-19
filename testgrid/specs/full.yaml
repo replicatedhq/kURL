@@ -644,6 +644,7 @@
   unsupportedOSIDs:
   - rocky-91 # doc:
   - rocky-9 # docker is not supported on rhel 9 variants
+  - centos-9 # docker is not supported on rhel 9 variants
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -768,6 +769,7 @@
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # docker is not supported on rhel 9 variantsl
   - rocky-9 # docker is not supported on rhel 9 variants
+  - centos-9 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.30 minimal airgap"
   installerSpec:
     kubernetes:
@@ -2105,6 +2107,7 @@
   unsupportedOSIDs:
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-9 # docker is not supported on rhel 9 variants
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 8
