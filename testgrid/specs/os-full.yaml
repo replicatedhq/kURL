@@ -46,6 +46,12 @@
   vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
     yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+- id: centos-9
+  name: CentOS 9 Stream
+  version: "stream"
+  vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
+  preinit: |
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: ubuntu-1804
   name: Ubuntu
   version: "18.04"
