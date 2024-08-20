@@ -5,6 +5,13 @@ set -euo pipefail
 # Populate VERSIONS array latest kURL-support versions (1.21, 1.22, 1.23, 1.24) available
 VERSIONS=()
 function find_available_versions() {
+    docker build -t k8s131 - < Dockerfile.131
+    local versions131=($(docker run k8s131 apt list -a kubelet 2>/dev/null | grep -Eo '1\.31\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions131[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.31: ${versions131[0]}"
+        VERSIONS+=("${versions131[0]}")
+    fi
+
     docker build -t k8s130 - < Dockerfile.130
     local versions130=($(docker run k8s130 apt list -a kubelet 2>/dev/null | grep -Eo '1\.30\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions130[@]} -gt 0 ]; then
@@ -126,6 +133,13 @@ function get_latest_sonobuoy_release_version() {
 }
 
 function update_available_versions() {
+    local version131=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.31' ) )
+    if [ ${#version131[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-131/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version131[0]}" ; then
+            sed -i "/cron-kubernetes-update-131/a\    \"${version131[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
     local version130=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.30' ) )
     if [ ${#version130[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-130/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version130[0]}" ; then
