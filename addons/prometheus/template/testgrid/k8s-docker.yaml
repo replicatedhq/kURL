@@ -1,7 +1,7 @@
-- name: "prometheus minimal k8s 1.30"
+- name: "prometheus minimal k8s 1.31"
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     openebs:
@@ -80,7 +80,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     openebs:
@@ -93,7 +93,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     openebs:
@@ -121,7 +121,7 @@
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     rook:
