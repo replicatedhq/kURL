@@ -985,6 +985,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
   - ubuntu-2204 # Docker versions < 20.10.17 not supported on ubuntu 22.04
+  - amazon-2023 # docker is not supported on amazon 2023
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -1144,6 +1145,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
@@ -1267,6 +1269,7 @@
   - ubuntu-2204 # docker 19.03.4 is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
@@ -1380,6 +1383,7 @@
   - ubuntu-2204 # docker 19.03.10 is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets

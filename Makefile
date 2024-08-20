@@ -527,6 +527,21 @@ build/packages/kubernetes/%/rhel-9:
 	find build/packages/kubernetes/$*/rhel-9 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-rhel9-$*
 
+build/packages/kubernetes/%/amazon-2023:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
+		-t kurl/amazon-2023-k8s:$* \
+		-f bundles/k8s-amazon2023/Dockerfile \
+		bundles/k8s-amazon2023
+	-docker rm -f k8s-amazon2023-$* 2>/dev/null
+	docker create --name k8s-amazon2023-$* kurl/amazon-2023-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/amazon-2023
+	docker cp k8s-amazon2023-$*:/packages/archives/. build/packages/kubernetes/$*/amazon-2023/
+	find build/packages/kubernetes/$*/amazon-2023 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
+	find build/packages/kubernetes/$*/amazon-2023 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
+	docker rm k8s-amazon2023-$*
+
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
 .PHONY: build/bin ## Build kurl binary

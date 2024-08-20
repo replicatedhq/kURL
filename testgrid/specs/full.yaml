@@ -645,6 +645,7 @@
   - rocky-91 # doc:
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -770,6 +771,7 @@
   - rocky-91 # docker is not supported on rhel 9 variantsl
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
 - name: "Upgrade to 1.30 minimal airgap"
   installerSpec:
     kubernetes:
@@ -2108,6 +2110,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    - amazon-2023 # docker is not supported on amazon 2023
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 8

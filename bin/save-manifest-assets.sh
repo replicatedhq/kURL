@@ -141,6 +141,12 @@ function build_image_rhel_9() {
     docker build -t "rhel-9-$(image_name_suffix)" -f bin/containertools/Dockerfile.rhel9 --build-arg PACKAGES="${packages[*]}" ./bin
 }
 
+function build_image_amazon_2023() {
+    local packages=("$@")
+
+    docker build -t "amazon-2023-$(image_name_suffix)" -f bin/containertools/Dockerfile.amazon2023 --build-arg PACKAGES="${packages[*]}" ./bin
+}
+
 function build_rhel_9() {
     local packages=("$@")
     local outdir="$OUT_DIR/rhel-9"
@@ -159,6 +165,22 @@ function build_rhel_9() {
     sudo chown -R $UID "$outdir"
 }
 
+function build_amazon_2023() {
+    local packages=("$@")
+    local outdir="$OUT_DIR/amazon-2023"
+
+    mkdir -p "$outdir"
+
+    docker rm -f "amazon-2023-$PACKAGE_NAME" 2>/dev/null || true
+    docker run \
+        --name "amazon-2023-$PACKAGE_NAME" \
+        -v "$PWD/bin/containertools":/opt/containertools \
+        "amazon-2023-$(image_name_suffix)" \
+        bash /opt/containertools/yumdownloader.sh "${packages[*]}"
+    sudo docker cp "amazon-2023-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
 function createrepo_rhel_9() {
     local outdir=
     outdir="$(realpath "$OUT_DIR")/rhel-9"
@@ -172,6 +194,71 @@ function createrepo_rhel_9() {
         /opt/containertools/createrepo.sh
     sudo docker cp "rhel-9-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
     sudo chown -R $UID "$outdir"
+}
+
+function createrepo_amazon_2023() {
+    local outdir=
+    outdir="$(realpath "$OUT_DIR")/amazon-2023"
+
+    docker rm -f "amazon-2023-createrepo-$PACKAGE_NAME" 2>/dev/null || true
+    docker run \
+        --name "amazon-2023-createrepo-$PACKAGE_NAME" \
+        -v "$outdir/archives":/packages/archives \
+        -v "$PWD/bin/containertools":/opt/containertools \
+        "amazon-2023-$(image_name_suffix)" \
+        /opt/containertools/createrepo.sh
+    sudo docker cp "amazon-2023-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
+    sudo chown -R $UID "$outdir"
+}
+
+function build_deps_amazon_2023() {
+    local packages=("$@")
+
+    local outdir=
+    outdir="$(realpath "$OUT_DIR")/amazon-2023"
+
+    mkdir -p "$outdir"
+
+    # yum
+    for pkg in "${pkgs_amazon2023[@]}"; do
+        # remove yum9 packages
+        packages=( "${packages[@]/*${pkg}*}" )
+    done
+    if [ "${#packages[@]}" -gt 0 ]; then
+        printf '%s\n' "${packages[@]}" >> "$outdir/Deps"
+    fi
+
+    # yum9
+    if [ -f "$outdir/archives/repodata/repomd.xml" ]; then
+        docker rm -f "amazon-2023-subdeps-$PACKAGE_NAME" 2>/dev/null || true
+        docker run \
+            --name "amazon-2023-subdeps-$PACKAGE_NAME" \
+            -v "$outdir/archives":/packages/archives \
+            -v "$PWD/bin/containertools":/opt/containertools \
+            "amazon-2023-$(image_name_suffix)" \
+            /opt/containertools/builddeps.sh \
+            >> "$outdir/Deps"
+    fi
+
+    # dockerout
+    if [ -f "$outdir/repodata/repomd.xml" ]; then
+        docker rm -f "amazon-2023-subdeps-$PACKAGE_NAME" 2>/dev/null || true
+        docker run \
+            --name "amazon-2023-subdeps-$PACKAGE_NAME" \
+            -v "$outdir":/packages/archives \
+            -v "$PWD/bin/containertools":/opt/containertools \
+            "amazon-2023-$(image_name_suffix)" \
+            /opt/containertools/builddeps.sh \
+            >> "$outdir/Deps"
+    fi
+
+    if [ ! -f "$outdir/Deps" ]; then
+        rm -rf "$outdir"
+        return
+    fi
+
+    sort "$OUT_DIR/amazon-2023/Deps" | uniq | grep -v '^[[:space:]]*$' > "$OUT_DIR/amazon-2023/Deps.tmp" # remove duplicates and empty lines
+    mv "$OUT_DIR/amazon-2023/Deps.tmp" "$OUT_DIR/amazon-2023/Deps"
 }
 
 function build_deps_rhel_9() {
@@ -288,7 +375,9 @@ pkgs_rhel7=()
 pkgs_rhel8=()
 pkgs_rhel9=()
 pkgs_ol7=()
+pkgs_amazon2023=()
 deps_rhel9=()
+deps_amazon2023=()
 
 while read -r line || [ -n "$line" ]; do
     if [ -z "$line" ]; then
@@ -392,6 +481,7 @@ while read -r line || [ -n "$line" ]; do
             pkgs_rhel7+=("$package")
             pkgs_rhel8+=("$package")
             deps_rhel9+=("$package")
+            deps_amazon2023+=("$package")
             ;;
 
         yum8)
@@ -407,6 +497,11 @@ while read -r line || [ -n "$line" ]; do
         yumol)
             package=$(echo "$line" | awk '{ print $2 }')
             pkgs_ol7+=("$package")
+            ;;
+
+        yum2023)
+            package=$(echo "$line" | awk '{ print $2 }')
+            pkgs_amazon2023+=("$package")
             ;;
 
         dockerout)
@@ -430,6 +525,15 @@ while read -r line || [ -n "$line" ]; do
             ;;
     esac
 done < "$MANIFEST_PATH"
+
+build_image_amazon_2023 "${pkgs_amazon2023[@]}"
+if [ "${#pkgs_amazon2023[@]}" -gt "0" ]; then
+    build_amazon_2023 "${pkgs_amazon2023[@]}"
+fi
+if [ "$(find "$OUT_DIR"/amazon-2023/archives/*.rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+    createrepo_amazon_2023
+fi
+build_deps_amazon_2023 "${deps_amazon2023[@]}"
 
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7 "${pkgs_rhel7[@]}"
