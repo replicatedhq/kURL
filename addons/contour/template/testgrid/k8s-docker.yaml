@@ -2,7 +2,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -11,7 +11,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -82,10 +82,10 @@
 
     curl -v "http://$private_address:80"
 
-- name: "k8s 1.30"
+- name: "k8s 1.31"
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:

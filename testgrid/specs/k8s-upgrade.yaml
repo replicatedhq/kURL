@@ -1,4 +1,4 @@
-- name: 119 to 130
+- name: 119 to 131
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   cpu: 3
@@ -12,7 +12,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.30.x
+      version: 1.31.x
     containerd:
       version: 1.6.x
     flannel:
@@ -21,4 +21,4 @@
     kubectl get nodes
   postUpgradeScript: |
     kubectl get nodes
-    kubectl get nodes | grep 1.30
+    kubectl get nodes | grep 1.31
