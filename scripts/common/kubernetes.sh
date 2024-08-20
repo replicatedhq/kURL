@@ -4,7 +4,7 @@ function kubernetes_pre_init() {
     if ! host_packages_shipped ; then
         # git is packaged in the bundle and installed in other oses by
         # kubernetes_install_host_packages
-        yum_ensure_host_package git
+        ensure_host_package git git
     fi
 }
 
