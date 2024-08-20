@@ -91,6 +91,7 @@
     - centos-81 # docker 20.10.17 is not supported on centos 8.1.
     - centos-84 # docker 20.10.17 is not supported on centos 8.4.
     - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+    - amazon-2023 # docker is not supported on amazon 2023
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 6
@@ -230,6 +231,7 @@
   - centos-81 # docker 20.10.17 is not supported on centos 8.1.
   - centos-84 # docker 20.10.17 is not supported on centos 8.4.
   - ol-8x # docker 20.10.17 is not supported on ol 8.7.
+  - amazon-2023 # docker is not supported on amazon 2023
 - name: "flannel 1.19 single node"
   installerSpec:
     kubernetes:

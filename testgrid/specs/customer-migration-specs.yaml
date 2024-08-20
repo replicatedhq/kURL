@@ -211,6 +211,7 @@
       nodeUnreachableToleration: "1m"
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -348,6 +349,7 @@
     - rocky-91
     - rocky-9
     - ol-8x
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -467,6 +469,7 @@
     - rocky-91
     - rocky-9
     - ol-8x
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -580,6 +583,7 @@
     - rocky-91
     - rocky-9
     - ol-8x
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -711,6 +715,7 @@
     - rocky-91
     - rocky-9
     - ol-8x
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -796,6 +801,7 @@
     - rocky-91
     - rocky-9
     - ol-8x
+    - amazon-2023 # docker is not supported on amazon 2023
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh

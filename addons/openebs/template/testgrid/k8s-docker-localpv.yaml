@@ -148,6 +148,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
+  - amazon-2023 # docker is not supported on amazon 2023
 
 - name: localpv migrate from Rook 1.0.4 with old versions
   flags: "yes"

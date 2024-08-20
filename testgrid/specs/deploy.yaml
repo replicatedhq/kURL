@@ -38,6 +38,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    - amazon-2023 # docker is not supported on amazon 2023
 - name: "Upgrade to 1.25 to 1.30, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
