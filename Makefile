@@ -231,6 +231,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
+	${MAKE} build/packages/kubernetes/$*/ubuntu-24.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
@@ -470,6 +471,19 @@ build/packages/kubernetes/%/ubuntu-22.04:
 	mkdir -p build/packages/kubernetes/$*/ubuntu-22.04
 	docker cp k8s-ubuntu2204-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-22.04/
 	docker rm k8s-ubuntu2204-$*
+
+build/packages/kubernetes/%/ubuntu-24.04:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
+		-t kurl/ubuntu-2404-k8s:$* \
+		-f bundles/k8s-ubuntu2404/Dockerfile \
+		bundles/k8s-ubuntu2404
+	-docker rm -f k8s-ubuntu2404-$* 2>/dev/null
+	docker create --name k8s-ubuntu2404-$* kurl/ubuntu-2404-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/ubuntu-24.04
+	docker cp k8s-ubuntu2404-$*:/archives/. build/packages/kubernetes/$*/ubuntu-24.04/
+	docker rm k8s-ubuntu2404-$*
 
 build/packages/kubernetes/%/rhel-7:
 	docker build \
