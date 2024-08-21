@@ -29,13 +29,13 @@
   version: "9.4"
   vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl ebtables-legacy
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: centos-9
   name: CentOS 9
   version: "stream"
   vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl ebtables-legacy
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
 - id: ubuntu-1804
   name: Ubuntu
   version: "18.04"
@@ -56,4 +56,4 @@
   version: "2023"
   vmimageuri: https://cdn.amazonlinux.com/al2023/os-images/2023.5.20240819.0/kvm/al2023-kvm-2023.5.20240819.0-kernel-6.1-x86_64.xfs.gpt.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl containerd ebtables-legacy
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl containerd
