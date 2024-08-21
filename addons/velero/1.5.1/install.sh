@@ -66,7 +66,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    longhorn_install_nfs_utils_if_missing_common
+    install_nfs_utils_if_missing_common
 }
 
 function velero_already_applied() {

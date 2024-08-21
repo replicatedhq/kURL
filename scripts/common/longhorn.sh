@@ -1,6 +1,6 @@
 function longhorn_host_init_common() {
     longhorn_install_iscsi_if_missing_common $1
-    longhorn_install_nfs_utils_if_missing_common $1
+    install_nfs_utils_if_missing_common $1
     mkdir -p /var/lib/longhorn
     chmod 700 /var/lib/longhorn
 }
@@ -33,7 +33,7 @@ function longhorn_install_iscsi_if_missing_common() {
     fi
 }
 
-function longhorn_install_nfs_utils_if_missing_common() {
+function install_nfs_utils_if_missing_common() {
     local src=$1
 
     if ! systemctl list-units | grep -q nfs-utils ; then

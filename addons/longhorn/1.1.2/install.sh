@@ -97,7 +97,7 @@ function longhorn_join() {
 
 function longhorn_host_init() {
     longhorn_install_iscsi_if_missing_common
-    longhorn_install_nfs_utils_if_missing_common
+    install_nfs_utils_if_missing_common
     mkdir -p /var/lib/longhorn
     chmod 700 /var/lib/longhorn
 }
