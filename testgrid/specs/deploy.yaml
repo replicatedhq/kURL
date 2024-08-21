@@ -157,6 +157,7 @@
     fi
   unsupportedOSIDs:
     - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
+    - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
 - name: "Upgrade from k8s 1.27 to 1.31 - Airgap"
   airgap: true
   installerSpec:
