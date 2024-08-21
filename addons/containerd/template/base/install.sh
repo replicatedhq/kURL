@@ -124,17 +124,17 @@ function containerd_host_init() {
 function containerd_install_libzstd_if_missing() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    if ! host_packages_shipped ; then
+        ensure_host_package libzstd skip
+        return
+    fi
+
     case "$LSB_DIST" in
         centos|rhel|ol|rocky|amzn)
             if yum_is_host_package_installed libzstd ; then
                 return
             fi
-
-            if ! host_packages_shipped ; then
-                yum_ensure_host_package libzstd
-            else
-                yum_install_host_archives "$src" libzstd
-            fi
+            yum_install_host_archives "$src" libzstd
             ;;
     esac
 }
@@ -404,7 +404,6 @@ function containerd_kubernetes_pause_image() {
         echo ""
     fi
 }
-
 
 function use_os_containerd() {
     if is_amazon_2023 || is_ubuntu_2404 ; then
