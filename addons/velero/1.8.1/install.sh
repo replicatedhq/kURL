@@ -85,7 +85,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    install_nfs_utils_if_missing_common
+    install_nfs_utils_if_missing_common "$DIR/addons/velero/$VELERO_VERSION"
 }
 
 function velero_install() {
