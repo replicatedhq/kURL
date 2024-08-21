@@ -235,6 +235,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
 	${MAKE} build/packages/kubernetes/$*/rhel-9
+	${MAKE} build/packages/kubernetes/$*/amazon-2023
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
 	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
