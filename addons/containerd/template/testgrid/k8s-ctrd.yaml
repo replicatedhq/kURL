@@ -153,7 +153,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
-    - centos-9-stream # old installers do not support Centos 9 stream
+    - centos-9 # old installers do not support Centos 9 stream
     - ubuntu-2404 # old installers do not support Ubuntu 24.04
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
@@ -221,7 +221,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
-    - centos-9-stream # old installers do not support Centos 9 stream
+    - centos-9 # old installers do not support Centos 9 stream
     - ubuntu-2404 # old installers do not support Ubuntu 24.04
 
 - name: Upgrade Containerd from 1.4.x to __testver__
@@ -286,7 +286,7 @@
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # old installers do not support amazon 2023
-    - centos-9-stream # old installers do not support Centos 9 stream
+    - centos-9 # old installers do not support Centos 9 stream
     - ubuntu-2404 # old installers do not support Ubuntu 24.04
 
 - name: Upgrade Containerd from 1.5.x to __testver__
@@ -335,7 +335,7 @@
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # old installers do not support amazon 2023
-    - centos-9-stream # old installers do not support Centos 9 stream
+    - centos-9 # old installers do not support Centos 9 stream
     - ubuntu-2404 # old installers do not support Ubuntu 24.04
 
 - name: "Upgrade Containerd from current to __testver__"
