@@ -333,7 +333,7 @@ function reset_dnf_module_kurl_local() {
 # host_packages_shipped returns true if we do ship host packages for the distro
 # we are running the installation on.
 function host_packages_shipped() {
-    if ! is_rhel_9_variant && ! is_amazon_2023; then
+    if ! is_rhel_9_variant && ! is_amazon_2023 && ! is_ubuntu_2404; then
         return 0
     fi
     return 1
@@ -366,8 +366,58 @@ function is_amazon_2023() {
     return 0
 }
 
-# yum_ensure_host_package ensures that a package is installed on the host
-function yum_ensure_host_package() {
+# is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.
+function is_ubuntu_2404() {
+    if [ "$DIST_VERSION_MAJOR" != "24.04" ]; then
+        return 1
+    fi
+    if [ "$LSB_DIST" != "ubuntu" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# ensure_host_package calls either _apt_ensure_host_package or _yum_ensure_host_package
+function ensure_host_package() {
+    local yum_package="$1"
+    local apt_package="$1"
+
+    case "$LSB_DIST" in
+        ubuntu)
+            if [ -n "$apt_package" ] && [ "$apt_package" != "skip" ]; then
+                _apt_ensure_host_package "$apt_package"
+            fi
+            ;;
+
+        centos|rhel|ol|rocky|amzn)
+            if [ -n "$yum_package" ] && [ "$yum_package" != "skip" ]; then
+                _yum_ensure_host_package "$yum_package"
+            fi
+            ;;
+
+        *)
+            bail "Host package checks are not supported on ${LSB_DIST} ${DIST_MAJOR}"
+            ;;
+    esac
+}
+
+# _apt_ensure_host_package ensures that a package is installed on the host
+function _apt_ensure_host_package() {
+    local package="$1"
+
+    if ! apt_is_host_package_installed "$package" ; then
+        logStep "Installing host package $package"
+        if ! apt install -y "$package" ; then
+            logFail "Failed to install host package $package."
+            logFail "Please install $package and try again."
+            bail "    apt install $package"
+        fi
+        logSuccess "Host package $package installed"
+    fi
+}
+
+# _yum_ensure_host_package ensures that a package is installed on the host
+function _yum_ensure_host_package() {
     local package="$1"
 
     if ! yum_is_host_package_installed "$package" ; then
@@ -410,7 +460,9 @@ function preflights_require_host_packages() {
 
             if ! echo "$deps_file" | grep -q "rhel-9"; then
                 if ! echo "$deps_file" | grep -q "amazon-2023"; then
-                    continue
+                    if ! echo "$deps_file" | grep -q "ubuntu-24.04"; then
+                        continue
+                    fi
                 fi
             fi
             if rpm -q "$dep" >/dev/null 2>&1 ; then
@@ -433,6 +485,14 @@ function preflights_require_host_packages() {
         exit 1
     fi
     logSuccess "Required host packages are installed or available"
+}
+
+# apt_is_host_package_installed returns 0 if the package is installed on the host
+function apt_is_host_package_installed() {
+    local package="$1"
+
+    log "Checking if $package is installed"
+    apt list --installed "$package" >/dev/null 2>&1
 }
 
 # yum_is_host_package_installed returns 0 if the package is installed on the host

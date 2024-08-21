@@ -1,6 +1,6 @@
 function longhorn_host_init_common() {
     longhorn_install_iscsi_if_missing_common $1
-    longhorn_install_nfs_utils_if_missing_common $1
+    install_nfs_utils_if_missing_common $1
     mkdir -p /var/lib/longhorn
     chmod 700 /var/lib/longhorn
 }
@@ -9,19 +9,19 @@ function longhorn_install_iscsi_if_missing_common() {
     local src=$1
 
     if ! systemctl list-units | grep -q iscsid ; then
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" open-iscsi
-                ;;
+        if ! host_packages_shipped; then
+            ensure_host_package iscsi-initiator-utils open-iscsi
+        else
+            case "$LSB_DIST" in
+                ubuntu)
+                    dpkg_install_host_archives "$src" open-iscsi
+                    ;;
 
-            centos|rhel|ol|rocky|amzn)
-                if ! host_packages_shipped ; then
-                    yum_ensure_host_package iscsi-initiator-utils
-                else
+                centos|rhel|ol|rocky|amzn)
                     yum_install_host_archives "$src" iscsi-initiator-utils
-                fi
-                ;;
-        esac
+                    ;;
+            esac
+        fi
     fi
 
     if ! systemctl -q is-active iscsid; then
@@ -33,23 +33,24 @@ function longhorn_install_iscsi_if_missing_common() {
     fi
 }
 
-function longhorn_install_nfs_utils_if_missing_common() {
+function install_nfs_utils_if_missing_common() {
     local src=$1
 
     if ! systemctl list-units | grep -q nfs-utils ; then
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" nfs-common
-                ;;
 
-            centos|rhel|ol|rocky|amzn)
-                if ! host_packages_shipped ; then
-                    yum_ensure_host_package nfs-utils
-                else
+        if ! host_packages_shipped; then
+            ensure_host_package nfs-utils nfs-common
+        else
+            case "$LSB_DIST" in
+                ubuntu)
+                    dpkg_install_host_archives "$src" nfs-common
+                    ;;
+
+                centos|rhel|ol|rocky|amzn)
                     yum_install_host_archives "$src" nfs-utils
-                fi
-                ;;
-        esac
+                    ;;
+            esac
+        fi
     fi
 
     if ! systemctl -q is-active nfs-utils; then

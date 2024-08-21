@@ -95,35 +95,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
-    velero_install_nfs_utils_if_missing
-}
-
-function velero_install_nfs_utils_if_missing() {
-    local src="$DIR/addons/velero/$VELERO_VERSION"
-
-    if ! systemctl list-units | grep -q nfs-utils ; then
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" nfs-common
-                ;;
-
-            centos|rhel|ol|rocky|amzn)
-                if ! host_packages_shipped ; then
-                    yum_ensure_host_package nfs-utils
-                else
-                    yum_install_host_archives "$src" nfs-utils
-                fi
-                ;;
-        esac
-    fi
-
-    if ! systemctl -q is-active nfs-utils; then
-        systemctl start nfs-utils
-    fi
-
-    if ! systemctl -q is-enabled nfs-utils; then
-        systemctl enable nfs-utils
-    fi
+    install_nfs_utils_if_missing_common "$DIR/addons/velero/$VELERO_VERSION"
 }
 
 function velero_install() {

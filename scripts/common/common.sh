@@ -735,7 +735,7 @@ function install_host_dependencies_openssl() {
     fi
 
     if ! host_packages_shipped ; then
-        yum_ensure_host_package openssl
+        ensure_host_package openssl openssl
         return
     fi
 
@@ -753,7 +753,7 @@ function install_host_dependencies_fio() {
     fi
 
     if ! host_packages_shipped ; then
-        if !  yum_ensure_host_package fio ; then
+        if !  ensure_host_package fio fio; then
             logWarn "Failed to install fio, continuing anyways"
         fi
         return

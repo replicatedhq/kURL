@@ -26,8 +26,8 @@ function containerd_join() {
 }
 
 function containerd_install() {
-    if is_amazon_2023; then
-        require_amazon2023_containerd
+    if use_os_containerd; then
+        require_os_containerd
         log "Using containerd version provided by the Operating System."
         if ! systemctl is-active --quiet containerd; then
             systemctl start containerd
@@ -40,7 +40,7 @@ function containerd_install() {
         bail "The filesystem mounted at /var/lib/containerd does not have ftype enabled"
     fi
 
-    if ! is_amazon_2023; then
+    if ! use_os_containerd; then
         containerd_migrate_from_docker
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
@@ -124,17 +124,17 @@ function containerd_host_init() {
 function containerd_install_libzstd_if_missing() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    if ! host_packages_shipped ; then
+        ensure_host_package libzstd skip
+        return
+    fi
+
     case "$LSB_DIST" in
         centos|rhel|ol|rocky|amzn)
             if yum_is_host_package_installed libzstd ; then
                 return
             fi
-
-            if ! host_packages_shipped ; then
-                yum_ensure_host_package libzstd
-            else
-                yum_install_host_archives "$src" libzstd
-            fi
+            yum_install_host_archives "$src" libzstd
             ;;
     esac
 }
@@ -405,8 +405,23 @@ function containerd_kubernetes_pause_image() {
     fi
 }
 
-# require_amazon2023_containerd makes sure the OS version of containerd is
+function use_os_containerd() {
+    if is_amazon_2023 || is_ubuntu_2404 ; then
+        return 0
+    fi
+    return 1
+}
+
+# require_os_containerd makes sure the OS version of containerd is
 # installed.
+function require_os_containerd() {
+    if is_amazon_2023 ; then
+        require_amazon2023_containerd
+    elif is_ubuntu_2404 ; then
+        require_ubuntu2404_containerd
+    fi
+}
+
 function require_amazon2023_containerd() {
     if ! is_amazon_2023 ; then
         return
@@ -417,6 +432,18 @@ function require_amazon2023_containerd() {
     fi
 
     bail "Containerd is not installed, please install it using the following command: dnf install -y containerd"
+}
+
+function require_ubuntu2404_containerd() {
+    if ! is_ubuntu_2404 ; then
+        return
+    fi
+
+    if apt_is_host_package_installed containerd ; then
+        return
+    fi
+
+    bail "Containerd is not installed, please install it using the following command: apt-get install -y containerd"
 }
 
 function require_centos8_containerd() {

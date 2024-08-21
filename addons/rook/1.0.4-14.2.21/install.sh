@@ -202,7 +202,7 @@ function rook_lvm2() {
     fi
  
     if ! host_packages_shipped ; then
-        yum_ensure_host_package lvm2
+        ensure_host_package lvm2 lvm2
     else
         install_host_archives "$src" lvm2
     fi
