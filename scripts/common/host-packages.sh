@@ -460,7 +460,9 @@ function preflights_require_host_packages() {
 
             if ! echo "$deps_file" | grep -q "rhel-9"; then
                 if ! echo "$deps_file" | grep -q "amazon-2023"; then
-                    continue
+                    if ! echo "$deps_file" | grep -q "ubuntu-24.04"; then
+                        continue
+                    fi
                 fi
             fi
             if rpm -q "$dep" >/dev/null 2>&1 ; then
