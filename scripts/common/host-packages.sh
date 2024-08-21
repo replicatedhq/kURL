@@ -368,7 +368,7 @@ function is_amazon_2023() {
 
 # is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.
 function is_ubuntu_2404() {
-    if [ "$DIST_VERSION_MAJOR" != "24.04" ]; then
+    if [ "$DIST_VERSION_MAJOR" != "24" ]; then
         return 1
     fi
     if [ "$LSB_DIST" != "ubuntu" ]; then
