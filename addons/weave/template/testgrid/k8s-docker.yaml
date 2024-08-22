@@ -19,6 +19,8 @@
 
     echo "weave iptables list"
     kubectl exec -n kube-system daemonset/weave-net -c weave -- iptables -L
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "weave latest multi node"
   installerSpec:
     kubernetes:
@@ -30,6 +32,8 @@
       s3Override: "__testdist__"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "weave airgap latest multi node"
   installerSpec:
     kubernetes:
@@ -45,3 +49,5 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

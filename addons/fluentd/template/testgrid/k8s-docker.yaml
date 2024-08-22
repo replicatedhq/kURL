@@ -10,3 +10,5 @@
     fluentd:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

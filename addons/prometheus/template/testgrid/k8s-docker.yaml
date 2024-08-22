@@ -17,6 +17,7 @@
   cpu: 5
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
@@ -76,6 +77,8 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: "prometheus upgrade from latest"
   installerApiEndpoint: https://kurl.sh
   installerSpec:

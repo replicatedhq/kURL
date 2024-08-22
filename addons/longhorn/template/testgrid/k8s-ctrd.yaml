@@ -94,6 +94,8 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 
 - name: upgrade-from-rook-1.5
   cpu: 6
@@ -172,6 +174,8 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 
 - name: upgrade-from-oldest-longhorn-1.2.x
   installerSpec:

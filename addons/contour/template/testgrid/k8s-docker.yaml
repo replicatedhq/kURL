@@ -81,6 +81,8 @@
     echo "Discovered private address: $private_address"
 
     curl -v "http://$private_address:80"
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 
 - name: "k8s 1.31"
   installerSpec:
@@ -127,3 +129,5 @@
     echo "Discovered private address: $private_address"
 
     curl -v "http://$private_address:80"
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
