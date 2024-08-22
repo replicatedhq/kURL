@@ -14,6 +14,8 @@
   postInstallScript: |
     kubectl top pods -A
     kubectl top nodes
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "upgrade from latest"
   installerSpec:
     kubernetes:
@@ -41,3 +43,5 @@
   postUpgradeScript: |
     kubectl top pods -A
     kubectl top nodes
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

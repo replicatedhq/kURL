@@ -19,6 +19,8 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # migration from rook-ceph object store to minio
 - name: migrate from rook-ceph object store to minio
@@ -79,6 +81,8 @@
     else
        echo "Namespace rook-ceph was removed"
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # installation with specified PVC size
 - name: install with 20Gi volume (openebs)
@@ -122,6 +126,8 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # upgrade that changes PVC size
 - name: upgrade minio from latest while increasing PVC claim size (longhorn)
@@ -198,6 +204,8 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # upgrade from 2020-01-25T02-50-51Z using openebs
 - name: upgrade minio from 2020-01-25T02-50-51Z (openebs)
@@ -238,6 +246,8 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade minio from 2020-01-25T02-50-51Z while increasing PVC claim size (openebs)
   flags: "yes"
@@ -281,3 +291,5 @@
     echo "PVC size should be 20Gi:"
     kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
     kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

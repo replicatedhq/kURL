@@ -25,6 +25,8 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade from latest
   installerSpec:
@@ -53,6 +55,8 @@
     # print goldpinger output (and fail if unable to connect to the service)
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade from oldest
   installerSpec:
@@ -81,6 +85,8 @@
     # print goldpinger output (and fail if unable to connect to the service)
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: airgap fresh install
   airgap: true
@@ -113,3 +119,5 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

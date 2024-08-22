@@ -18,6 +18,8 @@
       version: latest
     kotsadm:
       version: latest
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: openebs
   installerSpec:
     contour:
@@ -42,3 +44,5 @@
       version: latest
     kotsadm:
       version: latest
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.

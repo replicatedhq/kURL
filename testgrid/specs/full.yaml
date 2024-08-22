@@ -341,6 +341,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:

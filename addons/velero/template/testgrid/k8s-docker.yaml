@@ -74,6 +74,8 @@
     install_and_customize_kurl_integration_test_application
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
@@ -91,6 +93,8 @@
       s3Override: "__testdist__"
     minio:
       version: "latest"
+  unsupportedOSIDs:
+  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "Velero Remove Object Storage"
   cpu: 8
   installerSpec:
