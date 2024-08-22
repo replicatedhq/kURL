@@ -90,9 +90,8 @@
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
   unsupportedOSIDs:
-  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-
-
+  - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
+  - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   flags: "yes"
@@ -155,6 +154,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -221,6 +221,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 
 - name: Upgrade Containerd from 1.4.x to __testver__
   installerApiEndpoint: https://kurl.sh
@@ -284,6 +285,7 @@
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
+    - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
 
 - name: Upgrade Containerd from 1.5.x to __testver__
   installerApiEndpoint: https://kurl.sh
@@ -331,6 +333,7 @@
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
+    - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
