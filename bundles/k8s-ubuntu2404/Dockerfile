@@ -23,6 +23,9 @@ RUN apt-get --print-uris --yes install  \
 RUN apt-get --print-uris --yes install  \
     kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
     grep ^\' | cut -d\' -f2 >> ~/raw_urls.txt
+RUN apt-get --print-uris --yes install  \
+    kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep ^\' | cut -d\' -f2 >> ~/raw_urls.txt
 
 RUN cat ~/raw_urls.txt | grep 'pkgs.k8s.io' > ~/urls.txt
 RUN cd /archives && cat ~/urls.txt | xargs -I {} -n 1 curl -L -O {}
@@ -32,13 +35,19 @@ RUN apt-cache depends kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VE
     grep Depends | \
     grep -v kubeadm | \
     grep -v '<' | \
-    grep -v 'cri-tools' | \
-    grep -v 'kubernetes-cni' | \
-    awk '{ print $2 }' > /archives/Deps
+    awk '{ print $2 }' > ~/AllDeps
 RUN apt-cache depends kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
     grep Depends | \
-    grep -v kubeadm | \
+    grep -v kubelet | \
     grep -v '<' | \
-    grep -v 'cri-tools' | \
-    grep -v 'kubernetes-cni' | \
-    awk '{ print $2 }' >> /archives/Deps \
+    awk '{ print $2 }' >> ~/AllDeps
+RUN apt-cache depends kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep Depends | \
+    grep -v kubectl | \
+    grep -v '<' | \
+    awk '{ print $2 }' >> ~/AllDeps
+
+# list the dependency names in /archives like cri-tools_131.0.0-0_amd64.deb and then remove the version number
+RUN ls /archives | awk -F_ '{ print $1 }' > ~/K8sDepsNames
+# remove things from 'Deps' that are in 'K8sDepsNames'
+RUN grep -v -f ~/K8sDepsNames ~/AllDeps > /archives/Deps
