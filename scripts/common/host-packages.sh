@@ -516,7 +516,7 @@ function apt_is_host_package_installed() {
     local package="$1"
 
     log "Checking if $package is installed"
-    dpkg-query -W -f='${Status}' "$dep" 2>/dev/null | grep -q "ok installed" >/dev/null
+    dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "ok installed" >/dev/null
 }
 
 # yum_is_host_package_installed returns 0 if the package is installed on the host
