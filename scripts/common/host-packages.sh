@@ -380,7 +380,7 @@ function is_ubuntu_2404() {
 # ensure_host_package calls either _apt_ensure_host_package or _yum_ensure_host_package
 function ensure_host_package() {
     local yum_package="$1"
-    local apt_package="$1"
+    local apt_package="$2"
 
     case "$LSB_DIST" in
         ubuntu)
