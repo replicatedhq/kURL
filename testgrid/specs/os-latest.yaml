@@ -46,6 +46,11 @@
   version: "22.04"
   vmimageuri: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
   preinit: ""
+- id: ubuntu-2404
+  name: Ubuntu
+  version: "24.04"
+  vmimageuri: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+  preinit: "apt-get install -y containerd socat ebtables conntrack"
 - id: amazon-2023
   name: Amazon Linux
   version: "2023"

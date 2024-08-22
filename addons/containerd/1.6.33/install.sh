@@ -117,7 +117,7 @@ function containerd_install() {
 
 function containerd_host_init() {
     require_centos8_containerd
-    require_amazon2023_containerd
+    require_os_containerd
     containerd_install_libzstd_if_missing
 }
 
