@@ -23,6 +23,9 @@ RUN apt-get --print-uris --yes install  \
 RUN apt-get --print-uris --yes install  \
     kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
     grep ^\' | cut -d\' -f2 >> ~/raw_urls.txt
+RUN apt-get --print-uris --yes install  \
+    kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep ^\' | cut -d\' -f2 >> ~/raw_urls.txt
 
 RUN cat ~/raw_urls.txt | grep 'pkgs.k8s.io' > ~/urls.txt
 RUN cd /archives && cat ~/urls.txt | xargs -I {} -n 1 curl -L -O {}
@@ -35,7 +38,12 @@ RUN apt-cache depends kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VE
     awk '{ print $2 }' > ~/AllDeps
 RUN apt-cache depends kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
     grep Depends | \
-    grep -v kubeadm | \
+    grep -v kubelet | \
+    grep -v '<' | \
+    awk '{ print $2 }' >> ~/AllDeps
+RUN apt-cache depends kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep Depends | \
+    grep -v kubectl | \
     grep -v '<' | \
     awk '{ print $2 }' >> ~/AllDeps
 
