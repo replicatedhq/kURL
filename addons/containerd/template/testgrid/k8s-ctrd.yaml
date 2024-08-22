@@ -27,11 +27,11 @@
 
   postInstallScript: |
     echo "checking /etc/containerd/config.toml"
-    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
-    cat /etc/containerd/config.toml | grep pause:3.9
+    cat /etc/containerd/config.toml | grep pause # should be 3.10, this is for debugging
+    cat /etc/containerd/config.toml | grep pause:3.10
     echo "checking /var/lib/kubelet/kubeadm-flags.env"
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.10, this is for debugging
+    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.10
 #
 #- name: basic containerd and flannel, internal LB, airgap, 1.23 to 1.27, airgap
 #  airgap: true
