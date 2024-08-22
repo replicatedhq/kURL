@@ -16,6 +16,7 @@ RUN mkdir -p /archives
 
 ARG KUBERNETES_VERSION
 
+# get the urls of the actual kubernetes packages
 RUN apt-get --print-uris --yes install  \
     kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
     grep ^\' | cut -d\' -f2 > ~/raw_urls.txt
@@ -25,3 +26,19 @@ RUN apt-get --print-uris --yes install  \
 
 RUN cat ~/raw_urls.txt | grep 'pkgs.k8s.io' > ~/urls.txt
 RUN cd /archives && cat ~/urls.txt | xargs -I {} -n 1 curl -L -O {}
+
+# get the names of the packages that those depend on
+RUN apt-cache depends kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep Depends | \
+    grep -v kubeadm | \
+    grep -v '<' | \
+    grep -v 'cri-tools' | \
+    grep -v 'kubernetes-cni' | \
+    awk '{ print $2 }' > /archives/Deps
+RUN apt-cache depends kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) | \
+    grep Depends | \
+    grep -v kubeadm | \
+    grep -v '<' | \
+    grep -v 'cri-tools' | \
+    grep -v 'kubernetes-cni' | \
+    awk '{ print $2 }' >> /archives/Deps \

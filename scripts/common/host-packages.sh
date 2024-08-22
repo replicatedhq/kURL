@@ -458,17 +458,41 @@ function preflights_require_host_packages() {
             fi
             seen+=("$dep")
 
-            if ! echo "$deps_file" | grep -q "rhel-9"; then
-                if ! echo "$deps_file" | grep -q "amazon-2023"; then
-                    if ! echo "$deps_file" | grep -q "ubuntu-24.04"; then
+            # use rpm to check rhel/centos/ol/rocky/amzn and dpkg-query to check ubuntu
+            case "$LSB_DIST" in
+                centos|rhel|ol|rocky)
+                    if ! echo "$deps_file" | grep -q "rhel-9"; then
                         continue
                     fi
-                fi
-            fi
-            if rpm -q "$dep" >/dev/null 2>&1 ; then
-                continue
-            fi
-            fail=1
+                    if rpm -q "$dep" >/dev/null 2>&1 ; then
+                        continue
+                    fi
+                    fail=1
+                    ;;
+                amzn)
+                    if ! echo "$deps_file" | grep -q "amazon-2023"; then
+                        continue
+                    fi
+                    if rpm -q "$dep" >/dev/null 2>&1 ; then
+                        continue
+                    fi
+                    fail=1
+                    ;;
+                ubuntu)
+                    if ! echo "$deps_file" | grep -q "ubuntu-24"; then
+                        continue
+                    fi
+                    if dpkg-query -W -f='${Status}' "$dep" 2>/dev/null | grep -q "ok installed"; then
+                        continue
+                    fi
+                    fail=1
+                    ;;
+                *)
+                    logFail "Host package checks are not supported on ${LSB_DIST} ${DIST_MAJOR}"
+                    fail=1
+                    ;;
+            esac
+
             component=$(echo "$deps_file" | awk -F'/' '{print $3}')
             if [ "$component" = "host" ]; then
                 logFail "Host package $dep is required"
