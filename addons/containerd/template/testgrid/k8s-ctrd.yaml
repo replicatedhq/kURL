@@ -30,37 +30,6 @@
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
 
-- name: basic containerd and flannel, internal LB, 1.31
-  installerSpec:
-    kubernetes:
-      version: "1.31.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    ekco:
-      version: latest
-      enableInternalLoadBalancer: true
-    kotsadm:
-      version: latest
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-  postInstallScript: |
-    echo "checking /etc/containerd/config.toml"
-    cat /etc/containerd/config.toml | grep pause # should be 3.9, this is for debugging
-    cat /etc/containerd/config.toml | grep pause:3.9
-    echo "checking /var/lib/kubelet/kubeadm-flags.env"
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.9, this is for debugging
-    cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
-
 - name: basic containerd and flannel, internal LB, airgap, 1.23 to 1.27, airgap
   airgap: true
   installerSpec:
@@ -122,300 +91,290 @@
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.9
 
 
-#
-#- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
-#  flags: "yes"
-#  installerApiEndpoint: https://kurl.sh
-#  installerSpec:
-#    kurl:
-#      installerVersion: "v2024.07.02-0"
-#    kubernetes:
-#      version: 1.23.x
-#    weave: # flannel has errors with dns and docker
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#    docker:
-#      version: latest
-#  upgradeSpec:
-#    kubernetes:
-#      version: 1.25.x
-#    weave: # flannel has errors with dns and docker
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#    containerd:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_read_write_object_store rwtest testfile.txt
-#    echo "Checking kubectl with kube/config"
-#    echo "Kubeconfig was $KUBECONFIG"
-#    unset KUBECONFIG
-#    kubectl get namespaces
-#  postUpgradeScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_testfile rwtest testfile.txt
-#    validate_read_write_object_store postupgrade upgradefile.txt
-#  unsupportedOSIDs:
-#    - rocky-91 # docker is not supported on rhel 9 variants
-#    - rocky-9 # docker is not supported on rhel 9 variants
-#    - amazon-2023 # docker is not supported on amazon 2023
-#    - centos-9 # old installers do not support Centos 9 stream
-#    - ubuntu-2404 # old installers do not support Ubuntu 24.04
-#- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
-#  flags: "yes"
-#  installerApiEndpoint: https://kurl.sh
-#  installerSpec:
-#    kurl:
-#      installerVersion: "v2024.07.02-0"
-#    kubernetes:
-#      version: 1.23.x
-#    weave: # flannel has errors with dns and docker
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#    docker:
-#      version: latest
-#  upgradeSpec:
-#    kubernetes:
-#      version: 1.25.x
-#    weave: # flannel has errors with dns and docker
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    registry:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#    containerd:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#  airgap: true
-#  preInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    mkdir -p /var/lib/kurl/assets
-#    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_read_write_object_store rwtest testfile.txt
-#    echo "Checking kubectl with kube/config"
-#    echo "Kubeconfig was $KUBECONFIG"
-#    unset KUBECONFIG
-#    kubectl get namespaces
-#  postUpgradeScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_testfile rwtest testfile.txt
-#    validate_read_write_object_store postupgrade upgradefile.txt
-#  unsupportedOSIDs:
-#    - rocky-91 # docker is not supported on rhel 9 variants
-#    - rocky-9 # docker is not supported on rhel 9 variants
-#    - amazon-2023 # docker is not supported on amazon 2023
-#    - centos-9 # old installers do not support Centos 9 stream
-#    - ubuntu-2404 # old installers do not support Ubuntu 24.04
-#
-#- name: Upgrade Containerd from 1.4.x to __testver__
-#  installerApiEndpoint: https://kurl.sh
-#  installerSpec:
-#    kurl:
-#      installerVersion: "v2024.07.02-0"
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: "1.4.x"
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  upgradeSpec:
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_read_write_object_store rwtest testfile.txt
-#    echo "Checking kubectl with kube/config"
-#    echo "Kubeconfig was $KUBECONFIG"
-#    unset KUBECONFIG
-#    kubectl get namespaces
-#  postUpgradeScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_testfile rwtest testfile.txt
-#    validate_read_write_object_store postupgrade upgradefile.txt
-#    containerd --version
-#    containerd --version | grep "__testver__"
-#  unsupportedOSIDs:
-#    - centos-74
-#    - centos-79
-#    - ol-79
-#    - ubuntu-2204
-#    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-#    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-#    - amazon-2023 # old installers do not support amazon 2023
-#    - centos-9 # old installers do not support Centos 9 stream
-#    - ubuntu-2404 # old installers do not support Ubuntu 24.04
-#
-#- name: Upgrade Containerd from 1.5.x to __testver__
-#  installerApiEndpoint: https://kurl.sh
-#  installerSpec:
-#    kurl:
-#      installerVersion: "v2024.07.02-0"
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: "1.5.11"
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  upgradeSpec:
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  postUpgradeScript: |
-#    containerd --version
-#    containerd --version | grep "__testver__"
-#  unsupportedOSIDs:
-#    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-#    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-#    - amazon-2023 # old installers do not support amazon 2023
-#    - centos-9 # old installers do not support Centos 9 stream
-#    - ubuntu-2404 # old installers do not support Ubuntu 24.04
-#
-#- name: "Upgrade Containerd from current to __testver__"
-#  installerSpec:
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: latest
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  upgradeSpec:
-#    kubernetes:
-#      version: "1.25.x"
-#    flannel:
-#      version: latest
-#    containerd:
-#      version: "__testver__"
-#      s3Override: "__testdist__"
-#    openebs:
-#      version: latest
-#      isLocalPVEnabled: true
-#      localPVStorageClassName: default
-#    minio:
-#      version: latest
-#    ekco:
-#      version: latest
-#    kotsadm:
-#      version: latest
-#  postInstallScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_read_write_object_store rwtest testfile.txt
-#  postUpgradeScript: |
-#    source /opt/kurl-testgrid/testhelpers.sh
-#    minio_object_store_info
-#    validate_testfile rwtest testfile.txt
-#    validate_read_write_object_store postupgrade upgradefile.txt
-#    containerd --version
-#    containerd --version | grep "__testver__"
+
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: 1.23.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
+    - amazon-2023 # docker is not supported on amazon 2023
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: 1.23.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-9 # docker is not supported on rhel 9 variants
+    - amazon-2023 # docker is not supported on amazon 2023
+
+- name: Upgrade Containerd from 1.4.x to __testver__
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "1.4.x"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    containerd --version
+    containerd --version | grep "__testver__"
+  unsupportedOSIDs:
+    - centos-74
+    - centos-79
+    - ol-79
+    - ubuntu-2204
+    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+
+- name: Upgrade Containerd from 1.5.x to __testver__
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "1.5.11"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postUpgradeScript: |
+    containerd --version
+    containerd --version | grep "__testver__"
+  unsupportedOSIDs:
+    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+
+- name: "Upgrade Containerd from current to __testver__"
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    containerd --version
+    containerd --version | grep "__testver__"
 
 - name: "flannel latest multinode"
   installerSpec:

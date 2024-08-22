@@ -32,8 +32,6 @@ function containerd_install() {
         if ! systemctl is-active --quiet containerd; then
             systemctl start containerd
         fi
-    else
-        log "Not using OS containerd on $LSB_DIST $DIST_VERSION_MAJOR"
     fi
 
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
