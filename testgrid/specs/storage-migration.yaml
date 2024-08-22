@@ -58,6 +58,8 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.12.x to OpenEBS + Minio
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -281,6 +283,8 @@
       echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.12.x to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -548,6 +552,8 @@
     #    echo  Rook Data directory not removed.
     #    exit 1
     # fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.8.x to Rook 1.12.x
   flags: "yes"
   cpu: 4
@@ -606,6 +612,8 @@
     #    echo  Rook Data directory not removed.
     #    exit 1
     # fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Longhorn + Minio to Rook 1.12.x
   flags: "yes"
   cpu: 4
@@ -663,6 +671,8 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
@@ -728,6 +738,8 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.12.x to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
@@ -852,6 +864,8 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 - name: Migrate from Rook 1.12.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -1479,6 +1493,7 @@
   unsupportedOSIDs:
   - rocky-91 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
   - rocky-9 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets

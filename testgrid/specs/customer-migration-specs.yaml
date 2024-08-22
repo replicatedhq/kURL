@@ -159,6 +159,8 @@
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 
 - name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
   flags: "yes"

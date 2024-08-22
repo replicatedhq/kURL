@@ -3,6 +3,7 @@
 function preflights() {
     require64Bit
     bailIfUnsupportedOS
+    bailIfUnsupportedKubernetesVersion
     mustSwapoff
     prompt_if_docker_unsupported_os
     check_docker_k8s_version
@@ -102,7 +103,17 @@ function bailIfUnsupportedOS() {
             ;;
     esac
 }
- 
+
+# bailIfUnsupportedKubernetesVersion bails out if the Kubernetes version we are
+# about to install isn't supported by the underlying Operating System.
+function bailIfUnsupportedKubernetesVersion() {
+    if is_amazon_2023 ; then
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "24" ]; then
+            bail "Kubernetes versions < 1.24 are not supported on Amazon Linux 2023."
+        fi
+    fi
+}
+
 function mustSwapoff() {
     if swap_is_on || swap_is_enabled; then
         printf "\n${YELLOW}This application is incompatible with memory swapping enabled. Disable swap to continue?${NC} "
