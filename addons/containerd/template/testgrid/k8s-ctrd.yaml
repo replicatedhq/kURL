@@ -26,21 +26,21 @@
     # is_amazon_2023 returns 0 if the current distro is Amazon 2023.
     function is_amazon_2023() {
       if grep '^ID=' /etc/os-release | grep -qE '(amzn)' ; then
-      if grep '^VERSION_ID=' /etc/os-release | grep -q '=*"2023' ; then
-      return 0
+        if grep '^VERSION_ID=' /etc/os-release | grep -q '=*"2023' ; then
+          return 0
+        fi
       fi
-      fi
-      return 0
+      return 1
     }
     
     # is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.
     function is_ubuntu_2404() {
       if grep '^ID=' /etc/os-release | grep -qE '(ubuntu)' ; then
-      if grep '^VERSION_ID=' /etc/os-release | grep -q '=*"24.04' ; then
-      return 0
+        if grep '^VERSION_ID=' /etc/os-release | grep -q '=*"24.04' ; then
+          return 0
+        fi
       fi
-      fi
-      return 0
+      return 1
     }
     
     function amazon_2023_install_host_packages() {
@@ -54,9 +54,9 @@
     function ubuntu_2024_install_host_packages() {
       local packages=("$@")
       if is_ubuntu_2404 ; then
-      # install required host packages
-      apt update
-      apt install -y "${packages[@]}"
+        # install required host packages
+        apt update
+        apt install -y "${packages[@]}"
       fi
     }
     
