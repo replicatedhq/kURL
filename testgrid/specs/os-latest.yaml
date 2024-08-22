@@ -50,10 +50,10 @@
   name: Ubuntu
   version: "24.04"
   vmimageuri: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
-  preinit: "apt-get install -y containerd socat ebtables conntrack"
+  preinit: "apt-get install -y socat ebtables conntrack"
 - id: amazon-2023
   name: Amazon Linux
   version: "2023"
   vmimageuri: https://cdn.amazonlinux.com/al2023/os-images/2023.5.20240819.0/kvm/al2023-kvm-2023.5.20240819.0-kernel-6.1-x86_64.xfs.gpt.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux ebtables-legacy lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl containerd
+    yum install -y --nobest nfs-utils fio container-selinux ebtables-legacy lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl

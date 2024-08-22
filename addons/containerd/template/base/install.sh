@@ -412,38 +412,12 @@ function use_os_containerd() {
     return 1
 }
 
-# require_os_containerd makes sure the OS version of containerd is
-# installed.
+# require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
 function require_os_containerd() {
-    if is_amazon_2023 ; then
-        require_amazon2023_containerd
-    elif is_ubuntu_2404 ; then
-        require_ubuntu2404_containerd
-    fi
-}
-
-function require_amazon2023_containerd() {
-    if ! is_amazon_2023 ; then
+    if use_os_containerd ; then
+        ensure_host_package containerd containerd
         return
     fi
-
-    if yum_is_host_package_installed containerd ; then
-        return
-    fi
-
-    bail "Containerd is not installed, please install it using the following command: dnf install -y containerd"
-}
-
-function require_ubuntu2404_containerd() {
-    if ! is_ubuntu_2404 ; then
-        return
-    fi
-
-    if apt_is_host_package_installed containerd ; then
-        return
-    fi
-
-    bail "Containerd is not installed, please install it using the following command: apt-get install -y containerd"
 }
 
 function require_centos8_containerd() {
