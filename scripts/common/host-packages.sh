@@ -456,7 +456,6 @@ function preflights_require_host_packages() {
             if [ "$skip" = "1" ]; then
                 continue
             fi
-            seen+=("$dep")
 
             # use rpm to check rhel/centos/ol/rocky/amzn and dpkg-query to check ubuntu
             case "$LSB_DIST" in
@@ -464,6 +463,7 @@ function preflights_require_host_packages() {
                     if ! echo "$deps_file" | grep -q "rhel-9"; then
                         continue
                     fi
+                    seen+=("$dep")
                     if rpm -q "$dep" >/dev/null 2>&1 ; then
                         continue
                     fi
@@ -473,6 +473,7 @@ function preflights_require_host_packages() {
                     if ! echo "$deps_file" | grep -q "amazon-2023"; then
                         continue
                     fi
+                    seen+=("$dep")
                     if rpm -q "$dep" >/dev/null 2>&1 ; then
                         continue
                     fi
@@ -482,6 +483,7 @@ function preflights_require_host_packages() {
                     if ! echo "$deps_file" | grep -q "ubuntu-24"; then
                         continue
                     fi
+                    seen+=("$dep")
                     if dpkg-query -W -f='${Status}' "$dep" 2>/dev/null | grep -q "ok installed"; then
                         continue
                     fi
