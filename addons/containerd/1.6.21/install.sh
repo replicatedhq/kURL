@@ -410,13 +410,6 @@ function containerd_kubernetes_pause_image() {
     fi
 }
 
-function use_os_containerd() {
-    if is_amazon_2023 || is_ubuntu_2404 ; then
-        return 0
-    fi
-    return 1
-}
-
 # require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
 function require_os_containerd() {
     if use_os_containerd ; then
