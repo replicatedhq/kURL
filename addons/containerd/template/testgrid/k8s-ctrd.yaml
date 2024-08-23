@@ -23,7 +23,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd
-    ubuntu_2024_install_host_packages containerd
+    ubuntu_2404_install_host_packages containerd
 
   postInstallScript: |
     echo "checking /etc/containerd/config.toml"
