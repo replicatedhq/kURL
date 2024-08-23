@@ -102,10 +102,21 @@ export CONTAINERD_INSTALL_VERSIONS=()
 function containerd_evaluate_upgrade() {
     local from_version=$1
     local to_version=$2
+    if use_os_containerd ; then
+        return 0
+    fi
     echo "Evaluating if an upgrade from containerd v$from_version to v$to_version is possible."
     containerd_upgrade_is_possible "$from_version" "$to_version"
     echo "Containerd upgrade from v$from_version to v$to_version is possible."
     for version in $(containerd_migration_steps "$from_version" "$to_version"); do
         CONTAINERD_INSTALL_VERSIONS+=("$version")
     done
+}
+
+function use_os_containerd() {
+    if ! host_packages_shipped && ! is_rhel_9_variant ; then
+        # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
+        return 0
+    fi
+    return 1
 }
