@@ -1,46 +1,46 @@
-#- id: amzn-20
-#  name: Amazon Linux
-#  version: "2.0"
-#  vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20230307.0/kvm/amzn2-kvm-2.0.20230307.0-x86_64.xfs.gpt.qcow2
-#  preinit: ""
-#- id: centos-79
-#  name: CentOS
-#  version: "7.9"
-#  vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2
-#  preinit: ""
-#- id: ol-79
-#  name: Oracle Linux
-#  version: "7.9"
-#  vmimageuri: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
-#  preinit: |
-#    curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
-#    chmod +x centos2ol.sh
-#    bash centos2ol.sh -r
-#- id: ol-8x
-#  name: Oracle Linux
-#  version: "8.x"
-#  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
-#  preinit: |
-#    curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
-#    chmod +x centos2ol.sh
-#    bash centos2ol.sh -r
-#- id: rocky-9
-#  name: Rocky Linux
-#  version: "9.4"
-#  vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
-#  preinit: |
-#    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
-#- id: centos-9
-#  name: CentOS 9
-#  version: "stream"
-#  vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
-#  preinit: |
-#    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
-#- id: ubuntu-1804
-#  name: Ubuntu
-#  version: "18.04"
-#  vmimageuri: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-#  preinit: ""
+- id: amzn-20
+  name: Amazon Linux
+  version: "2.0"
+  vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20230307.0/kvm/amzn2-kvm-2.0.20230307.0-x86_64.xfs.gpt.qcow2
+  preinit: ""
+- id: centos-79
+  name: CentOS
+  version: "7.9"
+  vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2
+  preinit: ""
+- id: ol-79
+  name: Oracle Linux
+  version: "7.9"
+  vmimageuri: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+  preinit: |
+    curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+    chmod +x centos2ol.sh
+    bash centos2ol.sh -r
+- id: ol-8x
+  name: Oracle Linux
+  version: "8.x"
+  vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
+  preinit: |
+    curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+    chmod +x centos2ol.sh
+    bash centos2ol.sh -r
+- id: rocky-9
+  name: Rocky Linux
+  version: "9.4"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+  preinit: |
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+- id: centos-9
+  name: CentOS 9
+  version: "stream"
+  vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
+  preinit: |
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+- id: ubuntu-1804
+  name: Ubuntu
+  version: "18.04"
+  vmimageuri: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+  preinit: ""
 - id: ubuntu-2204
   name: Ubuntu
   version: "22.04"
