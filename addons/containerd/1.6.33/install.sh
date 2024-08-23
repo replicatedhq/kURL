@@ -410,14 +410,6 @@ function containerd_kubernetes_pause_image() {
     fi
 }
 
-function use_os_containerd() {
-    if ! host_packages_shipped && ! is_rhel_9_variant ; then
-        # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
-        return 0
-    fi
-    return 1
-}
-
 # require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
 function require_os_containerd() {
     if use_os_containerd ; then
