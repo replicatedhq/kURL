@@ -39,6 +39,7 @@
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2404 # docker is not supported on Ubuntu 24.04
 - name: "Upgrade to 1.25 to 1.31, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
@@ -158,6 +159,7 @@
   unsupportedOSIDs:
     - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
     - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
+    - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
 - name: "Upgrade from k8s 1.27 to 1.31 - Airgap"
   airgap: true
   installerSpec:
@@ -201,6 +203,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   preUpgradeScript: |

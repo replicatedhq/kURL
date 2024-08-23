@@ -23,7 +23,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd
-    ubuntu_2024_install_host_packages containerd
+    ubuntu_2404_install_host_packages containerd
 
   postInstallScript: |
     echo "checking /etc/containerd/config.toml"
@@ -156,6 +156,7 @@
   unsupportedOSIDs:
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
@@ -223,6 +224,7 @@
   unsupportedOSIDs:
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 
@@ -287,6 +289,7 @@
     - ubuntu-2204
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+    - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
     - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
 
@@ -335,6 +338,7 @@
   unsupportedOSIDs:
     - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
     - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+    - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
     - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
     - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
 
