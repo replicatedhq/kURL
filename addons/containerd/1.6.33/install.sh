@@ -411,7 +411,8 @@ function containerd_kubernetes_pause_image() {
 }
 
 function use_os_containerd() {
-    if is_amazon_2023 || is_ubuntu_2404 ; then
+    if ! host_packages_shipped && ! is_rhel_9_variant ; then
+        # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
         return 0
     fi
     return 1
