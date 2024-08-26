@@ -35,7 +35,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vishvananda/netlink v1.2.1-beta.2
+	github.com/vishvananda/netlink v1.3.0
 	github.com/vmware-tanzu/velero v1.13.2
 	golang.org/x/crypto v0.26.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
