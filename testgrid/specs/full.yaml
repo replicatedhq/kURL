@@ -1638,6 +1638,10 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    if is_amazon_2023; then
+      yum install -y collectd collectd-rrdtool
+    fi
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1677,6 +1681,10 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    if is_amazon_2023; then
+      yum install -y collectd collectd-rrdtool
+    fi
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1717,6 +1725,10 @@
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
+    if is_amazon_2023; then
+      yum install -y collectd collectd-rrdtool
+    fi
+
     FOLDER=/testsymbolic
     
     # create directories
