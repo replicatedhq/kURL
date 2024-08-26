@@ -301,6 +301,12 @@ function apply_selinux_config() {
         return
     fi
 
+    if is_amazon_2023 ; then
+        if ! yum_is_host_package_installed "policycoreutils-python-utils" ; then
+            bail "Package policycoreutils-python-utils is required to manage SELinux policies"
+        fi
+    fi
+
     CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -y $MERGED_YAML_SPEC
     if [ -f "$CONFIGURE_SELINUX_SCRIPT" ]; then
         . $CONFIGURE_SELINUX_SCRIPT
