@@ -711,6 +711,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variantsl
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
 - name: "K8s 1.31x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -769,6 +770,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variantsl
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
 - name: "Upgrade to 1.24, disable s3, weave to flannel"
   flags: "yes"
   cpu: 7
@@ -1275,6 +1277,7 @@
   - centos-79 # containerd 1.2.x does not install on centos-7
   - ol-79 # containerd 1.2.x does not install on oracle-linux-7
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1316,6 +1319,7 @@
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1357,6 +1361,7 @@
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1398,6 +1403,7 @@
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
+  - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
