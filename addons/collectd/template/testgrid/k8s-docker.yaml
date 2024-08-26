@@ -10,3 +10,7 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
+  preInstallScript: |
+    if is_amazon_2023; then
+      yum install -y collectd collectd-rrdtool
+    fi
