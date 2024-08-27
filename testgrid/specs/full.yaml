@@ -1639,6 +1639,7 @@
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
       yum install -y collectd collectd-rrdtool
     fi
@@ -1682,6 +1683,7 @@
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
       yum install -y collectd collectd-rrdtool
     fi
@@ -1725,6 +1727,7 @@
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
       yum install -y collectd collectd-rrdtool
     fi
