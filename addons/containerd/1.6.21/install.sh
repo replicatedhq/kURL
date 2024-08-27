@@ -397,9 +397,15 @@ function _containerd_migrate_images_from_docker() {
     done
 }
 
-# return the pause image for the current version of kubernetes
-# versions 1.26 and earlier return the empty string as they can be overridden to use a different image
+# return the pause image for the current version of kubernetes.versions 1.26
+# and earlier return the empty string as they can be overridden to use a
+# different image. for amazon 2023 we always patch the pause image.
 function containerd_kubernetes_pause_image() {
+    if [ is_amazon_2023 ] ; then
+        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
+        return
+    fi
+
     local minor_version=
     minor_version="$(kubernetes_version_minor "$KUBERNETES_VERSION")"
 
