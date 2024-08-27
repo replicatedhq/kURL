@@ -378,7 +378,6 @@ pkgs_ol7=()
 pkgs_amazon2023=()
 deps_rhel9=()
 deps_amazon2023=()
-deps_ubuntu2404=()
 
 while read -r line || [ -n "$line" ]; do
     if [ -z "$line" ]; then
@@ -425,9 +424,9 @@ while read -r line || [ -n "$line" ]; do
             ;;
 
         apt)
-            mkdir -p "$OUT_DIR"/ubuntu-22.04 "$OUT_DIR"/ubuntu-20.04 "$OUT_DIR"/ubuntu-18.04 "$OUT_DIR"/ubuntu-16.04
+            mkdir -p "$OUT_DIR"/ubuntu-24.04 "$OUT_DIR"/ubuntu-22.04 "$OUT_DIR"/ubuntu-20.04 "$OUT_DIR"/ubuntu-18.04 "$OUT_DIR"/ubuntu-16.04
             package=$(echo "$line" | awk '{ print $2 }')
-            deps_ubuntu2404+=("$package")
+            echo "$package" >> "$OUT_DIR"/ubuntu-24.04/Deps
 
             docker rm -f ubuntu-2204-"$package" 2>/dev/null || true
             docker run \
