@@ -1641,7 +1641,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool
+      yum install -y collectd collectd-rrdtool collectd-disk
     fi
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
@@ -1685,7 +1685,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool
+      yum install -y collectd collectd-rrdtool collectd-disk
     fi
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
@@ -1729,7 +1729,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool
+      yum install -y collectd collectd-rrdtool collectd-disk
     fi
 
     FOLDER=/testsymbolic
