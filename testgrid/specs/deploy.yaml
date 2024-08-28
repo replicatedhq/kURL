@@ -76,6 +76,12 @@
       localPVStorageClassName: local
     minio:
       version: latest
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    if is_ubuntu_2404 ; then
+      echo "Ubuntu 24.04 detected, installing lvm2 for rook"
+      apt-get update && apt-get install -y lvm2
+    fi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.3"
@@ -259,6 +265,12 @@
       version: latest
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    if is_ubuntu_2404 ; then
+      echo "Ubuntu 24.04 detected, installing lvm2 for rook"
+      apt-get update && apt-get install -y lvm2
+    fi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.3"

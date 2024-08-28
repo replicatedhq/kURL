@@ -14,6 +14,9 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages nfs-common
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -48,6 +51,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack lvm2
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -69,6 +73,10 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    ubuntu_2404_install_host_packages nfs-common lvm2
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -95,6 +103,7 @@
       version: "latest"
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
+  - ubuntu-2404 # kubernetes latest (1.19) isnt supported on Ubuntu 24.04.
 - name: "Velero Remove Object Storage"
   cpu: 8
   installerSpec:
@@ -135,7 +144,8 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-    - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+    - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux 2023.
+    - ubuntu-2404 # Kubernetes < 1.24 are not supported on Ubuntu 24.04.
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
@@ -175,6 +185,9 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages nfs-common lvm2
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application

@@ -12,6 +12,5 @@
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool collectd-disk
-    fi
+    amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    ubuntu_2404_install_host_packages collectd
