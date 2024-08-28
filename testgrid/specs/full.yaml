@@ -1814,7 +1814,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    ubuntu_2404_install_host_packages nfs-common
+    ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
 - name: longhorn
   installerSpec:
     contour:
