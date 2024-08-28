@@ -486,6 +486,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages lvm2
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -682,6 +685,7 @@
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2404 # docker is not supported on amazon 2023
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -740,6 +744,9 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages lvm2 nfs-common
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -812,6 +819,7 @@
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2404 # docker is not supported on ubuntu 2404
 - name: "Upgrade to 1.31 minimal airgap"
   installerSpec:
     kubernetes:
@@ -1595,6 +1603,9 @@
           - name: some-other-node
             devices:
             - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
+    
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages lvm2
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
@@ -1640,9 +1651,8 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool collectd-disk
-    fi
+    amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    ubuntu_2404_install_host_packages collectd
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1684,9 +1694,8 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool collectd-disk
-    fi
+    amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    ubuntu_2404_install_host_packages collectd lvm2 nfs-common
 - name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1728,9 +1737,8 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_amazon_2023; then
-      yum install -y collectd collectd-rrdtool collectd-disk
-    fi
+    amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    ubuntu_2404_install_host_packages collectd lvm2 nfs-common
 
     FOLDER=/testsymbolic
     
@@ -1804,6 +1812,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
 - name: longhorn
   installerSpec:
     contour:
@@ -1832,6 +1843,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages nfs-common open-iscsi
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -2087,6 +2101,9 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages nfs-common
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2118,7 +2135,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
-    ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
 - name: "k8s_131x airgap"
   airgap: true
   installerSpec:
@@ -2264,6 +2281,9 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    ubuntu_2404_install_host_packages lvm2
 - name: "k8s_131x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
