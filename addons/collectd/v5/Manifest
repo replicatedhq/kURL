@@ -5,3 +5,6 @@ yum8 collectd-disk
 yum9 collectd
 yum9 collectd-rrdtool
 yum9 collectd-disk
+yum2023 collectd
+yum2023 collectd-rrdtool
+yum2023 collectd-disk
