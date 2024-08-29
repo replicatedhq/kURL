@@ -19,9 +19,21 @@ depslist="$(echo "$available_packages" \
     | awk 'NF{NF-=2}1' FS='-' OFS='-')" # strip last two fields
 
 # some packages may list both libcurl and libcurl-minimal, meaning one or the
-# other. on this case we want to prefer libcurl as its scope is broader and
-# there may be other packages on the system that depend on such broader scope.
-depslist="$(printf '%s\n' $depslist | sed 's/libcurl-minimal/libcurl/g')"
+# other. we are aware of some cases where some packages explicitly require
+# libcurl-minimal. if the package requires one or the other we will prefer
+# minimal.
+hascurl=false
+hascurlminimal=false
+for package in $depslist; do
+    if [ "$package" = "libcurl" ]; then
+        hascurl=true
+    elif [ "$package" = "libcurl-minimal" ]; then
+        hascurlminimal=true
+    fi
+done
+if $hascurl && $hascurlminimal; then
+    depslist="$(printf '%s\n' $depslist | sed 's/^libcurl$//g')"
+fi
 
 # some packages may list both openssl-snapsafe-libs and openssl-libs, we are
 # going with openssl-libs.
