@@ -1152,6 +1152,6 @@ function rook_patch_cephcluster_nodes() {
 function rook_modprobe_rbd() {
     if ! lsmod | grep rbd; then
         modprobe rbd
-        echo 'rbd' > /etc/modules-load.d/kurl-rook.conf
+        echo 'rbd' > /etc/modules-load.d/kurl-rook-rbd.conf
     fi
 }
