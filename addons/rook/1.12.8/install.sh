@@ -41,6 +41,8 @@ function rook_pre_init() {
     rook_prompt_migrate_from_longhorn
 
     rook_lvm2
+
+    rook_modprobe_rbd
 }
 
 function rook_post_init() {
@@ -1145,4 +1147,11 @@ function rook_render_cluster_nodes_tmpl_yaml() {
 
 function rook_patch_cephcluster_nodes() {
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type=merge --patch-file="$dst/patches/cluster-nodes.yaml"
+}
+
+function rook_modprobe_rbd() {
+    if ! lsmod | grep rbd; then
+        modprobe rbd
+        echo 'rbd' > /etc/modules-load.d/kurl-rook.conf
+    fi
 }
