@@ -238,14 +238,21 @@ function uninstall_docker_new_installs_with_containerd() {
              ;;
 
          centos|rhel|amzn|ol)
-             local dockerPackages=("docker.io" "docker-ce" "docker-ce-cli")
+             local dockerPackages=("docker" "docker.io" "docker-ce" "docker-ce-cli")
              if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
                  dockerPackages+=("docker-ce-rootless-extras")
              fi
              if rpm -qa | grep -q 'docker-scan-plugin'; then
                  dockerPackages+=("docker-scan-plugin")
              fi
-             rpm --erase ${dockerPackages[@]}
+             local installedDockerPackages=()
+             # Check if each Docker-related package is installed and add to the list if so
+             for package in "${dockerPackages[@]}"; do
+                 if sudo rpm -q "$package" &>/dev/null; then
+                     installedPackages+=("$package")
+                 fi
+             done
+             rpm --erase ${installedPackages[@]}
              ;;
      esac
 
