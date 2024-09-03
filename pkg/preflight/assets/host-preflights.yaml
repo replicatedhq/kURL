@@ -564,7 +564,7 @@ spec:
               message: "Kots < 1.96.2 is not compatible with Kubernetes >= 1.29.0"
     - hostOS:
         checkName: "Docker Support"
-        exclude: '{{kurl (not .Installer.Spec.Docker.Version) }}'
+        exclude: '{{kurl not .Installer.Spec.Docker.Version }}'
         outcomes:
           - fail:
               when: "ubuntu = 24.04"
@@ -574,7 +574,7 @@ spec:
               message: "Docker is not supported on AmazonLinux 2023"
     - hostOS:
         checkName: "Kubernetes Support"
-        exclude: '{{kurl (semverCompare ">= 1.24.0" .Installer.Spec.Kubernetes.Version) }}'
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version (semverCompare ">= 1.24.0" .Installer.Spec.Kubernetes.Version) }}'
         outcomes:
           - fail:
               when: "ubuntu = 24.04"
