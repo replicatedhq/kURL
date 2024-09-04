@@ -53,3 +53,6 @@ spec:
           - pass:
               when: "amazon >= 2023"
               message: "containerd addon supports amazon 2023"
+          - pass:
+              when: "ubuntu = 24.04"
+              message: "containerd addon supports ubuntu 24.04"
