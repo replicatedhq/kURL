@@ -477,6 +477,12 @@ while read -r line || [ -n "$line" ]; do
             sudo chown -R $UID "$OUT_DIR"/ubuntu-16.04
             ;;
 
+        apt24)
+            mkdir -p "$OUT_DIR"/ubuntu-24.04
+            package=$(echo "$line" | awk '{ print $2 }')
+            echo "$package" >> "$OUT_DIR"/ubuntu-24.04/Deps
+            ;;
+
         yum)
             package=$(echo "$line" | awk '{ print $2 }')
             pkgs_rhel7+=("$package")
