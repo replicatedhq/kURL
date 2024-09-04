@@ -60,6 +60,17 @@ dockerout $os addons/containerd/template/$dockerfile $version
 EOT
 }
 
+function add_os_package_to_manifest_file() {
+    local version=$1
+    local ospackage=$2
+    local package=$3
+    local file=/tmp/containerd/$version/Manifest
+
+    cat <<EOT >> $file
+$ospackage $package
+EOT
+}
+
 function add_override_os_to_manifest_file() {
     local version=$1
     local override_version=$2
@@ -271,10 +282,13 @@ function find_common_versions() {
             add_supported_os_to_manifest_file "$version" "ubuntu-22.04" "Dockerfile.ubuntu22"
         fi
 
-        # for amazon 2023 we use the containerd version provided by the
-        # operating system. on this case we just set all found versions as
-        # supported.
+        # for amazon 2023 and Ubuntu 24.04 we use the containerd version provided by the
+        # operating system. on this case we just set all found versions as supported.
         add_supported_os_to_preflight_file "$version" "amazon" ">=" "2023"
+        add_supported_os_to_manifest_file "$version" "ubuntu" "=" "24.04"
+        add_os_package_to_manifest_file "$version" "yum2023" "containerd"
+        add_os_package_to_manifest_file "$version" "yum2023" "libzstd"
+        add_os_package_to_manifest_file "$version" "apt24" "containerd"
 
         VERSIONS+=("$version")
     done
