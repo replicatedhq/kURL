@@ -15,7 +15,10 @@ func KubectlApply(ctx context.Context, cli client.Client, resources embed.FS, ov
 	options := append([]plumber.Option{
 		plumber.WithKustomizeMutator(
 			func(ctx context.Context, k *kustomizetypes.Kustomization) error {
-				k.CommonLabels = AppendKurlLabels(k.CommonLabels)
+				newLabel := kustomizetypes.Label{
+					Pairs: AppendKurlLabels(nil),
+				}
+				k.Labels = append(k.Labels, newLabel)
 				return nil
 			},
 		),
