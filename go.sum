@@ -2165,8 +2165,8 @@ k8s.io/apimachinery v0.20.1/go.mod h1:WlLqWAHZGg07AeltaI0MV5uk1Omp8xaN0JGLY6gkRp
 k8s.io/apimachinery v0.20.4/go.mod h1:WlLqWAHZGg07AeltaI0MV5uk1Omp8xaN0JGLY6gkRpU=
 k8s.io/apimachinery v0.23.5/go.mod h1:BEuFMMBaIbcOqVIJqNZJXGFTP4W6AycEpb5+m/97hrM=
 k8s.io/apimachinery v0.26.0/go.mod h1:tnPmbONNJ7ByJNz9+n9kMjNP8ON+1qoAIIC70lztu74=
-k8s.io/apimachinery v0.31.0 h1:m9jOiSr3FoSSL5WO9bjm1n6B9KROYYgNZOb4tyZ1lBc=
-k8s.io/apimachinery v0.31.0/go.mod h1:rsPdaZJfTfLsNJSQzNHQvYoTmxhoOEofxtOsF3rtsMo=
+k8s.io/apimachinery v0.31.1 h1:mhcUBbj7KUjaVhyXILglcVjuS4nYXiwC+KKFBgIVy7U=
+k8s.io/apimachinery v0.31.1/go.mod h1:rsPdaZJfTfLsNJSQzNHQvYoTmxhoOEofxtOsF3rtsMo=
 k8s.io/apiserver v0.18.3/go.mod h1:tHQRmthRPLUtwqsOnJJMoI8SW3lnoReZeE861lH8vUw=
 k8s.io/apiserver v0.20.1/go.mod h1:ro5QHeQkgMS7ZGpvf4tSMx6bBOgPfE+f52KwvXfScaU=
 k8s.io/apiserver v0.31.0 h1:p+2dgJjy+bk+B1Csz+mc2wl5gHwvNkC9QJV+w55LVrY=
@@ -2185,8 +2185,8 @@ k8s.io/code-generator v0.18.3/go.mod h1:TgNEVx9hCyPGpdtCWA34olQYLkh3ok9ar7XfSsr8
 k8s.io/code-generator v0.19.0/go.mod h1:moqLn7w0t9cMs4+5CQyxnfA/HV8MF6aAVENF+WZZhgk=
 k8s.io/code-generator v0.20.0/go.mod h1:UsqdF+VX4PU2g46NC2JRs4gc+IfrctnwHb76RNbWHJg=
 k8s.io/code-generator v0.20.1/go.mod h1:UsqdF+VX4PU2g46NC2JRs4gc+IfrctnwHb76RNbWHJg=
-k8s.io/code-generator v0.31.0 h1:w607nrMi1KeDKB3/F/J4lIoOgAwc+gV9ZKew4XRfMp8=
-k8s.io/code-generator v0.31.0/go.mod h1:84y4w3es8rOJOUUP1rLsIiGlO1JuEaPFXQPA9e/K6U0=
+k8s.io/code-generator v0.31.1 h1:GvkRZEP2g2UnB2QKT2Dgc/kYxIkDxCHENv2Q1itioVs=
+k8s.io/code-generator v0.31.1/go.mod h1:oL2ky46L48osNqqZAeOcWWy0S5BXj50vVdwOtTefqIs=
 k8s.io/component-base v0.18.3/go.mod h1:bp5GzGR0aGkYEfTj+eTY0AN/vXTgkJdQXjNTTVUaa3k=
 k8s.io/component-base v0.20.1/go.mod h1:guxkoJnNoh8LNrbtiQOlyp2Y2XFCZQmrcg2n/DeYNLk=
 k8s.io/component-base v0.31.0 h1:/KIzGM5EvPNQcYgwq5NwoQBaOlVFrghoVGr8lG6vNRs=
