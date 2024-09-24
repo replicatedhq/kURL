@@ -131,6 +131,7 @@ function join() {
     fi
 
     kubernetes_cis_chmod_kubelet_config_file
+    kubernetes_cis_super_admin_credentials_file_permissions
 }
 
 outro() {
