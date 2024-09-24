@@ -240,6 +240,16 @@ function kubernetes_cis_chmod_kubelet_config_file() {
     fi
 }
 
+# kubernetes_cis_super_admin_credentials_file_permissions fixes the following CIS benchmark test:
+# [FAIL] 1.1.13 Ensure that the default administrative credential file permissions are set to 600 (Automated)
+# [FAIL] 1.1.14 Ensure that the default administrative credential file ownership is set to root:root (Automated)
+function kubernetes_cis_super_admin_credentials_file_permissions() {
+    if [ -f /etc/kubernetes/super-admin.conf ]; then
+        chmod 600 /etc/kubernetes/super-admin.conf
+        chown root:root /etc/kubernetes/super-admin.conf
+    fi
+}
+
 kubernetes_host_commands_ok() {
     local k8sVersion=$1
 
