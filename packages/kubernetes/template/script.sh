@@ -75,7 +75,7 @@ function generate_version_directory() {
     fi
 
     echo "" >> "../$version/Manifest"
-    echo "asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
+    echo "asset kubeadm dl.k8s.io/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
     echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v$criToolsVersion/crictl-v$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
 
     echo "" >> "../$version/Manifest"
