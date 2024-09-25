@@ -6,7 +6,7 @@ image coredns registry.k8s.io/coredns/coredns:v1.11.1
 image pause registry.k8s.io/pause:3.9
 image etcd registry.k8s.io/etcd:3.5.15-0
 
-asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v1.29.9/bin/linux/amd64/kubeadm
+asset kubeadm https://dl.k8s.io/v1.29.9/bin/linux/amd64/kubeadm
 asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.29.0/crictl-v1.29.0-linux-amd64.tar.gz
 
 asset kustomize-v5.4.3.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz
