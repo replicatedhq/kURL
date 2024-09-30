@@ -1,9 +1,6 @@
 module github.com/replicatedhq/kurl
 
 go 1.22.0
-
-toolchain go1.22.2
-
 require (
 	code.cloudfoundry.org/bytefmt v0.8.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -53,7 +50,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.19.0
 	sigs.k8s.io/controller-tools v0.16.2
 	sigs.k8s.io/kustomize/api v0.17.3
-	sigs.k8s.io/kustomize/kyaml v0.17.2
+	sigs.k8s.io/kustomize/kyaml v0.18.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -264,7 +261,6 @@ require (
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
-	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect
