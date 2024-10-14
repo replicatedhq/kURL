@@ -1,0 +1,2 @@
+image flannel-flannel docker.io/flannel/flannel:v0.25.7
+image flannel-flannel-cni-plugin docker.io/flannel/flannel-cni-plugin:v1.5.1-flannel2
