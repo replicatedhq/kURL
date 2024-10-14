@@ -20,13 +20,3 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm"
-    directory: "/"
-    labels:
-      - "dependencies"
-      - "javascript"
-      - "type::chore"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 25
-
