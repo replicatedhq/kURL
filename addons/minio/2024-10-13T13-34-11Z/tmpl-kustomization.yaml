@@ -1,0 +1,6 @@
+namespace: ${MINIO_NAMESPACE}
+
+resources:
+- namespace.yaml
+- deployment.yaml
+- service.yaml
