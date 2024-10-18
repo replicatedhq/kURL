@@ -1,0 +1,16 @@
+resources:
+- toolbox.yaml
+- serviceaccount.yaml
+- configmap.yaml
+- clusterrole.yaml
+- clusterrolebinding.yaml
+- role.yaml
+- cluster-rbac.yaml
+- rolebinding.yaml
+- deployment.yaml
+- securityContextConstraints.yaml
+- namespace.yaml
+- configmap-rook-config-override.yaml
+
+patchesStrategicMerge:
+- patches/deployment-tolerations.yaml
