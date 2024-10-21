@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.2
 
 require (
-	code.cloudfoundry.org/bytefmt v0.8.0
+	code.cloudfoundry.org/bytefmt v0.13.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/briandowns/spinner v1.23.1
