@@ -8,6 +8,3 @@ image local-volume-provider replicated/local-volume-provider:v0.6.7
 image s3cmd kurlsh/s3cmd:20230406-9a6d89f
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz
-
-yum nfs-utils
-apt nfs-common
