@@ -96,6 +96,7 @@ function velero_join() {
 }
 
 function velero_host_init() {
+    return
 }
 
 function velero_install() {
