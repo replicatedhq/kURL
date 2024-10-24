@@ -142,7 +142,18 @@ function _dpkg_install_host_packages() {
         return 0
     fi
 
-    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold --auto-deconfigure "${fullpath}"/*.deb
+    # first install attempt can fail with pre-dependency problems
+    # retrying seems to fix the issue
+    for i in {1..3} ; do
+        if DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold --auto-deconfigure "${fullpath}"/*.deb ; then
+            break
+        fi
+        if [ "$i" -eq 3 ]; then
+            logFail "Failed to install host packages ${packages[*]}"
+            return 1
+        fi
+        logWarn "Failed to install host packages ${packages[*]}, retrying..."
+    done
 
     logSuccess "Host packages ${packages[*]} installed"
 
