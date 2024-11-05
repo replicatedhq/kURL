@@ -184,7 +184,7 @@ function get_docker_version() {
     docker -v | awk '{gsub(/,/, "", $3); print $3}'
 }
 
-discover_public_ip() {
+function discover_public_ip() {
     if [ "$AIRGAP" == "1" ]; then
         return
     fi
@@ -202,14 +202,12 @@ discover_public_ip() {
     fi
 
     # ec2
-    set +e
-    _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
-    _status=$?
-    set -e
-    if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
-        if isValidIpv4 "$_out" || isValidIpv6 "$_out"; then
-            PUBLIC_ADDRESS=$_out
-        fi
+    PUBLIC_ADDRESS=$(discover_public_ip_ec2_imdsv2)
+    if [ -n "$PUBLIC_ADDRESS" ]; then
+        return
+    fi
+    PUBLIC_ADDRESS=$(discover_public_ip_ec2_imdsv1)
+    if [ -n "$PUBLIC_ADDRESS" ]; then
         return
     fi
 
@@ -223,6 +221,39 @@ discover_public_ip() {
             PUBLIC_ADDRESS=$_out
         fi
         return
+    fi
+}
+
+function discover_public_ip_ec2_imdsv1() {
+    local public_address status
+
+    set +e
+    public_address=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
+    status=$?
+    set -e
+    if [ "$status" -eq 0 ] && [ -n "$public_address" ]; then
+        if isValidIpv4 "$public_address" || isValidIpv6 "$public_address"; then
+            echo "$public_address"
+        fi
+    fi
+}
+
+function discover_public_ip_ec2_imdsv2() {
+    local token public_address status
+
+    token=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs  -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
+    if [ -z "$token" ]; then
+        return
+    fi
+
+    set +e
+    public_address=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
+    status=$?
+    set -e
+    if [ "$status" -eq 0 ] && [ -n "$public_address" ]; then
+        if isValidIpv4 "$public_address" || isValidIpv6 "$public_address"; then
+            echo "$public_address"
+        fi
     fi
 }
 
