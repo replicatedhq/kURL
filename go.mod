@@ -44,7 +44,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.31.2
 	k8s.io/apimachinery v0.31.2
-	k8s.io/cli-runtime v0.31.1
+	k8s.io/cli-runtime v0.31.2
 	k8s.io/client-go v0.31.2
 	k8s.io/code-generator v0.31.2
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
