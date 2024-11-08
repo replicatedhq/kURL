@@ -202,12 +202,14 @@ function discover_public_ip() {
     fi
 
     # ec2
-    PUBLIC_ADDRESS=$(discover_public_ip_ec2_imdsv2)
-    if [ -n "$PUBLIC_ADDRESS" ]; then
+    _out=$(discover_public_ip_ec2_imdsv2)
+    if [ -n "$_out" ]; then
+        PUBLIC_ADDRESS=$_out
         return
     fi
-    PUBLIC_ADDRESS=$(discover_public_ip_ec2_imdsv1)
-    if [ -n "$PUBLIC_ADDRESS" ]; then
+    _out=$(discover_public_ip_ec2_imdsv1)
+    if [ -n "$_out" ]; then
+        PUBLIC_ADDRESS=$_out
         return
     fi
 
