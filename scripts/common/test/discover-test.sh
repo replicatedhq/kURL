@@ -36,11 +36,11 @@ test_discover_public_ip()
     discover_public_ip
     assertEquals "34.28.226.7" "$PUBLIC_ADDRESS"
 
-    # should overwrite the public address if it is already set
+    # should not overwrite the user provided public address if it is already set
     ip_address=172.31.28.36
     PUBLIC_ADDRESS=34.28.226.7
     discover_public_ip
-    assertEquals "172.31.28.36" "$PUBLIC_ADDRESS"
+    assertEquals "34.28.226.7" "$PUBLIC_ADDRESS"
 }
 
 # shellcheck disable=SC1091
