@@ -1,7 +1,7 @@
 name: cron-testgrid-daily
 on:
-  schedule:
-  - cron: "0 1 * * 2,4" # “At 01:00 on Tuesday and Thursday.”
+#  schedule:
+#  - cron: "0 1 * * 2,4" # “At 01:00 on Tuesday and Thursday.”
   workflow_dispatch: {}
 
 jobs:   
