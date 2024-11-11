@@ -1,7 +1,7 @@
 name: cron-rook-update
 on:
   schedule:
-  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  - cron: "0 1 * * 1" # “At 01:00 on Monday.”
   workflow_dispatch: {}
 
 jobs:
