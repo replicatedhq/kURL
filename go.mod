@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/itchyny/gojq v0.12.16
+	github.com/itchyny/gojq v0.12.17
 	github.com/longhorn/longhorn-manager v1.4.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/minio/minio-go v6.0.14+incompatible
