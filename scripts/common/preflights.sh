@@ -88,9 +88,9 @@ function bailIfUnsupportedOS() {
             ;;
         ubuntu18.04|ubuntu20.04|ubuntu22.04|ubuntu24.04)
             ;;
-        rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel8.8|rhel8.9|rhel8.10|rhel9.0|rhel9.1|rhel9.2|rhel9.3|rhel9.4|rhel9)
+        rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel8.8|rhel8.9|rhel8.10|rhel9.0|rhel9.1|rhel9.2|rhel9.3|rhel9.4|rhel9.5|rhel9)
             ;;
-        rocky9.0|rocky9.1|rocky9.2|rocky9.3|rocky9.4|rocky9)
+        rocky9.0|rocky9.1|rocky9.2|rocky9.3|rocky9.4|rocky9.5|rocky9)
             ;;
         centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4|centos9)
             ;;
