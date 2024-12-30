@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kurl-velero-supportbundle-spec
+  labels:
+    troubleshoot.io/kind: support-bundle
+data:
+  support-bundle-spec: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: SupportBundle
+    spec:
+      collectors:
+        - clusterResources: {}
+        - logs:
+            namespace: ${VELERO_NAMESPACE}
+            name: velero/logs
+      analyzers:
+        - velero: {}
