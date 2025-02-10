@@ -199,7 +199,14 @@ function find_common_versions() {
     # Get the union of versions available for all operating systems
     local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
-    ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' ')) # remove 7.x versions
+
+    local SEVEN_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -E '1\.7\.' | tr '\n' ' ')) # filter to only 7.x versions
+    # remove versions prior to 1.7.25
+    SEVEN_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | sort -rV | awk '$1 >= "1.7.25"'))
+    echo "7.x versions: ${SEVEN_VERSIONS[*]}"
+    local OTHER_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' ')) # filter to remove 7.x versions
+    echo "Other versions: ${OTHER_VERSIONS[*]}"
+    ALL_VERSIONS=("${SEVEN_VERSIONS[@]}" "${OTHER_VERSIONS[@]}")
 
     for version in ${ALL_VERSIONS[@]}; do
         init_preflight_file $version
