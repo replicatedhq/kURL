@@ -10,22 +10,22 @@ spec:
         outcomes:
           - pass:
               when: "centos = 7"
-              message: "containerd addon supports centos 7"
+              message: "containerd addon supports centos 7, but only up to containerd 1.6.33, which will be installed instead of 1.7.25"
           - pass:
               when: "rhel = 7"
-              message: "containerd addon supports rhel 7"
+              message: "containerd addon supports rhel 7, but only up to containerd 1.6.33, which will be installed instead of 1.7.25"
           - pass:
               when: "ol = 7"
-              message: "containerd addon supports ol 7"
+              message: "containerd addon supports ol 7, but only up to containerd 1.6.33, which will be installed instead of 1.7.25"
           - warn:
               when: "centos = 8"
-              message: "containerd addon supports centos 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
+              message: "containerd addon supports centos 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
           - warn:
               when: "rhel = 8"
-              message: "containerd addon supports rhel 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
+              message: "containerd addon supports rhel 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
           - warn:
               when: "ol = 8"
-              message: "containerd addon supports ol 8, but only up to containerd 1.6.32, which will be installed instead of 1.6.33"
+              message: "containerd addon supports ol 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
           - pass:
               when: "centos = 9"
               message: "containerd addon supports centos 9"
@@ -43,7 +43,7 @@ spec:
               message: "containerd addon does not support ubuntu 16.04"
           - warn:
               when: "ubuntu = 18.04"
-              message: "containerd addon supports ubuntu 18.04, but only up to containerd 1.6.21, which will be installed instead of 1.6.33"
+              message: "containerd addon supports ubuntu 18.04, but only up to containerd 1.6.21, which will be installed instead of 1.7.25"
           - pass:
               when: "ubuntu = 20.04"
               message: "containerd addon supports ubuntu 20.04"
