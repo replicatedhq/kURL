@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 
 function prometheus() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__"
+    local src="$DIR/addons/prometheus/0.55.0-34.10.0"
     local dst="$DIR/kustomize/prometheus"
 
     local operatorsrc="$src/operator"
@@ -26,8 +26,6 @@ function prometheus() {
 
     # Server-side apply is needed here because the CRDs are too large to keep in metadata
     # https://github.com/prometheus-community/helm-charts/issues/1500
-    # Also delete any existing last-applied-configuration annotations for pre-122 clusters
-    kubectl get crd | grep coreos.com | awk '{ print $1 }' | xargs -I {} kubectl patch crd {} --type=json -p='[{"op": "remove", "path": "/metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration"}]' 2>/dev/null || true
     kubectl apply --server-side --force-conflicts -k "$crdsdst/"
     spinner_until -1 prometheus_crd_ready
 
@@ -88,7 +86,7 @@ function prometheus() {
 }
 
 function prometheus_pre_init() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__/patches"
+    local src="$DIR/addons/prometheus/0.55.0-34.10.0/patches"
     local dst="$DIR/kustomize/kubeadm/init-patches"
 
     # expose metrics
@@ -135,9 +133,6 @@ function prometheus_crd_ready() {
     if ! kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com &>/dev/null; then
         return 1
     fi
-    if ! kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com -o yaml | grep "enableHttp2" &>/dev/null; then
-        return 1
-    fi
     if ! kubectl get servicemonitors --all-namespaces &>/dev/null; then
         return 1
     fi
@@ -145,12 +140,6 @@ function prometheus_crd_ready() {
         return 1
     fi
     if ! kubectl get prometheuses --all-namespaces &>/dev/null; then
-        return 1
-    fi
-    if ! kubectl get customresourcedefinitions prometheusagents.monitoring.coreos.com &>/dev/null; then
-        return 1
-    fi
-    if ! kubectl get prometheusagents --all-namespaces &>/dev/null; then
         return 1
     fi
     return 0
