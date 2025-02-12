@@ -1,10 +1,8 @@
 - name: "fresh install"
   installerSpec:
     kubernetes:
-      version: "latest"
-    weave:
-      version: "latest"
-    rook:
+      version: "1.31.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -14,15 +12,11 @@
   postInstallScript: |
     kubectl top pods -A
     kubectl top nodes
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 - name: "upgrade from latest"
   installerSpec:
     kubernetes:
-      version: "latest"
-    weave:
-      version: "latest"
-    rook:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -30,10 +24,8 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
-    weave:
-      version: "latest"
-    rook:
+      version: "1.28.x"
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -43,5 +35,3 @@
   postUpgradeScript: |
     kubectl top pods -A
     kubectl top nodes
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
