@@ -10,7 +10,8 @@ spec:
       - name: metrics-server
         args:
           - --cert-dir=/tmp
-          - --secure-port=4443
+          - --secure-port=10250
           - --kubelet-insecure-tls
           - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
           - --kubelet-use-node-status-port
+          - --metric-resolution=15s
