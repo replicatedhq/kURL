@@ -70,6 +70,8 @@ function main() {
     get_latest_release_version AZURE_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-microsoft-azure/releases/latest
     get_latest_release_version GCP_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-gcp/releases/latest
     get_latest_tag_version LOCAL_VOLUME_PROVIDER_VERSION https://api.github.com/repos/replicatedhq/local-volume-provider/tags
+    # remove 'v' prefix from LOCAL_VOLUME_PROVIDER_VERSION since the image no longer includes that prefix
+    LOCAL_VOLUME_PROVIDER_VERSION="${LOCAL_VOLUME_PROVIDER_VERSION#v}"
 
     get_s3cmd_tag
 
