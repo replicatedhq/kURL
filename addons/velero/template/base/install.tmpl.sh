@@ -142,6 +142,9 @@ function velero_install() {
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml"
 
+    # Remove the restic uploader warning from the beginning of velero.yaml
+    sed -i '1{/Uploader '\''restic'\'' is deprecated/d;}' "$dst/velero.yaml"
+
     rm -f velero-credentials
 }
 
