@@ -18,7 +18,7 @@
     kubectl describe certificates | grep "The certificate has been successfully issued"
     
     # setup cmctl
-    OS=$(go env GOOS); ARCH=$(go env GOARCH); curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_${OS}_${ARCH}
+    curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_linux_amd64
     chmod +x cmctl
     sudo mv cmctl /usr/local/bin
     
