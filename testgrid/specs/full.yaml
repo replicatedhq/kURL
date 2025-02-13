@@ -484,7 +484,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     weave:
       version: 2.8.1
     rook:
@@ -633,7 +633,7 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.31 airgap"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.32 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
@@ -659,7 +659,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -731,11 +731,11 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
-- name: "K8s 1.31x Rook, disableS3"
+- name: "K8s 1.32x Rook, disableS3"
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -836,7 +836,7 @@
   - centos-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on ubuntu 2404
-- name: "Upgrade to 1.31 minimal airgap"
+- name: "Upgrade to 1.32 minimal airgap"
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -858,7 +858,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     flannel:
       version: latest
     openebs:
@@ -885,10 +885,10 @@
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: k8s131-all-the-flags
+- name: k8s132-all-the-flags
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -914,7 +914,7 @@
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     containerd:
       version: "latest"
     flannel:
@@ -974,10 +974,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
-- name: k8s131x_reserved_resources
+- name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
       kubeReserved: true
       evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
@@ -1005,7 +1005,7 @@
 - name: less_command
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     containerd:
       version: latest
     flannel:
@@ -1022,7 +1022,7 @@
 - name: "weave latest multinode"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     weave:
       version: "latest"
     containerd:
@@ -1036,7 +1036,7 @@
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: "latest"
     containerd:
@@ -1398,7 +1398,7 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-- name: "containerd upgrade from 1.4.x to 1.6.x (kubernetes 1.24.x to 1.31.x)"
+- name: "containerd upgrade from 1.4.x to 1.6.x (kubernetes 1.24.x to 1.28.x)"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -1414,7 +1414,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.28.x
     flannel:
       version: latest
     containerd:
@@ -1441,10 +1441,47 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+- name: "containerd upgrade from 1.6.x to 1.7.x (kubernetes 1.28.x to 1.32.x)"
+  installerSpec:
+    kubernetes:
+      version: 1.28.x
+    flannel:
+      version: latest
+    containerd:
+      version: 1.6.x
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.32.x
+    flannel:
+      version: latest
+    containerd:
+      version: 1.7.x
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+  unsupportedOSIDs:
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 - name: custom-kurl-install-directory
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -1461,7 +1498,7 @@
   preInstallScript: |
     touch /var/lib/kurl
     mkdir -p /custom
-- name: "Upgrade Kubernetes from 1.19 to 1.31"
+- name: "Upgrade Kubernetes from 1.19 to 1.32"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1474,7 +1511,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -1485,7 +1522,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
-    echo $k8sVersion | grep 1.31
+    echo $k8sVersion | grep 1.32
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
@@ -1546,7 +1583,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -1579,7 +1616,7 @@
       nameserver: 8.8.8.8
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -1592,10 +1629,10 @@
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
   postUpgradeScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
-- name: k8s131-rook-override-node-storage
+- name: k8s132-rook-override-node-storage
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -1636,11 +1673,11 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: "1.31 with all metrics and kots"
+- name: "1.32 with all metrics and kots"
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: "latest"
     contour:
@@ -1673,11 +1710,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd
-- name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger
+- name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: "latest"
     rook:
@@ -1716,11 +1753,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
-- name: (k8s 1.31) install addons not deprecated less prometheus, goldpinger with symbolic links
+- name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: "latest"
     rook:
@@ -1797,7 +1834,7 @@
     ln -s $FOLDER/var/lib/rook /var/lib/rook
     
     cd /testsymbolic
-- name: "K8s 1.31x Airgap with invalid proxyAddress"
+- name: "K8s 1.32x Airgap with invalid proxyAddress"
   cpu: 6
   airgap: true
   numPrimaryNodes: 1
@@ -1809,7 +1846,7 @@
         - .corporate.internal
       noProxy: false
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -2040,6 +2077,21 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+- name: minimal-132
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.32.x
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -2063,10 +2115,10 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: k8s131x_reserved_resources
+- name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
       kubeReserved: true
       evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
@@ -2093,10 +2145,10 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
-- name: k8s131-openebs
+- name: k8s132-openebs
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     kurl:
       installerVersion: ""
     containerd:
@@ -2156,11 +2208,11 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
-- name: "k8s_131x airgap"
+- name: "k8s_132x airgap"
   airgap: true
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     kurl:
       installerVersion: ""
     flannel:
@@ -2304,10 +2356,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
-- name: "k8s_131x with kurl in-cluster support bundle spec"
+- name: "k8s_132x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     containerd:
       version: latest
     flannel:
@@ -2325,14 +2377,14 @@
 - name: merge-installer-hostpreflight-and-upgrade
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
@@ -2414,7 +2466,7 @@
 - name: reset and reinstall
   installerSpec:
     kubernetes:
-      version: 1.31.x
+      version: 1.32.x
     containerd:
       version: latest
     flannel:
