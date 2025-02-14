@@ -208,7 +208,7 @@ function find_common_versions() {
     # filter to remove 7.x versions
     local OTHER_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' '))
     # and then remove versions prior to 1.6.28, as they are old enough that we no longer rebuild them
-    OTHER_VERSIONS=($(printf "%s\n" "${OTHER_VERSIONS[@]}" | sort -rV | awk '$1 >= "1.6.28"'))
+    OTHER_VERSIONS=($(printf "%s\n" "${OTHER_VERSIONS[@]}" | sort -rV | grep -E '1\.6\.[0-9][0-9]+' | awk '$1 >= "1.6.28"'))
     echo "Other versions: ${OTHER_VERSIONS[*]}"
     ALL_VERSIONS=("${SEVEN_VERSIONS[@]}" "${OTHER_VERSIONS[@]}")
 
