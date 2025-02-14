@@ -111,7 +111,7 @@ function containerd_install() {
             # is available before proceeding.
             # "nodes.v1." is needed because addons can have a CRD names "nodes", like nodes.longhorn.io
             # we get the specific node name because as of kubernetes 1.32 the node kubeconfig only has permissions to get the current node
-            try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1. "$(hostname)"
+            try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1. "$(get_local_node_name)"
         fi
     fi
 }
