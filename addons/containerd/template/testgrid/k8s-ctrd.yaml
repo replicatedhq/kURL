@@ -1,8 +1,8 @@
-- name: basic containerd and flannel, internal LB, airgap, 1.31
+- name: basic containerd and flannel, internal LB, airgap, 1.32
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: latest
     containerd:
@@ -345,7 +345,7 @@
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.32.x"
     flannel:
       version: latest
     containerd:
@@ -362,7 +362,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.32.x"
     flannel:
       version: latest
     containerd:
@@ -395,7 +395,7 @@
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.32.x"
     flannel:
       version: "latest"
     containerd:
