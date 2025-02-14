@@ -4,7 +4,7 @@ RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
 
 RUN yum install -y yum-utils epel-release createrepo
 RUN yum install -y modulemd-tools
-RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+RUN yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 RUN mkdir -p /packages/archives
 
 ARG VERSION

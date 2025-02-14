@@ -168,7 +168,7 @@ UNSUPPORTED_CONTAINERD_MINORS="01234"
 VERSIONS=()
 function find_common_versions() {
     docker build --no-cache --pull -t centos7 -f Dockerfile.centos7 .
-    docker build --no-cache --pull -t centos8 -f Dockerfile.centos8 .
+    docker build --no-cache --pull -t centos8 -f Dockerfile.centos8.rhel .
     docker build --no-cache --pull -t rhel9 -f Dockerfile.rhel9 .
     docker build --no-cache --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
     docker build --no-cache --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
@@ -204,7 +204,11 @@ function find_common_versions() {
     # remove versions prior to 1.7.25
     SEVEN_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | sort -rV | awk '$1 >= "1.7.25"'))
     echo "7.x versions: ${SEVEN_VERSIONS[*]}"
-    local OTHER_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' ')) # filter to remove 7.x versions
+
+    # filter to remove 7.x versions
+    local OTHER_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' '))
+    # and then remove versions prior to 1.6.28, as they are old enough that we no longer rebuild them
+    OTHER_VERSIONS=($(printf "%s\n" "${OTHER_VERSIONS[@]}" | sort -rV | grep -E '1\.6\.[0-9][0-9]+' | awk '$1 >= "1.6.28"'))
     echo "Other versions: ${OTHER_VERSIONS[*]}"
     ALL_VERSIONS=("${SEVEN_VERSIONS[@]}" "${OTHER_VERSIONS[@]}")
 
@@ -232,12 +236,12 @@ function find_common_versions() {
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "centos" "8"
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel" "8"
             add_override_os_to_preflight_file "$version" "${CENTOS8_VERSIONS[0]}" "ol" "8"
-            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel-8" "Dockerfile.centos8"
+            add_override_os_to_manifest_file "$version" "${CENTOS8_VERSIONS[0]}" "rhel-8" "Dockerfile.centos8.rhel"
         else
             add_supported_os_to_preflight_file "$version" "centos" "=" "8"
             add_supported_os_to_preflight_file "$version" "rhel" "=" "8"
             add_supported_os_to_preflight_file "$version" "ol" "=" "8"
-            add_supported_os_to_manifest_file "$version" "rhel-8" "Dockerfile.centos8"
+            add_supported_os_to_manifest_file "$version" "rhel-8" "Dockerfile.centos8.rhel"
         fi
 
         if ! contains "$version" ${RHEL9_VERSIONS[*]}; then
