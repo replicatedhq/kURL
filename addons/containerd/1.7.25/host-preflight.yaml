@@ -17,15 +17,15 @@ spec:
           - warn:
               when: "ol = 7"
               message: "containerd addon supports ol 7, but only up to containerd 1.6.33, which will be installed instead of 1.7.25"
-          - warn:
+          - pass:
               when: "centos = 8"
-              message: "containerd addon supports centos 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
-          - warn:
+              message: "containerd addon supports centos 8"
+          - pass:
               when: "rhel = 8"
-              message: "containerd addon supports rhel 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
-          - warn:
+              message: "containerd addon supports rhel 8"
+          - pass:
               when: "ol = 8"
-              message: "containerd addon supports ol 8, but only up to containerd 1.6.32, which will be installed instead of 1.7.25"
+              message: "containerd addon supports ol 8"
           - pass:
               when: "centos = 9"
               message: "containerd addon supports centos 9"
