@@ -444,7 +444,7 @@ function rook_upgrade_step_versions() {
     local last_major=
     last_major=$(common_upgrade_major_minor_to_major "$to_version")
     if [ "$first_major" != "$last_major" ]; then
-        bail "Upgrade accross major version from $from_version to $to_version is not supported."
+        bail "Upgrade across major version from $from_version to $to_version is not supported."
     fi
 
     local first_minor=
