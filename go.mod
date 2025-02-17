@@ -1,6 +1,7 @@
 module github.com/replicatedhq/kurl
 
 go 1.22.8
+toolchain go1.23.6
 
 require (
 	code.cloudfoundry.org/bytefmt v0.28.0
@@ -42,12 +43,12 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.31.3
-	k8s.io/apimachinery v0.31.3
+	k8s.io/api v0.32.2
+	k8s.io/apimachinery v0.32.2
 	k8s.io/cli-runtime v0.31.3
-	k8s.io/client-go v0.31.3
+	k8s.io/client-go v0.32.2
 	k8s.io/code-generator v0.31.3
-	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 	sigs.k8s.io/controller-runtime v0.19.3
 	sigs.k8s.io/controller-tools v0.16.5
 	sigs.k8s.io/kustomize/api v0.18.0
@@ -216,7 +217,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/locker v1.0.1 // indirect
-	github.com/moby/spdystream v0.4.0 // indirect
+	github.com/moby/spdystream v0.5.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/moby/sys/user v0.2.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
@@ -305,14 +306,14 @@ require (
 	k8s.io/apiserver v0.31.2 // indirect
 	k8s.io/component-base v0.31.2 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
+	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/kubectl v0.31.1 // indirect
 	k8s.io/kubelet v0.31.1 // indirect
 	k8s.io/metrics v0.31.1 // indirect
 	oras.land/oras-go v1.2.6 // indirect
 	periph.io/x/host/v3 v3.8.2 // indirect
-	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
+	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 )
 
 // from https://github.com/replicatedhq/troubleshoot
