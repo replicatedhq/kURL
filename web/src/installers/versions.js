@@ -270,6 +270,7 @@ module.exports.InstallerVersions = {
   rook: [
     "1.0.4",
     // cron-rook-update
+    "1.14.12",
     "1.13.10",
     "1.12.8",
     "1.12.7",
