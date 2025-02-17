@@ -1,7 +1,7 @@
 - name: Rook minimal airgap
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.30.x"
     flannel:
       version: latest
     containerd:
@@ -63,7 +63,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.30.x"
     flannel:
       version: latest
     containerd:
@@ -120,7 +120,7 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-# upgrade two versions
+# upgrade several versions
 - name: Upgrade from 1.9.11
   flags: "yes"
   installerSpec:
@@ -214,11 +214,11 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-- name: Upgrade from 1.10.11
+- name: Upgrade from 1.12.x
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.29.x"
     flannel:
       version: latest
     containerd:
@@ -230,10 +230,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.10.11"
+      version: "1.12.x"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.30.x"
     flannel:
       version: latest
     containerd:
@@ -310,7 +310,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.30.x"
     flannel:
       version: latest
     containerd:
