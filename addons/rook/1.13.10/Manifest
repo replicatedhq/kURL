@@ -11,3 +11,4 @@ image sig-storage-csi-provisioner registry.k8s.io/sig-storage/csi-provisioner:v4
 image sig-storage-csi-snapshotter registry.k8s.io/sig-storage/csi-snapshotter:v7.0.1
 image sig-storage-csi-attacher registry.k8s.io/sig-storage/csi-attacher:v4.5.0
 image csiaddons-k8s-sidecar quay.io/csiaddons/k8s-sidecar:v0.8.0
+
