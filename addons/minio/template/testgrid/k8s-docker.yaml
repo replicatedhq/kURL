@@ -174,7 +174,7 @@
       version: "2020-01-25T02-50-51Z"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.24.x"
     flannel:
       version: latest
     longhorn:
