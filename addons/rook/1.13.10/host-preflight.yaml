@@ -4,6 +4,7 @@ metadata:
   name: kurl-builtin
 spec:
   collectors:
+  - hostOS: { }
   - blockDevices:
       exclude: '{{kurl .IsUpgrade }}'
   - tcpPortStatus:
@@ -12,6 +13,17 @@ spec:
       exclude: '{{kurl .IsUpgrade }}'
 
   analyzers:
+  - hostOS:
+      outcomes:
+      - fail:
+          when: "centos = 7"
+          message: "Rook 1.13.10 does not support CentOS 7"
+      - fail:
+          when: "rhel = 7"
+          message: "Rook 1.13.10 does not support RHEL 7"
+      - fail:
+          when: "ol = 7"
+          message: "Rook 1.13.10 does not support Oracle Linux 7"
   - blockDevices:
       includeUnmountedPartitions: true
       minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB

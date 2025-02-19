@@ -14,6 +14,7 @@ spec:
       app: rook-ceph-mgr
       rook_cluster: rook-ceph
       ceph_daemon_id: a
+    namespaceSelector: rook-ceph
   endpoints:
   - port: http-metrics
     path: /metrics
