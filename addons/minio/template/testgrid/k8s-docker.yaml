@@ -2,7 +2,7 @@
 - name: fresh minio install (openebs)
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.32.x"
     flannel:
       version: latest
     openebs:
@@ -19,8 +19,6 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # migration from rook-ceph object store to minio
 - name: migrate from rook-ceph object store to minio
@@ -28,7 +26,7 @@
   airgap: true
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     flannel:
       version: latest
     containerd:
@@ -36,12 +34,12 @@
     kotsadm:
       version: "latest"
     rook:
-      version: "latest"
+      version: "1.12.x"
     registry:
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.22.x"
+      version: "1.25.x"
     flannel:
       version: latest
     containerd:
@@ -57,11 +55,6 @@
       s3Override: "__testdist__"
     registry:
       version: "latest"
-  preInstallScript: |
-    # this pulls from prod because we don't keep old staging versions in s3
-    curl -LO https://kurl.sh/bundle/version/v2023.08.15-0/latest/packages/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
-    mkdir -p /var/lib/kurl/assets
-    mv kubernetes-1.20.15,kubernetes-1.21.14.tar.gz /var/lib/kurl/assets/kubernetes-1.20.15,kubernetes-1.21.14.tar.gz
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -81,14 +74,12 @@
     else
        echo "Namespace rook-ceph was removed"
     fi
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # installation with specified PVC size
 - name: install with 20Gi volume (openebs)
   installerSpec:
     kubernetes:
-      version: "1.27.x"
+      version: "1.32.x"
     flannel:
       version: latest
     openebs:
@@ -113,7 +104,7 @@
 - name: install using /opt/minio hostpath
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.28.x"
     flannel:
       version: latest
     containerd:
@@ -126,8 +117,6 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # upgrade that changes PVC size
 - name: upgrade minio from latest while increasing PVC claim size (longhorn)
@@ -174,7 +163,7 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     flannel:
       version: latest
     longhorn:
@@ -185,7 +174,7 @@
       version: "2020-01-25T02-50-51Z"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     flannel:
       version: latest
     longhorn:
@@ -204,15 +193,13 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 # upgrade from 2020-01-25T02-50-51Z using openebs
 - name: upgrade minio from 2020-01-25T02-50-51Z (openebs)
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     flannel:
       version: latest
     openebs:
@@ -225,7 +212,7 @@
       version: "2020-01-25T02-50-51Z"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     flannel:
       version: latest
     openebs:
@@ -246,14 +233,12 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade minio from 2020-01-25T02-50-51Z while increasing PVC claim size (openebs)
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     flannel:
       version: latest
     openebs:
@@ -266,7 +251,7 @@
       version: "2020-01-25T02-50-51Z"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     flannel:
       version: latest
     openebs:
@@ -291,5 +276,3 @@
     echo "PVC size should be 20Gi:"
     kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}'
     kubectl get pvc -n minio minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}' | grep 20Gi
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
