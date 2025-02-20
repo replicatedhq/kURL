@@ -19,10 +19,10 @@ spec:
           when: "centos < 8"
           message: "Rook 1.13.10 does not support CentOS 7"
       - fail:
-          when: "rhel < 8"
+          when: "redhat < 8"
           message: "Rook 1.13.10 does not support RHEL 7"
       - fail:
-          when: "ol < 8"
+          when: "oracle < 8"
           message: "Rook 1.13.10 does not support Oracle Linux 7"
       - pass:
           message: "Rook 1.13.10 supports this OS"
