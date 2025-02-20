@@ -55,7 +55,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -115,7 +118,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -209,7 +215,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -302,7 +311,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -351,7 +363,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default delete pvc default-pvc
 
