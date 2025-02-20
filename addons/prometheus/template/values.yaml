@@ -18,8 +18,8 @@ grafana:
   # added section (replicated)
   resources:
     limits:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 200m
+      memory: 512Mi
     requests:
       cpu: 100m
       memory: 128Mi
