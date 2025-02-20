@@ -17,7 +17,8 @@
       s3Override: "__testdist__"
   airgap: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -55,7 +56,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -78,7 +82,8 @@
       version: "__testver__"
       s3Override: "__testdist__"
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -115,7 +120,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -156,7 +164,8 @@
       s3Override: "__testdist__"
       bypassUpgradeWarning: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -209,7 +218,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -249,7 +261,8 @@
       s3Override: "__testdist__"
       bypassUpgradeWarning: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -302,7 +315,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
@@ -326,7 +342,8 @@
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -351,7 +368,10 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    kubectl -n default get pvc
+    sleep 30
+    echo "after sleeping"
+    kubectl -n default get pvc
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default delete pvc default-pvc
 
@@ -393,7 +413,8 @@
       s3Override: "__testdist__"
       bypassUpgradeWarning: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2 nfs-common open-iscsi
