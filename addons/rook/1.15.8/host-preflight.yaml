@@ -16,16 +16,16 @@ spec:
   - hostOS:
       outcomes:
       - fail:
-          when: "centos = 7"
+          when: "centos < 8"
           message: "Rook 1.15.8 does not support CentOS 7"
       - fail:
-          when: "rhel = 7"
+          when: "rhel < 8"
           message: "Rook 1.15.8 does not support RHEL 7"
       - fail:
-          when: "ol = 7"
+          when: "ol < 8"
           message: "Rook 1.15.8 does not support Oracle Linux 7"
       - pass:
-          message: "Rook 1.13.10 supports this OS"
+          message: "Rook 1.15.8 supports this OS"
   - blockDevices:
       includeUnmountedPartitions: true
       minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
