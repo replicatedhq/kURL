@@ -24,6 +24,8 @@ spec:
       - fail:
           when: "ol = 7"
           message: "Rook 1.16.3 does not support Oracle Linux 7"
+      - pass:
+          message: "Rook 1.13.10 supports this OS"
   - blockDevices:
       includeUnmountedPartitions: true
       minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
