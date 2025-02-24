@@ -216,6 +216,8 @@
   preUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  unsupportedOSIDs:
+    - centos-79
 - name: k8s132x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
