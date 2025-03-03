@@ -1,0 +1,11 @@
+namespace: $CONTOUR_NAMESPACE
+
+resources:
+- namespace.yaml
+- contour.yaml
+- configmap.yaml
+
+patchesStrategicMerge:
+- service-patch.yaml
+- job-image.yaml
+- resource-limits.yaml
