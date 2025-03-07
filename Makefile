@@ -696,8 +696,13 @@ sbom/assets/kurl-sbom.tgz: generate-sbom
 	tar -czf sbom/assets/kurl-sbom.tgz sbom/spdx/*.spdx
 
 sbom: sbom/assets/kurl-sbom.tgz
-	cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
-	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
+	cosign sign-blob \
+		--key ./cosign.key \
+		--tlog-upload \
+		--yes \
+		--rekor-url=https://rekor.sigstore.dev \
+		sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
+	cosign public-key --key ./cosign.key --outfile ./sbom/assets/key.pub
 
 .PHONY: tag-and-release
 tag-and-release: ## Create tags and release
