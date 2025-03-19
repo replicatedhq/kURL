@@ -36,7 +36,7 @@ jobs:
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "Generate artifact"
         id: trivy
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: ${{ ! matrix.maintainer }}
         with:
           image-ref: ${{ matrix.image }}
@@ -54,7 +54,7 @@ jobs:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
           path: trivy.json
       - name: "Display results"
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@0.30.0
         if: ${{ always() && steps.trivy.outcome == 'failure' }}
         continue-on-error: ${{ ! matrix.maintainer }}
         with:
