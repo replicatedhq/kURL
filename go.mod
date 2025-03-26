@@ -1,6 +1,7 @@
 module github.com/replicatedhq/kurl
 
 go 1.22.8
+toolchain go1.24.1
 
 require (
 	code.cloudfoundry.org/bytefmt v0.28.0
@@ -28,7 +29,7 @@ require (
 	github.com/rook/rook v1.12.2
 	github.com/rook/rook/pkg/apis v0.0.0-20230822134130-9803bd5aa7b5
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/afero v1.12.0
+	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.0
@@ -37,8 +38,8 @@ require (
 	github.com/vmware-tanzu/velero v1.14.1
 	golang.org/x/crypto v0.33.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/sync v0.11.0
-	golang.org/x/text v0.22.0
+	golang.org/x/sync v0.12.0
+	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
