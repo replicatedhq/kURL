@@ -346,11 +346,11 @@ func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.P
 		}),
 		plumber.WithPostApplyAction(func(ctx context.Context, obj client.Object) error {
 			if job, ok := obj.(*batchv1.Job); ok {
-				opts.debugf("Waiting for job %s to finish\n", string(job.Name))
+				opts.debugf("Waiting for job %s to finish\n", job.Name)
 				if _, err := k8sutil.WaitForJob(ctx, opts.cliset, job, time.Minute); err != nil {
 					return fmt.Errorf("failed to create job: %w", err)
 				}
-				opts.debugf("Job %s finished\n", string(job.Name))
+				opts.debugf("Job %s finished\n", job.Name)
 			}
 			return nil
 		}),

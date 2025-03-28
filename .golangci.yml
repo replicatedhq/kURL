@@ -85,34 +85,33 @@ linters:
     - nosprintfhostport
 #    - paralleltest
 #    - perfsprint
-
-
 #    - prealloc
-#    - predeclared
-#    - promlinter
-#    - protogetter
-#    - reassign
-#    - recvcheck
-#    - rowserrcheck
-#    - sloglint
-#    - spancheck
-#    - sqlclosecheck
-#    - tagalign
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - tagalign
 #    - tagliatelle
-#    - testableexamples
-#    - testifylint
+
+    - testableexamples
+    - testifylint
 #    - testpackage
 #    - thelper
-#    - tparallel
-#    - unconvert
-#    - usestdlibvars
-#    - usetesting
+    - tparallel
+    - unconvert
+    - usestdlibvars
+    - usetesting
 #    - varnamelen
-#    - wastedassign
+    - wastedassign
 #    - whitespace
 #    - wrapcheck
 #    - wsl
-#    - zerologlint
+    - zerologlint
   settings:
     revive:
       rules:

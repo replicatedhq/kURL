@@ -254,7 +254,7 @@ func Test_waitForOkToRemoveOSD(t *testing.T) {
 			err := waitForOkToRemoveOSD(testCtx, clientset, tt.osdToRemove)
 			req.NoError(err)
 
-			req.Equal(true, backgroundComplete) // the background function should have marked this as complete
+			req.True(backgroundComplete) // the background function should have marked this as complete
 		})
 	}
 }

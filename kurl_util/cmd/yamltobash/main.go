@@ -343,7 +343,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 
 		var bashVal string
 
-		switch t := interface{}(val).(type) {
+		switch t := val.(type) {
 		case int:
 			if t == 0 {
 				bashVal = ""

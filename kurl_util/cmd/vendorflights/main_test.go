@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -39,14 +38,14 @@ func Test_extractPreflightSpec(t *testing.T) {
 			require.Equal(t, tt.wantErr, err != nil)
 			if tt.preflightPresent {
 				expected, err := os.ReadFile(fmt.Sprintf("testdata/%s/expected_preflights.yaml", tt.name))
-				require.Nil(t, err)
+				require.NoError(t, err)
 				actual, err := os.ReadFile(fmt.Sprintf("%s/%s/output.yaml", dir, tt.name))
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Equal(t, string(expected), string(actual))
 				return
 			}
 			_, err = os.Stat(fmt.Sprintf("%s/%s/output.yaml", dir, tt.name))
-			require.True(t, errors.Is(err, fs.ErrNotExist))
+			require.ErrorIs(t, err, fs.ErrNotExist)
 
 		})
 	}

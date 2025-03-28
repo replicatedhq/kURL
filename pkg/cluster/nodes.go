@@ -171,7 +171,7 @@ func runNodeImagesJob(ctx context.Context, client kubernetes.Interface, logger *
 			Size        string   `json:"size"`
 		} `json:"images"`
 	}{}
-	err = json.Unmarshal([]byte(containerLogs), &criImages)
+	err = json.Unmarshal(containerLogs, &criImages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal images: %w", err)
 	}

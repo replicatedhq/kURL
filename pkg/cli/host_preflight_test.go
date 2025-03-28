@@ -141,7 +141,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 
 			err = cmd.Execute()
 			if tt.isFail {
-				assert.EqualError(t, err, "host preflights have failures")
+				require.EqualError(t, err, "host preflights have failures")
 			} else if tt.wantErr {
 				require.Error(t, err)
 			} else {
@@ -280,7 +280,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 
 			err = cmd.Execute()
 			if tt.isFail {
-				assert.EqualError(t, err, "preflights have failures")
+				require.EqualError(t, err, "preflights have failures")
 			} else if tt.wantErr {
 				require.Error(t, err)
 			} else {
