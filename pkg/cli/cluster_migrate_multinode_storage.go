@@ -164,7 +164,7 @@ func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, er
 // approveStorageMigration tells ekco to start the storage migration.
 func approveStorageMigration(ctx context.Context, opts migrateOpts) error {
 	url := fmt.Sprintf("http://%s/storagemigration/approve", opts.ekcoAddress)
-	req, err := http.NewRequest(http.MethodPost, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

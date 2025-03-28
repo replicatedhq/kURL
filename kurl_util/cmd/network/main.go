@@ -70,7 +70,13 @@ func main() {
 		for {
 			time.Sleep(time.Second)
 
-			resp, err := http.Post(address, "text/plain", strings.NewReader(request))
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, address, strings.NewReader(request))
+			if err != nil {
+				log.Println(err.Error())
+				continue
+			}
+			req.Header.Set("Content-Type", "text/plain")
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
 				continue
