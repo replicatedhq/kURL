@@ -122,11 +122,11 @@ func syncBucket(ctx context.Context, src *minio.Client, dst *minio.Client, bucke
 
 	exists, err := dst.BucketExists(bucket)
 	if err != nil {
-		return count, fmt.Errorf("Failed to check if bucket %q exists in destination: %v", bucket, err)
+		return count, fmt.Errorf("Failed to check if bucket %q exists in destination: %w", bucket, err)
 	}
 	if !exists {
 		if err := dst.MakeBucket(bucket, ""); err != nil {
-			return count, fmt.Errorf("Failed to make bucket %q in destination: %v", bucket, err)
+			return count, fmt.Errorf("Failed to make bucket %q in destination: %w", bucket, err)
 		}
 	}
 
@@ -135,7 +135,7 @@ func syncBucket(ctx context.Context, src *minio.Client, dst *minio.Client, bucke
 	for srcObjectInfo := range srcObjectInfoChan {
 		srcObject, err := src.GetObject(bucket, srcObjectInfo.Key, minio.GetObjectOptions{})
 		if err != nil {
-			return count, fmt.Errorf("Get %s from source: %v", srcObjectInfo.Key, err)
+			return count, fmt.Errorf("Get %s from source: %w", srcObjectInfo.Key, err)
 		}
 
 		_, err = dst.PutObject(bucket, srcObjectInfo.Key, srcObject, srcObjectInfo.Size, minio.PutObjectOptions{
@@ -144,7 +144,7 @@ func syncBucket(ctx context.Context, src *minio.Client, dst *minio.Client, bucke
 		})
 		srcObject.Close()
 		if err != nil {
-			return count, fmt.Errorf("Failed to copy object %s to destination: %v", srcObjectInfo.Key, err)
+			return count, fmt.Errorf("Failed to copy object %s to destination: %w", srcObjectInfo.Key, err)
 		}
 
 		count++

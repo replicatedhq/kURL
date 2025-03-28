@@ -43,7 +43,7 @@ func zeroNilStructFields(v interface{}) {
 		return
 	}
 	for i := 0; i < typeOf.Elem().NumField(); i++ {
-		switch typeOf.Elem().Field(i).Type.Kind() {
+		switch typeOf.Elem().Field(i).Type.Kind() { // nolint:exhaustive // we only care about pointers here
 		case reflect.Ptr:
 			if !valueOf.Elem().Field(i).IsNil() {
 				continue

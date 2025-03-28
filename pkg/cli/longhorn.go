@@ -57,7 +57,7 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 			logger.Print("Rolling back Longhorn volume replicas to their original value.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
-				return fmt.Errorf("error creating client: %s", err)
+				return fmt.Errorf("error creating client: %w", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
 
@@ -128,24 +128,24 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 			logger.Print("Preparing Longhorn for migration to a different storage provisioner.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
-				return fmt.Errorf("error creating client: %s", err)
+				return fmt.Errorf("error creating client: %w", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
 
 			var scaledDown bool
 			var nodes corev1.NodeList
 			if err := cli.List(cmd.Context(), &nodes); err != nil {
-				return fmt.Errorf("error listing kubernetes nodes: %s", err)
+				return fmt.Errorf("error listing kubernetes nodes: %w", err)
 			} else if len(nodes.Items) == 1 {
 				logger.Print("Only one node found, scaling down the number of Longhorn volume replicas to 1.")
 				if scaledDown, err = scaleDownReplicas(cmd.Context(), logger, cli); err != nil {
-					return fmt.Errorf("error scaling down longhorn replicas: %s", err)
+					return fmt.Errorf("error scaling down longhorn replicas: %w", err)
 				}
 			}
 
 			unhealthy, err := unhealthyVolumes(cmd.Context(), logger, cli)
 			if err != nil {
-				return fmt.Errorf("error assessing unhealthy volumes: %s", err)
+				return fmt.Errorf("error assessing unhealthy volumes: %w", err)
 			}
 
 			if len(unhealthy) > 0 {
@@ -158,7 +158,7 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 
 			unhealthy, err = unhealthyNodes(cmd.Context(), logger, cli)
 			if err != nil {
-				return fmt.Errorf("error assessing unhealthy Longhorn nodes: %s", err)
+				return fmt.Errorf("error assessing unhealthy Longhorn nodes: %w", err)
 			}
 
 			if len(unhealthy) > 0 {

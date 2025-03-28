@@ -287,7 +287,7 @@ func getEkcoStorageMigrationAuthToken(ctx context.Context) (string, error) {
 	// retrieve configmap
 	ekcoConfig, err := clientSet.CoreV1().ConfigMaps("kurl").Get(ctx, "ekco-config", metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("failed to get ekco-config configmap in kurl namespace: %v", err)
+		return "", fmt.Errorf("failed to get ekco-config configmap in kurl namespace: %w", err)
 	}
 
 	// get authentication token

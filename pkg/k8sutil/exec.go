@@ -69,8 +69,9 @@ func ExecContainer(ctx context.Context, opts ExecOptions, terminalSizeQueue remo
 		TerminalSizeQueue: terminalSizeQueue,
 	}); err != nil {
 		var exitCode int
-		if err, ok := err.(exec.CodeExitError); ok {
-			exitCode = err.Code
+		ecError := exec.CodeExitError{}
+		if errors.As(err, &ecError) {
+			exitCode = ecError.Code
 		}
 		return exitCode, errors.Wrap(err, "stream exec")
 	}

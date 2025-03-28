@@ -88,7 +88,7 @@ func NodeImages(ctx context.Context, client kubernetes.Interface, logger *log.Lo
 			g.Go(func() error {
 				images, err := opts.nodeImagesJobRunner(ctx, client, logger, node, opts)
 				if err != nil {
-					return fmt.Errorf("failed to run job on node %s: %v", node.Name, err)
+					return fmt.Errorf("failed to run job on node %s: %w", node.Name, err)
 				}
 				thisNodeImages := map[string]struct{}{}
 				for _, image := range images {

@@ -75,6 +75,7 @@ func main() {
 				log.Println(err.Error())
 				continue
 			}
+			defer resp.Body.Close()
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				log.Println(err.Error())

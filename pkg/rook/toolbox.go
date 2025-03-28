@@ -59,14 +59,14 @@ func startToolbox(ctx context.Context, client kubernetes.Interface) error {
 
 	err = yaml.Unmarshal(static.Toolbox, &fromYaml)
 	if err != nil {
-		return fmt.Errorf("unable to parse static toolbox yaml: %s", err)
+		return fmt.Errorf("unable to parse static toolbox yaml: %w", err)
 	}
 
 	fromYaml.Spec.Template.Spec.Containers[0].Image = image
 
 	_, err = client.AppsV1().Deployments("rook-ceph").Create(ctx, &fromYaml, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("unable to create rook-ceph-tools deployment: %s", err)
+		return fmt.Errorf("unable to create rook-ceph-tools deployment: %w", err)
 	}
 
 	out("Waiting for rook-ceph-toolbox to start")
