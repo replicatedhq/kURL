@@ -1,71 +1,170 @@
+version: "2"
 run:
-  deadline: 5m
   allow-parallel-runners: true
-
-issues:
-  # don't skip warning about doc comments
-  # don't exclude the default set of lint
-  exclude-use-default: false
-
-linters-settings:
-  govet:
-    enable=fieldalignment: true
-  revive:
-    rules:
-      # The following rules are recommended https://github.com/mgechev/revive#recommended-configuration
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-        disabled: true  # TODO: fix errors first
-      - name: error-naming
-      - name: exported
-        disabled: true  # TODO: fix errors first
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-        disabled: true # Fails in places that you might cannot change pkg/rook/cephtypes/status.go:169:8: var-naming: struct field ZoneId should be ZoneID (revive)
-      - name: var-declaration
-      - name: package-comments
-        disabled: true  # TODO: fix errors first
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
-      #
-      # Rules in addition to the recommended configuration above.
-      #
-      - name: bool-literal-in-expr
-      - name: constant-logical-expr
-
 linters:
-  disable-all: true
+  default: none
   enable:
-#    - dupl (TODO remove the code duplications to sort it out)
-#    - errcheck (TODO: Sort out f.Close() calls, we are not checking if they fails)
-     - exportloopref
-     - goconst
-#    - gocyclo (TODO: Sort out the func with high complexity)
-     - gofmt
-     - goimports
-     - gosimple
-     - govet
-     - ineffassign
-#    - lll (TODO: Fiz size of the lines, as a good practice we should not need to use scroll to read the code)
-     - misspell
-     - nakedret
-     - revive
-     - staticcheck
-     - typecheck
-#    - unconvert TODO: check the 2 unnecessary conversions found to enable this one
-     - unparam
-     - unused
+    - goconst
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - revive
+    - staticcheck
+    - unparam
+    - unused
+
+
+
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    #    - contextcheck
+    - copyloopvar
+    #    - cyclop
+    - decorder
+    #    - depguard
+    - dogsled
+    #    - dupl
+    #    - dupword
+    - durationcheck
+    #    - err113
+    #    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+#    - exhaustruct
+    - exptostd
+    - fatcontext
+#    - forbidigo
+#    - forcetypeassert
+#    - funlen
+    - ginkgolinter
+    - gocheckcompilerdirectives
+#    - gochecknoglobals
+#    - gochecknoinits
+    - gochecksumtype
+#    - gocognit
+#    - gocritic
+#    - gocyclo
+#    - godot
+#    - godox
+    - goheader
+#    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+#    - gosec
+    - gosmopolitan
+    - grouper
+    - iface
+    - importas
+    - inamedparam
+    - interfacebloat
+#    - intrange
+#    - ireturn
+#    - lll
+
+    - loggercheck
+#    - maintidx
+    - makezero
+#    - mirror
+#    - mnd
+    - musttag
+#    - nestif
+    - nilerr
+    - nilnesserr
+#    - nilnil
+#    - nlreturn
+    - noctx
+#    - nolintlint
+#    - nonamedreturns
+    - nosprintfhostport
+#    - paralleltest
+#    - perfsprint
+#    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - tagalign
+#    - tagliatelle
+
+    - testableexamples
+    - testifylint
+#    - testpackage
+#    - thelper
+    - tparallel
+    - unconvert
+    - usestdlibvars
+    - usetesting
+#    - varnamelen
+    - wastedassign
+#    - whitespace
+#    - wrapcheck
+#    - wsl
+    - zerologlint
+  settings:
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+          disabled: true
+        - name: error-naming
+        - name: exported
+          disabled: true
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+          disabled: true
+        - name: var-declaration
+        - name: package-comments
+          disabled: true
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: empty-block
+        - name: superfluous-else
+        - name: unused-parameter
+        - name: unreachable-code
+        - name: redefines-builtin-id
+        - name: bool-literal-in-expr
+        - name: constant-logical-expr
+    staticcheck:
+      checks:
+        - all
+        - '-SA1006' # disable the rule SA1006 - this falsely flags using 'fmt.Errorf' with a string literal
+        - '-ST1005' # disable the rule ST1005 - this warns against log lines with a leading capital letter which we use for some CLI output
+        - '-ST1000' # disable the rule ST1000 - this requires a comment for all packages
+        - '-ST1003' # disable the rule ST1000 - rules for names
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

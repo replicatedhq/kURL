@@ -6,6 +6,8 @@ import (
 	"log"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -54,11 +56,11 @@ func Test_scaleDownReplicas(t *testing.T) {
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(volumes...).Build()
 	scaled, err := scaleDownReplicas(context.Background(), discardLogger, cli)
 	assert.True(t, scaled)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var gotVolumes lhv1b1.VolumeList
 	err = cli.List(context.Background(), &gotVolumes, &client.ListOptions{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	for _, vol := range gotVolumes.Items {
 		assert.Equal(t, int(1), vol.Spec.NumberOfReplicas)
@@ -199,7 +201,7 @@ func Test_unhealthyVolumes(t *testing.T) {
 			lhv1b1.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
 			result, err := unhealthyVolumes(context.Background(), discardLogger, cli)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -486,7 +488,7 @@ func Test_unhealthyNodes(t *testing.T) {
 			lhv1b1.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
 			result, err := unhealthyNodes(context.Background(), discardLogger, cli)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

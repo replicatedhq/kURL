@@ -46,5 +46,5 @@ func Test_zeroNilStructFields(t *testing.T) {
 	}
 
 	zeroNilStructFields(&input)
-	assert.EqualValues(t, want, input)
+	assert.Equal(t, want, input)
 }

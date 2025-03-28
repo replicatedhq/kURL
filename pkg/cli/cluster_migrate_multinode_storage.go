@@ -43,11 +43,11 @@ func NewClusterMigrateMultinodeStorageCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "migrate-multinode-storage",
 		Short: "Migrate persistent volumes from 'scaling' to 'distributed' storage classes.",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SilenceUsage = true
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runStorageMigration(cmd.Context(), opts)
 		},
 	}
@@ -164,7 +164,7 @@ func isEkcoReadyForStorageMigration(opts migrateOpts) (*MigrationReadyStatus, er
 // approveStorageMigration tells ekco to start the storage migration.
 func approveStorageMigration(ctx context.Context, opts migrateOpts) error {
 	url := fmt.Sprintf("http://%s/storagemigration/approve", opts.ekcoAddress)
-	req, err := http.NewRequest(http.MethodPost, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -230,7 +230,7 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 		return nil
 	}
 
-	readyfn := func(ctx context.Context) (bool, error) {
+	readyfn := func(_ context.Context) (bool, error) {
 		status, err := isEkcoReadyForStorageMigration(opts)
 		if err != nil {
 			return false, err
@@ -249,7 +249,7 @@ func runStorageMigration(ctx context.Context, opts migrateOpts) error {
 	if err := approveStorageMigration(ctx, opts); err != nil {
 		return fmt.Errorf("failed to approve storage migration: %w", err)
 	}
-	readyfn = func(ctx context.Context) (bool, error) {
+	readyfn = func(_ context.Context) (bool, error) {
 		result, err := getEkcoMigrationStatus(opts)
 		if err != nil {
 			return false, err
@@ -287,7 +287,7 @@ func getEkcoStorageMigrationAuthToken(ctx context.Context) (string, error) {
 	// retrieve configmap
 	ekcoConfig, err := clientSet.CoreV1().ConfigMaps("kurl").Get(ctx, "ekco-config", metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("failed to get ekco-config configmap in kurl namespace: %v", err)
+		return "", fmt.Errorf("failed to get ekco-config configmap in kurl namespace: %w", err)
 	}
 
 	// get authentication token

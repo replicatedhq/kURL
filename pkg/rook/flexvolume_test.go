@@ -110,7 +110,7 @@ func Test_scaleDownPodOwnerStatefulSet(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, int32(0), *obj.Spec.Replicas)
 
-			fmt.Println(obj.ObjectMeta.Annotations)
+			fmt.Println(obj.Annotations)
 			err = scaleBackStatefulSet(context.Background(), clientset, obj)
 			require.NoError(t, err)
 

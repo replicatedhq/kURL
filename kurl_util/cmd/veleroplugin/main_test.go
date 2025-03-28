@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -414,7 +413,7 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 		},
 	}
 
-	os.Setenv("VELERO_NAMESPACE", "velero")
+	t.Setenv("VELERO_NAMESPACE", "velero")
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

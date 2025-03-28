@@ -1,0 +1,68 @@
+run:
+  allow-parallel-runners: true
+
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+
+linters-settings:
+  revive:
+    rules:
+      # The following rules are recommended https://github.com/mgechev/revive#recommended-configuration
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+        disabled: true  # TODO: fix errors first
+      - name: error-naming
+      - name: exported
+        disabled: true  # TODO: fix errors first
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+        disabled: true # Fails in places that you might cannot change pkg/rook/cephtypes/status.go:169:8: var-naming: struct field ZoneId should be ZoneID (revive)
+      - name: var-declaration
+      - name: package-comments
+        disabled: true  # TODO: fix errors first
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      #
+      # Rules in addition to the recommended configuration above.
+      #
+      - name: bool-literal-in-expr
+      - name: constant-logical-expr
+
+linters:
+  disable-all: true
+  enable:
+#    - dupl (TODO remove the code duplications to sort it out)
+#    - errcheck (TODO: Sort out f.Close() calls, we are not checking if they fails)
+     - exportloopref
+     - goconst
+#    - gocyclo (TODO: Sort out the func with high complexity)
+     - gofmt
+     - goimports
+     - gosimple
+     - govet
+     - ineffassign
+#    - lll (TODO: Fiz size of the lines, as a good practice we should not need to use scroll to read the code)
+     - misspell
+     - nakedret
+     - revive
+     - staticcheck
+     - typecheck
+#    - unconvert TODO: check the 2 unnecessary conversions found to enable this one
+     - unparam
+     - unused

@@ -4,7 +4,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"regexp"
 	"testing"
 
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
@@ -401,14 +400,14 @@ func TestEndToEnd(t *testing.T) {
 			yamlPath := path.Join("testdata", "yaml", tc.yaml)
 			err := addBashVariablesFromYaml(yamlPath, envPath)
 			if tc.wantErr {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				return
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			b, err := os.ReadFile(envPath)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			actual := string(b)
-			require.Regexp(t, regexp.MustCompile(tc.expectedRegexp), actual)
+			require.Regexp(t, tc.expectedRegexp, actual)
 		})
 	}
 }

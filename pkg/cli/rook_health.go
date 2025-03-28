@@ -14,7 +14,7 @@ func NewRookHealthCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "health",
 		Short: "Checks rook-ceph health and returns any issues",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 

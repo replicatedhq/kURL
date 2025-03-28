@@ -258,20 +258,18 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 
 			for _, q := range tt.want {
 				query, err := gojq.Parse(q.query)
-				if assert.NoError(t, err) {
-					iter := query.Run(input)
-					v, ok := iter.Next()
-					if !ok {
-						assert.NoError(t, errors.New("iterator empty"))
+				require.NoError(t, err)
+				iter := query.Run(input)
+				v, ok := iter.Next()
+				if !ok {
+					require.NoError(t, errors.New("iterator empty"))
+				} else {
+					if err, ok := v.(error); ok {
+						require.NoError(t, err)
 					} else {
-						if err, ok := v.(error); ok {
-							assert.NoError(t, err)
-						} else {
-							b, err := yaml.Marshal(v)
-							if assert.NoError(t, err) {
-								assert.Equal(t, yamlNormalize(t, []byte(q.value)), yamlNormalize(t, b))
-							}
-						}
+						b, err := yaml.Marshal(v)
+						require.NoError(t, err)
+						assert.Equal(t, yamlNormalize(t, []byte(q.value)), yamlNormalize(t, b))
 					}
 				}
 			}

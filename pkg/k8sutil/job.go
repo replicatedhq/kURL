@@ -42,7 +42,7 @@ func WaitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job,
 // returns the job's pod logs (indexed by container name) and the state of each of the
 // containers (also indexed by container name).
 func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, job *batchv1.Job, timeout time.Duration) (map[string][]byte, map[string]corev1.ContainerState, error) {
-	job.ObjectMeta.Labels = AppendKurlLabels(job.ObjectMeta.Labels)
+	job.Labels = AppendKurlLabels(job.Labels)
 	job, err := cli.BatchV1().Jobs(job.Namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create job: %w", err)

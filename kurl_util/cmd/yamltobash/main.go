@@ -343,7 +343,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 
 		var bashVal string
 
-		switch t := interface{}(val).(type) {
+		switch t := val.(type) {
 		case int:
 			if t == 0 {
 				bashVal = ""
@@ -380,7 +380,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		case yamlKey == "Kurl.Airgap" && bashVal != "":
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" || yamlKey == "Flannel.PodCIDRRange" && bashVal != "":
-			bashVal = strings.Replace(bashVal, "/", "", -1)
+			bashVal = strings.ReplaceAll(bashVal, "/", "")
 		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey]:
 			bashVal = "1"
 		case yamlKey == "Weave.NoMasqLocal":

@@ -76,7 +76,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 		Use:     "nodes-connectivity",
 		Short:   "Tests if all nodes can reach all other nodes using the provided protocol in the provided port",
 		Example: usageExamples,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if opts.port == 0 {
 				return fmt.Errorf("--port flag is required")
 			}
@@ -96,7 +96,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 			}
 			cliset, err := kubernetes.NewForConfig(config.GetConfigOrDie())
 			if err != nil {
-				return fmt.Errorf("failed to create kubernetes client set: %s", err)
+				return fmt.Errorf("failed to create kubernetes client set: %w", err)
 			}
 			opts.cli = cli
 			opts.cliset = cliset
@@ -110,7 +110,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 			}
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
 			defer cancel()
 			k8slogger := zap.New(func(o *zap.Options) { o.DestWriter = io.Discard })
@@ -199,7 +199,7 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 			if ds, ok := obj.(*appsv1.DaemonSet); ok {
 				tolerations, err := k8sutil.TolerationsForAllNodes(ctx, opts.cliset)
 				if err != nil {
-					return fmt.Errorf("failed to build tolerations: %v", err)
+					return fmt.Errorf("failed to build tolerations: %w", err)
 				}
 				ds.Spec.Template.Spec.Tolerations = tolerations
 				ds.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
@@ -280,7 +280,7 @@ func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, po
 // kustomizeMutator returns a kustomize mutator that sets the namespace and image.
 func kustomizeMutator(opts nodeConnectivityOptions) plumber.KustomizeMutator {
 	image := types.Image{Name: "nodes-connectivity-image", NewName: opts.image}
-	return func(ctx context.Context, kz *types.Kustomization) error {
+	return func(_ context.Context, kz *types.Kustomization) error {
 		kz.Namespace = opts.namespace
 		kz.Images = append(kz.Images, image)
 		return nil
@@ -310,7 +310,7 @@ func deletePinger(ctx context.Context, opts nodeConnectivityOptions) error {
 	}
 	for _, pod := range pods.Items {
 		if err := opts.cli.Delete(ctx, &pod); err != nil {
-			return fmt.Errorf("failed to delete pod %s: %v", pod.Name, err)
+			return fmt.Errorf("failed to delete pod %s: %w", pod.Name, err)
 		}
 	}
 	return nil
@@ -324,7 +324,7 @@ func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.P
 	id := uuid.New().String()
 	options := []plumber.Option{
 		plumber.WithKustomizeMutator(kustomizeMutator(opts)),
-		plumber.WithObjectMutator(func(ctx context.Context, obj client.Object) error {
+		plumber.WithObjectMutator(func(_ context.Context, obj client.Object) error {
 			if job, ok := obj.(*batchv1.Job); ok {
 				env := []corev1.EnvVar{
 					{Name: "NODEIP", Value: targetIP},
@@ -346,11 +346,11 @@ func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.P
 		}),
 		plumber.WithPostApplyAction(func(ctx context.Context, obj client.Object) error {
 			if job, ok := obj.(*batchv1.Job); ok {
-				opts.debugf("Waiting for job %s to finish\n", string(job.Name))
+				opts.debugf("Waiting for job %s to finish\n", job.Name)
 				if _, err := k8sutil.WaitForJob(ctx, opts.cliset, job, time.Minute); err != nil {
-					return fmt.Errorf("failed to create job: %s", err)
+					return fmt.Errorf("failed to create job: %w", err)
 				}
-				opts.debugf("Job %s finished\n", string(job.Name))
+				opts.debugf("Job %s finished\n", job.Name)
 			}
 			return nil
 		}),
@@ -424,7 +424,7 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 			opts.printf("Testing connection from %s to %s (%d/%d)\n", src, dst, i, opts.attempts)
 			id, err := runPinger(ctx, opts, pod, dstIP)
 			if err != nil {
-				return fmt.Errorf("failed to connect node %s from node %s: %v", src, dst, err)
+				return fmt.Errorf("failed to connect node %s from node %s: %w", src, dst, err)
 			}
 			opts.debugf("Reading logs from listeners\n")
 			line, err := readLogLine(ctx, opts, receiver)

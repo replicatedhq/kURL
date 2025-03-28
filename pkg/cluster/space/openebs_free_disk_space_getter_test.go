@@ -748,7 +748,7 @@ func Test_buildJob(t *testing.T) {
 	// assure that the temp pvc is among the volumes
 	var mountName string
 	for _, vol := range job.Spec.Template.Spec.Volumes {
-		pvc := vol.VolumeSource.PersistentVolumeClaim
+		pvc := vol.PersistentVolumeClaim
 		if pvc == nil || pvc.ClaimName != "tmppvc" {
 			continue
 		}

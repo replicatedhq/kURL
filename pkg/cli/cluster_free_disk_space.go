@@ -186,7 +186,7 @@ func NewClusterCheckFreeDiskSpaceCmd(_ CLI) *cobra.Command {
 			"Supports the following storage provisioners: %s, %s, %s",
 			openEBSLocalProvisioner, rookRBDProvisioner, rookCephFSProvisioner,
 		),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			k8sConfig, err := config.GetConfig()
 			if err != nil {
 				return fmt.Errorf("failed to read kubernetes configuration: %w", err)
@@ -223,7 +223,7 @@ func NewClusterCheckFreeDiskSpaceCmd(_ CLI) *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
 			defer cancel()
 

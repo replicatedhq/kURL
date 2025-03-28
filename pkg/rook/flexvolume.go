@@ -214,7 +214,7 @@ func runBinPVMigrator(ctx context.Context, w io.Writer, clientset kubernetes.Int
 
 func runFlexMigrator(ctx context.Context, cli client.Client, opts FlexvolumeToCSIOpts) error {
 	options := []plumber.Option{
-		plumber.WithFSMutator(func(ctx context.Context, fs filesys.FileSystem) error {
+		plumber.WithFSMutator(func(_ context.Context, fs filesys.FileSystem) error {
 			return generateFlexMigratorPatch(fs, opts)
 		}),
 	}
@@ -291,7 +291,7 @@ func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) 
 func newDesiredScaleAnnotationPatch(replicas int32) []byte {
 	return []byte(fmt.Sprintf(
 		`[{"op": "replace", "path": "/metadata/annotations/%s", "value": "%d"}]`,
-		strings.Replace(desiredScaleAnnotation, "/", "~1", -1),
+		strings.ReplaceAll(desiredScaleAnnotation, "/", "~1"),
 		replicas,
 	))
 }
@@ -299,7 +299,7 @@ func newDesiredScaleAnnotationPatch(replicas int32) []byte {
 func newRemoveDesiredScaleAnnotationPatch() []byte {
 	return []byte(fmt.Sprintf(
 		`[{"op": "remove", "path": "/metadata/annotations/%s"}]`,
-		strings.Replace(desiredScaleAnnotation, "/", "~1", -1),
+		strings.ReplaceAll(desiredScaleAnnotation, "/", "~1"),
 	))
 }
 

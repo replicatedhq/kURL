@@ -37,10 +37,10 @@ func NewLonghornCmd(cli CLI) *cobra.Command {
 	return &cobra.Command{
 		Use:   "longhorn",
 		Short: "Perform operations on a longhorn installation within a kURL cluster",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 	}
@@ -51,13 +51,13 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 		Use:          "rollback-migration-replicas",
 		Short:        "Rollback Longhorn Volumes, Deployments, and StetefulSet replicas to their original value.",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := cli.Logger()
 
 			logger.Print("Rolling back Longhorn volume replicas to their original value.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
-				return fmt.Errorf("error creating client: %s", err)
+				return fmt.Errorf("error creating client: %w", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
 
@@ -122,30 +122,30 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 		Use:          "prepare-for-migration",
 		Short:        "Prepares Longhorn for migration to a different storage provisioner.",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := cli.Logger()
 
 			logger.Print("Preparing Longhorn for migration to a different storage provisioner.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
-				return fmt.Errorf("error creating client: %s", err)
+				return fmt.Errorf("error creating client: %w", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
 
 			var scaledDown bool
 			var nodes corev1.NodeList
 			if err := cli.List(cmd.Context(), &nodes); err != nil {
-				return fmt.Errorf("error listing kubernetes nodes: %s", err)
+				return fmt.Errorf("error listing kubernetes nodes: %w", err)
 			} else if len(nodes.Items) == 1 {
 				logger.Print("Only one node found, scaling down the number of Longhorn volume replicas to 1.")
 				if scaledDown, err = scaleDownReplicas(cmd.Context(), logger, cli); err != nil {
-					return fmt.Errorf("error scaling down longhorn replicas: %s", err)
+					return fmt.Errorf("error scaling down longhorn replicas: %w", err)
 				}
 			}
 
 			unhealthy, err := unhealthyVolumes(cmd.Context(), logger, cli)
 			if err != nil {
-				return fmt.Errorf("error assessing unhealthy volumes: %s", err)
+				return fmt.Errorf("error assessing unhealthy volumes: %w", err)
 			}
 
 			if len(unhealthy) > 0 {
@@ -158,7 +158,7 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 
 			unhealthy, err = unhealthyNodes(cmd.Context(), logger, cli)
 			if err != nil {
-				return fmt.Errorf("error assessing unhealthy Longhorn nodes: %s", err)
+				return fmt.Errorf("error assessing unhealthy Longhorn nodes: %w", err)
 			}
 
 			if len(unhealthy) > 0 {
@@ -442,20 +442,20 @@ func isNodeHealthy(ctx context.Context, cli client.Client, node lhv1b1.Node) (bo
 
 // disksAreOvercommited returns true if any disk in the node is overcommited.
 func disksAreOvercommited(ctx context.Context, cli client.Client, disks map[string]*lhv1b1.DiskStatus) (bool, error) {
-	var config lhv1b1.Setting
+	var cfg lhv1b1.Setting
 	nsn := client.ObjectKey{Name: overProvisioningSetting, Namespace: longhornNamespace}
-	if err := cli.Get(ctx, nsn, &config); err != nil {
+	if err := cli.Get(ctx, nsn, &cfg); err != nil {
 		return false, fmt.Errorf("error getting over provisioning setting: %w", err)
 	}
 
-	value, err := strconv.Atoi(config.Value)
+	value, err := strconv.Atoi(cfg.Value)
 	if err != nil {
 		return false, fmt.Errorf("error parsing overcommit setting: %w", err)
 	}
 	pct := float64(value) / 100
 	for _, disk := range disks {
-		max := float64(disk.StorageAvailable) * pct
-		if disk.StorageScheduled >= int64(max) {
+		m := float64(disk.StorageAvailable) * pct
+		if disk.StorageScheduled >= int64(m) {
 			return true, nil
 		}
 	}

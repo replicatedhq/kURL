@@ -40,7 +40,7 @@ func (r *RookDiskSpaceValidator) reservedSpace(ctx context.Context) (int64, erro
 	return total, nil
 }
 
-// Check verifies if there is enough ceph disk space to migrate from the source storage class.
+// HasEnoughDiskSpace verifies if there is enough ceph disk space to migrate from the source storage class.
 func (r *RookDiskSpaceValidator) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 
