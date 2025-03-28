@@ -68,7 +68,7 @@ func TestNodesMissingImages(t *testing.T) {
 			resources: runtimeFromNodesJSON(testfiles.UpgradedNode),
 			images:    []string{"docker.io/library/doesnotexist:latest"},
 			nodeImagesOpts: NodeImagesJobOptions{
-				nodeImagesJobRunner: func(ctx context.Context, i kubernetes.Interface, l *log.Logger, n corev1.Node, nijo NodeImagesJobOptions) ([]corev1.ContainerImage, error) {
+				nodeImagesJobRunner: func(_ context.Context, _ kubernetes.Interface, _ *log.Logger, _ corev1.Node, _ NodeImagesJobOptions) ([]corev1.ContainerImage, error) {
 					return []corev1.ContainerImage{
 						{
 							Names: []string{"doesnotexist"},
@@ -83,7 +83,7 @@ func TestNodesMissingImages(t *testing.T) {
 			resources: runtimeFromNodesJSON(testfiles.UpgradedNode),
 			images:    []string{"registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0"},
 			nodeImagesOpts: NodeImagesJobOptions{
-				nodeImagesJobRunner: func(ctx context.Context, i kubernetes.Interface, l *log.Logger, n corev1.Node, nijo NodeImagesJobOptions) ([]corev1.ContainerImage, error) {
+				nodeImagesJobRunner: func(_ context.Context, _ kubernetes.Interface, _ *log.Logger, _ corev1.Node, _ NodeImagesJobOptions) ([]corev1.ContainerImage, error) {
 					return []corev1.ContainerImage{
 						{
 							Names: []string{"doesnotexist"},

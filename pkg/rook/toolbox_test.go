@@ -36,7 +36,7 @@ type execResponses map[string]struct {
 
 // test function only
 func setToolboxExecFunc(responses execResponses) {
-	execFunction = func(coreClient corev1client.CoreV1Interface, clientConfig *restclient.Config, ns, pod, container string, command ...string) (int, string, string, error) {
+	execFunction = func(_ corev1client.CoreV1Interface, _ *restclient.Config, ns, pod, container string, command ...string) (int, string, string, error) {
 		cmdIdx := strings.Join(append(command, ns, pod, container), " - ")
 		res, ok := responses[cmdIdx]
 		if ok {

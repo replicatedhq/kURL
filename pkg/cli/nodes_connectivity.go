@@ -76,7 +76,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 		Use:     "nodes-connectivity",
 		Short:   "Tests if all nodes can reach all other nodes using the provided protocol in the provided port",
 		Example: usageExamples,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if opts.port == 0 {
 				return fmt.Errorf("--port flag is required")
 			}
@@ -110,7 +110,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 			}
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
 			defer cancel()
 			k8slogger := zap.New(func(o *zap.Options) { o.DestWriter = io.Discard })
@@ -280,7 +280,7 @@ func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, po
 // kustomizeMutator returns a kustomize mutator that sets the namespace and image.
 func kustomizeMutator(opts nodeConnectivityOptions) plumber.KustomizeMutator {
 	image := types.Image{Name: "nodes-connectivity-image", NewName: opts.image}
-	return func(ctx context.Context, kz *types.Kustomization) error {
+	return func(_ context.Context, kz *types.Kustomization) error {
 		kz.Namespace = opts.namespace
 		kz.Images = append(kz.Images, image)
 		return nil
@@ -324,7 +324,7 @@ func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.P
 	id := uuid.New().String()
 	options := []plumber.Option{
 		plumber.WithKustomizeMutator(kustomizeMutator(opts)),
-		plumber.WithObjectMutator(func(ctx context.Context, obj client.Object) error {
+		plumber.WithObjectMutator(func(_ context.Context, obj client.Object) error {
 			if job, ok := obj.(*batchv1.Job); ok {
 				env := []corev1.EnvVar{
 					{Name: "NODEIP", Value: targetIP},

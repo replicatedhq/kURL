@@ -37,10 +37,10 @@ func NewLonghornCmd(cli CLI) *cobra.Command {
 	return &cobra.Command{
 		Use:   "longhorn",
 		Short: "Perform operations on a longhorn installation within a kURL cluster",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 	}
@@ -51,7 +51,7 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 		Use:          "rollback-migration-replicas",
 		Short:        "Rollback Longhorn Volumes, Deployments, and StetefulSet replicas to their original value.",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := cli.Logger()
 
 			logger.Print("Rolling back Longhorn volume replicas to their original value.")
@@ -122,7 +122,7 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 		Use:          "prepare-for-migration",
 		Short:        "Prepares Longhorn for migration to a different storage provisioner.",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := cli.Logger()
 
 			logger.Print("Preparing Longhorn for migration to a different storage provisioner.")
@@ -442,20 +442,20 @@ func isNodeHealthy(ctx context.Context, cli client.Client, node lhv1b1.Node) (bo
 
 // disksAreOvercommited returns true if any disk in the node is overcommited.
 func disksAreOvercommited(ctx context.Context, cli client.Client, disks map[string]*lhv1b1.DiskStatus) (bool, error) {
-	var config lhv1b1.Setting
+	var cfg lhv1b1.Setting
 	nsn := client.ObjectKey{Name: overProvisioningSetting, Namespace: longhornNamespace}
-	if err := cli.Get(ctx, nsn, &config); err != nil {
+	if err := cli.Get(ctx, nsn, &cfg); err != nil {
 		return false, fmt.Errorf("error getting over provisioning setting: %w", err)
 	}
 
-	value, err := strconv.Atoi(config.Value)
+	value, err := strconv.Atoi(cfg.Value)
 	if err != nil {
 		return false, fmt.Errorf("error parsing overcommit setting: %w", err)
 	}
 	pct := float64(value) / 100
 	for _, disk := range disks {
-		max := float64(disk.StorageAvailable) * pct
-		if disk.StorageScheduled >= int64(max) {
+		m := float64(disk.StorageAvailable) * pct
+		if disk.StorageScheduled >= int64(m) {
 			return true, nil
 		}
 	}

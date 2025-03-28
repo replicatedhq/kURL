@@ -14,7 +14,7 @@ import (
 func KubectlApply(ctx context.Context, cli client.Client, resources embed.FS, overlay string, opts ...plumber.Option) error {
 	options := append([]plumber.Option{
 		plumber.WithKustomizeMutator(
-			func(ctx context.Context, k *kustomizetypes.Kustomization) error {
+			func(_ context.Context, k *kustomizetypes.Kustomization) error {
 				newLabel := kustomizetypes.Label{
 					Pairs: AppendKurlLabels(nil),
 				}

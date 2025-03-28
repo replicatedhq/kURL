@@ -15,10 +15,10 @@ func newObjectStoreCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "object-store",
 		Short: "Perform operations related to the object store within a kURL cluster",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 	}
@@ -45,7 +45,7 @@ func newSyncObjectStoreCmd(_ CLI) *cobra.Command {
 	syncObjectStoreCmd := &cobra.Command{
 		Use:   "sync",
 		Short: "Copies buckets and objects from one object store to another",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			v := viper.New()
 			v.SetEnvPrefix("KURL")
 			v.AutomaticEnv()
@@ -60,7 +60,7 @@ func newSyncObjectStoreCmd(_ CLI) *cobra.Command {
 			)
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			src, err := minio.New(
 				srcHost,
 				srcAccessKeyID,

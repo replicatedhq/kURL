@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const test_num_cpu_warn_string = " Number of CPUs: At least 4 CPU cores are required\n"
+const testNumCPUWarnString = " Number of CPUs: At least 4 CPU cores are required\n"
 
 var installerYAML = `apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
@@ -47,7 +47,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 					IsPass:  true,
 				},
 			},
-			stdout: OutputPassGreen() + test_num_cpu_warn_string,
+			stdout: OutputPassGreen() + testNumCPUWarnString,
 			stderr: "",
 		},
 		{
@@ -61,7 +61,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isWarn:  true,
-			stdout:  OutputWarnYellow() + test_num_cpu_warn_string,
+			stdout:  OutputWarnYellow() + testNumCPUWarnString,
 			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
@@ -77,7 +77,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         OutputWarnYellow() + test_num_cpu_warn_string,
+			stdout:         OutputWarnYellow() + testNumCPUWarnString,
 			stderr:         "Warnings ignored by CLI flag \"ignore-warnings\"\n",
 		},
 		{
@@ -91,7 +91,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: OutputFailRed() + test_num_cpu_warn_string,
+			stdout: OutputFailRed() + testNumCPUWarnString,
 			stderr: "Error: host preflights have failures\n",
 		},
 	}
@@ -200,7 +200,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 				},
 			},
 			isWarn:  true,
-			stdout:  OutputWarnYellow() + test_num_cpu_warn_string,
+			stdout:  OutputWarnYellow() + testNumCPUWarnString,
 			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
@@ -216,7 +216,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         OutputWarnYellow() + test_num_cpu_warn_string,
+			stdout:         OutputWarnYellow() + testNumCPUWarnString,
 			stderr:         "Warnings ignored by CLI flag \"ignore-warnings\"\n",
 		},
 		{
@@ -230,7 +230,7 @@ func TestNewClusterPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: OutputFailRed() + test_num_cpu_warn_string,
+			stdout: OutputFailRed() + testNumCPUWarnString,
 			stderr: "Error: preflights have failures\n",
 		},
 	}

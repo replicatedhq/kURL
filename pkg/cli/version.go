@@ -9,7 +9,7 @@ func newVersionCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the kURL version",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			version.Fprint(cmd.OutOrStdout())
 			return nil
 		},

@@ -14,7 +14,6 @@ import (
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
-	"github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	"github.com/replicatedhq/troubleshoot/pkg/collect"
 	"github.com/spf13/afero"
@@ -48,10 +47,10 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 		Example:      hostPreflightCmdExample,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -195,10 +194,10 @@ func newPreflightCmd(cli CLI) *cobra.Command {
 		Example:      preflightCmdExample,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -308,11 +307,11 @@ func newPreflightCmd(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func tcpHostCollector(service, address, port string) *v1beta2.HostCollect {
+func tcpHostCollector(service, address, port string) *troubleshootv1beta2.HostCollect {
 	name := fmt.Sprintf("%s %s:%s", service, address, port)
-	return &v1beta2.HostCollect{
-		TCPConnect: &v1beta2.TCPConnect{
-			HostCollectorMeta: v1beta2.HostCollectorMeta{
+	return &troubleshootv1beta2.HostCollect{
+		TCPConnect: &troubleshootv1beta2.TCPConnect{
+			HostCollectorMeta: troubleshootv1beta2.HostCollectorMeta{
 				CollectorName: name,
 			},
 			Address: fmt.Sprintf("%s:%s", address, port),
@@ -321,35 +320,35 @@ func tcpHostCollector(service, address, port string) *v1beta2.HostCollect {
 	}
 }
 
-func tcpHostAnalyzer(service, address, port string) *v1beta2.HostAnalyze {
+func tcpHostAnalyzer(service, address, port string) *troubleshootv1beta2.HostAnalyze {
 	name := fmt.Sprintf("%s %s:%s", service, address, port)
-	return &v1beta2.HostAnalyze{
-		TCPConnect: &v1beta2.TCPConnectAnalyze{
-			AnalyzeMeta: v1beta2.AnalyzeMeta{
+	return &troubleshootv1beta2.HostAnalyze{
+		TCPConnect: &troubleshootv1beta2.TCPConnectAnalyze{
+			AnalyzeMeta: troubleshootv1beta2.AnalyzeMeta{
 				CheckName: fmt.Sprintf("%s %s:%s TCP connection status", service, address, port),
 			},
 			CollectorName: name,
-			Outcomes: []*v1beta2.Outcome{
+			Outcomes: []*troubleshootv1beta2.Outcome{
 				{
-					Warn: &v1beta2.SingleOutcome{
+					Warn: &troubleshootv1beta2.SingleOutcome{
 						When:    collect.NetworkStatusConnectionRefused,
 						Message: fmt.Sprintf("Connection to %s %s:%s was refused", service, address, port),
 					},
 				},
 				{
-					Warn: &v1beta2.SingleOutcome{
+					Warn: &troubleshootv1beta2.SingleOutcome{
 						When:    collect.NetworkStatusConnectionTimeout,
 						Message: fmt.Sprintf("Timed out connecting to %s %s:%s", service, address, port),
 					},
 				},
 				{
-					Warn: &v1beta2.SingleOutcome{
+					Warn: &troubleshootv1beta2.SingleOutcome{
 						When:    collect.NetworkStatusErrorOther,
 						Message: fmt.Sprintf("Unexpected error connecting to %s %s:%s", service, address, port),
 					},
 				},
 				{
-					Pass: &v1beta2.SingleOutcome{
+					Pass: &troubleshootv1beta2.SingleOutcome{
 						When:    collect.NetworkStatusConnected,
 						Message: fmt.Sprintf("Successfully connected to %s %s:%s", service, address, port),
 					},

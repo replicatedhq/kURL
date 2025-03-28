@@ -13,10 +13,10 @@ func newNetutilCommand(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "netutil",
 		Short: "Networking utility commands",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 	}
@@ -28,7 +28,7 @@ func newNetutilIfaceFromIPCommand(cli CLI) *cobra.Command {
 		Use:   "iface-from-ip IP",
 		Short: "Gets the interface name for a given IP address",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			ip := net.ParseIP(args[0])
 			if ip.To16() == nil {
 				return errors.New("invalid IP address")
@@ -57,7 +57,7 @@ func newNetutilDefaultIfaceCommand(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "default-gateway-iface",
 		Short: "Gets the default gateway interface name",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			if ipv6 {
 				iface, err := netutils.GetDefaultV6GatewayInterface()
 				if err != nil {

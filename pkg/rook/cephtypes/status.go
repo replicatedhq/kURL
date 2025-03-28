@@ -1,5 +1,7 @@
 package cephtypes
 
+// lint:file-ignore ST1003 this file is generated
+
 type CephStatus struct {
 	Fsid   string `json:"fsid"`
 	Health struct {

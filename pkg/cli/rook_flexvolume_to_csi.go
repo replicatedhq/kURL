@@ -16,7 +16,7 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "flexvolume-to-csi",
 		Short: "Converts Rook Flex volumes to Ceph-CSI volumes.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientConfig := config.GetConfigOrDie()
 			clientset := kubernetes.NewForConfigOrDie(clientConfig)
 

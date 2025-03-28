@@ -46,6 +46,13 @@ linters:
         - name: redefines-builtin-id
         - name: bool-literal-in-expr
         - name: constant-logical-expr
+    staticcheck:
+      checks:
+        - all
+        - '-SA1006' # disable the rule SA1006 - this falsely flags using 'fmt.Errorf' with a string literal
+        - '-ST1005' # disable the rule ST1005 - this warns against log lines with a leading capital letter which we use for some CLI output
+        - '-ST1000' # disable the rule ST1000 - this requires a comment for all packages
+        - '-ST1003' # disable the rule ST1000 - rules for names
   exclusions:
     generated: lax
     paths:
