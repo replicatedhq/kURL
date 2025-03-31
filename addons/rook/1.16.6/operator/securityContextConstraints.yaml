@@ -1,0 +1,3 @@
+# Source: rook-ceph/templates/securityContextConstraints.yaml
+# scc for the Rook and Ceph daemons
+# for creating cluster in openshift
