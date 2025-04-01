@@ -12,7 +12,7 @@ on:
 
 jobs:
   get-tag:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       version_tag: ${{ steps.set-tag.outputs.version_tag }}
     steps:
@@ -24,7 +24,7 @@ jobs:
         echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
   kurl-util-image:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     steps:
@@ -46,7 +46,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   build-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     - kurl-util-image
@@ -67,7 +67,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   bup: # shortened to allow reading what job is being run within github's UI
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     - build-matrix
@@ -121,7 +121,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   build-addons:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     - kurl-util-image
@@ -141,7 +141,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   set-current-version:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     - build-addons
@@ -170,7 +170,7 @@ jobs:
         CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
 
   testgrid-run:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-tag
     - set-current-version
@@ -203,7 +203,7 @@ jobs:
         echo "::notice ::${MSG}"
 
   cleanup-s3:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
       - set-current-version
     steps:
