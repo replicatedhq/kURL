@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -26,7 +26,7 @@ jobs:
   scan-images:
     name: ${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }}
     needs: build-matrix
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix: ${{ fromJSON(needs.build-matrix.outputs.matrix) }}
       fail-fast: false
@@ -68,7 +68,7 @@ jobs:
 
   collect-results:
     needs: scan-images
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: ${{ failure() }}
     steps:
       - name: Download artifacts

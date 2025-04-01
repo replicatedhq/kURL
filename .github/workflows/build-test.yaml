@@ -5,7 +5,7 @@ on: [ pull_request ]
 jobs:
 
   validate-go-mod:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -22,7 +22,7 @@ jobs:
       - run: go mod tidy -compat=1.17
 
   build-kurl-utils:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -39,7 +39,7 @@ jobs:
       - run: make -C kurl_util test build
 
   build-bin-kurl:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -56,7 +56,7 @@ jobs:
       - run: make test build/bin/kurl
 
   test-shell:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - run: make docker-test-shell

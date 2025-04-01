@@ -17,7 +17,7 @@ concurrency:
 jobs:
   check-addons:
     if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       addons: ${{ steps.check.outputs.addons }}
     steps:

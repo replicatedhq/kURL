@@ -7,7 +7,7 @@ on:
 
 jobs:
   verify-tag:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
         ./bin/verify-tag.sh "${VERSION_TAG}"
 
   kurl-util-image:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - verify-tag
     steps:
@@ -35,7 +35,7 @@ jobs:
         docker push replicated/kurl-util
 
   build-go-bins-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - kurl-util-image
     outputs:
@@ -54,7 +54,7 @@ jobs:
         echo "matrix=$OUTPUT" >> $GITHUB_OUTPUT
 
   bup: # shortened to allow reading what job is being run within github's UI
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - build-go-bins-matrix
     strategy:
@@ -88,7 +88,7 @@ jobs:
         AWS_REGION: "us-east-1"
 
   get-staging-release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - verify-tag
     outputs:
@@ -116,7 +116,7 @@ jobs:
         STAGING_PREFIX: "staging"
 
   verify-staging-release-testgrid-result:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - get-staging-release
     steps:
@@ -185,7 +185,7 @@ jobs:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
   generate-kurl-release-notes-pr:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - set-current-version
     steps:
@@ -204,7 +204,7 @@ jobs:
 
 
   github-release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - set-current-version
     steps:
@@ -286,7 +286,7 @@ jobs:
         asset_path: sbom/assets/*
 
   set-current-version:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - bup
     - copy-stage-packages-to-prod
@@ -303,7 +303,7 @@ jobs:
         DIST_FOLDER: "dist"
 
   testgrid-run:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
     - set-current-version
     steps:
