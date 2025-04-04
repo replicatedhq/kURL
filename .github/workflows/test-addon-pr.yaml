@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   check-addons:
-    if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' }}
+    if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' && github.actor != 'replicated-ci-kurl' }}
     runs-on: ubuntu-24.04
     outputs:
       addons: ${{ steps.check.outputs.addons }}

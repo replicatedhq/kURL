@@ -1,10 +1,10 @@
-name: cron-testgrid-weekly
+name: cron-testgrid-staging
 on:
-  schedule:
-  - cron: "0 5 * * 6" # “At 05:00 on Saturday.”
+#  schedule:
+#  - cron: "0 1 * * 2,4" # “At 01:00 on Tuesday and Thursday.”
   workflow_dispatch: {}
 
-jobs:
+jobs:   
   testgrid-daily:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
@@ -15,18 +15,19 @@ jobs:
     - name: pull tgrun image
       run: docker pull replicated/tgrun:latest
 
-    - name: testgrid-queue-prod
+    - name: testgrid-queue-staging
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
       run: |
+        REF="STAGING-manual-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
-          replicated/tgrun:latest queue \
-            --ref "PROD-weekly-$(date --utc +%FT%TZ)" \
+          replicated/tgrun:latest queue --staging \
+            --ref "${REF}" \
             --spec ./testgrid/specs/full.yaml \
             --os-spec ./testgrid/specs/os-firstlast.yaml \
-            --priority -2
+            --priority -1
 
-  testgrid-weekly-customer-migration-specs:
+  testgrid-daily-storage-migration:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
     steps:
@@ -36,18 +37,19 @@ jobs:
     - name: pull tgrun image
       run: docker pull replicated/tgrun:latest
 
-    - name: testgrid-queue-prod
+    - name: testgrid-queue-staging
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
       run: |
+        REF="STAGING-manual-storage-migration-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
-          replicated/tgrun:latest queue \
-            --ref "PROD-weekly-customer-migration-specs-$(date --utc +%FT%TZ)" \
-            --spec ./testgrid/specs/customer-migration-specs.yaml \
+          replicated/tgrun:latest queue --staging \
+            --ref "${REF}" \
+            --spec ./testgrid/specs/storage-migration.yaml \
             --os-spec ./testgrid/specs/os-customer-common.yaml \
-            --priority -2
+            --priority -1
 
-  testgrid-weekly-storage-migration-specs:
+  testgrid-daily-customer-migration:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
     steps:
@@ -57,13 +59,14 @@ jobs:
       - name: pull tgrun image
         run: docker pull replicated/tgrun:latest
 
-      - name: testgrid-queue-prod
+      - name: testgrid-queue-staging
         env:
           TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
         run: |
+          REF="STAGING-manual-customer-migration-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
           docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
-            replicated/tgrun:latest queue \
-              --ref "PROD-weekly-storage-migration-specs-$(date --utc +%FT%TZ)" \
-              --spec ./testgrid/specs/storage-migration.yaml \
+            replicated/tgrun:latest queue --staging \
+              --ref "${REF}" \
+              --spec ./testgrid/specs/customer-migration-specs.yaml \
               --os-spec ./testgrid/specs/os-customer-common.yaml \
-              --priority -2
+              --priority -1
