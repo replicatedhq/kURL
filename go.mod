@@ -39,7 +39,7 @@ require (
 	github.com/vmware-tanzu/velero v1.14.1
 	golang.org/x/crypto v0.36.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/sync v0.12.0
+	golang.org/x/sync v0.13.0
 	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
