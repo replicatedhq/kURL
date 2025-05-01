@@ -58,6 +58,8 @@ function generate() {
     sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//g')/" "${dir}/install.sh"
     sed -i "s/__ROOK_VERSION__/${VERSION}/" "${dir}/host-preflight.yaml"
 
+    sed -i -E 's/( *)image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/\1image: '"$(echo "${ceph_image}" | sed 's/\//\\\//g')"'/' "${dir}/operator/toolbox.yaml"
+
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
         grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
