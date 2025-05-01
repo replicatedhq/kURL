@@ -23,6 +23,7 @@ function generate() {
     # split operator files
     helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
     # remove non-utf8 characters
+    sed -i 's/–/-/g' "${dir}/operator/combined.yaml"
     sed -i 's/[“”]/"/g' "${dir}/operator/combined.yaml"
     split_resources "${dir}/operator/combined.yaml" "${dir}/operator" "${dir}/operator/kustomization.yaml"
     rm "${dir}/operator/combined.yaml"
@@ -57,6 +58,8 @@ function generate() {
 
     sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//g')/" "${dir}/install.sh"
     sed -i "s/__ROOK_VERSION__/${VERSION}/" "${dir}/host-preflight.yaml"
+
+    sed -i -E 's/( *)image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/\1image: '"$(echo "${ceph_image}" | sed 's/\//\\\//g')"'/' "${dir}/operator/toolbox.yaml"
 
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
