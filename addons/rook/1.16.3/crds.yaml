@@ -3581,7 +3581,7 @@ spec:
                         enabled:
                           description: |-
                             Deprecated: use protocol.enableAPIs instead.
-                            Whether to enable S3. This defaults to true (even if protocols.s3 is not present in the CRD). This maintains backwards compatibility – by default S3 is enabled.
+                            Whether to enable S3. This defaults to true (even if protocols.s3 is not present in the CRD). This maintains backwards compatibility - by default S3 is enabled.
                           nullable: true
                           type: boolean
                       type: object

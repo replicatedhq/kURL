@@ -23,6 +23,7 @@ function generate() {
     # split operator files
     helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
     # remove non-utf8 characters
+    sed -i 's/–/-/g' "${dir}/operator/combined.yaml"
     sed -i 's/[“”]/"/g' "${dir}/operator/combined.yaml"
     split_resources "${dir}/operator/combined.yaml" "${dir}/operator" "${dir}/operator/kustomization.yaml"
     rm "${dir}/operator/combined.yaml"
