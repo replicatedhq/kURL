@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  labels:
+    kots.io/kotsadm: 'true'
+    kots.io/backup: velero
+spec:
+  template:
+    metadata:
+      labels:
+        kots.io/kotsadm: 'true'
+        kots.io/backup: velero
+      annotations:
+        backup.velero.io/backup-volumes:   "backup"
+        pre.hook.backup.velero.io/command: '["/backup.sh"]'
+        pre.hook.backup.velero.io/container: "registry-backup"
+        pre.hook.backup.velero.io/timeout: "30m"
+    spec:
+      initContainers:
+      - name: restore
+        image: kurlsh/s3cmd:20230406-9a6d89f
+        imagePullPolicy: IfNotPresent
+        command:
+        - /restore.sh
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+        - name: registry-velero-config
+          mountPath: /restore.sh
+          subPath: restore.sh
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: registry-s3-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: registry-s3-secret
+        - name: OBJECT_STORE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: object-store-hostname
+              name: registry-s3-secret
+      containers:
+      - name: registry-backup
+        image: kurlsh/s3cmd:20230406-9a6d89f
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - "trap : TERM INT; tail -f /dev/null & wait"
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: registry-s3-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: registry-s3-secret
+        - name: OBJECT_STORE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: object-store-hostname
+              name: registry-s3-secret
+        volumeMounts:
+        - name: registry-velero-config
+          mountPath: /backup.sh
+          subPath: backup.sh
+        - name: backup
+          mountPath: /backup
+      volumes:
+      - name: registry-velero-config
+        configMap:
+          name: registry-velero-config
+          defaultMode: 0777
+      - name: backup
+        emptyDir: {}
