@@ -1,0 +1,19 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: rook-shared-fs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: ${CEPH_POOL_REPLICAS}
+      requireSafeReplicaSize: false
+  metadataServer:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "1024Mi"
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
