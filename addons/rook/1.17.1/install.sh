@@ -1,5 +1,6 @@
 # shellcheck disable=SC2148
 
+
 function rook_pre_init() {
     local current_version
     current_version="$(rook_version)"
