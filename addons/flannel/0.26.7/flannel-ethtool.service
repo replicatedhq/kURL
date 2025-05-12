@@ -1,0 +1,12 @@
+[Unit]
+Description=Disable vxlan checksum offloading for flannel.1
+After=sys-devices-virtual-net-flannel.1.device
+Requires=sys-devices-virtual-net-flannel.1.device
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/ethtool -K flannel.1 tx-checksum-ip-generic off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sys-devices-virtual-net-flannel.1.device
