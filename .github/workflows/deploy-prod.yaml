@@ -271,7 +271,7 @@ jobs:
       env:
         COSIGN_KEY: ${{secrets.COSIGN_KEY}}
 
-    - uses: sigstore/cosign-installer@v3.8.1
+    - uses: sigstore/cosign-installer@v3.9.0
 
     - name: Generate SBOM
       run: |
