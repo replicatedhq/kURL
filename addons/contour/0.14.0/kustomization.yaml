@@ -1,9 +1,0 @@
-resources:
-- common.yaml
-- deployment.yaml
-- service.yaml
-- rbac.yaml
-
-patchesStrategicMerge:
-- deployment-images.yaml
-- service-node-port.yaml
