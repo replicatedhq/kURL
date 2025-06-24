@@ -41,6 +41,12 @@ function check_addon() {
   # check if there is a valid version (files in the root don't count) & template files
   for version in $versions
   do
+    # Check if the version directory still exists (not removed)
+    if [ ! -d "./addons/$addon/$version" ]; then
+      echo "Skipping removed version: $addon-$version"
+      continue
+    fi
+    
     shopt -s nullglob
     if compgen -G "./addons/$addon/template/testgrid/*.yaml" > /dev/null; then
       ADDONS_AVAILBLE+=('{"addon":"'"$addon"'","version":"'"$version"'","prefix":"'"$prefix"'"}')
@@ -81,7 +87,7 @@ function main() {
     echo "Modified addons detected. Continuing with action..."
     echo "addons={\"include\":[$(join_array_by ',' "${ADDONS_AVAILBLE[@]}")]}" >> "$GITHUB_OUTPUT"
   else
-    echo "No changed addons detected, addon is currently in the ADDON_DENY_LIST, or addon does not have a TestGrid template."
+    echo "No changed addons detected, addon is in the ADDON_DENY_LIST, addon/version was removed, or addon does not have a TestGrid template."
   fi
 }
 
