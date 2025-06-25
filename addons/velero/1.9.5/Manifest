@@ -1,6 +1,5 @@
 image velero velero/velero:v1.9.5
 image restic-restore velero/velero-restic-restore-helper:v1.9.5
-image restic-restore-gcr gcr.io/velero-gcp/velero-restic-restore-helper:v1.9.5
 image velero-aws velero/velero-plugin-for-aws:v1.6.0
 image velero-gcp velero/velero-plugin-for-gcp:v1.6.0
 image velero-azure velero/velero-plugin-for-microsoft-azure:v1.6.0
