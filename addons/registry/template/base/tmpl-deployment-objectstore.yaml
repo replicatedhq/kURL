@@ -38,6 +38,7 @@ data:
         region: "us-east-1"
         regionendpoint: http://$objectStoreIP
         bucket: docker-registry
+        forcepathstyle: true
       cache:
         blobdescriptor: inmemory
       maintenance:
