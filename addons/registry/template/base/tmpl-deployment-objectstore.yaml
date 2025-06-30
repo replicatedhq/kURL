@@ -113,6 +113,8 @@ spec:
             secretKeyRef:
               key: secret-access-key
               name: registry-s3-secret
+        - name: OTEL_TRACES_EXPORTER
+          value: "none"
         readinessProbe:
           failureThreshold: 3
           initialDelaySeconds: 10

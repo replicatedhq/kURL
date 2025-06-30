@@ -85,6 +85,8 @@ spec:
             secretKeyRef:
               key: haSharedSecret
               name: registry-session-secret
+        - name: OTEL_TRACES_EXPORTER
+          value: "none"
         readinessProbe:
           failureThreshold: 3
           initialDelaySeconds: 10
