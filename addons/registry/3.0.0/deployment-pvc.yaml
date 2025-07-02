@@ -32,13 +32,8 @@ data:
     storage:
       delete:
         enabled: true
-      redirect:
-        disable: true
-      s3:
-        region: "us-east-1"
-        regionendpoint: http://$objectStoreIP
-        bucket: docker-registry
-        forcepathstyle: true
+      filesystem:
+        rootdirectory: /var/lib/registry
       cache:
         blobdescriptor: inmemory
       maintenance:
@@ -46,30 +41,15 @@ data:
           enabled: false
     version: 0.1
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: registry-s3-secret
-  labels:
-    app: registry
-type: Opaque
-stringData:
-  access-key-id: ${OBJECT_STORE_ACCESS_KEY}
-  secret-access-key: ${OBJECT_STORE_SECRET_KEY}
-  object-store-hostname: ${objectStoreHostname}
-  object-store-cluster-ip: ${objectStoreHostname} # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: registry
-  labels:
-    app: registry
 spec:
   selector:
     matchLabels:
       app: registry
-  replicas: 2
+  replicas: 1
   strategy:
     type:
       Recreate
@@ -81,7 +61,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: registry
-        image: registry:__registry_version__
+        image: registry:3.0.0
         imagePullPolicy: IfNotPresent
         command:
         - /bin/registry
@@ -91,6 +71,8 @@ spec:
         - containerPort: 443
           protocol: TCP
         volumeMounts:
+        - name: registry-data
+          mountPath: /var/lib/registry
         - name: registry-config
           mountPath: /etc/docker/registry
         - name: registry-pki
@@ -103,16 +85,6 @@ spec:
             secretKeyRef:
               key: haSharedSecret
               name: registry-session-secret
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              key: access-key-id
-              name: registry-s3-secret
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              key: secret-access-key
-              name: registry-s3-secret
         - name: OTEL_TRACES_EXPORTER
           value: "none"
         readinessProbe:
@@ -125,10 +97,10 @@ spec:
             path: /
             port: 443
             scheme: HTTPS
-        resources:
-          requests:
-            ephemeral-storage: 10Mi
       volumes:
+      - name: registry-data
+        persistentVolumeClaim:
+          claimName: registry-pvc
       - name: registry-config
         configMap:
           name: registry-config

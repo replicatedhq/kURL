@@ -81,7 +81,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: registry
-        image: registry:__registry_version__
+        image: registry:3.0.0
         imagePullPolicy: IfNotPresent
         command:
         - /bin/registry

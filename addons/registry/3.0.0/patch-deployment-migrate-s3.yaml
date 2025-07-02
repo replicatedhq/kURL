@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  labels:
+    app: registry
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: migrate-s3
+        image: kurlsh/s3cmd:20250627-a454c69
+        imagePullPolicy: IfNotPresent
+        command:
+        - /migrate-s3.sh
+        volumeMounts:
+        - mountPath: /var/lib/registry
+          name: registry-data
+        - name: registry-migrate-s3-config
+          mountPath: /migrate-s3.sh
+          subPath: migrate-s3.sh
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: registry-s3-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: registry-s3-secret
+        - name: OBJECT_STORE_CLUSTER_IP
+          valueFrom:
+            secretKeyRef:
+              key: object-store-hostname
+              name: registry-s3-secret
+      volumes:
+      - name: registry-migrate-s3-config
+        configMap:
+          name: registry-migrate-s3-config
+          defaultMode: 0777
