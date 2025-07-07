@@ -104,7 +104,7 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 				})
 
 				if retryUpdateErr != nil {
-					return fmt.Errorf("error rolling back volume %s replicas: %w", volume.Name, err)
+					return fmt.Errorf("error rolling back volume %s replicas: %w", volume.Name, retryUpdateErr)
 				}
 			}
 			logger.Print("Longhorn volumes have been rolled back to their original replica count.")
