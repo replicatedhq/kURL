@@ -1,8 +1,6 @@
 module github.com/replicatedhq/kurl
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.4
 
 require (
 	code.cloudfoundry.org/bytefmt v0.43.0
@@ -320,15 +318,19 @@ require (
 replace github.com/go-ole/go-ole => github.com/go-ole/go-ole v1.2.6 // needed for arm builds
 
 replace (
-	// from https://github.com/rook/rook/blob/v1.10.11/go.mod
+	// from https://github.com/rook/rook/blob/v1.17.5/go.mod
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
 	github.com/kubernetes-incubator/external-storage => github.com/libopenstorage/external-storage v0.20.4-openstorage-rc3
 	github.com/portworx/sched-ops => github.com/portworx/sched-ops v0.20.4-openstorage-rc3
 )
 
-// from https://github.com/rook/rook/blob/v1.10.11/go.mod
+// from https://github.com/rook/rook/blob/v1.17.5/go.mod
+
 exclude (
-	// This tag doesn't exist, but is imported by github.com/portworx/sched-ops.
+	// exclude goproxy versions with security bugs
+	github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e
+	github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153
+	github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a
 	github.com/kubernetes-incubator/external-storage v0.20.4-openstorage-rc2
 	// Exclude pre-go-mod kubernetes tags, because they are older
 	// than v0.x releases but are picked when updating dependencies.

@@ -99,7 +99,7 @@ func evaluateOpenEBSFreeSpace(ctx context.Context, kubeCli kubernetes.Interface,
 		var hasSpace bool
 		if node == onNode {
 			if msg, hasSpace = hasEnoughSpace(node, volume.Free, biggerThan); !hasSpace {
-				return fmt.Errorf(msg)
+				return fmt.Errorf("%s", msg)
 			}
 			fmt.Println(msg)
 			return nil
@@ -107,7 +107,7 @@ func evaluateOpenEBSFreeSpace(ctx context.Context, kubeCli kubernetes.Interface,
 
 		if onNode == "" {
 			if msg, hasSpace = hasEnoughSpace(node, volume.Free, biggerThan); !hasSpace {
-				return fmt.Errorf(msg)
+				return fmt.Errorf("%s", msg)
 			}
 			fmt.Fprintf(successOutput, "%s\n", msg)
 			continue
