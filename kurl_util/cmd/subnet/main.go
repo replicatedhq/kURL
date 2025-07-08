@@ -53,7 +53,7 @@ func main() {
 		}
 	}
 
-	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	routes, err := routeList()
 	if err != nil {
 		fmt.Printf("failed to list routes: %s\n", err.Error())
 		os.Exit(1)
@@ -132,7 +132,7 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 // findFirstOverlappingRoute will return the first overlapping route with the subnet specified
 func findFirstOverlappingRoute(subnet *net.IPNet, routes []netlink.Route) *netlink.Route {
 	for _, route := range routes {
-		if route.Dst.IP.Equal(net.IPv4zero) || route.Dst.IP.Equal(net.IPv6zero) {
+		if route.Dst == nil || route.Dst.IP.Equal(net.IPv4zero) || route.Dst.IP.Equal(net.IPv6zero) {
 			continue
 		}
 		if route.Dst != nil && overlaps(route.Dst, subnet) {
