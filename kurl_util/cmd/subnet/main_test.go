@@ -147,9 +147,7 @@ func TestFindAvailableSubnet(t *testing.T) {
 				cidrRange:   22,
 				subnetRange: mustParseCIDR("10.0.0.0/8"),
 				routes: []netlink.Route{
-					netlink.Route{
-						Dst: nil,
-					},
+					{Dst: nil},
 					makeRoute("0.0.0.0", 0),
 					makeRoute("10.0.0.0", 22),
 					makeRoute("10.0.4.0", 22),
