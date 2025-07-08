@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/vishvananda/netlink"
+	"github.com/replicatedhq/kurl/kurl_util/cmd/subnet/netlink"
 )
 
 func TestFindAvailableSubnet(t *testing.T) {

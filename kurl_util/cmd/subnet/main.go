@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/vishvananda/netlink"
+	"github.com/replicatedhq/kurl/kurl_util/cmd/subnet/netlink"
 )
 
 const (
@@ -53,7 +53,7 @@ func main() {
 		}
 	}
 
-	routes, err := routeList()
+	routes, err := netlink.RouteList()
 	if err != nil {
 		fmt.Printf("failed to list routes: %s\n", err.Error())
 		os.Exit(1)
