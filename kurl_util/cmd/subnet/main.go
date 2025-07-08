@@ -135,7 +135,7 @@ func findFirstOverlappingRoute(subnet *net.IPNet, routes []netlink.Route) *netli
 		if route.Dst == nil || route.Dst.IP.Equal(net.IPv4zero) || route.Dst.IP.Equal(net.IPv6zero) {
 			continue
 		}
-		if route.Dst != nil && overlaps(route.Dst, subnet) {
+		if overlaps(route.Dst, subnet) {
 			return &route
 		}
 	}
