@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/vishvananda/netlink"
+	"github.com/replicatedhq/kurl/kurl_util/cmd/subnet/netlink"
 )
 
 func TestFindAvailableSubnet(t *testing.T) {
@@ -140,6 +140,20 @@ func TestFindAvailableSubnet(t *testing.T) {
 				},
 			},
 			want: mustParseCIDR("10.1.0.0/16"),
+		},
+		{
+			name: "nil and zero dst",
+			args: args{
+				cidrRange:   22,
+				subnetRange: mustParseCIDR("10.0.0.0/8"),
+				routes: []netlink.Route{
+					{Dst: nil},
+					makeRoute("0.0.0.0", 0),
+					makeRoute("10.0.0.0", 22),
+					makeRoute("10.0.4.0", 22),
+				},
+			},
+			want: mustParseCIDR("10.0.8.0/22"),
 		},
 	}
 	for _, tt := range tests {

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/vishvananda/netlink"
+	"github.com/replicatedhq/kurl/kurl_util/cmd/subnet/netlink"
 )
 
 const (
@@ -53,7 +53,7 @@ func main() {
 		}
 	}
 
-	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	routes, err := netlink.RouteList()
 	if err != nil {
 		fmt.Printf("failed to list routes: %s\n", err.Error())
 		os.Exit(1)
@@ -118,7 +118,11 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 			fmt.Fprintf(os.Stderr, "Route %s overlaps with subnet %s\n", *route, subnet)
 		}
 
-		subnet, _ = cidr.NextSubnet(route.Dst, cidrRange)
+		s, exceeded := cidr.NextSubnet(route.Dst, cidrRange)
+		if exceeded {
+			return nil, fmt.Errorf("no available subnet found within %s", subnet.String())
+		}
+		subnet = s
 		if debug {
 			fmt.Fprintf(os.Stderr, "Next subnet %s\n", subnet)
 		}
@@ -128,7 +132,10 @@ func FindAvailableSubnet(cidrRange int, subnetRange *net.IPNet, routes []netlink
 // findFirstOverlappingRoute will return the first overlapping route with the subnet specified
 func findFirstOverlappingRoute(subnet *net.IPNet, routes []netlink.Route) *netlink.Route {
 	for _, route := range routes {
-		if route.Dst != nil && overlaps(route.Dst, subnet) {
+		if route.Dst == nil || route.Dst.IP.Equal(net.IPv4zero) || route.Dst.IP.Equal(net.IPv6zero) {
+			continue
+		}
+		if overlaps(route.Dst, subnet) {
 			return &route
 		}
 	}
