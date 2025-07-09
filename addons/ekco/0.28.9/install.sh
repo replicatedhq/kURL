@@ -13,6 +13,7 @@ function ekco_pre_init() {
     if [ -z "$EKCO_MIN_READY_WORKER_NODE_COUNT" ]; then
         EKCO_MIN_READY_WORKER_NODE_COUNT=0
     fi
+    # CHANGE
     EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=true
     if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_USE_ALL_NODES" = "1" ]; then
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
