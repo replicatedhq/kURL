@@ -15,8 +15,8 @@
     "@actions/core": "^1.9.1",
     "@actions/github": "^6.0.0",
     "@actions/http-client": "^2.0.1",
-    "@octokit/auth-app": "^4.0.7",
-    "@octokit/graphql": "^5.0.4",
+    "@octokit/auth-app": "^8.0.1",
+    "@octokit/graphql": "^9.0.1",
     "@octokit/rest": "^21.1.1",
     "@vercel/ncc": "^0.33.4"
   }
