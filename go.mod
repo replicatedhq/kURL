@@ -24,7 +24,7 @@ require (
 	github.com/replicatedhq/kurlkinds v1.5.0
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.12.0
-	github.com/replicatedhq/troubleshoot v0.120.0
+	github.com/replicatedhq/troubleshoot v0.120.2
 	github.com/rook/rook v1.16.6
 	github.com/rook/rook/pkg/apis v0.0.0-20241216163035-3170ac6a0c58
 	github.com/sirupsen/logrus v1.9.3
