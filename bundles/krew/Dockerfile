@@ -7,7 +7,8 @@ RUN apt-get update && \
 RUN mkdir -p /krew
 WORKDIR /krew
 
-RUN curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/v0.3.2/krew.{tar.gz,yaml}" && \
+ARG KREW_VERSION
+RUN curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/v${KREW_VERSION}/krew.{tar.gz,yaml}" && \
 	tar zxvf krew.tar.gz && \
 	./krew-linux_amd64 install --manifest=krew.yaml --archive=krew.tar.gz && \
 	./krew-linux_amd64 update && \

@@ -968,7 +968,7 @@
       version: "latest"
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
-    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.8.0/kube-bench_0.8.0_linux_amd64.tar.gz | tar -xz
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.11.1/kube-bench_0.11.1_linux_amd64.tar.gz | tar -xz
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --benchmark cis-1.8 --exit-code=1
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
@@ -2107,7 +2107,7 @@
       version: "latest"
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
-    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.8.0/kube-bench_0.8.0_linux_amd64.tar.gz | tar -xz
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.11.1/kube-bench_0.11.1_linux_amd64.tar.gz | tar -xz
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --benchmark cis-1.8 --exit-code=1
     echo "Checking kubectl with kube/config"
     echo "Kubeconfig was $KUBECONFIG"

@@ -401,9 +401,12 @@ build/addons:
 	mkdir -p build
 	cp -r addons build/
 
+build/krew: KREW_VERSION = 0.4.5
 build/krew:
 	mkdir -p build/krew
-	docker build -t krew -f bundles/krew/Dockerfile bundles/krew
+	docker build \
+		--build-arg KREW_VERSION=$(KREW_VERSION) \
+		-t krew -f bundles/krew/Dockerfile bundles/krew
 	- docker rm -f krew 2>/dev/null
 	docker create --name krew krew:latest
 	docker cp krew:/krew build/
@@ -422,9 +425,14 @@ build/manifests:
 	mkdir -p build
 	cp -r scripts/manifests build/
 
+build/helm: HELM_VERSION = 3.18.4
+build/helm: HELMFILE_VERSION = 1.1.2
 build/helm:
 	mkdir -p build/helm
-	docker build -t helm -f bundles/helm/Dockerfile bundles/helm
+	docker build \
+		--build-arg HELM_VERSION=$(HELM_VERSION) \
+		--build-arg HELMFILE_VERSION=$(HELMFILE_VERSION) \
+		-t helm -f bundles/helm/Dockerfile bundles/helm
 	- docker rm -f helm 2>/dev/null
 	docker create --name helm helm:latest
 	docker cp helm:/helm build/
@@ -604,10 +612,11 @@ watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING
 ##@ Tests
 
 GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
+golangci-lint: GOLANGCI_LINT_VERSION = 2.2.1
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin v2.2.1 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin "v$(GOLANGCI_LINT_VERSION)" ;\
 	}
 
 .PHONY: lint
@@ -630,8 +639,9 @@ test: lint vet ## Check the code with linters and vet
 	&& echo '### SUCCESS: No changes merged on the script/Manifests! ###' \
 	|| (echo '### ERROR: You cannot merge changes on the script manifest!. If you want change the spec please ensure that you also change the ./hack/testdata/manifest/clean file. ###'; exit 1);
 
+/usr/local/bin/shunit2: SHUNIT2_VERSION = 2.1.8
 /usr/local/bin/shunit2:
-	curl -LO https://raw.githubusercontent.com/kward/shunit2/v2.1.8/shunit2
+	curl -LO https://raw.githubusercontent.com/kward/shunit2/v$(SHUNIT2_VERSION)/shunit2
 	install -d /usr/local/bin
 	install shunit2 /usr/local/bin/shunit2
 
