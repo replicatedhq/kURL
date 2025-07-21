@@ -1,2 +1,2 @@
 image registry registry:3.0.0
-image s3cmd kurlsh/s3cmd:20250627-a454c69
+image s3cmd kurlsh/s3cmd:20250714-271da6c
