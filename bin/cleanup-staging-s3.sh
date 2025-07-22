@@ -19,14 +19,20 @@ echo "cleaning up old staging releases"
 # get the objects inside versioned staging buckets
 # then filter it for objects with timestamps older than 31 days
 # and then delete those objects older than 31 days
-aws s3api list-objects --bucket "$S3_BUCKET" --prefix 'staging/v20' --query 'Contents[].{Key: Key, LastModified: LastModified}' | \
-    jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | \
-    xargs -I {} aws s3api delete-object --bucket "$S3_BUCKET" --key "{}"
+objects=$(aws s3api list-objects --bucket "$S3_BUCKET" --prefix 'staging/v20' --query 'Contents[].{Key: Key, LastModified: LastModified}' --output json)
+if [ "$objects" != "null" ]; then
+    echo "Found staging objects: $objects"
+    echo "$objects" | jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | \
+        xargs -I {} aws s3api delete-object --bucket "$S3_BUCKET" --key "{}"
+fi
 
 echo "cleaning up old PR files"
 # get the objects inside the PR folder
 # then filter it for objects with timestamps older than 31 days
 # and then delete those objects older than 31 days
-aws s3api list-objects --bucket "$S3_BUCKET" --prefix 'pr/' --query 'Contents[].{Key: Key, LastModified: LastModified}' | \
-    jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | { grep -v '"pr/"' || test $? = 1; } | \
-    xargs -I {} aws s3api delete-object --bucket "$S3_BUCKET" --key "{}"
+objects=$(aws s3api list-objects --bucket "$S3_BUCKET" --prefix 'pr/' --query 'Contents[].{Key: Key, LastModified: LastModified}' --output json)
+if [ "$objects" != "null" ]; then
+    echo "Found PR objects: $objects"
+    echo "$objects" | jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | { grep -v '"pr/"' || test $? = 1; } | \
+        xargs -I {} aws s3api delete-object --bucket "$S3_BUCKET" --key "{}"
+fi
