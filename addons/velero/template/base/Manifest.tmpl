@@ -2,7 +2,7 @@ image velero velero/velero:v__VELERO_VERSION__
 image velero-aws velero/velero-plugin-for-aws:v__AWS_PLUGIN_VERSION__
 image velero-gcp velero/velero-plugin-for-gcp:v__GCP_PLUGIN_VERSION__
 image velero-azure velero/velero-plugin-for-microsoft-azure:v__AZURE_PLUGIN_VERSION__
-image local-volume-provider replicated/local-volume-provider:v__LOCAL_VOLUME_PROVIDER_VERSION__
+image local-volume-provider replicated/local-volume-provider:__LOCAL_VOLUME_PROVIDER_VERSION__
 image s3cmd kurlsh/s3cmd:__S3CMD_TAG__
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v__VELERO_VERSION__/velero-v__VELERO_VERSION__-linux-amd64.tar.gz
