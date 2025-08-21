@@ -1,5 +1,4 @@
 image velero velero/velero:v1.16.2
-image velero-restore-helper velero/velero-restore-helper:v1.16.2
 image velero-aws velero/velero-plugin-for-aws:v1.12.2
 image velero-gcp velero/velero-plugin-for-gcp:v1.12.2
 image velero-azure velero/velero-plugin-for-microsoft-azure:v1.12.2
