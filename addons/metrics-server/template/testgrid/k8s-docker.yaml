@@ -10,6 +10,7 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
+    sleep 30
     kubectl top pods -A
     kubectl top nodes
 - name: "upgrade from latest"
@@ -33,5 +34,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postUpgradeScript: |
+    sleep 30
     kubectl top pods -A
     kubectl top nodes
