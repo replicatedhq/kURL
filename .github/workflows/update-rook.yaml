@@ -2,7 +2,11 @@ name: cron-rook-update
 on:
   schedule:
   - cron: "0 1 * * 1" # “At 01:00 on Monday.”
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      rook_version:
+        description: "Rook version to update to (default: latest)"
+        required: false
 
 jobs:
   build-pr-rook:
@@ -15,7 +19,12 @@ jobs:
     - name: Create Rook Update
       id: update
       working-directory: ./addons/rook/template
-      run: ./generate.sh
+      run: |
+        if [ -z "$INPUT_ROOK_VERSION" ]; then
+          ./generate.sh
+        else
+          ./generate.sh --version $INPUT_ROOK_VERSION
+        fi
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v7.0.8
