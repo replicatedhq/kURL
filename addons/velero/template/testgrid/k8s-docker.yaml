@@ -128,7 +128,7 @@
       version: 1.31.x
     flannel:
       version: latest
-    longhorn:
+    openebs:
       version: latest
     registry:
       version: latest
