@@ -95,7 +95,7 @@ else
 kurl-util-image: CRITOOLS_VERSION := $(shell curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 endif
 kurl-util-image:
-	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile \
+	docker build --pull -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile \
 		--build-arg COMMIT="${GIT_SHA}" \
 		--build-arg CRITOOLS_VERSION="${CRITOOLS_VERSION}" \
 		../
