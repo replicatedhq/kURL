@@ -60,7 +60,7 @@
 - name: "Velero DisableS3 - Rook"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.33.x"
     flannel:
       version: latest
     rook:
@@ -87,7 +87,7 @@
 - name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.33.x"
     flannel:
       version: latest
     openebs:
@@ -108,7 +108,7 @@
   cpu: 8
   installerSpec:
     kubernetes:
-      version: 1.23.x
+      version: 1.30.x
     flannel:
       version: latest
     rook:
@@ -125,7 +125,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.31.x
     flannel:
       version: latest
     longhorn:
