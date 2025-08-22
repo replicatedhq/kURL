@@ -4,7 +4,7 @@ on:
   - cron: "0 1 * * 1" # “At 01:00 on Monday.”
   workflow_dispatch:
     inputs:
-      rook_version:
+      version:
         description: "Rook version to update to (default: latest)"
         required: false
 
