@@ -1,0 +1,31 @@
+# Source: rook-ceph/charts/ceph-csi-operator/templates/clientprofilemapping-editor-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ceph-csi-clientprofilemapping-editor-role
+  labels:
+    helm.sh/chart: ceph-csi-operator-0.4.0
+    app.kubernetes.io/name: ceph-csi
+    app.kubernetes.io/instance: replaceme
+    app.kubernetes.io/version: "v0.4.0"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - csi.ceph.io
+  resources:
+  - clientprofilemappings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - csi.ceph.io
+  resources:
+  - clientprofilemappings/status
+  verbs:
+  - get
+---
