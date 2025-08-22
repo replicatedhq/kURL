@@ -2,7 +2,14 @@ name: cron-rook-update
 on:
   schedule:
   - cron: "0 1 * * 1" # “At 01:00 on Monday.”
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Rook version to update to (default: latest)"
+        required: false
+      force:
+        description: "Force update even if the version is already in the manifest"
+        required: false
 
 jobs:
   build-pr-rook:
@@ -15,7 +22,8 @@ jobs:
     - name: Create Rook Update
       id: update
       working-directory: ./addons/rook/template
-      run: ./generate.sh
+      run: |
+        ./generate.sh --version=${{ github.event.inputs.version }} ${{ github.event.inputs.force == 'true' && '--force' || '' }}
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v7.0.8
@@ -32,7 +40,6 @@ jobs:
           type::chore
           kurl::type::feature
         draft: false
-        base: "main"
         body: |
           Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action
           

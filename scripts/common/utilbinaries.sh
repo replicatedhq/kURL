@@ -14,7 +14,6 @@ function download_util_binaries() {
     BIN_YAMLTOBASH=$DIR/bin/yamltobash
     BIN_BASHTOYAML=$DIR/bin/bashmerge
     BIN_PVMIGRATE=$DIR/bin/pvmigrate
-    export BIN_ROOK_PVMIGRATOR=$DIR/bin/rook-pv-migrator
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
@@ -26,6 +25,9 @@ function download_util_binaries() {
     VENDOR_PREFLIGHT_SPEC=/tmp/kurl-bin-utils/specs/vendor-preflight.yaml
 
     PARSED_YAML_SPEC=/tmp/kurl-bin-utils/scripts/variables.sh
+
+    # remove the rook-pv-migrator binary if it was previously downloaded as it is no longer needed
+    rm -f "$DIR/bin/rook-pv-migrator"
 }
 
 function apply_bash_flag_overrides() {

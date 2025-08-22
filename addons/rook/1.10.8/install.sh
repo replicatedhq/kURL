@@ -478,6 +478,16 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     local dst_sc="$2"
 
     logStep "Migrating Rook Flex volumes to CSI volumes"
+
+    if [ -z "${BIN_ROOK_PVMIGRATOR:-}" ]; then
+        logFail "BIN_ROOK_PVMIGRATOR environment variable is not set."
+        logFail "Please set BIN_ROOK_PVMIGRATOR to the path of the rook-pv-migrator binary."
+        logFail "You can download the binary from https://github.com/ceph/persistent-volume-migrator."
+        logFail "For example, if you are running kURL on a node with the binary in /usr/local/bin/rook-pv-migrator,"
+        logFail "you can set BIN_ROOK_PVMIGRATOR=/usr/local/bin/rook-pv-migrator and run the script again."
+        return 1
+    fi
+
     local node_name=
     node_name="$(get_local_node_name)"
     local bin_path=
