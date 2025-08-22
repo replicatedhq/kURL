@@ -513,7 +513,7 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
 
     logStep "Migrating Rook Flex volumes to CSI volumes"
 
-    if [ -z "$BIN_ROOK_PVMIGRATOR" ]; then
+    if [ -z "${BIN_ROOK_PVMIGRATOR:-}" ]; then
         logFail "BIN_ROOK_PVMIGRATOR environment variable is not set."
         logFail "Please set BIN_ROOK_PVMIGRATOR to the path of the rook-pv-migrator binary."
         logFail "You can download the binary from https://github.com/ceph/persistent-volume-migrator."
