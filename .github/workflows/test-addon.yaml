@@ -35,8 +35,6 @@ env:
 
 jobs:
   test-addon:
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-testgrid') }}
-
     runs-on: ubuntu-24.04
 
     steps:
