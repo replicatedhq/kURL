@@ -58,6 +58,7 @@
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
 - name: "Velero DisableS3 - Rook"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: "1.32.x"
