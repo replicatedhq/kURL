@@ -32,7 +32,6 @@ jobs:
           type::chore
           kurl::type::feature
         draft: false
-        base: "main"
         body: |
           Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action
           

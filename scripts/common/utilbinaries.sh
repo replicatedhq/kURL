@@ -14,7 +14,6 @@ function download_util_binaries() {
     BIN_YAMLTOBASH=$DIR/bin/yamltobash
     BIN_BASHTOYAML=$DIR/bin/bashmerge
     BIN_PVMIGRATE=$DIR/bin/pvmigrate
-    export BIN_ROOK_PVMIGRATOR=$DIR/bin/rook-pv-migrator
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh

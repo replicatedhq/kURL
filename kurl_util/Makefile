@@ -41,7 +41,7 @@ test:
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate bin/rook-pv-migrator
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate
 
 bin/yamlutil: cmd/yamlutil/main.go
 	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
@@ -85,18 +85,20 @@ bin/vendorflights:
 bin/pvmigrate: cmd/pvmigrate/main.go
 	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/pvmigrate cmd/pvmigrate/main.go
 
-bin/rook-pv-migrator:
-	rm -rf .tmp/persistent-volume-migrator
-	mkdir -p .tmp/persistent-volume-migrator
-	cd .tmp/persistent-volume-migrator \
-		&& git clone https://github.com/ceph/persistent-volume-migrator.git . \
-		&& CGO_ENABLED=0 go build -o ../../bin/rook-pv-migrator
-	chmod +x ./bin/rook-pv-migrator
-	rm -rf .tmp/persistent-volume-migrator
+GH_AVAILABLE ?= $(shell which gh >/dev/null 2>&1 && echo 1 || echo 0)
 
 .PHONY: kurl-util-image
+# Check if gh is available and set CRITOOLS_VERSION accordingly
+ifeq ($(GH_AVAILABLE),1)
+kurl-util-image: CRITOOLS_VERSION := $(shell gh api repos/kubernetes-sigs/cri-tools/releases/latest --jq .tag_name)
+else
+kurl-util-image: CRITOOLS_VERSION := $(shell curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+endif
 kurl-util-image:
-	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile --build-arg commit="${GIT_SHA}" ../
+	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile \
+		--build-arg COMMIT="${GIT_SHA}" \
+		--build-arg CRITOOLS_VERSION="${CRITOOLS_VERSION}" \
+		../
 
 .PHONY: push-kurl-util-image
 push-kurl-util-image:
