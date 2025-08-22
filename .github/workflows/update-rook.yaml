@@ -20,10 +20,10 @@ jobs:
       id: update
       working-directory: ./addons/rook/template
       run: |
-        if [ -z "$INPUT_ROOK_VERSION" ]; then
+        if [ -z "${{ github.event.inputs.version }}" ]; then
           ./generate.sh
         else
-          ./generate.sh --version $INPUT_ROOK_VERSION
+          ./generate.sh --version "${{ github.event.inputs.version }}"
         fi
 
     - name: Create Pull Request # creates a PR if there are differences
