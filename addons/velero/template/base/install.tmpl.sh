@@ -21,6 +21,13 @@ function velero_pre_init() {
         bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
     fi
 
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt 25 ]; then
+        semverCompare "${VELERO_VERSION//v/}" "1.16.2"
+        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 1.16.2
+            bail "Velero $VELERO_VERSION is not supported on Kubernetes versions less than 1.25"
+        fi
+    fi
+
     velero_host_init
 }
 
