@@ -106,7 +106,7 @@
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
   - ubuntu-2404 # kubernetes latest (1.19) isnt supported on Ubuntu 24.04.
 - name: "Velero Remove Object Storage"
-  cpu: 8
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.30.x
@@ -114,8 +114,6 @@
       version: latest
     rook:
       version: 1.12.x
-    registry:
-      version: latest
     kotsadm:
       version: latest
     containerd:
@@ -130,8 +128,6 @@
     flannel:
       version: latest
     openebs:
-      version: latest
-    registry:
       version: latest
     kotsadm:
       version: latest
