@@ -87,7 +87,7 @@ function velero() {
         kubectl patch pv "$velero_pv_name" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
     fi
 
-    logInfo "Waiting for velero deployment to be fully updated"
+    log "Waiting for velero deployment to be fully updated"
     if ! spinner_until 120 deployment_fully_updated velero velero; then
         logFail "Velero deployment failed to update"
         return 1
