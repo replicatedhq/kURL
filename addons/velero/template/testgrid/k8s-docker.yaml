@@ -107,6 +107,7 @@
   - ubuntu-2404 # kubernetes latest (1.19) isnt supported on Ubuntu 24.04.
 - name: "Velero Remove Object Storage"
   cpu: 6
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.30.x
