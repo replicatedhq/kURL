@@ -58,13 +58,14 @@
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
 - name: "Velero DisableS3 - Rook"
+  cpu: 6
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.32.x"
     flannel:
       version: latest
     rook:
-      version: "1.5.x"
+      version: 1.12.x
     containerd:
       version: "latest"
     kotsadm:
@@ -87,7 +88,7 @@
 - name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.32.x"
     flannel:
       version: latest
     openebs:
@@ -105,16 +106,15 @@
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
   - ubuntu-2404 # kubernetes latest (1.19) isnt supported on Ubuntu 24.04.
 - name: "Velero Remove Object Storage"
-  cpu: 8
+  cpu: 6
+  flags: "yes"
   installerSpec:
     kubernetes:
-      version: 1.23.x
+      version: 1.30.x
     flannel:
       version: latest
     rook:
       version: 1.12.x
-    registry:
-      version: latest
     kotsadm:
       version: latest
     containerd:
@@ -125,13 +125,11 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.31.x
     flannel:
       version: latest
-    longhorn:
-      version: latest
-    registry:
-      version: latest
+    rook:
+      version: 1.12.x
     kotsadm:
       version: latest
       disableS3: true
