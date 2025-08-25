@@ -33,6 +33,8 @@ jobs:
         make -C kurl_util build-and-push-kurl-util-image
         docker tag replicated/kurl-util:${VERSION_TAG} replicated/kurl-util
         docker push replicated/kurl-util
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-go-bins-matrix:
     runs-on: ubuntu-24.04

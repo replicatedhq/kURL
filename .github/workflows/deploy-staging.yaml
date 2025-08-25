@@ -42,6 +42,7 @@ jobs:
 
         make -C kurl_util push-kurl-util-image
       env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
