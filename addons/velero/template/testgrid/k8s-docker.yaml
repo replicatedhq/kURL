@@ -65,7 +65,7 @@
     flannel:
       version: latest
     rook:
-      version: "1.17.x"
+      version: 1.12.x
     containerd:
       version: "latest"
     kotsadm:
