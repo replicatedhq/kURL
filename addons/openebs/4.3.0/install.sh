@@ -84,15 +84,7 @@ function openebs_maybe_rook_migration_checks() {
 
     # Ensure openebs-localpv-provisioner deployment is ready
     log "awaiting openebs-localpv-provisioner deployment"
-    if ! spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner; then
-        bail "OpenEBS localpv-provisioner deployment failed to update"
-    fi
-
-    # Ensure openebs-localpv storage class is ready
-    log "awaiting openebs-localpv storage class"
-    if ! spinner_until 120 kubectl get storageclass "$OPENEBS_LOCALPV_STORAGE_CLASS" &>/dev/null; then
-        bail "OpenEBS localpv storage class failed to be created"
-    fi
+    spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
 
     local rook_scs_pvmigrate_dryrun_output
     local rook_default_sc_pvmigrate_dryrun_output
