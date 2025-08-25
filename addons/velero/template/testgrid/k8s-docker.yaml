@@ -129,7 +129,8 @@
     flannel:
       version: latest
     openebs:
-      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     kotsadm:
       version: latest
       disableS3: true
