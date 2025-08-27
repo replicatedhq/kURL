@@ -96,6 +96,26 @@ function is_old_chart() {
 }
 ```
 
+## Automation Impact
+
+The existing `cron-goldpinger-update` GitHub Action workflow automatically generates new goldpinger versions weekly. This workflow currently uses the deprecated okgolove chart and must be updated to use the Bloomberg chart for future versions.
+
+**Current Behavior:**
+- Runs weekly on Mondays at 1 AM UTC
+- Calls `./generate.sh` (okgolove chart)
+- Adds new versions to `versions.js` as "latest"
+- Creates automated PRs with new okgolove versions
+
+**Updated Behavior:**
+- Same schedule and automation structure
+- Calls `./generate.sh` (now uses Bloomberg chart exclusively)
+- Automatically detects latest Bloomberg chart versions
+- New Bloomberg versions include migration logic
+- Maintains same PR creation and versioning workflow
+- Standard `--force` and `--version=X.Y.Z-A.B.C` flags supported
+
+This ensures future goldpinger versions use the official Bloomberg chart while maintaining the existing automation infrastructure.
+
 ## New Subagents / Commands
 
 **No new subagents or commands will be created.**
@@ -243,6 +263,17 @@ function is_old_chart() {
        "3.10.0-6.2.0",  // Still available
        "3.10.2-1.0.1"   // NEW - Bloomberg chart
    ]
+   ```
+
+7. **.github/workflows/update-goldpinger.yaml** (NO CHANGE NEEDED)
+   ```yaml
+   # Workflow remains unchanged - generate.sh now uses Bloomberg chart by default
+   - name: Create Goldpinger Update
+     id: update
+     working-directory: ./addons/goldpinger/template
+     run: |
+       curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+       ./generate.sh
    ```
 
 ### External Contracts
@@ -529,11 +560,16 @@ Local testing confirms:
    - Add `template/values-bloomberg.yaml` for new chart configuration
    - Keep existing generation logic for okgolove charts
 
-3. **Update version listing**
+3. **Update automation workflow**
+   - Modify `.github/workflows/update-goldpinger.yaml` to use Bloomberg chart
+   - Ensure future automated versions use Bloomberg chart with migration logic
+   - Maintain existing weekly schedule and PR creation workflow
+
+4. **Update version listing**
    - Add `3.10.2-1.0.1` to `web/src/installers/versions.js`
    - Maintain all existing versions in the list
 
-4. **Testing**
+5. **Testing**
    - Test migration from each old version to new
    - Test old-to-old version upgrades still work
    - Test fresh installations of both old and new versions
