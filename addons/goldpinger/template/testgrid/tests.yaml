@@ -55,6 +55,14 @@
     # print goldpinger output (and fail if unable to connect to the service)
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
+    
+    # For migration tests - check if this is the Bloomberg version
+    if kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg"; then
+      echo "Verifying Bloomberg chart migration completed successfully"
+      # Verify Bloomberg image is running
+      kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg/goldpinger:3.10.2"
+      echo "Bloomberg chart migration verified successfully"
+    fi
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
@@ -85,6 +93,14 @@
     # print goldpinger output (and fail if unable to connect to the service)
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
+    
+    # For migration tests - check if this is the Bloomberg version
+    if kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg"; then
+      echo "Verifying Bloomberg chart migration from oldest version completed successfully"
+      # Verify Bloomberg image is running
+      kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg/goldpinger:3.10.2"
+      echo "Bloomberg chart migration from oldest version verified successfully"
+    fi
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
