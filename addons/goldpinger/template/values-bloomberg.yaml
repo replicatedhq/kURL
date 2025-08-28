@@ -1,6 +1,14 @@
 # Values for Bloomberg goldpinger chart
 # Only non-default values are specified for better forwards compatibility
 
+# Image configuration for discovery
+image:
+  repository: bloomberg/goldpinger
+
+# Add custom labels to distinguish Bloomberg chart from okgolove chart
+podLabels:
+  kurl.sh/goldpinger-chart: "bloomberg"
+
 # Resource limits aligned with existing kURL values
 resources:
   limits:

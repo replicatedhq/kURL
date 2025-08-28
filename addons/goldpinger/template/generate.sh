@@ -7,7 +7,7 @@ CHARTVERSION=""
 
 function add_as_latest() {
     if ! grep -q "\"${VERSION}-${CHARTVERSION}\"" ../../../web/src/installers/versions.js; then
-        sed -i "/cron-goldpinger-update/a\\    \"${VERSION}-${CHARTVERSION}\"," ../../../web/src/installers/versions.js
+        sed -i '' "/cron-goldpinger-update/a\\    \"${VERSION}-${CHARTVERSION}\"," ../../../web/src/installers/versions.js
     fi
 }
 
@@ -29,18 +29,11 @@ function generate_bloomberg_dynamic() {
     # Get a copy of the stack using Bloomberg chart
     helm template goldpinger goldpinger/goldpinger --version "$CHARTVERSION" --values ./values-bloomberg.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
     
-    # Update version in install.sh with migration logic - copy from 3.10.2-1.0.1 version
-    if [ -f "../3.10.2-1.0.1/install.sh" ]; then
-        # Copy the migration-enabled install.sh and update the version path
-        cp "../3.10.2-1.0.1/install.sh" "../${VERSION}-${CHARTVERSION}/install.sh"
-        sed -i "s|3.10.2-1.0.1|$VERSION-$CHARTVERSION|g" "../${VERSION}-${CHARTVERSION}/install.sh"
-    else
-        # Fallback: use template and add migration logic
-        sed -i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
-    fi
+    # Update version placeholders in install.sh (always use canonical template)
+    sed -i '' "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
     
     # Generate manifest with Bloomberg image
-    grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION-$CHARTVERSION/Manifest"
+    grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "../$VERSION-$CHARTVERSION/Manifest"
     
     echo "Generated Bloomberg goldpinger version: $VERSION-$CHARTVERSION"
 }
@@ -97,7 +90,9 @@ function main() {
 
     generate_bloomberg_dynamic
 
-    echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
+    if [ -n "${GITHUB_OUTPUT:-}" ]; then
+        echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
+    fi
 }
 
 main "$@"

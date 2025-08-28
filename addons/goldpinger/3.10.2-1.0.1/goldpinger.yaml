@@ -104,6 +104,7 @@ spec:
       labels:
         app.kubernetes.io/name: goldpinger
         app.kubernetes.io/instance: goldpinger
+        kurl.sh/goldpinger-chart: bloomberg
     spec:
       priorityClassName: 
       serviceAccountName: goldpinger

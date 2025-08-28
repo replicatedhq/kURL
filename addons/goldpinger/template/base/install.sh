@@ -42,10 +42,21 @@ function goldpinger() {
 }
 
 function is_old_chart() {
-    # Check for okgolove chart versions (4.x, 5.x, 6.x)
-    kubectl get daemonset -n kurl goldpinger \
-        -o jsonpath="{.metadata.labels['helm\.sh/chart']}" 2>/dev/null | \
-        grep -E "goldpinger-(4|5|6)\." &>/dev/null
+    # Check if the existing goldpinger pods are missing our Bloomberg chart label
+    # All Bloomberg chart pods will have kurl.sh/goldpinger-chart=bloomberg in podLabels
+    # Old okgolove chart pods will not have this label
+    if kubectl get daemonset -n kurl goldpinger >/dev/null 2>&1; then
+        local chart_source
+        chart_source=$(kubectl get daemonset -n kurl goldpinger \
+            -o jsonpath="{.spec.template.metadata.labels['kurl\.sh/goldpinger-chart']}" 2>/dev/null || echo "")
+        
+        # If the label is missing or not "bloomberg", it's an old chart
+        if [[ "$chart_source" != "bloomberg" ]]; then
+            return 0  # Old chart (okgolove)
+        fi
+    fi
+    
+    return 1  # New chart (bloomberg) or no existing deployment
 }
 
 function goldpinger_daemonset() {

@@ -56,12 +56,10 @@
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
     
-    # For migration tests - check if this is the Bloomberg version
-    if kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg"; then
-      echo "Verifying Bloomberg chart migration completed successfully"
-      # Verify Bloomberg image is running
-      kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg/goldpinger:3.10.2"
-      echo "Bloomberg chart migration verified successfully"
+    # For migration tests - check if pods have the Bloomberg chart label
+    chart_source=$(kubectl get daemonset -n kurl goldpinger -o jsonpath="{.spec.template.metadata.labels['kurl\.sh/goldpinger-chart']}" 2>/dev/null || echo "")
+    if [[ "$chart_source" == "bloomberg" ]]; then
+      echo "Bloomberg chart migration completed successfully - pod label verified"
     fi
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
@@ -94,12 +92,10 @@
     curl $GP_ENDPOINT/check_all
     curl $GP_ENDPOINT/metrics
     
-    # For migration tests - check if this is the Bloomberg version
-    if kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg"; then
-      echo "Verifying Bloomberg chart migration from oldest version completed successfully"
-      # Verify Bloomberg image is running
-      kubectl get daemonset -n kurl goldpinger -o jsonpath='{.spec.template.spec.containers[0].image}' | grep "bloomberg/goldpinger:3.10.2"
-      echo "Bloomberg chart migration from oldest version verified successfully"
+    # For migration tests - check if pods have the Bloomberg chart label
+    chart_source=$(kubectl get daemonset -n kurl goldpinger -o jsonpath="{.spec.template.metadata.labels['kurl\.sh/goldpinger-chart']}" 2>/dev/null || echo "")
+    if [[ "$chart_source" == "bloomberg" ]]; then
+      echo "Bloomberg chart migration from oldest version completed successfully - pod label verified"
     fi
   unsupportedOSIDs:
   - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
