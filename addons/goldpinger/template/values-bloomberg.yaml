@@ -1,10 +1,5 @@
 # Values for Bloomberg goldpinger chart
-# Based on https://github.com/bloomberg/goldpinger/tree/main/helm-chart
-
-image:
-  repository: bloomberg/goldpinger
-  tag: "3.10.2"
-  pullPolicy: IfNotPresent
+# Only non-default values are specified for better forwards compatibility
 
 # Resource limits aligned with existing kURL values
 resources:
@@ -15,14 +10,12 @@ resources:
     cpu: 20m
     memory: 64Mi
 
-# Service account configuration
+# Service account name to match existing kURL setup
 serviceAccount:
-  create: true
   name: goldpinger
 
 # Service configuration to match existing kURL setup
 service:
-  type: ClusterIP
   port: 80
 
 # Pod configuration with environment variables matching existing setup
@@ -38,39 +31,3 @@ extraEnv:
     value: "3s"
   - name: CHECK_ALL_TIMEOUT
     value: "10s"
-
-# RBAC configuration
-rbac:
-  create: true
-
-# Pod settings
-goldpinger:
-  port: 8080
-
-# Ingress disabled to match existing setup
-ingress:
-  enabled: false
-
-# Node selector, tolerations, and affinity to match existing setup
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-# Pod annotations and labels
-podAnnotations: {}
-podLabels: {}
-
-# ServiceMonitor configuration for Prometheus integration
-serviceMonitor:
-  enabled: false
-  selector:
-    prometheus: "kube-prometheus"
-  interval: 30s
-
-# Priority class
-priorityClassName: ""
-
-# Pod security policy
-podSecurityPolicy:
-  enabled: false
-  policyName: unrestricted-psp
