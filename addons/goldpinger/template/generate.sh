@@ -3,42 +3,81 @@
 set -euo pipefail
 
 VERSION=""
-function get_latest_release_version() {
-    VERSION=$(helm show chart okgolove/goldpinger | \
+CHARTVERSION=""
+
+function add_as_latest() {
+    if ! grep -q "\"${VERSION}-${CHARTVERSION}\"" ../../../web/src/installers/versions.js; then
+        sed -i '' "/cron-goldpinger-update/a\\    \"${VERSION}-${CHARTVERSION}\"," ../../../web/src/installers/versions.js
+    fi
+}
+
+function get_latest_bloomberg_version() {
+    # Get latest versions from Bloomberg chart
+    VERSION=$(helm show chart goldpinger/goldpinger | \
         grep -i "^appVersion" | \
         grep -Eo "[0-9]\.[0-9]+\.[0-9]+")
-    CHARTVERSION=$(helm show chart okgolove/goldpinger | \
+    CHARTVERSION=$(helm show chart goldpinger/goldpinger | \
         grep -i "^version" | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 }
 
-function generate() {
-    # make the base set of files
+function generate_bloomberg_dynamic() {
+    # Make the base set of files
     mkdir -p "../${VERSION}-${CHARTVERSION}"
     cp -r ./base/* "../${VERSION}-${CHARTVERSION}"
-
-    # get a copy of the stack
-    helm template goldpinger okgolove/goldpinger --version "$CHARTVERSION" --values ./values.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
-
-    # update version in install.sh
-    sed -i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
-
-    grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION-$CHARTVERSION/Manifest"
+    
+    # Get a copy of the stack using Bloomberg chart
+    helm template goldpinger goldpinger/goldpinger --version "$CHARTVERSION" --values ./values-bloomberg.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
+    
+    # Update version placeholders in install.sh (always use canonical template)
+    sed -i '' "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
+    
+    # Generate manifest with Bloomberg image
+    grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "../$VERSION-$CHARTVERSION/Manifest"
+    
+    echo "Generated Bloomberg goldpinger version: $VERSION-$CHARTVERSION"
 }
 
-function add_as_latest() {
-    sed -i "/cron-goldpinger-update/a\    \"${VERSION}-${CHARTVERSION}\"\," ../../../web/src/installers/versions.js
+
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
 }
 
 function main() {
-    # run the helm commands
-    helm repo add okgolove https://okgolove.github.io/helm-charts/
+    local force_flag=
+    local version_flag=
+    
+    parse_flags "$@"
+    
+    # Use Bloomberg chart (official chart going forward)
+    helm repo add goldpinger https://bloomberg.github.io/goldpinger
     helm repo update
-
-    get_latest_release_version
+    
+    # Get versions
+    if [ -n "$version_flag" ]; then
+        VERSION="$( echo "$version_flag" | cut -d'-' -f1 )"
+        CHARTVERSION="$( echo "$version_flag" | cut -d'-' -f2 )"
+    else
+        get_latest_bloomberg_version
+    fi
 
     if [ -d "../${VERSION}-${CHARTVERSION}" ]; then
-        if [ $# -ge 1 ] && [ "$1" == "force" ]; then
+        if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of goldpinger"
             rm -rf "../${VERSION}-${CHARTVERSION}"
         else
@@ -49,9 +88,11 @@ function main() {
         add_as_latest
     fi
 
-    generate
+    generate_bloomberg_dynamic
 
-    echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
+    if [ -n "${GITHUB_OUTPUT:-}" ]; then
+        echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
+    fi
 }
 
 main "$@"

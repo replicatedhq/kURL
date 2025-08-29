@@ -1,0 +1,41 @@
+# Values for Bloomberg goldpinger chart
+# Only non-default values are specified for better forwards compatibility
+
+# Image configuration for discovery
+image:
+  repository: bloomberg/goldpinger
+
+# Add custom labels to distinguish Bloomberg chart from okgolove chart
+podLabels:
+  kurl.sh/goldpinger-chart: "bloomberg"
+
+# Resource limits aligned with existing kURL values
+resources:
+  limits:
+    cpu: 50m
+    memory: 128Mi
+  requests:
+    cpu: 20m
+    memory: 64Mi
+
+# Service account name to match existing kURL setup
+serviceAccount:
+  name: goldpinger
+
+# Service configuration to match existing kURL setup
+service:
+  port: 80
+
+# Pod configuration with environment variables matching existing setup
+extraEnv:
+  # podIP is used to select a randomized subset of nodes to ping.
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: PING_TIMEOUT
+    value: "2s"
+  - name: CHECK_TIMEOUT
+    value: "3s"
+  - name: CHECK_ALL_TIMEOUT
+    value: "10s"

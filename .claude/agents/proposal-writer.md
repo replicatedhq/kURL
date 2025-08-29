@@ -59,7 +59,6 @@ If the research and/or proposal already exist, look at the context (shortcut sto
    * Unit, integration, e2e, load, and back/forward-compat checks.  
    * Test data and fixtures you’ll need.
 
-
 7. **Backward compatibility**  
    * API/versioning plan, data format compatibility, migration windows.
 

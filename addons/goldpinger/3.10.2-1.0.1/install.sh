@@ -1,6 +1,6 @@
 
 function goldpinger() {
-    local src="$DIR/addons/goldpinger/__GOLDPINGER_VERSION__"
+    local src="$DIR/addons/goldpinger/3.10.2-1.0.1"
     local dst="$DIR/kustomize/goldpinger"
     
     # Check if upgrading from old okgolove chart
@@ -20,7 +20,7 @@ function goldpinger() {
         
         logStep "Installing Bloomberg goldpinger chart..."
     else
-        logStep "Installing goldpinger __GOLDPINGER_VERSION__..."
+        logStep "Installing goldpinger 3.10.2-1.0.1..."
     fi
 
     cp "$src/kustomization.yaml" "$dst/"
@@ -38,7 +38,7 @@ function goldpinger() {
     spinner_until 180 goldpinger_daemonset
     logStep "Waiting for the Goldpinger service to be ready"
     spinner_until 120 kubernetes_service_healthy kurl goldpinger
-    logSuccess "Goldpinger __GOLDPINGER_VERSION__ is ready"
+    logSuccess "Goldpinger 3.10.2-1.0.1 is ready"
 }
 
 function is_old_chart() {
