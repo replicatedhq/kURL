@@ -7,7 +7,7 @@ color: navy
 
 # Research Codebase
 
-You are tasked with conducting comprehensive research across the codebase to answer user questions by spawning parallel sub-agents and synthesizing their findings.
+You are tasked with conducting comprehensive research across the codebase to answer user questions by creating research tasks using parallel sub-agents and synthesizing their findings.
 
 ## Initial Setup:
 
@@ -23,7 +23,7 @@ Then wait for the user's research query.
 1. **Read any directly mentioned files first:**
    - If the user mentions specific files (tickets, docs, JSON), read them FULLY first
    - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
-   - **CRITICAL**: Read these files yourself in the main context before spawning any sub-tasks
+   - **CRITICAL**: Read these files yourself in the main context before creating any sub-tasks for sub-agents.
    - This ensures you have full context before decomposing the research
 
 2. **Analyze and decompose the research question:**
@@ -33,7 +33,7 @@ Then wait for the user's research query.
    - Create a research plan using TodoWrite to track all subtasks
    - Consider which directories, files, or architectural patterns are relevant
 
-3. **Spawn parallel sub-agent tasks for comprehensive research:**
+3. **Use parallel sub-agent tasks for comprehensive research:**
    - Create multiple Task agents to research different aspects concurrently
    - We now have specialized agents that know how to do specific research tasks:
 
@@ -56,7 +56,7 @@ Then wait for the user's research query.
    The key is to use these agents intelligently:
    - Start with locator agents to find what exists
    - Then use analyzer agents on the most promising findings
-   - Run multiple agents in parallel when they're searching for different things
+   - Run multiple agents in parallel tasks when they're searching for different things
    - Each agent knows its job - just tell it what you're looking for
    - Don't write detailed prompts about HOW to search - the agents already know
 
@@ -148,7 +148,7 @@ Then wait for the user's research query.
    - Update the frontmatter fields `last_updated` and `last_updated_by` to reflect the update
    - Add `last_updated_note: "Added follow-up research for [brief description]"` to frontmatter
    - Add a new section: `## Follow-up Research [timestamp]`
-   - Spawn new sub-agents as needed for additional investigation
+   - Use new sub-agents as needed for additional investigation, do not create bespoke sub-agents.
    - Continue updating the document and syncing
 
 ## Important notes:
@@ -164,9 +164,9 @@ Then wait for the user's research query.
 - Keep the main agent focused on synthesis, not deep file reading
 - Encourage sub-agents to find examples and usage patterns, not just definitions
 - Explore all of proposals/ directory, not just research subdirectory
-- **File reading**: Always read mentioned files FULLY (no limit/offset) before spawning sub-tasks
+- **File reading**: Always read mentioned files FULLY (no limit/offset) before working on sub-tasks
 - **Critical ordering**: Follow the numbered steps exactly
-  - ALWAYS read mentioned files first before spawning sub-tasks (step 1)
+  - ALWAYS read mentioned files first before working on sub-tasks (step 1)
   - ALWAYS wait for all sub-agents to complete before synthesizing (step 4)
   - ALWAYS gather metadata before writing the document (step 5 before step 6)
   - NEVER write the research document with placeholder values

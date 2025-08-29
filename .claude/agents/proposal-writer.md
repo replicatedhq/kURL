@@ -59,30 +59,26 @@ If the research and/or proposal already exist, look at the context (shortcut sto
    * Unit, integration, e2e, load, and back/forward-compat checks.  
    * Test data and fixtures you’ll need.
 
-7. **Monitoring & alerting**  
-   * Metrics, logs, traces, dashboards, SLOs, and alert thresholds.  
-   * How we’ll know it’s healthy vs. needs rollback.
-
-8. **Backward compatibility**  
+7. **Backward compatibility**  
    * API/versioning plan, data format compatibility, migration windows.
 
-9. **Migrations**  
+8. **Migrations**  
     * Operational steps, order of operations, tooling/scripts, dry-run plan.
     * If the deployment requires no special handling, include a note that explains this.
 
-10. **Trade-offs**  
+9. **Trade-offs**  
     * Why this path over others? Explicitly note what you’re optimizing for.
 
-11. **Alternative solutions considered**  
+10. **Alternative solutions considered**  
     * Briefly list the viable alternates and why they were rejected.
 
-12. **Research**        
+11. **Research**        
     * Prior art in our codebase (links).  
     * Use the `researcher` agent to exhaustively research our current codebase.
     * External references/prior art (standards, blog posts, libraries).  
     * Any spikes or prototypes you ran and what you learned.
 
-13. **Checkpoints (PR plan)**  
+12. **Checkpoints (PR plan)**  
     * One large PR or multiple? 
     * If multiple, list what lands in each. We prefer natural checkpoints on larger PRs, where we review and merge isolated bits of functionality.
 
