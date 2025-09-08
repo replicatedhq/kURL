@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version-file: go.mod
 
       - name: setup env
         run: |
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version-file: go.mod
 
       - name: setup env
         run: |
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version-file: go.mod
 
       - name: setup env
         run: |

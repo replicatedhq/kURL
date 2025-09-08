@@ -69,7 +69,7 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-go@v6
       with:
-        go-version: '1.21'
+        go-version-file: go.mod
     - name: setup env
       id: env
       run: |
@@ -221,7 +221,7 @@ jobs:
     - name: setup-go
       uses: actions/setup-go@v6
       with:
-        go-version: '1.21'
+        go-version-file: go.mod
 
     - name: Get the version
       id: get_tag
