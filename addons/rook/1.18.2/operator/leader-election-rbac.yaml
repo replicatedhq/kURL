@@ -1,0 +1,64 @@
+# Source: rook-ceph/charts/ceph-csi-operator/templates/leader-election-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ceph-csi-leader-election-rolebinding
+  labels:
+    helm.sh/chart: ceph-csi-operator-0.4.0
+    app.kubernetes.io/name: ceph-csi
+    app.kubernetes.io/instance: replaceme
+    app.kubernetes.io/version: "v0.4.0"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: 'ceph-csi-leader-election-role'
+subjects:
+- kind: ServiceAccount
+  name: 'ceph-csi-controller-manager'
+  namespace: 'rook-ceph'
+---
+# Source: rook-ceph/charts/ceph-csi-operator/templates/leader-election-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ceph-csi-leader-election-role
+  labels:
+    helm.sh/chart: ceph-csi-operator-0.4.0
+    app.kubernetes.io/name: ceph-csi
+    app.kubernetes.io/instance: replaceme
+    app.kubernetes.io/version: "v0.4.0"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
