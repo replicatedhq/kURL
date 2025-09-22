@@ -3,7 +3,7 @@ module github.com/replicatedhq/kurl
 go 1.24.6
 
 require (
-	code.cloudfoundry.org/bytefmt v0.50.0
+	code.cloudfoundry.org/bytefmt v0.51.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/briandowns/spinner v1.23.2
@@ -309,7 +309,7 @@ require (
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/term v0.35.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.218.0 // indirect
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
