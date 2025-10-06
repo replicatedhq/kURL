@@ -9,6 +9,11 @@ When invoked WITH parameters and when the parameter is a filename in the proposa
 I'll get started implementing [filename]. Let's first check if there an any questions before I start.
 ```
 
+When invoked WITH parameters and when the parameter is a shortcut story ID:
+```
+I'll get started implementing sotry [ID]. Let's first check if there an any questions before I start.
+```
+
 When invoked WITHOUT parameters:
 ```
 Tell me the filename of the proposal you'd like implemented
