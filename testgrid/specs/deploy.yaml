@@ -263,13 +263,13 @@
     flannel:
       version: latest
     rook:
-      version: "1.18.x"
+      version: "1.17.x"
     registry:
       version: 2.8.3
   unsupportedOSIDs:
-  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - centos-79 # Rook 1.13+ is not supported on centos-7
-  - ol-79 # Rook 1.13+ is not supported on centos-7
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79 # Rook 1.13+ is not supported on centos-7
+    - ol-79 # Rook 1.13+ is not supported on centos-7
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_ubuntu_2404 ; then
