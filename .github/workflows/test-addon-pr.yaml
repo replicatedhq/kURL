@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'addons/**'
+      - '!.claude/**'
 
   workflow_dispatch: {}
 
