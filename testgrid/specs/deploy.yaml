@@ -40,7 +40,7 @@
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
-- name: "Upgrade to 1.25 to 1.33, Migrate from Rook 1.12.x to OpenEBS + Minio"
+- name: "Upgrade to 1.25 to 1.34, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -59,7 +59,7 @@
       version: 1.12.x
   upgradeSpec:
     kubernetes:
-      version: 1.33.x
+      version: 1.34.x
     containerd:
       version: 1.6.x
     flannel:
@@ -167,11 +167,11 @@
     - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
     - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
     - rocky-96 # Not supported on pinned kurl version v2024.07.02-0
-- name: "Upgrade from k8s 1.29 to 1.33 - Airgap"
+- name: "Upgrade from k8s 1.30 to 1.34 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
-      version: 1.29.x
+      version: 1.30.x
     kurl:
       installerVersion: ""
     flannel:
@@ -190,7 +190,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.33.x
+      version: 1.34.x
     kurl:
       installerVersion: ""
     flannel:
@@ -219,10 +219,10 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
     - centos-79
-- name: k8s132x_cis_benchmarks_checks
+- name: k8s134x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
-      version: "1.33.x"
+      version: "1.34.x"
       cisCompliance: true
     containerd:
       version: "latest"
@@ -238,10 +238,10 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: "k8s_133x with kurl in-cluster support bundle spec"
+- name: "k8s_134x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
-      version: "1.33.x"
+      version: "1.34.x"
     containerd:
       version: latest
     flannel:
@@ -254,16 +254,16 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
-- name: "k8s_133x with rook"
+- name: "k8s_134x with rook"
   installerSpec:
     kubernetes:
-      version: "1.33.x"
+      version: "1.34.x"
     containerd:
       version: latest
     flannel:
       version: latest
     rook:
-      version: "1.17.x"
+      version: "1.18.x"
     registry:
       version: 2.8.3
   unsupportedOSIDs:
