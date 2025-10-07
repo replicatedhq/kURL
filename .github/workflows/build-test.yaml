@@ -2,9 +2,8 @@ name: build-test
 
 on:
   pull_request:
-    paths:
-      - '**'
-      - '!.claude/**'
+    paths-ignore:
+      - '.claude/**'
 
 jobs:
 
