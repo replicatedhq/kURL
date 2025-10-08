@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: change-storage-class-config
+  namespace: ${VELERO_NAMESPACE}
+  labels:
+    velero.io/plugin-config: \"\"
+    velero.io/change-storage-class: RestoreItemAction
+data:
+  default: longhorn
