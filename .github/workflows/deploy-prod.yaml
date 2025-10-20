@@ -214,7 +214,7 @@ jobs:
       uses: actions/checkout@v5
 
     # Node and Go are needed by the SBOM generator
-    - uses: actions/setup-node@v5
+    - uses: actions/setup-node@v6
       with:
         node-version: '14'
 
