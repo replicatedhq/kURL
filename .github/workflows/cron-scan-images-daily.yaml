@@ -48,7 +48,7 @@ jobs:
           ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
           exit-code: '1'
       - name: "Upload artifact"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ always() && steps.trivy.outcome == 'failure' }}
         with:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
@@ -79,7 +79,7 @@ jobs:
         run: |
           jq -s '.' scan-results/*/trivy.json > trivy.json
       - name: "Upload artifact"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: trivy results
           path: trivy.json
