@@ -101,3 +101,4 @@ If the research and/or proposal already exist, look at the context (shortcut sto
 * Never add Descision Deadline or author date, or anything else that references the date you think is accurate.
 * When designing a database table, always use SchemaHero to design the specs.
 * Do not update the shortcut story with the proposal details.
+* **If you are adding a new hostname**, remind the user that they need to manually update the global IP address list at https://github.com/replicatedhq/ips.
