@@ -3,12 +3,11 @@ yum container-selinux
 asset runc https://github.com/opencontainers/runc/releases/download/v1.3.3/runc.amd64
 dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.33
 dockerout rhel-7-force addons/containerd/template/Dockerfile.centos7-force 1.6.33
-dockerout rhel-8 addons/containerd/template/Dockerfile.centos8.rhel 1.7.27
-dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.7.27
+dockerout rhel-8 addons/containerd/template/Dockerfile.centos8.rhel 1.7.29
+dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.7.29
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.6.21
-dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.7.27
-dockerout ubuntu-22.04 addons/containerd/template/Dockerfile.ubuntu22 1.7.27
+dockerout ubuntu-22.04 addons/containerd/template/Dockerfile.ubuntu22 1.7.29
 yum2023 containerd
 yum2023 libzstd
 apt24 containerd
-image pause registry.k8s.io/pause:3.8
+image pause k8s.gcr.io/pause:3.6
