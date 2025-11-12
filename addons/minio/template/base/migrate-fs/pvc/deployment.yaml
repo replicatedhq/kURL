@@ -17,9 +17,9 @@ spec:
       containers:
       - name: minio
         volumeMounts:
-        - name: data 
+        - name: data
           mountPath: "/data"
-        image: minio/minio:__MINIO_VERSION__
+        image: kurlsh/minio:__MINIO_VERSION__
         args:
         - --quiet
         - server
