@@ -118,7 +118,7 @@ function velero_install() {
     # Pre-apply CRDs since kustomize reorders resources. Grep to strip out sailboat emoji.
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install --crds-only | grep -v 'Velero is installed'
 
-    local nodeAgentArgs="--use-node-agent --uploader-type=restic"
+    local nodeAgentArgs="--use-node-agent --uploader-type=kopia"
     if [ "$VELERO_DISABLE_RESTIC" = "1" ]; then
         nodeAgentArgs=""
     fi
