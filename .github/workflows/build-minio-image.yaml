@@ -73,6 +73,20 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.licenses=AGPL-3.0
+            org.opencontainers.image.source=https://github.com/minio/minio
+            org.opencontainers.image.documentation=https://github.com/replicatedhq/kURL/tree/main/addons/minio
+
+      - name: Update Docker Hub Description
+        if: steps.check.outputs.exists == 'false'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: kurlsh/minio
+          readme-filepath: ./addons/minio/build-images/minio/README.md
+          short-description: "MinIO object storage built from source (AGPL v3)"
 
       - name: Run Trivy vulnerability scanner
         if: steps.check.outputs.exists == 'false'
