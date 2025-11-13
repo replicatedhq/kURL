@@ -24,6 +24,7 @@ FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 COPY --from=builder /build/minio* /usr/bin/
 COPY --from=builder /build/CREDITS /licenses/CREDITS
 COPY --from=builder /build/LICENSE /licenses/LICENSE
+COPY --from=builder /build/NOTICE /licenses/NOTICE
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 RUN chmod +x /usr/bin/minio
