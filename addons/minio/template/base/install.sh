@@ -51,10 +51,10 @@ function minio() {
 
     if [ -n "$minio_ha_exists" ]; then
         # don't update the statefulset or deployment, just change the images they use
-        kubectl set image -n minio statefulset/ha-minio minio=minio/minio:__MINIO_VERSION__
+        kubectl set image -n minio statefulset/ha-minio minio=kurlsh/minio:__MINIO_VERSION__
 
         # the deployment will have been deleted if data has been migrated to the statefulset, so don't error if the image isn't updated
-        kubectl set image -n minio deployment/minio minio=minio/minio:__MINIO_VERSION__ 2>/dev/null || true
+        kubectl set image -n minio deployment/minio minio=kurlsh/minio:__MINIO_VERSION__ 2>/dev/null || true
     else
         # create the statefulset/deployment/service/secret/etc
         render_yaml_file_2 "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"

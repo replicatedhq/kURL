@@ -29,17 +29,46 @@ function generate() {
     sed -i "s/__MINIO_DIR_NAME__/$DIR_NAME/g" "$dir/install.sh"
 }
 
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 function main() {
-    VERSION=${1-}
+    local force_flag=
+    local version_flag=
+
+    parse_flags "$@"
+
+    VERSION="$version_flag"
     if [ -z "$VERSION" ]; then
         get_latest_version
     fi
 
     DIR_NAME=${VERSION#"RELEASE."}
 
-    if [ -d "../${DIR_NAME}" ]; then
-        echo "MinIO ${VERSION} add-on already exists"
-        exit 0
+    if [ -d "../$VERSION" ]; then
+        if [ "$force_flag" == "1" ]; then
+            echo "forcibly updating existing version of MinIO"
+            rm -rf "../$VERSION"
+        else
+            echo "not updating existing version of MinIO"
+            return
+        fi
     fi
 
     generate
