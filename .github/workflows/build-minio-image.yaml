@@ -90,7 +90,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         if: steps.check.outputs.exists == 'false'
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: kurlsh/minio:${{ steps.version.outputs.minio_version }}
           format: 'sarif'
