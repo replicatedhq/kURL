@@ -80,7 +80,7 @@ jobs:
 
       - name: Update Docker Hub Description
         if: steps.check.outputs.exists == 'false'
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
