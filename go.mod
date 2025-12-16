@@ -327,7 +327,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b // indirect
 	k8s.io/kubectl v0.34.0 // indirect
 	k8s.io/kubelet v0.34.1 // indirect
-	k8s.io/kubernetes v1.34.1 // indirect
+	k8s.io/kubernetes v1.34.2 // indirect
 	k8s.io/metrics v0.34.1 // indirect
 	oras.land/oras-go v1.2.6 // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
