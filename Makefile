@@ -612,7 +612,7 @@ watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING
 ##@ Tests
 
 GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
-golangci-lint: GOLANGCI_LINT_VERSION = 2.2.1
+golangci-lint: GOLANGCI_LINT_VERSION = 2.8.0
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
