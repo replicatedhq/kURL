@@ -97,7 +97,7 @@ func TestNodesMissingImages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(tt.resources...)
+			clientset := fake.NewClientset(tt.resources...)
 			logger := log.New(io.Discard, "", 0)
 
 			gotNodes, err := NodesMissingImages(context.Background(), clientset, logger, tt.images, tt.nodeImagesOpts)

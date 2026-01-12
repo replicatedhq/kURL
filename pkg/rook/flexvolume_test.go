@@ -39,7 +39,7 @@ func Test_scaleDownPodOwnerDeployment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resources := runtimeObjectsFromList(t, tt.resources)
-			clientset := fake.NewSimpleClientset(resources...)
+			clientset := fake.NewClientset(resources...)
 
 			obj, err := clientset.AppsV1().Deployments(tt.namespace).Get(context.Background(), tt.objName, metav1.GetOptions{})
 			require.NoError(t, err)
@@ -86,7 +86,7 @@ func Test_scaleDownPodOwnerStatefulSet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resources := runtimeObjectsFromList(t, tt.resources)
-			clientset := fake.NewSimpleClientset(resources...)
+			clientset := fake.NewClientset(resources...)
 
 			obj, err := clientset.AppsV1().StatefulSets(tt.namespace).Get(context.Background(), tt.objName, metav1.GetOptions{})
 			require.NoError(t, err)
@@ -143,7 +143,7 @@ func Test_listPVCsByStorageClass(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resources := runtimeObjectsFromList(t, tt.resources)
-			clientset := fake.NewSimpleClientset(resources...)
+			clientset := fake.NewClientset(resources...)
 
 			got, err := listPVCsByStorageClass(context.Background(), clientset, tt.scName)
 			require.NoError(t, err)

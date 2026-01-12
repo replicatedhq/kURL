@@ -100,7 +100,7 @@ func Test_runToolboxCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(tt.resources...)
+			clientset := fake.NewClientset(tt.resources...)
 
 			setToolboxExecFunc(tt.responses)
 			conf = &restclient.Config{} // set the rest client so that runToolboxCommand does not attempt to fetch it
@@ -185,7 +185,7 @@ func Test_startToolbox(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(tt.resources...)
+			clientset := fake.NewClientset(tt.resources...)
 			InitWriter(testWriter{t: t})
 
 			testCtx, cancelfunc := context.WithTimeout(context.Background(), time.Minute) // if your test takes more than 1m, there are issues
