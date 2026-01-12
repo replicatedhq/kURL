@@ -236,7 +236,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.New(io.Discard, "", 0)
-			kcli := fake.NewSimpleClientset(tt.objs...)
+			kcli := fake.NewClientset(tt.objs...)
 			ochecker := OpenEBSFreeDiskSpaceGetter{
 				deletePVTimeout: tt.timeout,
 				kcli:            kcli,
@@ -697,7 +697,7 @@ func Test_basePath(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			fakecli := fake.NewSimpleClientset(tt.objs...)
+			fakecli := fake.NewClientset(tt.objs...)
 			ochecker := OpenEBSFreeDiskSpaceGetter{
 				kcli:   fakecli,
 				scname: tt.scname,

@@ -237,7 +237,7 @@ func Test_waitForOkToRemoveOSD(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(append(runtimeFromPodlistJSON(testfiles.SixBlockDevicePods), runtimeFromDeploymentlistJSON(testfiles.Rook6OSDDeployments)...)...)
+			clientset := fake.NewClientset(append(runtimeFromPodlistJSON(testfiles.SixBlockDevicePods), runtimeFromDeploymentlistJSON(testfiles.Rook6OSDDeployments)...)...)
 			InitWriter(testWriter{t: t})
 
 			testCtx, cancelfunc := context.WithTimeout(context.Background(), time.Minute) // if your test takes more than 1m, there are issues

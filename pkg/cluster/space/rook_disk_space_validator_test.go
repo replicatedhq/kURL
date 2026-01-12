@@ -147,8 +147,8 @@ func TestRookCheck(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.New(io.Discard, "", 0)
-			rcli := rookfake.NewSimpleClientset(tt.rookObjects...)
-			kcli := fake.NewSimpleClientset(tt.coreObjects...)
+			rcli := rookfake.NewClientset(tt.rookObjects...)
+			kcli := fake.NewClientset(tt.coreObjects...)
 			freeSpaceGetter, err := NewRookFreeDiskSpaceGetter(kcli, rcli, "default")
 			if err != nil {
 				t.Fatalf("failed to create rook volume object: %s", err)
@@ -364,7 +364,7 @@ func Test_reservedSpace(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.objs...)
+			kcli := fake.NewClientset(tt.objs...)
 			rchecker := RookDiskSpaceValidator{srcSC: tt.srcSC, kcli: kcli}
 			result, err := rchecker.reservedSpace(context.Background())
 			if err != nil {

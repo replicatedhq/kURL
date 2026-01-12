@@ -95,7 +95,7 @@ func Test_getStorageClassByName(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			cli := fake.NewSimpleClientset(tt.objs...)
+			cli := fake.NewClientset(tt.objs...)
 			sc, err := getStorageClassByName(context.Background(), cli, tt.scname)
 			if err != nil {
 				if len(tt.err) == 0 {

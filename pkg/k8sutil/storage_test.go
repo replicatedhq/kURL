@@ -146,7 +146,7 @@ func TestPVSReservationPerNode(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.objs...)
+			kcli := fake.NewClientset(tt.objs...)
 			perNode, detached, err := PVSReservationPerNode(context.Background(), kcli, tt.scname)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -243,7 +243,7 @@ func TestPVCSForPVs(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.objs...)
+			kcli := fake.NewClientset(tt.objs...)
 			result, err := PVCSForPVs(context.Background(), kcli, tt.input)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -386,7 +386,7 @@ func TestPVSByStorageClass(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.objs...)
+			kcli := fake.NewClientset(tt.objs...)
 			result, err := PVSByStorageClass(context.Background(), kcli, tt.scname)
 			if err != nil {
 				if len(tt.err) == 0 {
