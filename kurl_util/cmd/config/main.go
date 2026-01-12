@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -276,7 +277,7 @@ func writeScript(filename string, script string) error {
 
 func runCommand(command string, args []string) error {
 	log.Printf("Running %s %v", command, args)
-	cmd := exec.Command(command, args...)
+	cmd := exec.CommandContext(context.Background(), command, args...)
 
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
