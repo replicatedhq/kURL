@@ -78,7 +78,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.sc)
+			kcli := fake.NewClientset(tt.sc)
 			rchecker := RookFreeDiskSpaceGetter{scname: tt.scname, kcli: kcli}
 			pname, cname, err := rchecker.getPoolAndClusterNames(context.Background())
 			if err != nil {
@@ -351,7 +351,7 @@ func TestGetFreeSpace(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			kcli := fake.NewSimpleClientset(tt.sc)
+			kcli := fake.NewClientset(tt.sc)
 			rcli := rookfake.NewSimpleClientset(tt.pool, tt.cluster)
 			rchecker := RookFreeDiskSpaceGetter{scname: tt.scname, kcli: kcli, rcli: rcli}
 			result, err := rchecker.GetFreeSpace(context.Background())

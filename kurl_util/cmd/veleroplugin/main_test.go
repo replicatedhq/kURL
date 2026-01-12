@@ -417,7 +417,7 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			clientset := fake.NewSimpleClientset(test.configMaps...)
+			clientset := fake.NewClientset(test.configMaps...)
 			p := &restoreKotsadmPlugin{
 				client: clientset,
 			}

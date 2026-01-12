@@ -50,7 +50,7 @@ func Test_countRookOSDs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(tt.resources...)
+			clientset := fake.NewClientset(tt.resources...)
 
 			gotHostpath, gotBlock, err := countRookOSDs(context.Background(), clientset)
 			req.NoError(err)
@@ -117,7 +117,7 @@ func Test_getRookOSDs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			clientset := fake.NewSimpleClientset(tt.resources...)
+			clientset := fake.NewClientset(tt.resources...)
 
 			rookOsds, err := getRookOSDs(context.Background(), clientset)
 			req.NoError(err)
