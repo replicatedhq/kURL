@@ -352,7 +352,7 @@ func TestGetFreeSpace(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			kcli := fake.NewClientset(tt.sc)
-			rcli := rookfake.NewClientset(tt.pool, tt.cluster)
+			rcli := rookfake.NewSimpleClientset(tt.pool, tt.cluster)
 			rchecker := RookFreeDiskSpaceGetter{scname: tt.scname, kcli: kcli, rcli: rcli}
 			result, err := rchecker.GetFreeSpace(context.Background())
 			if err != nil {

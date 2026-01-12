@@ -147,7 +147,7 @@ func TestRookCheck(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.New(io.Discard, "", 0)
-			rcli := rookfake.NewClientset(tt.rookObjects...)
+			rcli := rookfake.NewSimpleClientset(tt.rookObjects...)
 			kcli := fake.NewClientset(tt.coreObjects...)
 			freeSpaceGetter, err := NewRookFreeDiskSpaceGetter(kcli, rcli, "default")
 			if err != nil {
