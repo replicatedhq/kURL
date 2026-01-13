@@ -3964,7 +3964,7 @@ spec:
               fieldPath: spec.serviceAccountName
         - name: ANTREA_CONFIG_MAP_NAME
           value: antrea-config-2567tcm8ck
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.2.1
+        image: antrea/antrea-ubuntu:v1.2.1
         livenessProbe:
           failureThreshold: 5
           httpGet:
@@ -4176,7 +4176,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.2.1
+        image: antrea/antrea-ubuntu:v1.2.1
         livenessProbe:
           exec:
             command:
@@ -4236,7 +4236,7 @@ spec:
         - --log_file_max_num=4
         command:
         - start_ovs
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.2.1
+        image: antrea/antrea-ubuntu:v1.2.1
         livenessProbe:
           exec:
             command:
@@ -4270,7 +4270,7 @@ spec:
       initContainers:
       - command:
         - install_cni
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.2.1
+        image: antrea/antrea-ubuntu:v1.2.1
         name: install-cni
         resources:
           requests:

@@ -3835,7 +3835,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.serviceAccountName
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.1.0
+        image: antrea/antrea-ubuntu:v1.1.0
         livenessProbe:
           failureThreshold: 5
           httpGet:
@@ -4062,7 +4062,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.1.0
+        image: antrea/antrea-ubuntu:v1.1.0
         livenessProbe:
           exec:
             command:
@@ -4122,7 +4122,7 @@ spec:
         - --log_file_max_num=4
         command:
         - start_ovs
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.1.0
+        image: antrea/antrea-ubuntu:v1.1.0
         livenessProbe:
           exec:
             command:
@@ -4156,7 +4156,7 @@ spec:
       initContainers:
       - command:
         - install_cni
-        image: projects.registry.vmware.com/antrea/antrea-ubuntu:v1.1.0
+        image: antrea/antrea-ubuntu:v1.1.0
         name: install-cni
         resources:
           requests:
