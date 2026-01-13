@@ -710,8 +710,9 @@ sbom: sbom/assets/kurl-sbom.tgz
 		--key ./cosign.key \
 		--tlog-upload \
 		--yes \
-		--rekor-url=https://rekor.sigstore.dev \
-		sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
+		--rekor-url https://rekor.sigstore.dev \
+		--bundle ./sbom/assets/kurl-sbom.tgz.bundle \
+		sbom/assets/kurl-sbom.tgz 
 	cosign public-key --key ./cosign.key --outfile ./sbom/assets/key.pub
 
 .PHONY: tag-and-release
