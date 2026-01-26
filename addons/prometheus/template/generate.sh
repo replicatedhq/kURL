@@ -11,9 +11,23 @@ function get_latest_release_version() {
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 }
 
+function validate_version() {
+    local provided_version=$1
+    local chart_version=$2
+
+    local chart_app_version=$(helm show chart prometheus-community/kube-prometheus-stack --version "$chart_version" | \
+        grep -i "^appVersion" | \
+        grep -Eo "[0-9]\.[0-9]+\.[0-9]+")
+
+    if [ "$provided_version" != "$chart_app_version" ]; then
+        echo "Error: Provided VERSION ($provided_version) does not match appVersion ($chart_app_version) in chart version $chart_version"
+        exit 1
+    fi
+}
+
 function generate() {
-    local capabilities="--kube-version v1.22 -a networking.k8s.io/v1 -a rbac.authorization.k8s.io/v1 -a apiregistration.k8s.io/v1"
-    
+    local capabilities="--kube-version v1.25 -a networking.k8s.io/v1 -a rbac.authorization.k8s.io/v1 -a apiregistration.k8s.io/v1"
+
     # make the base set of files
     mkdir -p "../${VERSION}-${CHARTVERSION}"
     cp -r ./base/* "../${VERSION}-${CHARTVERSION}"
@@ -116,6 +130,7 @@ function main() {
     if [ -n "$version_flag" ]; then
         VERSION="$( echo "$version_flag" | cut -d'-' -f1 )"
         CHARTVERSION="$( echo "$version_flag" | cut -d'-' -f2 )"
+        validate_version "$VERSION" "$CHARTVERSION"
     else
         get_latest_release_version
     fi
