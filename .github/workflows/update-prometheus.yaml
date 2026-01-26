@@ -23,7 +23,7 @@ jobs:
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
         if [ -n "${{ inputs.version }}" ]; then
-          ./generate.sh --version ${{ inputs.version }}
+          ./generate.sh --version=${{ inputs.version }}
         else
           ./generate.sh
         fi
