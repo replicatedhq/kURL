@@ -1,8 +1,13 @@
 name: cron-prometheus-update
 on:
   schedule:
-  - cron: "0 1 * * 1" # “At 01:00 on Monday.”
-  workflow_dispatch: {}
+  - cron: "0 1 * * 1" # "At 01:00 on Monday."
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Prometheus version to generate in VERSION-CHARTVERSION format (e.g., 0.88.0-81.2.2)'
+        required: false
+        type: string
 
 jobs:
   build-pr-prometheus:
@@ -17,7 +22,11 @@ jobs:
       working-directory: ./addons/prometheus/template
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-        ./generate.sh
+        if [ -n "${{ inputs.version }}" ]; then
+          ./generate.sh --version ${{ inputs.version }}
+        else
+          ./generate.sh
+        fi
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v8.0.0
@@ -37,7 +46,7 @@ jobs:
         base: "main"
         body: |
           Automated changes by the [cron-prometheus-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-prometheus.yaml) GitHub action
-          
+
           ```release-note
           Adds [Prometheus add-on](https://kurl.sh/docs/add-ons/prometheus) version ${{ steps.update.outputs.prometheus_version }}.
           ```
