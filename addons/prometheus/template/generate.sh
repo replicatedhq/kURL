@@ -135,8 +135,6 @@ function main() {
         get_latest_release_version
     fi
 
-
-
     if [ -d "../${VERSION}-${CHARTVERSION}" ]; then
         if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of prometheus"
