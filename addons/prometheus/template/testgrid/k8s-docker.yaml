@@ -18,6 +18,7 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+    - rocky-9 # Pinned installer version v2024.07.02-0 does not support rocky 9.
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
@@ -79,6 +80,7 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # Pinned installer version v2024.07.02-0 does not support rocky 9.
 - name: "prometheus upgrade from latest"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
