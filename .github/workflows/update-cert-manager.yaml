@@ -1,0 +1,46 @@
+name: cron-cert-manager-update
+on:
+  schedule:
+  - cron: "0 1 * * 1" # "At 01:00 on Monday."
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-cert-manager:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Create Cert Manager Update
+      id: update
+      working-directory: ./addons/cert-manager/template
+      run: ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v8.0.0
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new Cert Manager version
+        title: 'Automated Cert Manager version update ${{ steps.update.outputs.cert_manager_version }}'
+        branch: automation/update-cert-manager
+        delete-branch: true
+        labels: |
+          automated-pr
+          cert-manager
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-cert-manager-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-cert-manager.yaml) GitHub action
+
+          ```release-note
+          Adds [Cert Manager add-on](https://kurl.sh/docs/add-ons/cert-manager) version ${{ steps.update.outputs.cert_manager_version }}.
+          ```
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
