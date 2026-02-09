@@ -721,9 +721,10 @@ module.exports.InstallerVersions = {
   ],
   certManager: [
     "1.0.3",
-    "1.9.1",
-    "1.13.2",
+    // cron-cert-manager-update
     "1.17.1",
+    "1.13.2",
+    "1.9.1",
   ],
   metricsServer: [
     // cron-metrics-server-update
