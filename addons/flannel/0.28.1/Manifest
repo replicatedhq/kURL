@@ -1,0 +1,2 @@
+image flannel-io-flannel ghcr.io/flannel-io/flannel:v0.28.1
+image flannel-io-flannel-cni-plugin ghcr.io/flannel-io/flannel-cni-plugin:v1.9.0-flannel1
