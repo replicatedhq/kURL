@@ -10,7 +10,7 @@ spec:
     spec:
       initContainers:
       - name: migrate-s3
-        image: kurlsh/s3cmd:20250714-271da6c
+        image: kurlsh/s3cmd:20251112-208b4d5
         imagePullPolicy: IfNotPresent
         command:
         - /migrate-s3.sh
