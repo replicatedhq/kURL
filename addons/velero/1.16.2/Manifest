@@ -2,8 +2,8 @@ image velero velero/velero:v1.16.2
 image velero-aws velero/velero-plugin-for-aws:v1.12.2
 image velero-gcp velero/velero-plugin-for-gcp:v1.12.2
 image velero-azure velero/velero-plugin-for-microsoft-azure:v1.12.2
-image local-volume-provider replicated/local-volume-provider:0.6.10
-image s3cmd kurlsh/s3cmd:20250714-271da6c
+image local-volume-provider replicated/local-volume-provider:0.6.11
+image s3cmd kurlsh/s3cmd:20251112-208b4d5
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.16.2/velero-v1.16.2-linux-amd64.tar.gz
 

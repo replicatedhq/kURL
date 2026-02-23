@@ -20,7 +20,6 @@ function get_latest_tag_version() {
     local version
 
     version=$(curl -fsSL "$url" | \
-        tac | tac | \
         grep -m1 '"name": "v' | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 
@@ -31,30 +30,41 @@ function get_s3cmd_tag() {
     S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
 }
 
+# Portable sed -i function that works on both macOS and Linux
+function sed_i() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS (BSD sed)
+        sed -i '' "$@"
+    else
+        # Linux (GNU sed)
+        sed -i "$@"
+    fi
+}
+
 function generate() {
     mkdir -p "../${VELERO_VERSION}"
     cp -r ./base/* "../${VELERO_VERSION}"
 
-    sed -i "s/__VELERO_VERSION__/$VELERO_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
-    sed -i "s/__AWS_PLUGIN_VERSION__/$AWS_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
-    sed -i "s/__AZURE_PLUGIN_VERSION__/$AZURE_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
-    sed -i "s/__GCP_PLUGIN_VERSION__/$GCP_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
-    sed -i "s/__LOCAL_VOLUME_PROVIDER_VERSION__/$LOCAL_VOLUME_PROVIDER_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
-    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__VELERO_VERSION__/$VELERO_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__AWS_PLUGIN_VERSION__/$AWS_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__AZURE_PLUGIN_VERSION__/$AZURE_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__GCP_PLUGIN_VERSION__/$GCP_PLUGIN_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__LOCAL_VOLUME_PROVIDER_VERSION__/$LOCAL_VOLUME_PROVIDER_VERSION/g" "../$VELERO_VERSION/Manifest.tmpl"
+    sed_i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VELERO_VERSION/Manifest.tmpl"
     mv "../$VELERO_VERSION/Manifest.tmpl" "../$VELERO_VERSION/Manifest"
 
-    sed -i "s/__AWS_PLUGIN_VERSION__/$AWS_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
-    sed -i "s/__AZURE_PLUGIN_VERSION__/$AZURE_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
-    sed -i "s/__GCP_PLUGIN_VERSION__/$GCP_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
-    sed -i "s/__LOCAL_VOLUME_PROVIDER_VERSION__/$LOCAL_VOLUME_PROVIDER_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
+    sed_i "s/__AWS_PLUGIN_VERSION__/$AWS_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
+    sed_i "s/__AZURE_PLUGIN_VERSION__/$AZURE_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
+    sed_i "s/__GCP_PLUGIN_VERSION__/$GCP_PLUGIN_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
+    sed_i "s/__LOCAL_VOLUME_PROVIDER_VERSION__/$LOCAL_VOLUME_PROVIDER_VERSION/g" "../$VELERO_VERSION/install.tmpl.sh"
     mv "../$VELERO_VERSION/install.tmpl.sh" "../$VELERO_VERSION/install.sh"
 
-    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VELERO_VERSION/tmpl-s3-migration-deployment-patch.yaml"
+    sed_i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VELERO_VERSION/tmpl-s3-migration-deployment-patch.yaml"
 }
 
 function add_as_latest() {
     if ! sed '0,/cron-velero-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VELERO_VERSION}" ; then
-        sed -i "/cron-velero-update/a\    \"${VELERO_VERSION}\"\," ../../../web/src/installers/versions.js
+        sed_i "/cron-velero-update/a\    \"${VELERO_VERSION}\"\," ../../../web/src/installers/versions.js
     fi
 }
 
