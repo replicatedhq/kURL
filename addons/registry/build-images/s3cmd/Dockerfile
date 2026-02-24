@@ -1,10 +1,9 @@
-FROM alpine:3.16
+FROM alpine:3
 
 RUN apk add --no-cache \
     ca-certificates \
     py-dateutil \
-    py-magic \
-  && ln -s /usr/bin/python3 /usr/bin/python
+    py-magic
 
 # Install s3cmd
 RUN S3CMD_VERSION=$(wget -qO- https://api.github.com/repos/s3tools/s3cmd/releases/latest | \
