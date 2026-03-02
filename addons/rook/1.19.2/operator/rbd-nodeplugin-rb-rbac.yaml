@@ -1,0 +1,21 @@
+# Source: rook-ceph/charts/ceph-csi-operator/templates/rbd-nodeplugin-rb-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ceph-csi-rbd-nodeplugin-rb
+  namespace: rook-ceph
+  labels:
+    helm.sh/chart: ceph-csi-operator-0.5.0
+    app.kubernetes.io/name: ceph-csi
+    app.kubernetes.io/instance: replaceme
+    app.kubernetes.io/version: "v0.5.0"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: 'ceph-csi-rbd-nodeplugin-r'
+subjects:
+- kind: ServiceAccount
+  name: 'ceph-csi-rbd-nodeplugin-sa'
+  namespace: 'rook-ceph'
+---
