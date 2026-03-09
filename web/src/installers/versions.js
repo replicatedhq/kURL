@@ -650,6 +650,7 @@ module.exports.InstallerVersions = {
   minio: [
     // cron-minio-update
     "2025-10-15T17-29-55Z",
+    "2025-10-15T17-29-55Z",
     "2025-09-07T16-13-09Z",
     "2025-07-23T15-54-02Z",
     "2025-02-18T16-25-55Z",
