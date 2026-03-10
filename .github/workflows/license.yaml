@@ -7,7 +7,7 @@ on:
       - '.claude/**'
 
 env:
-  TRIVY_VERSION: 0.44.1
+  TRIVY_VERSION: 0.69.3
 
 name: License scan
 
