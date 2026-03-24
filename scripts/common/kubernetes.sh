@@ -72,7 +72,7 @@ function kubernetes_load_ipvs_modules() {
         { [ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]; } || \
         {
             { [ "$LSB_DIST" = "ol" ] || [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "centos" ] || [ "$LSB_DIST" = "rocky" ]; } && \
-            { [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ]; }; \
+            { [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "10" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ]; }; \
         }; then
         mod_nf_conntrack="nf_conntrack"
     fi

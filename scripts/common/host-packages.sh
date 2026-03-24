@@ -39,7 +39,7 @@ function _install_host_packages() {
             ;;
 
         centos|rhel|ol|rocky)
-            if [ "$DIST_VERSION_MAJOR" = "9" ]; then
+            if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "10" ]; then
                 _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
             else
                 _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -164,7 +164,7 @@ function yum_install_host_archives() {
     local dir="$1"
     local dir_prefix="/archives"
     local packages=("${@:2}")
-    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
+    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "10" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
         _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
     else
         _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -175,7 +175,7 @@ function yum_install_host_packages() {
     local dir="$1"
     local dir_prefix=""
     local packages=("${@:2}")
-    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
+    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "10" ] || [ "$DIST_VERSION_MAJOR" = "2023" ]; then
         _yum_install_host_packages_el9 "$dir" "$dir_prefix" "${packages[@]}"
     else
         _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -322,7 +322,7 @@ function _yum_get_host_packages_path() {
         fi
     fi
 
-    if [ "$DIST_VERSION_MAJOR" = "9" ]; then
+    if [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MAJOR" = "10" ]; then
         echo "$(realpath "${dir}")/rhel-9${dir_prefix}"
     elif [ "$DIST_VERSION_MAJOR" = "2023" ]; then
         echo "$(realpath "${dir}")/amazon-2023${dir_prefix}"
@@ -350,9 +350,9 @@ function host_packages_shipped() {
     return 1
 }
 
-# is_rhel_9_variant returns 0 if the current distro is RHEL 9 or a derivative
+# is_rhel_9_variant returns 0 if the current distro is RHEL 9 (or 10) or a derivative
 function is_rhel_9_variant() {
-    if [ "$DIST_VERSION_MAJOR" != "9" ]; then
+    if [ "$DIST_VERSION_MAJOR" != "9" ] && [ "$DIST_VERSION_MAJOR" != "10" ]; then
         return 1
     fi
 
