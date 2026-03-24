@@ -30,9 +30,7 @@ build:
 
 .PHONY: scan
 scan:
-	grype $(IMAGE)-$(DATE)-$(GIT_SHA) \
-		--fail-on high \
-		--only-fixed
+	syft $(IMAGE)-$(DATE)-$(GIT_SHA) -o syft-json --select-catalogers "os" | grype --fail-on high --only-fixed
 
 .PHONY: push
 push:
@@ -41,3 +39,4 @@ push:
 .PHONY: deps
 deps:
 	curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+	curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin

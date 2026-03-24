@@ -38,18 +38,18 @@ jobs:
           sparse-checkout: .grype.yaml
           sparse-checkout-cone-mode: false
 
-      - name: "Scan image"
+      - name: Install Syft
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Install Grype
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: "Scan image (OS vulnerabilities only)"
         id: scan
-        uses: anchore/scan-action@v7
         continue-on-error: ${{ ! matrix.maintainer }}
-        with:
-          image: ${{ matrix.image }}
-          fail-build: "true"
-          severity-cutoff: high
-          only-fixed: "true"
-          output-format: json
-          output-file: grype.json
-          config: .grype.yaml
+        run: |
+          syft ${{ matrix.image }} -o syft-json --select-catalogers "os" > sbom.json
+          grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o json > grype.json
 
       - name: "Upload artifact"
         uses: actions/upload-artifact@v6
@@ -60,15 +60,8 @@ jobs:
 
       - name: "Display results"
         if: ${{ always() && steps.scan.outcome == 'failure' }}
-        uses: anchore/scan-action@v7
         continue-on-error: ${{ ! matrix.maintainer }}
-        with:
-          image: ${{ matrix.image }}
-          fail-build: "true"
-          severity-cutoff: high
-          only-fixed: "true"
-          output-format: table
-          config: .grype.yaml
+        run: grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o table
 
   collect-results:
     needs: scan-images
