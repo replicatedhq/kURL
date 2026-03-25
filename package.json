@@ -8,7 +8,7 @@
   "private": true,
   "dependencies": {
     "aws-sdk": "^2.1693.0",
-    "gaze-run-interrupt": "^2.0.0",
+    "chokidar": "^3.6.0",
     "semver": "^7.7.3"
   }
 }

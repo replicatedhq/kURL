@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const gri = require('gaze-run-interrupt');
+const chokidar = require('chokidar');
+const { spawn } = require('child_process');
 
 if (!process.env.REMOTES) {
   console.log("Usage: `REMOTES='user@h1.1.1.1,user@1.1.1.2' ./watchrsync.js`");
@@ -46,7 +47,48 @@ commands.push({
   args: ["synced"],
 });
 
-gri([
+let currentProcess = null;
+let shouldRestart = false;
+let isRunning = false;
+
+async function runSequence() {
+  isRunning = true;
+  shouldRestart = false;
+
+  for (const cmd of commands) {
+    if (shouldRestart) break;
+
+    await new Promise((resolve) => {
+      currentProcess = spawn(cmd.command, cmd.args, { stdio: 'inherit' });
+      currentProcess.on('close', () => {
+        currentProcess = null;
+        resolve();
+      });
+      currentProcess.on('error', () => {
+        currentProcess = null;
+        resolve();
+      });
+    });
+  }
+
+  isRunning = false;
+
+  if (shouldRestart) {
+    runSequence();
+  }
+}
+
+function onChange() {
+  shouldRestart = true;
+  if (currentProcess) {
+    currentProcess.kill();
+  }
+  if (!isRunning) {
+    runSequence();
+  }
+}
+
+chokidar.watch([
   'scripts/**/*',
   'addons/**/*',
-], commands);
+], { ignoreInitial: true }).on('all', onChange);
