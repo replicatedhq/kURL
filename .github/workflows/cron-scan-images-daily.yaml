@@ -52,7 +52,7 @@ jobs:
           grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o json > grype.json
 
       - name: "Upload artifact"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: ${{ always() && steps.scan.outcome == 'failure' }}
         with:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
@@ -69,14 +69,14 @@ jobs:
     if: ${{ failure() }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: scan-results/
       - name: Collect results
         run: |
           jq -s '.' scan-results/*/grype.json > grype.json
       - name: "Upload artifact"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: grype results
           path: grype.json
