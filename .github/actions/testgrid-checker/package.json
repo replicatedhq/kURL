@@ -12,12 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "^1.9.1",
-    "@actions/github": "^6.0.0",
-    "@actions/http-client": "^2.0.1",
-    "@octokit/auth-app": "^8.0.1",
-    "@octokit/graphql": "^9.0.1",
-    "@octokit/rest": "^21.1.1",
-    "@vercel/ncc": "^0.33.4"
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0",
+    "@actions/http-client": "^4.0.0",
+    "@octokit/auth-app": "^8.2.0",
+    "@octokit/graphql": "^9.0.3",
+    "@octokit/rest": "^22.0.1",
+    "@vercel/ncc": "^0.38.4"
   }
 }
