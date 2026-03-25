@@ -36,11 +36,6 @@ var getImages = rootDir => {
             if (!fs.existsSync(manifestFile)) {
                 return;
             }
-            const trivyignoreFile = `${rootDir}/${addon}/${version}/.trivyignore.rego`;
-            let trivyignore = '';
-            if (fs.existsSync(trivyignoreFile)) {
-                trivyignore = Buffer.from(fs.readFileSync(trivyignoreFile, 'utf-8')).toString('base64'); // remove newlines
-            }
             fs.readFileSync(manifestFile, 'utf-8').split(/\r?\n/).forEach((line) => {
                 const parts = line.split(' ');
                 if (parts[0] !== 'image') {
@@ -60,7 +55,6 @@ var getImages = rootDir => {
                     version: version,
                     name: name,
                     image: imageName,
-                    trivyignore: trivyignore,
                     maintainer: maintainer,
                 };
                 images.push(image);
