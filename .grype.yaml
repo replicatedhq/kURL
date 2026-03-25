@@ -1,0 +1,5 @@
+ignore:
+  - vulnerability: CVE-2021-20277
+    package:
+      name: libldb
+      version: 1.5.4-2.el7

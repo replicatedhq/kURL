@@ -32,39 +32,36 @@ jobs:
       fail-fast: false
       max-parallel: 5
     steps:
-      - name: "Write Trivy ignore file"
-        run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
-      - name: "Generate artifact"
-        id: trivy
-        uses: aquasecurity/trivy-action@0.34.1
-        continue-on-error: ${{ ! matrix.maintainer }}
+      - name: Checkout for Grype config
+        uses: actions/checkout@v6
         with:
-          image-ref: ${{ matrix.image }}
-          vuln-type: 'os'
-          format: 'json'
-          output: 'trivy.json'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
-          ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
-          exit-code: '1'
+          sparse-checkout: .grype.yaml
+          sparse-checkout-cone-mode: false
+
+      - name: Install Syft
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Install Grype
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: "Scan image (OS vulnerabilities only)"
+        id: scan
+        continue-on-error: ${{ ! matrix.maintainer }}
+        run: |
+          syft ${{ matrix.image }} -o syft-json --select-catalogers "os" > sbom.json
+          grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o json > grype.json
+
       - name: "Upload artifact"
         uses: actions/upload-artifact@v6
-        if: ${{ always() && steps.trivy.outcome == 'failure' }}
+        if: ${{ always() && steps.scan.outcome == 'failure' }}
         with:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
-          path: trivy.json
+          path: grype.json
+
       - name: "Display results"
-        uses: aquasecurity/trivy-action@0.34.1
-        if: ${{ always() && steps.trivy.outcome == 'failure' }}
+        if: ${{ always() && steps.scan.outcome == 'failure' }}
         continue-on-error: ${{ ! matrix.maintainer }}
-        with:
-          image-ref: ${{ matrix.image }}
-          vuln-type: 'os'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
-          ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
-          exit-code: '1'
+        run: grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o table
 
   collect-results:
     needs: scan-images
@@ -77,9 +74,9 @@ jobs:
           path: scan-results/
       - name: Collect results
         run: |
-          jq -s '.' scan-results/*/trivy.json > trivy.json
+          jq -s '.' scan-results/*/grype.json > grype.json
       - name: "Upload artifact"
         uses: actions/upload-artifact@v6
         with:
-          name: trivy results
-          path: trivy.json
+          name: grype results
+          path: grype.json

@@ -30,13 +30,7 @@ build:
 
 .PHONY: scan
 scan:
-	trivy image \
-		--exit-code=1 \
-		--severity="HIGH,CRITICAL" \
-		--ignore-unfixed \
-		--ignore-policy=.trivyignore.rego \
-		--vuln-type=os \
-		$(IMAGE)-$(DATE)-$(GIT_SHA)
+	syft $(IMAGE)-$(DATE)-$(GIT_SHA) -o syft-json --select-catalogers "os" | grype --fail-on high --only-fixed
 
 .PHONY: push
 push:
@@ -44,4 +38,5 @@ push:
 
 .PHONY: deps
 deps:
-	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+	curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+	curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin

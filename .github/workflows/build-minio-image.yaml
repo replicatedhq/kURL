@@ -88,22 +88,22 @@ jobs:
           readme-filepath: ./addons/minio/build-images/minio/README.md
           short-description: "MinIO object storage built from source (AGPL v3)"
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Grype vulnerability scanner
         if: steps.check.outputs.exists == 'false'
-        uses: aquasecurity/trivy-action@0.34.1
+        uses: anchore/scan-action@v7
         with:
-          image-ref: kurlsh/minio:${{ steps.version.outputs.minio_version }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
-          ignore-unfixed: true
+          image: kurlsh/minio:${{ steps.version.outputs.minio_version }}
+          fail-build: "true"
+          severity-cutoff: high
+          only-fixed: "true"
+          output-format: sarif
+          output-file: grype-results.sarif
 
-      - name: Upload Trivy results to GitHub Security
+      - name: Upload Grype results to GitHub Security
         if: steps.check.outputs.exists == 'false' && always()
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: grype-results.sarif
 
       - name: Output summary
         run: |
