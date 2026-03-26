@@ -12,10 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "^1.9.1",
-    "@actions/exec": "^1.1.1",
-    "@actions/github": "^6.0.0",
-    "@actions/http-client": "^2.0.1",
+    "@actions/core": "^3.0.0",
+    "@actions/exec": "^3.0.0",
+    "@actions/http-client": "^4.0.0",
     "@vercel/ncc": "^0.34.0",
     "semver": "^7.5.2"
   },
