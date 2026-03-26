@@ -13,8 +13,8 @@ describe("findLatestAddonVersions", () => {
         expect(versions["weave"][0]).to.match(/2.8.1-\d{8}/);;
     });
 
-    it("resolves correct kotsadm version", async () => {
-        expect(versions["kotsadm"][0]).to.match(/\d+\.\d+\.\d+/);;
+    it("resolves correct ekco version", async () => {
+        expect(versions["ekco"][0]).to.match(/\d+\.\d+\.\d+/);;
     });
 
     it("resolves correct minio version", async () => {
