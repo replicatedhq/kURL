@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const semverCompare = require('semver/functions/rcompare')
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const installerVersions = require("../web/src/installers/versions");
 
 const ID = process.env.AWS_ACCESS_KEY_ID;
@@ -10,35 +10,31 @@ const BUCKET_NAME = process.env.S3_BUCKET;
 const FOLDER = process.env.DIST_FOLDER;
 const VERSION_TAG = process.env.VERSION_TAG;
 
-const s3 = new AWS.S3({
-  accessKeyId: ID,
-  secretAccessKey: SECRET
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  credentials: { accessKeyId: ID, secretAccessKey: SECRET }
 });
 
-const uploadFile = (file) => {
+const uploadFile = async (file) => {
   const fileName = file.split("/")[1];
   const fileContent = fs.readFileSync(file);
 
   let params = {
     Bucket: BUCKET_NAME,
-    Key:  FOLDER + "/" + VERSION_TAG + "/" + fileName,
+    Key: FOLDER + "/" + VERSION_TAG + "/" + fileName,
     Body: fileContent
   };
-  s3.upload(params, (err, data) => {
-    if (err) throw err;
-    console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + data.Location);
-  });
+  await s3Client.send(new PutObjectCommand(params));
+  console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + params.Key);
 
   params = {
     Bucket: BUCKET_NAME,
-    Key:  FOLDER + "/" + fileName,
+    Key: FOLDER + "/" + fileName,
     Body: fileContent
   };
-  s3.upload(params, (err, data) => {
-    if (err) throw err;
-    console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + data.Location);
-  });
-}
+  await s3Client.send(new PutObjectCommand(params));
+  console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + params.Key);
+};
 
 const preferredVersions = installerVersions.InstallerVersions;
 let addons = [];
@@ -118,20 +114,20 @@ fs.readdir(specDir, (err, files) => {
   }
 
   // Write finalized JSON files
-  fs.writeFile("./addons-gen.json", JSON.stringify(addonsFile), (err) => {
+  fs.writeFile("./addons-gen.json", JSON.stringify(addonsFile), async (err) => {
     if (err) throw err;
     console.log("\x1b[34m%s\x1b[0m", "Add-ons generated:", addonsFile.addOns.length);
     console.log("\x1b[32m%s\x1b[0m", "Successfully generated addons-gen.json");
 
     // Upload files to s3
-    uploadFile("./addons-gen.json");
+    await uploadFile("./addons-gen.json");
   });
-  fs.writeFile("./supported-versions-gen.json", JSON.stringify(supportVersionsFile), (err) => {
+  fs.writeFile("./supported-versions-gen.json", JSON.stringify(supportVersionsFile), async (err) => {
     if (err) throw err;
     console.log("\x1b[32m%s\x1b[0m", "Successfully generated supported-versions-gen.json");
 
     // Upload files to s3
-    uploadFile("./supported-versions-gen.json");
+    await uploadFile("./supported-versions-gen.json");
   });
 
 });
