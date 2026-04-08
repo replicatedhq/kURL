@@ -107,11 +107,22 @@ function kubernetes_load_ipv4_modules() {
         return 0
     fi
 
-    if ! lsmod | grep -q ^ip_tables ; then
+    # Prefer ip_tables (legacy); fall back to nf_tables on newer kernels
+    local iptables_module=
+    if lsmod | grep -q ^ip_tables ; then
+        iptables_module="ip_tables"
+    elif modprobe ip_tables 2>/dev/null ; then
         echo "Adding kernel module ip_tables"
-        modprobe ip_tables
+        iptables_module="ip_tables"
+    elif lsmod | grep -q ^nf_tables ; then
+        iptables_module="nf_tables"
+    elif modprobe nf_tables 2>/dev/null ; then
+        echo "Adding kernel module nf_tables"
+        iptables_module="nf_tables"
+    else
+        bail "Failed to load ip_tables or nf_tables kernel module"
     fi
-    echo "ip_tables" > /etc/modules-load.d/99-replicated-ipv4.conf
+    echo "$iptables_module" > /etc/modules-load.d/99-replicated-ipv4.conf
 
     echo "net.bridge.bridge-nf-call-iptables = 1" > /etc/sysctl.d/99-replicated-ipv4.conf
     echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv4.conf
@@ -128,11 +139,22 @@ function kubernetes_load_ipv6_modules() {
         return 0
     fi
 
-    if ! lsmod | grep -q ^ip6_tables ; then
+    # Prefer ip6_tables (legacy); fall back to nf_tables on newer kernels
+    local ip6tables_module=
+    if lsmod | grep -q ^ip6_tables ; then
+        ip6tables_module="ip6_tables"
+    elif modprobe ip6_tables 2>/dev/null ; then
         echo "Adding kernel module ip6_tables"
-        modprobe ip6_tables
+        ip6tables_module="ip6_tables"
+    elif lsmod | grep -q ^nf_tables ; then
+        ip6tables_module="nf_tables"
+    elif modprobe nf_tables 2>/dev/null ; then
+        echo "Adding kernel module nf_tables"
+        ip6tables_module="nf_tables"
+    else
+        bail "Failed to load ip6_tables or nf_tables kernel module"
     fi
-    echo "ip6_tables" > /etc/modules-load.d/99-replicated-ipv6.conf
+    echo "$ip6tables_module" > /etc/modules-load.d/99-replicated-ipv6.conf
 
     echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/99-replicated-ipv6.conf
     echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv6.conf
