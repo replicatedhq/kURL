@@ -135,10 +135,6 @@ function flannel() {
        sed -i 's/  - path:/  -/' "$dst/kustomization.yaml"
     fi
 
-    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
-    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
-    kubernetes_kustomize_config_migrate "$dst"
-
     flannel_render_config
 
     if flannel_weave_conflict; then
@@ -207,12 +203,22 @@ function flannel_render_config() {
 
     if [ "$FLANNEL_ENABLE_IPV6" = "true" ] && [ -n "$POD_CIDR_IPV6" ]; then
         render_yaml_file_2 "$src/template/ipv6.patch.tmpl.yaml" > "$dst/ipv6.patch.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" ipv6.patch.yaml
+        cat >> "$dst/kustomization.yaml" <<EOF
+  - path: ipv6.patch.yaml
+EOF
     fi
 
     if [ -n "$FLANNEL_IFACE" ]; then
         render_yaml_file_2 "$src/template/iface.patch.tmpl.yaml" > "$dst/iface.patch.yaml"
-        insert_patches_json_6902 "$dst/kustomization.yaml" iface.patch.yaml apps v1 DaemonSet kube-flannel-ds kube-flannel
+        cat >> "$dst/kustomization.yaml" <<EOF
+  - path: iface.patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: kube-flannel-ds
+      namespace: kube-flannel
+EOF
     fi
 }
 
