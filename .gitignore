@@ -26,5 +26,21 @@ packages/*/*/ubuntu-*
 sbom/
 
 
-# ide 
+# ide
 .vscode
+
+# ai/editor metadata
+.claude
+.opencode
+.cursor
+.aider*
+.continue
+.codeium
+CLAUDE.md
+AGENTS.md
+.repomixignore
+
+# local workflow
+plans/
+docs/
+release-manifest.json

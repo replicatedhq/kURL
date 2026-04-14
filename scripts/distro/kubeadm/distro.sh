@@ -180,14 +180,20 @@ function kubeadm_registry_containerd_configure() {
         echo "$registry_ip $server" >> /etc/hosts
     fi
 
-    if grep -Fq "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
+    local hosts_toml="/etc/containerd/certs.d/${server}/hosts.toml"
+    if [ -f "$hosts_toml" ]; then
         echo "Registry ${server} TLS already configured for containerd"
         return 0
     fi
 
-    cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".registry.configs."${server}".tls]
-  ca_file = "/etc/kubernetes/pki/ca.crt"
+    # Use hosts.toml per-registry config — works for containerd 1.5+ and 2.x.
+    # The old inline registry.configs approach was removed in containerd 2.0.
+    mkdir -p "/etc/containerd/certs.d/${server}"
+    cat > "$hosts_toml" <<EOF
+server = "https://${server}"
+
+[host."https://${server}"]
+  ca = ["/etc/kubernetes/pki/ca.crt"]
 EOF
 
     CONTAINERD_NEEDS_RESTART=1

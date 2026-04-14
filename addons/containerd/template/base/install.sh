@@ -169,6 +169,8 @@ function containerd_configure() {
     sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
     sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
     sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
+    # Ensure containerd reads per-registry hosts.toml files (required for 1.x; no-op on 2.x which already sets this)
+    sed -i 's|config_path = ""|config_path = "/etc/containerd/certs.d"|' /etc/containerd/config.toml
     cat >> /etc/containerd/config.toml <<EOF
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
   SystemdCgroup = true
