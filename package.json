@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1018.0",
+    "@aws-sdk/client-s3": "^3.1021.0",
     "chokidar": "^3.6.0",
     "semver": "^7.7.4"
   }
