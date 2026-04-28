@@ -1134,8 +1134,8 @@ github.com/replicatedhq/pvmigrate v0.12.3 h1:aUV+aWfeePrkHE7hHFkAg3HvuOL1ueSnUxW
 github.com/replicatedhq/pvmigrate v0.12.3/go.mod h1:cKhKakLGbU50i/OEC5mPTyKwbZAwhyKdQQfGZIBVMPQ=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
-github.com/replicatedhq/troubleshoot v0.127.0 h1:vyKrZB5uovJOebfPdVTJ10xn1+c/Fep3Xrh3jIHpxqo=
-github.com/replicatedhq/troubleshoot v0.127.0/go.mod h1:jnhdzjWVEJwpBKA0z3WlV2L6a8bkUvDYlrlOKci2DKk=
+github.com/replicatedhq/troubleshoot v0.127.1 h1:p6e4lbH71V/ne4zcS+Wbq6lgoVWKrPj8thPQYLzadUE=
+github.com/replicatedhq/troubleshoot v0.127.1/go.mod h1:fc0oCQlL561Nm60PAcFoy4Z9/YYcp3mhkRbZRo1cZWo=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-charset v0.0.0-20180617210344-2471d30d28b4/go.mod h1:qgYeAmZ5ZIpBWTGllZSQnw97Dj+woV0toclVaRGI8pc=
