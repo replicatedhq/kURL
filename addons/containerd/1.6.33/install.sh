@@ -169,6 +169,17 @@ function containerd_configure() {
     sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
     sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
     sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
+    # Ensure containerd reads per-registry hosts.toml files (required for 1.x; no-op on 2.x which already sets this)
+    sed -i 's|config_path = ""|config_path = "/etc/containerd/certs.d"|' /etc/containerd/config.toml
+
+    # for local transfer service in 2.x
+    sed -i "s|config_path = ''|config_path = '/etc/containerd/certs.d'|" /etc/containerd/config.toml
+
+    # Strip the colon-separated suffix that containerd v2.x `config default` generates.
+    # io.containerd.transfer.v1.local (the pull path when use_local_image_pull=false) silently
+    # ignores colon-separated config_path values and never reads hosts.toml as a result.
+    # https://github.com/containerd/containerd/issues/12415
+    sed -i "s|config_path = '/etc/containerd/certs\.d:/etc/docker/certs\.d'|config_path = '/etc/containerd/certs.d'|" /etc/containerd/config.toml
     cat >> /etc/containerd/config.toml <<EOF
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
   SystemdCgroup = true
