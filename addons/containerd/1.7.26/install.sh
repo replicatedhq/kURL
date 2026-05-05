@@ -166,9 +166,17 @@ function containerd_configure() {
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
 
+    # Remove old-style systemd_cgroup key (containerd < 1.4)
     sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
-    sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
+    # Enable SystemdCgroup for runc — works for both containerd 1.x and 2.x plugin names
+    # since the key lives under [plugins."<cri-plugin>".containerd.runtimes.runc.options]
+    # in both config versions.
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
     sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
+
+    # Ensure the hosts.toml config directory exists before containerd restarts
+    mkdir -p /etc/containerd/certs.d
+
     # Ensure containerd reads per-registry hosts.toml files (required for 1.x; no-op on 2.x which already sets this)
     sed -i 's|config_path = ""|config_path = "/etc/containerd/certs.d"|' /etc/containerd/config.toml
 
@@ -180,10 +188,6 @@ function containerd_configure() {
     # ignores colon-separated config_path values and never reads hosts.toml as a result.
     # https://github.com/containerd/containerd/issues/12415
     sed -i "s|config_path = '/etc/containerd/certs\.d:/etc/docker/certs\.d'|config_path = '/etc/containerd/certs.d'|" /etc/containerd/config.toml
-    cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-  SystemdCgroup = true
-EOF
     local pause_image=
     pause_image="$(containerd_kubernetes_pause_image)"
     if [ -n "$pause_image" ]; then
