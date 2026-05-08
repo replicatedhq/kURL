@@ -88,10 +88,8 @@ function list_all_objects() {
 
 function cleanup_prefix() {
     local prefix="$1"
-    local description="$2"
-    local exclude_root="$3"
 
-    echo "cleaning up old $description"
+    echo "cleaning up old objects for prefix '$prefix'"
 
     local objects
     objects=$(list_all_objects "$S3_BUCKET" "$prefix")
@@ -106,11 +104,11 @@ function cleanup_prefix() {
     echo "found $count_all total objects for prefix $prefix"
 
     local keys_to_delete
-    keys_to_delete=$(echo "$objects" | jq -r "
-        map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo))
+    keys_to_delete=$(echo "$objects" | jq -r --arg prefix "$prefix" '
+        map(select(.LastModified | .[0:19] + "Z" | fromdateiso8601 < '"$monthAgo"'))
         | map(.Key)
-        $exclude_root
-    ")
+        | map(select(. != $prefix))
+    ')
 
     if [ "$keys_to_delete" = "[]" ] || [ -z "$keys_to_delete" ]; then
         echo "no old objects to delete for prefix $prefix"
@@ -121,15 +119,17 @@ function cleanup_prefix() {
     count=$(echo "$keys_to_delete" | jq 'length')
     echo "found $count objects to delete for prefix $prefix"
 
-    # Batch delete in chunks of 1000 (AWS limit for delete-objects)
     echo "$keys_to_delete" | \
         jq -c '. as $a | [range(0; length; 1000) | $a[.:.+1000]] | .[]' | \
         while read -r batch; do
             delete_objects_batch "$S3_BUCKET" "$batch" || exit 1
         done
 
-    echo "finished deleting old $description"
+    echo "finished deleting old objects for prefix '$prefix'"
 }
 
-cleanup_prefix "staging/v20" "staging releases"
-cleanup_prefix "pr/" "PR files" '| map(select(. != "pr/"))'
+echo "cleaning up old staging releases"
+cleanup_prefix "staging/v20"
+
+echo "cleaning up old PR files"
+cleanup_prefix "pr/"
