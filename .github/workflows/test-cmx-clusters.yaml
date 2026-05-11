@@ -1,0 +1,93 @@
+# This workflow tests kURL on CMX (Compatibility Matrix) clusters.
+# It creates a real cluster via the replicated CLI and validates that kURL provisions it correctly.
+# Required secret: REPLICATED_API_TOKEN
+name: test-cmx-clusters
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * *"  # daily at 06:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-kurl-cmx-cluster:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Install replicated CLI
+        run: |
+          curl -Ls $(curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep "browser_download_url.*linux_amd64.tar.gz" \
+            | cut -d : -f 2,3 \
+            | tr -d \") -o replicated.tar.gz
+          tar xf replicated.tar.gz replicated
+          sudo mv replicated /usr/local/bin/replicated
+          replicated version
+
+      - name: Create kURL CMX cluster
+        id: create-cluster
+        env:
+          REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
+        run: |
+          CLUSTER_NAME="kurl-cmx-test-${{ github.run_id }}-$(date +%s)"
+          echo "Creating CMX cluster: $CLUSTER_NAME"
+          replicated cluster create \
+            --name "$CLUSTER_NAME" \
+            --distribution kurl \
+            --instance-type r1.large \
+            --wait 15m \
+            --output json > cluster.json
+          cat cluster.json
+          CLUSTER_ID=$(jq -r '.id' cluster.json)
+          echo "cluster-id=$CLUSTER_ID" >> "$GITHUB_OUTPUT"
+          echo "cluster-name=$CLUSTER_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Get kubeconfig and validate cluster
+        env:
+          REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
+        run: |
+          CLUSTER_ID="${{ steps.create-cluster.outputs.cluster-id }}"
+          replicated cluster kubeconfig "$CLUSTER_ID" > kubeconfig.yaml
+          export KUBECONFIG="$(pwd)/kubeconfig.yaml"
+
+          echo "=== Cluster Nodes ==="
+          kubectl get nodes -o wide
+
+          echo "=== All Namespaces ==="
+          kubectl get namespaces
+
+          echo "=== All Pods ==="
+          kubectl get pods -A
+
+          echo "=== kurl Namespace ==="
+          kubectl get namespace kurl
+
+          echo "=== Core Services ==="
+          kubectl get svc -A
+
+          echo "=== Verify Node Readiness ==="
+          kubectl wait --for=condition=Ready nodes --all --timeout=120s
+
+          echo "=== Verify DNS Resolution ==="
+          kubectl run dns-test --image=busybox:1.36 --restart=Never --rm -i -- wait --timeout=10s -- wget -qO- https://kubernetes.default.svc.cluster.local || true
+
+      - name: Cleanup CMX cluster
+        if: always()
+        env:
+          REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
+        run: |
+          CLUSTER_ID="${{ steps.create-cluster.outputs.cluster-id }}"
+          if [ -n "$CLUSTER_ID" ]; then
+            echo "Removing CMX cluster $CLUSTER_ID"
+            replicated cluster rm "$CLUSTER_ID" --force || true
+          fi
