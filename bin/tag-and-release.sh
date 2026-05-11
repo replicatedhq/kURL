@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# DEPRECATED: This script is deprecated in favor of release-please.
+# See .github/workflows/release-please.yaml for the automated release process.
+# Manual releases should not be necessary. This script is kept for emergency use only.
+#
 # This script generates a tag in the format, <YYYY>.<MM>.<DD>-0, and pushes the tag to origin in
 # order to trigger the deploy-prod workflow.
 # Note: This script is called from the makefile target 'tag-and-release'

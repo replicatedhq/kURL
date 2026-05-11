@@ -205,7 +205,7 @@ jobs:
           "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
 
 
-  github-release:
+  upload-sbom:
     runs-on: ubuntu-24.04
     needs:
     - set-current-version
@@ -223,52 +223,8 @@ jobs:
       with:
         go-version-file: go.mod
 
-    - name: Get the version
-      id: get_tag
-      shell: bash
-      run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
-
-    - name: Generate Changelog
-      run: |
-        git fetch --tags -f
-        lastTag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | grep -v "$GIT_TAG" | sort | tail -1)
-        docker run --rm \
-          --env CHANGELOG_GITHUB_TOKEN \
-          -v `pwd`:/usr/local/src/your-app \
-          ferrarimarco/github-changelog-generator \
-          --user=replicatedhq \
-          --project=kurl \
-          --release-branch=main \
-          --since-tag="$lastTag" \
-          --max-issues=200 \
-          --no-issues \
-          --no-author
-        sed -i '/This Changelog was automatically generated/d' ./CHANGELOG.md
-      env:
-        CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
-
-    - name: Read Changelog
-      id: read-changelog
-      uses: juliangruber/read-file-action@v1
-      with:
-        path: ./CHANGELOG.md
-
-    - name: GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
-      with:
-        tag_name: ${{ env.GIT_TAG }}
-        release_name: Release ${{ env.GIT_TAG }}
-        body: ${{ steps.read-changelog.outputs.content }}
-        draft: false
-        prerelease: false
-
     - name: Get Cosign Key
-      run: | 
+      run: |
         echo $COSIGN_KEY | base64 -d > ./cosign.key
       env:
         COSIGN_KEY: ${{secrets.COSIGN_KEY}}
@@ -282,10 +238,11 @@ jobs:
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
 
-    - uses: shogo82148/actions-upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: sbom/assets/*
+    - name: Upload SBOM to GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release upload "${GITHUB_REF_NAME}" sbom/assets/*
 
   set-current-version:
     runs-on: ubuntu-24.04

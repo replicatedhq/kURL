@@ -1,0 +1,10 @@
+{
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "bootstrap-sha": "48389dcb0ced0258331cdf3143a39dcfb6e99dce",
+  "packages": {
+    ".": {
+      "package-name": "kurl"
+    }
+  }
+}
