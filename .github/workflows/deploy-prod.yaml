@@ -4,6 +4,14 @@ on:
   push:
     tags:
     - "v*.*.*"
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+env:
+  VERSION_TAG: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
 jobs:
   verify-tag:
@@ -11,10 +19,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
     - name: Verify version tag
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         ./bin/verify-tag.sh "${VERSION_TAG}"
 
   kurl-util-image:
@@ -23,12 +32,13 @@ jobs:
     - verify-tag
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
     - uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     - run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         make -C kurl_util build-and-push-kurl-util-image
         docker tag replicated/kurl-util:${VERSION_TAG} replicated/kurl-util
@@ -44,11 +54,12 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
     - id: set-matrix
       name: Build image matrix
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export FILTER_GO_BINS_ONLY="1"
@@ -66,6 +77,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         fetch-depth: 0
     - uses: actions/setup-go@v6
       with:
@@ -79,7 +91,6 @@ jobs:
 
     - name: build and upload packages
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         bin/upload-dist-versioned.sh "${{ matrix.batch }}"
@@ -98,15 +109,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
     - name: find corresponding staging release for commit
       id: get_staging_release
       run: |
-        version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
+        version_commit="$(git rev-list "${VERSION_TAG}" -n 1 | xargs git rev-parse --short)"
         # Grab the release asset directory name in s3. Should look like this:
         # PRE v2023.01.03-0-1cee33ec/
         staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}[0-9a-f]*/" | awk '{print $2}')"
         if [ -z "${staging_release_dir}" ]; then
-            echo "Could not find staging release for commit ${GITHUB_REF_NAME} (${version_commit})"
+            echo "Could not find staging release for commit ${VERSION_TAG} (${version_commit})"
             exit 1
         fi
         echo "staging_release=${staging_release_dir%/}" >> $GITHUB_OUTPUT
@@ -124,6 +137,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         fetch-depth: 0
     - name: Verify Testgrid Run
       run: |
@@ -141,6 +155,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         fetch-depth: 0
     - name: Build Package Matrix
       id: set-matrix
@@ -169,10 +184,10 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         fetch-depth: 0
     - name: Copy packages to Prod
       run: |
-        VERSION_TAG=$GITHUB_REF_NAME
         batch="${{ matrix.batch }}"
         for pkg in ${batch}; do
           aws s3api copy-object --copy-source "${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}/${pkg}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${pkg}"
@@ -193,12 +208,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
     - name: Generate kURL Release Notes PR
       env:
         GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         curl -H "Authorization: token $GH_PAT" \
           -H 'Accept: application/json' \
           -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
@@ -212,6 +228,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
     # Node and Go are needed by the SBOM generator
     - uses: actions/setup-node@v6
@@ -242,7 +260,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload "${GITHUB_REF_NAME}" sbom/assets/*
+        gh release upload "${VERSION_TAG}" sbom/assets/*
 
   set-current-version:
     runs-on: ubuntu-24.04
@@ -252,7 +270,6 @@ jobs:
     steps:
     - name: Set VERSION file in s3
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
         echo -n "$VERSION_TAG" | aws s3 cp - s3://$S3_BUCKET/$DIST_FOLDER/VERSION
       env:
         S3_BUCKET: kurl-sh
@@ -274,11 +291,13 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
     - name: Get the version
       id: get_tag
       shell: bash
-      run: echo "GIT_TAG=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
+      run: echo "GIT_TAG=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
 
     - name: Tgrun Queue
       id: queue

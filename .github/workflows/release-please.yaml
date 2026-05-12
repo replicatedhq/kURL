@@ -12,13 +12,21 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
+      - id: release
+        uses: googleapis/release-please-action@v4
         with:
-          # A Personal Access Token (PAT) is required so that workflows (like
-          # deploy-prod.yaml) are triggered when release-please creates tags.
-          # The default GITHUB_TOKEN cannot trigger subsequent workflows.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  deploy:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    uses: ./.github/workflows/deploy-prod.yaml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit
