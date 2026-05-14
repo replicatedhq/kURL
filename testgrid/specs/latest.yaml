@@ -19,7 +19,13 @@
     kotsadm:
       version: latest
   unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
+  - amazon-2023 # kubernetes latest (1.35) isnt supported on Amazon Linux 2023.
+  - amzn-20 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-74 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-78 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-79 # kubernetes latest (1.35) does not support cgroup v1
+  - ol-79 # kubernetes latest (1.35) does not support cgroup v1
+  - ubuntu-1804 # kubernetes latest (1.35) does not support cgroup v1
 - name: openebs
   installerSpec:
     contour:
@@ -45,4 +51,10 @@
     kotsadm:
       version: latest
   unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
+  - amazon-2023 # kubernetes latest (1.35) isnt supported on Amazon Linux 2023.
+  - amzn-20 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-74 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-78 # kubernetes latest (1.35) does not support cgroup v1
+  - centos-79 # kubernetes latest (1.35) does not support cgroup v1
+  - ol-79 # kubernetes latest (1.35) does not support cgroup v1
+  - ubuntu-1804 # kubernetes latest (1.35) does not support cgroup v1

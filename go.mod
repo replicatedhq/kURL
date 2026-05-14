@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	code.cloudfoundry.org/bytefmt v0.69.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/apparentlymart/go-cidr v1.1.0
+	github.com/apparentlymart/go-cidr v1.1.1
 	github.com/briandowns/spinner v1.23.2
 	github.com/chzyer/readline v1.5.1
 	github.com/denisbrodbeck/machineid v1.0.1

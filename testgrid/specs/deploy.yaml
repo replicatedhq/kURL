@@ -103,6 +103,13 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
+    - centos-74 # Kubernetes 1.35 does not support cgroup v1
+    - centos-78 # Kubernetes 1.35 does not support cgroup v1
+    - centos-79 # Kubernetes 1.35 does not support cgroup v1
+    - ol-79 # Kubernetes 1.35 does not support cgroup v1
+    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
@@ -218,7 +225,12 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
-    - centos-79
+    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
+    - centos-74 # Kubernetes 1.35 does not support cgroup v1
+    - centos-78 # Kubernetes 1.35 does not support cgroup v1
+    - centos-79 # Kubernetes 1.35 does not support cgroup v1
+    - ol-79 # Kubernetes 1.35 does not support cgroup v1
+    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
 - name: k8s135x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -238,6 +250,13 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+  unsupportedOSIDs:
+    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
+    - centos-74 # Kubernetes 1.35 does not support cgroup v1
+    - centos-78 # Kubernetes 1.35 does not support cgroup v1
+    - centos-79 # Kubernetes 1.35 does not support cgroup v1
+    - ol-79 # Kubernetes 1.35 does not support cgroup v1
+    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
 - name: "k8s_135x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
@@ -254,6 +273,13 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
+    - centos-74 # Kubernetes 1.35 does not support cgroup v1
+    - centos-78 # Kubernetes 1.35 does not support cgroup v1
+    - centos-79 # Kubernetes 1.35 does not support cgroup v1
+    - ol-79 # Kubernetes 1.35 does not support cgroup v1
+    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
 - name: "k8s_135x with rook"
   installerSpec:
     kubernetes:
@@ -267,9 +293,12 @@
     registry:
       version: 2.8.3
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-    - centos-79 # Rook 1.13+ is not supported on centos-7
-    - ol-79 # Rook 1.13+ is not supported on centos-7
+    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel / Kubernetes 1.35 does not support cgroup v1
+    - centos-78 # Kubernetes 1.35 does not support cgroup v1
+    - centos-79 # Rook 1.13+ is not supported on centos-7 / Kubernetes 1.35 does not support cgroup v1
+    - ol-79 # Rook 1.13+ is not supported on centos-7 / Kubernetes 1.35 does not support cgroup v1
+    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_ubuntu_2404 ; then
