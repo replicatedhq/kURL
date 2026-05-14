@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kurl-registry-supportbundle-spec
+  labels:
+    troubleshoot.io/kind: support-bundle
+data:
+  support-bundle-spec: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: SupportBundle
+    spec:
+      collectors:
+        - configMap:
+            collectorName: registry-config
+            name: registry-config
+            namespace: kurl
+            includeAllData: true
+        - configMap:
+            collectorName: registry-velero-config
+            name: registry-velero-config
+            namespace: kurl
+            includeAllData: true
+        - configMap:
+            collectorName: registry-migrate-s3-config
+            name: registry-migrate-s3-config
+            namespace: kurl
+            includeAllData: true
+        - secret:
+            collectorName: registry-pki
+            namespace: kurl
+            name: registry-pki
+            includeValue: true
+            key: registry.crt
+        - logs:
+            name: kurl/registry/logs
+            namespace: kurl
+            selector:
+              - app=registry
