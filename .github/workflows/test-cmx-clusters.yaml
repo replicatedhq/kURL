@@ -56,7 +56,7 @@ jobs:
           REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
         run: |
           CLUSTER_ID="${{ steps.create-cluster.outputs.cluster-id }}"
-          replicated cluster kubeconfig "$CLUSTER_ID" > kubeconfig.yaml
+          replicated cluster kubeconfig "$CLUSTER_ID" --stdout > kubeconfig.yaml
           export KUBECONFIG="$(pwd)/kubeconfig.yaml"
 
           echo "=== Cluster Nodes ==="
@@ -78,7 +78,7 @@ jobs:
           kubectl wait --for=condition=Ready nodes --all --timeout=120s
 
           echo "=== Verify DNS Resolution ==="
-          kubectl run dns-test --image=busybox:1.36 --restart=Never --rm -i -- wait --timeout=10s -- wget -qO- https://kubernetes.default.svc.cluster.local || true
+          kubectl run dns-test --image=busybox --restart=Never --rm -i --wait --timeout=10s -- nslookup kubernetes.default.svc.cluster.local
 
       - name: Cleanup CMX cluster
         if: always()
