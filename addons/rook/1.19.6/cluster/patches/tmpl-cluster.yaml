@@ -1,0 +1,26 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  mon:
+    count: 1
+  mgr:
+    count: 1
+  resources:
+    mgr:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+    osd:
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
+    mon:
+      requests:
+        cpu: "300m"
+        memory: "1024Mi"
+  storage:
+    deviceFilter: "${ROOK_BLOCK_DEVICE_FILTER}"
