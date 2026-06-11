@@ -205,6 +205,18 @@ function rook_operator_deploy() {
     #   - https://tracker.ceph.com/issues/54019
     rook_maybe_bluefs_buffered_io
 
+    # apply CRDs separately with replace or create to avoid the error "metadata.annotations: Too long"
+    for crd in "$dst"/*-crd.yaml; do
+        if [ -f "$crd" ]; then
+            local basename_crd
+            basename_crd=$(basename "$crd")
+            sed -i "/^- $basename_crd$/d" "$dst/kustomization.yaml"
+            if ! kubectl replace -f "$crd" 2>/dev/null; then
+                kubectl create -f "$crd"
+            fi
+        fi
+    done
+
     kubectl -n rook-ceph apply -k "$dst/"
 }
 
