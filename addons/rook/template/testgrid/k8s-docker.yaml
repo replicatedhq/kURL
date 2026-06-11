@@ -148,7 +148,7 @@
       version: "1.9.12"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.32.x"
     flannel:
       version: latest
     containerd:
@@ -245,7 +245,7 @@
       version: "1.12.x"
   upgradeSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.32.x"
     flannel:
       version: latest
     containerd:
