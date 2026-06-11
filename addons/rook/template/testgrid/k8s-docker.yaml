@@ -1,7 +1,7 @@
 - name: Rook minimal airgap
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -67,7 +67,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -133,7 +133,7 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -230,7 +230,7 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -326,7 +326,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -399,7 +399,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
