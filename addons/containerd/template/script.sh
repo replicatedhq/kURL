@@ -407,7 +407,9 @@ function main() {
     find_common_versions
 
     for version in ${VERSIONS[*]}; do
-        if [ "$version" != "1.2.13" ]; then
+        # Published add-on versions are immutable: never regenerate an existing
+        # version directory, only scaffold versions that don't exist yet.
+        if [ ! -d "../$version" ]; then
             generate_version "$version"
         fi
     done
