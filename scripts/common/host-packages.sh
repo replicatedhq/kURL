@@ -240,7 +240,7 @@ EOF
         logSuccess "Downgraded containerd"
     fi
     # shellcheck disable=SC2086
-    if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
+    if [[ ( "${packages[*]}" == *"containerd.io"* || "${packages[*]}" == *"docker-ce"* ) && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
     else
         yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
