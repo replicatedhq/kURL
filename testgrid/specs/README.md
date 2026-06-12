@@ -57,7 +57,7 @@ Not all `os-*.yaml` files are read automatically. CI workflows explicitly pass o
 |------|---------|---------|
 | `os-latest.yaml` | `deploy-prod.yaml`, `deploy-staging.yaml`, addon tests | Default OS pool for release and addon tests |
 | `os-firstlast.yaml` | `cron-testgrid-staging.yaml`, `cron-testgrid-production-monthly.yaml` | Smaller OS pool for daily/monthly cron tests |
-| `os-customer-common.yaml` | Storage migration and customer migration workflows | OSs relevant to customer migration scenarios |
+| `os-customer-common.yaml` | `cron-testgrid-staging.yaml` (storage-migration + customer-migration jobs), `cron-testgrid-production-monthly.yaml` (storage-migration + customer-migration jobs) | OSs relevant to customer migration scenarios |
 
 ### Unused / Legacy OS Spec Files
 
@@ -77,7 +77,7 @@ Not all `os-*.yaml` files are read automatically. CI workflows explicitly pass o
 | `deploy.yaml` | Release workflows (`deploy-prod`, `deploy-staging`) | Tests the release artifact before/after promotion |
 | `full.yaml` | Cron workflows (`cron-testgrid-staging`, `cron-testgrid-production-monthly`) | Comprehensive test matrix covering many kURL configurations |
 | `latest.yaml` | — | (See repo for current usage) |
-| `storage-migration.yaml` | Storage migration workflows | Tests for storage migration scenarios |
+| `storage-migration.yaml` | `cron-testgrid-staging.yaml` (testgrid-daily-storage-migration job), `cron-testgrid-production-monthly.yaml` (testgrid-weekly-storage-migration-specs job) | Tests for storage migration scenarios |
 | `customer-migration-specs.yaml` | Customer migration workflows | Tests for customer-specific migration paths |
 | `k8s-upgrade.yaml` | — | Kubernetes upgrade tests |
 

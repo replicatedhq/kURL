@@ -1,10 +1,46 @@
 #file: noinspection YAMLSchemaValidation
-- name: "Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd"
+- name: "Upgrade kURL from v2026.05.18-0 to latest"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.05.18-0"
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+
+- name: "Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd"
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
     kubernetes:
       version: 1.23.x
     weave:
@@ -35,7 +71,7 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-97 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
@@ -115,8 +151,6 @@
   cpu: 6
   installerApiEndpoint: https://kurl.sh
   installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.22.x
     containerd:
@@ -169,18 +203,11 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
-  unsupportedOSIDs:
-    - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
-    - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
-    - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
-    - rocky-96 # Not supported on pinned kurl version v2024.07.02-0
 - name: "Upgrade from k8s 1.31 to 1.35 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
       version: 1.31.x
-    kurl:
-      installerVersion: ""
     flannel:
       version: latest
     containerd:
@@ -198,8 +225,6 @@
   upgradeSpec:
     kubernetes:
       version: 1.35.x
-    kurl:
-      installerVersion: ""
     flannel:
       version: latest
     containerd:

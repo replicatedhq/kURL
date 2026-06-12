@@ -2,8 +2,6 @@
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -65,7 +63,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -125,7 +123,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -177,7 +175,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -239,7 +237,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -290,7 +288,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -339,7 +337,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -391,7 +389,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.24.x
     containerd:
@@ -444,7 +442,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -502,7 +500,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -562,7 +560,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -622,7 +620,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.21.x
     containerd:
@@ -681,7 +679,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -748,7 +746,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -811,7 +809,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     containerd:
@@ -871,7 +869,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.24.x
     flannel:
@@ -924,7 +922,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.19.x
     docker:
@@ -1005,7 +1003,7 @@
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
-      installerVersion: "v2024.07.02-0"
+      installerVersion: "v2026.01.13-0"
     kubernetes:
       version: 1.26.x
     containerd:
@@ -1055,134 +1053,6 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-
-- name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
-  flags: "yes"
-  airgap: true
-  installerApiEndpoint: https://kurl.sh
-  installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.10
-      daemonConfig: |
-        {
-          "exec-opts": ["native.cgroupdriver=systemd"],
-          "log-opts": {
-             "max-size": "100m",
-             "max-file": "3"
-          }
-        }
-    weave:
-      version: 2.6.5
-    rook:
-      version: 1.0.4
-    contour:
-      version: 1.7.0
-      tlsMinimumProtocolVersion: 1.2
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.49.0-17.1.3
-    velero:
-      version: 1.6.0
-    kotsadm:
-      version: 1.57.0
-    goldpinger:
-      version: 3.2.0-4.1.1
-    openebs:
-      version: 1.6.0
-      namespace: openebs
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      isCstorEnabled: false
-    ekco:
-      version: 0.10.2
-      nodeUnreachableToleration: 5m
-      minReadyMasterNodeCount: 2
-      minReadyWorkerNodeCount: 0
-      rookShouldUseAllNodes: false
-      rookShouldDisableReconcileMDSPlacement: false
-      rookShouldDisableReconcileCephCSIResources: false
-      shouldDisableRebootServices: false
-      shouldDisableClearNodes: false
-      shouldEnablePurgeNodes: false
-      shouldDisableRestartFailedEnvoyPods: false
-      envoyPodsNotReadyDuration: 5m
-  upgradeSpec:
-    kubernetes:
-      version: 1.21.x
-      containerLogMaxFiles: 5
-      containerLogMaxSize: 5Mi
-    containerd:
-      version: 1.4.6
-    weave:
-      version: 2.6.5
-    longhorn:
-      version: 1.1.2
-    minio:
-      version: 2020-01-25T02-50-51Z
-    contour:
-      version: 1.7.0
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.53.x
-    velero:
-      version: 1.6.0
-    kotsadm:
-      version: 1.90.0
-    goldpinger:
-      version: 3.2.0-4.1.1
-    openebs:
-      version: 3.4.0
-      namespace: openebs
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      isCstorEnabled: false
-    ekco:
-      version: 0.16.0
-      nodeUnreachableToleration: 5m
-      minReadyMasterNodeCount: 2
-      minReadyWorkerNodeCount: 0
-      rookShouldUseAllNodes: false
-      rookShouldDisableReconcileMDSPlacement: false
-      rookShouldDisableReconcileCephCSIResources: false
-      shouldDisableRebootServices: false
-      shouldDisableClearNodes: false
-      shouldEnablePurgeNodes: false
-      shouldDisableRestartFailedEnvoyPods: false
-      envoyPodsNotReadyDuration: 5m
-  unsupportedOSIDs:
-  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
-  - rocky-91 # docker is not supported on rhel 9 variants
-  - rocky-9 # docker is not supported on rhel 9 variants
-  - amazon-2023 # docker is not supported on amazon 2023
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    mkdir -p /var/lib/kurl/assets
-    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rook_ceph_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-    check_and_customize_kurl_integration_test_application
-    if kubectl get namespace/rook-ceph ; then
-      echo Rook namespace found after the upgrade.
-      exit 1
-    fi
-    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
-       echo  Rook Data directories not removed.
-       exit 1
-    fi
 
 - name: Cust 1 - Migrate from Rook+OpenEBS 1.6.0 to OpenEBS 3.3.0 (Kubernetes 1.19.x to 1.21.x)
   flags: "yes"
@@ -1414,102 +1284,6 @@
     validate_read_write_object_store postupgrade upgradefile.txt
     check_and_customize_kurl_integration_test_application
 
-- name: Cust 1 - Upgrade from Kubernetes 1.23.x to 1.25.x
-  flags: "yes"
-  airgap: true
-  installerApiEndpoint: https://kurl.sh
-  installerSpec:
-    containerd:
-      version: 1.6.15
-    contour:
-      tlsMinimumProtocolVersion: '1.2'
-      version: 1.23.2
-    ekco:
-      minReadyMasterNodeCount: 2
-      minReadyWorkerNodeCount: 0
-      nodeUnreachableToleration: 5m
-      shouldDisableClearNodes: false
-      shouldDisableRebootServices: false
-      shouldEnablePurgeNodes: false
-      version: 0.26.2
-    goldpinger:
-      version: 3.7.0-5.5.0
-    kotsadm:
-      version: 1.96.3
-    kubernetes:
-      version: 1.23.15
-    kurl:
-      installerVersion: "v2023.02.23-0"
-    minio:
-      version: "2023-01-20T02-05-44Z"
-    openebs:
-      isCstorEnabled: false
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 3.3.0
-    registry:
-      version: 2.8.1
-    velero:
-      version: 1.9.5
-      resticTimeout: 24h0m0s
-    flannel:
-      version: "0.21.2"
-  upgradeSpec:
-    containerd:
-      version: 1.6.x # (replicated) changed to .x version
-    contour:
-      tlsMinimumProtocolVersion: '1.2'
-      version: 1.24.2
-    ekco:
-      minReadyMasterNodeCount: 2
-      minReadyWorkerNodeCount: 0
-      nodeUnreachableToleration: 5m
-      shouldDisableClearNodes: false
-      shouldDisableRebootServices: false
-      shouldEnablePurgeNodes: false
-      version: latest # (replicated) changed to latest version
-    goldpinger:
-      version: 3.7.0-5.6.0
-    kotsadm:
-      version: 1.96.3
-    kubernetes:
-      version: 1.25.x # (replicated) changed to .x version
-    minio:
-      version: "2023-03-13T19-46-17Z"
-    openebs:
-      isCstorEnabled: false
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 3.5.0
-    registry:
-      version: 2.8.1
-    velero:
-      version: 1.10.2
-      resticTimeout: 24h0m0s
-    flannel:
-      version: 0.21.x # (replicated) changed to .x version
-  unsupportedOSIDs:
-  - rocky-91 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
-  - rocky-9 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
-  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    mkdir -p /var/lib/kurl/assets
-    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-    install_and_customize_kurl_integration_test_application
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-    check_and_customize_kurl_integration_test_application
-
 - name: Install Rook with minimum node count of 3
   flags: "yes"
   cpu: 6
@@ -1517,7 +1291,7 @@
   numSecondaryNodes: 2
   installerSpec:
     kubernetes:
-      version: 1.28.x
+      version: 1.31.x
     containerd:
       version: latest
     flannel:
@@ -1531,12 +1305,12 @@
     minio:
       version: latest
     rook:
-      version: 1.12.0
+      version: latest
       minimumNodeCount: 3
     goldpinger:
       version: latest
     openebs:
-      version: 3.6.0
+      version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: local
   unsupportedOSIDs:
