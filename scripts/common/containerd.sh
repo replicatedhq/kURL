@@ -68,11 +68,35 @@ function containerd_upgrade_is_possible() {
     local from_version=$1
     local to_version=$2
 
-    # so far we don't have containerd version 2 and when it comes we don't know exactly
-    # from what version we will be able to upgrade to it from. so, for now, we block
-    # the attempt so when the version arrives the testgrid will fail.
     if containerd_upgrade_between_majors "$from_version" "$to_version" ; then
-        bail "Upgrade between containerd major versions is not supported by this installer."
+        # semverParse sets bare globals $major/$minor/$patch — capture IMMEDIATELY before any
+        # subsequent semverParse or semverCompare call overwrites them.
+        semverParse "$from_version"
+        local from_major_local="$major"
+        local from_minor_local="$minor"
+        semverParse "$to_version"
+        local to_major_local="$major"
+        # $major/$minor now reflect to_version — from_major_local/from_minor_local are safe.
+
+        # Only allow 1.7 -> 2.x; earlier 1.x minors must step through 1.7 first.
+        if [ "$from_major_local" -ne "1" ] || [ "$from_minor_local" -ne "7" ] || [ "$to_major_local" -ne "2" ]; then
+            bail "Upgrade from containerd v$from_version to v$to_version is not supported. Upgrade to containerd 1.7.x first."
+        fi
+
+        # Guard: containerd 2.x requires CRI v1; Kubernetes < 1.26 requires CRI v1alpha2.
+        if [ -n "$CURRENT_KUBERNETES_VERSION" ]; then
+            local k8s_minor
+            k8s_minor="$(kubernetes_version_minor "$CURRENT_KUBERNETES_VERSION")"
+            if [ "$k8s_minor" -lt "26" ]; then
+                bail "containerd 2.x requires CRI v1, but Kubernetes $CURRENT_KUBERNETES_VERSION uses CRI v1alpha2. Upgrade Kubernetes to 1.26+ before upgrading containerd to 2.x."
+            fi
+        fi
+
+        # Cross-major upgrade is valid (1.7 -> 2.x); skip the same-major minor-span check below.
+        # Note: a 2.x -> 1.x downgrade attempt is caught above because from_major_local=2 ≠ 1,
+        # which triggers the bail with "not supported". The semverCompare downgrade check below
+        # is not reached for cross-major paths, but the cross-major guard already handles it.
+        return 0
     fi
 
     semverCompare "$from_version" "$to_version"

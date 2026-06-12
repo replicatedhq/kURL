@@ -158,6 +158,94 @@ function containerd_install_container_selinux_if_missing() {
     esac
 }
 
+# containerd_configure_schema_v2 applies 1.x-specific patches to /etc/containerd/config.toml
+# (config schema version = 2). Called by containerd_configure() after schema version detection.
+function containerd_configure_schema_v2() {
+    local pause_image="$1"
+
+    sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
+    # Ensure containerd reads per-registry hosts.toml files
+    sed -i 's|config_path = ""|config_path = "/etc/containerd/certs.d"|' /etc/containerd/config.toml
+
+    # Remove stale legacy systemd_cgroup and runc.options lines before appending the correct block.
+    sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
+    sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
+
+    cat >> /etc/containerd/config.toml <<'EOF'
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+  SystemdCgroup = true
+EOF
+
+    if [ -n "$pause_image" ]; then
+        # replace the line 'sandbox_image = "whatever the image previously was"' with 'sandbox_image = "$pause_image"'
+        sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
+        log "Set containerd sandbox_image to $pause_image"
+    fi
+
+    if is_ubuntu_2404; then
+        # we need to disable apparmor on ubuntu 24.04 to allow pods to be deleted
+        sed -i 's/disable_apparmor = false/disable_apparmor = true/' /etc/containerd/config.toml
+    fi
+}
+
+# containerd_configure_schema_v3 configures containerd 2.x by writing a drop-in override file.
+# (config schema version = 3). Called by containerd_configure() after schema version detection.
+# In 2.x the CRI plugin was split: runtime config → io.containerd.cri.v1.runtime,
+# image config → io.containerd.cri.v1.images.
+# See https://github.com/containerd/containerd/blob/main/docs/cri/config.md
+function containerd_configure_schema_v3() {
+    local pause_image="$1"
+
+    mkdir -p /etc/containerd/conf.d
+
+    # containerd does not load conf.d drop-ins on its own: `config default` emits
+    # imports = [] (verified against upstream 2.0.5 and 2.1.0 binaries). Point imports
+    # at conf.d so the drop-in written below takes effect.
+    sed -i "s|imports = \[\]|imports = ['/etc/containerd/conf.d/*.toml']|" /etc/containerd/config.toml
+
+    # Single-quoted TOML keys required: containerd 2.x config default uses single-quote delimiters.
+    # config_path override eliminates the colon-separated default that io.containerd.transfer.v1.local
+    # silently ignores, never reading hosts.toml as a result.
+    # https://github.com/containerd/containerd/issues/12415
+    cat > /etc/containerd/conf.d/99-replicated.toml <<'EOF'
+version = 3
+
+[debug]
+  level = "warn"
+
+[plugins.'io.containerd.transfer.v1.local']
+  config_path = '/etc/containerd/certs.d'
+
+[plugins.'io.containerd.cri.v1.images'.registry]
+  config_path = '/etc/containerd/certs.d'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]
+  SystemdCgroup = true
+EOF
+
+    if is_ubuntu_2404; then
+        # we need to disable apparmor on ubuntu 24.04 to allow pods to be deleted
+        cat >> /etc/containerd/conf.d/99-replicated.toml <<'EOF'
+
+[plugins.'io.containerd.cri.v1.runtime']
+  disable_apparmor = true
+EOF
+    fi
+
+    if [ -n "$pause_image" ]; then
+        # Unquoted heredoc: $pause_image must expand. Heredoc append avoids
+        # sed escaping issues with '/' or other special chars in image refs.
+        cat >> /etc/containerd/conf.d/99-replicated.toml <<EOF
+
+[plugins.'io.containerd.cri.v1.images'.pinned_images]
+  sandbox = '$pause_image'
+EOF
+        log "Set containerd 2.x pinned sandbox image to $pause_image"
+    fi
+    # The merged config is validated by containerd_configure() after CONTAINERD_TOML_CONFIG
+    # patching, so user patches that break the conf.d import are caught too.
+}
+
 function containerd_configure() {
     if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
         log "Skipping containerd configuration in order to preserve config."
@@ -166,38 +254,26 @@ function containerd_configure() {
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
 
-    sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
-    sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
-    sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
-    # Ensure containerd reads per-registry hosts.toml files (required for 1.x; no-op on 2.x which already sets this)
-    sed -i 's|config_path = ""|config_path = "/etc/containerd/certs.d"|' /etc/containerd/config.toml
+    # Read the config schema version from the generated file.
+    # version = 2 → containerd 1.x; version = 3 → containerd 2.x.
+    # Reading the header (not $CONTAINERD_VERSION) is reliable when use_os_containerd() is true.
+    local config_schema_version
+    config_schema_version=$(awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}' /etc/containerd/config.toml)
 
-    # for local transfer service in 2.x
-    sed -i "s|config_path = ''|config_path = '/etc/containerd/certs.d'|" /etc/containerd/config.toml
-
-    # Strip the colon-separated suffix that containerd v2.x `config default` generates.
-    # io.containerd.transfer.v1.local (the pull path when use_local_image_pull=false) silently
-    # ignores colon-separated config_path values and never reads hosts.toml as a result.
-    # https://github.com/containerd/containerd/issues/12415
-    sed -i "s|config_path = '/etc/containerd/certs\.d:/etc/docker/certs\.d'|config_path = '/etc/containerd/certs.d'|" /etc/containerd/config.toml
-    cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-  SystemdCgroup = true
-EOF
     local pause_image=
     pause_image="$(containerd_kubernetes_pause_image)"
-    if [ -n "$pause_image" ]; then
-        # replace the line 'sandbox_image = "whatever the image previously was"' with 'sandbox_image = "$pause_image"' in /etc/containerd/config.toml
-        sed -i "/sandbox_image/c\\    sandbox_image = \"$pause_image\"" /etc/containerd/config.toml
 
-        log "Set containerd sandbox_image to $pause_image"
+    if [ "${config_schema_version:-2}" -ge "3" ]; then
+        containerd_configure_schema_v3 "$pause_image"
+    else
+        containerd_configure_schema_v2 "$pause_image"
+    fi
 
-        # if containerd is running, this is an upgrade and we can load the pause image
-        if systemctl is-active --quiet containerd; then
-            log "Loading Kubernetes $KUBERNETES_VERSION pause image"
-            cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz" | gunzip | ctr -n=k8s.io images import -
-            log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
-        fi
+    # if containerd is running, this is an upgrade and we can load the pause image
+    if [ -n "$pause_image" ] && systemctl is-active --quiet containerd; then
+        log "Loading Kubernetes $KUBERNETES_VERSION pause image"
+        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz" | gunzip | ctr -n=k8s.io images import -
+        log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
@@ -207,9 +283,19 @@ EOF
         "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
     fi
 
-    if is_ubuntu_2404 ; then
-        # we need to disable apparmor on ubuntu 24.04 to allow pods to be deleted
-        sed -i 's/disable_apparmor = false/disable_apparmor = true/' /etc/containerd/config.toml
+    if [ -n "$CONTAINERD_TOML_CONFIG" ] && [ "${config_schema_version:-2}" -ge "3" ]; then
+        logWarn "CONTAINERD_TOML_CONFIG patches were written for containerd 1.x table paths."
+        logWarn "containerd 2.x uses different plugin tables (io.containerd.cri.v1.runtime, io.containerd.cri.v1.images)."
+        logWarn "Custom settings targeting io.containerd.grpc.v1.cri will be silently ignored by containerd 2.x."
+        logWarn "Migrate your CONTAINERD_TOML_CONFIG to the 2.x table layout to take effect."
+    fi
+
+    if [ "${config_schema_version:-2}" -ge "3" ]; then
+        # Validate the effective merged config: the dump must parse cleanly AND contain the
+        # drop-in's settings, proving the conf.d import survived any CONTAINERD_TOML_CONFIG patch.
+        if ! containerd --config /etc/containerd/config.toml config dump | grep -q 'SystemdCgroup = true'; then
+            bail "containerd drop-in /etc/containerd/conf.d/99-replicated.toml was not applied to the merged config"
+        fi
     fi
 
     CONTAINERD_NEEDS_RESTART=1

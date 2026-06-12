@@ -163,6 +163,8 @@ function copy_generated_files() {
     fi
 }
 
+# Minor versions excluded from discovery, applied to 1.x only (1.0 through 1.4).
+# 2.x minors are never excluded — discovery keeps all 2.x versions.
 UNSUPPORTED_CONTAINERD_MINORS="01234"
 
 VERSIONS=()
@@ -175,42 +177,47 @@ function find_common_versions() {
     docker build --no-cache --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
     docker build --no-cache --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
 
-    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
 
-    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS8_VERSIONS[*]} containerd versions for CentOS 8: ${CENTOS8_VERSIONS[*]}"
 
-    RHEL9_VERSIONS=($(docker run --rm -i rhel9 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    RHEL9_VERSIONS=($(docker run --rm -i rhel9 yum list --showduplicates containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#RHEL9_VERSIONS[*]} containerd versions for RHEL 9: ${RHEL9_VERSIONS[*]}"
 
-    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq || true)) # no supported versions
+    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq || true)) # no supported versions
     echo "Found ${#UBUNTU16_VERSIONS[*]} containerd versions for Ubuntu 16: ${UBUNTU16_VERSIONS[*]}"
 
-    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU18_VERSIONS[*]} containerd versions for Ubuntu 18: ${UBUNTU18_VERSIONS[*]}"
 
-    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU20_VERSIONS[*]} containerd versions for Ubuntu 20: ${UBUNTU20_VERSIONS[*]}"
 
-    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '^1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
 
     # Get the union of versions available for all operating systems
     local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${RHEL9_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
 
-    local SEVEN_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -E '1\.7\.' | tr '\n' ' ')) # filter to only 7.x versions
-    # remove versions prior to 1.7.25
-    SEVEN_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | sort -rV | awk '$1 >= "1.7.25"'))
+    # 1.7.x versions >= 1.7.25 (numeric patch comparison; awk string compare would
+    # mis-order e.g. "1.7.3" >= "1.7.25")
+    local SEVEN_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | grep -E '^1\.7\.' | sort -rV | awk -F. '$3 >= 25'))
     echo "7.x versions: ${SEVEN_VERSIONS[*]}"
 
-    # filter to remove 7.x versions
-    local OTHER_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | grep -vE '1\.7\.' | tr '\n' ' '))
-    # and then remove versions prior to 1.6.28, as they are old enough that we no longer rebuild them
-    OTHER_VERSIONS=($(printf "%s\n" "${OTHER_VERSIONS[@]}" | sort -rV | grep -E '1\.6\.[0-9][0-9]+' | awk '$1 >= "1.6.28"'))
+    # 1.6.x versions >= 1.6.28, as older ones are old enough that we no longer rebuild them
+    local OTHER_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | grep -E '^1\.6\.' | sort -rV | awk -F. '$3 >= 28'))
     echo "Other versions: ${OTHER_VERSIONS[*]}"
-    ALL_VERSIONS=("${SEVEN_VERSIONS[@]}" "${OTHER_VERSIONS[@]}")
+
+    # 2.x — keep all discovered versions. They sort higher than 1.x, so listing them
+    # first makes GREATEST_VERSION a 2.x version once any are discovered.
+    # `|| true`: no repo may publish 2.x yet; an empty grep must not abort under pipefail.
+    local TWO_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | grep -E '^2\.' | sort -rV || true))
+    echo "2.x versions: ${TWO_VERSIONS[*]}"
+
+    ALL_VERSIONS=("${TWO_VERSIONS[@]}" "${SEVEN_VERSIONS[@]}" "${OTHER_VERSIONS[@]}")
 
     for version in ${ALL_VERSIONS[@]}; do
         init_preflight_file $version
@@ -314,10 +321,23 @@ function find_pause_image() {
     # version, so the correct pause image used by containerd must be included in its bundle.
 
     local pause_image=
+
+    # Try the 2.x pinned_images format first. containerd 2.x does not emit sandbox_image;
+    # the pause image lives under [plugins.'io.containerd.cri.v1.images'.pinned_images].
+    # grep -A3 (not -A1) tolerates blank lines or comments between the header and the value.
     pause_image="$(docker run --rm -i ubuntu20 sh -c \
-        "apt-cache madison containerd.io | grep -F ""$version"" | sed 's/|//g' | awk '{ print \$2 }' | \
+        "apt-cache madison containerd.io | grep -F \"$version\" | sed 's/|//g' | awk '{ print \$2 }' | \
         xargs -I{} apt-get install -y -qq containerd.io={} >/dev/null 2>&1 && \
-        containerd config default | grep sandbox_image | sed 's/[=\"]//g' | awk '{ print \$2 }'")"
+        containerd config default | grep -A3 'pinned_images' | grep 'sandbox' | tr -d \"'\" | awk -F= '{ gsub(/ /,\"\",\$2); print \$2 }'")"
+
+    # Fall back to the 1.x sandbox_image format
+    if [ -z "$pause_image" ]; then
+        pause_image="$(docker run --rm -i ubuntu20 sh -c \
+            "apt-cache madison containerd.io | grep -F \"$version\" | sed 's/|//g' | awk '{ print \$2 }' | \
+            xargs -I{} apt-get install -y -qq containerd.io={} >/dev/null 2>&1 && \
+            containerd config default | grep sandbox_image | sed 's/[=\"]//g' | awk '{ print \$2 }'")"
+    fi
+
     if [ -n "$pause_image" ]; then
         echo "$pause_image"
         return
@@ -330,6 +350,8 @@ function find_pause_image() {
         echo "k8s.gcr.io/pause:3.2"
     elif echo "$version" | grep -qE "1\.5\."; then
         echo "k8s.gcr.io/pause:3.5"
+    elif echo "$version" | grep -qE "^2\."; then
+        echo "registry.k8s.io/pause:3.10"
     else
         echo "k8s.gcr.io/pause:3.6"
     fi
@@ -355,20 +377,30 @@ function update_available_versions() {
 }
 
 function generate_step_versions() {
-    local steps=()
+    # Index by major*100+minor (1.7 → 107, 2.0 → 200) so 2.x minors cannot
+    # collide with 1.x minors at the same index.
+    declare -A steps
     local version=
-    local max_minor=0
     while read -r version; do
         if ! echo "$version" | grep -Eq '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' ; then
             continue
         fi
-        local step_minor=
+        local step_major step_minor
+        step_major="$(echo "$version" | cut -d. -f1)"
         step_minor="$(echo "$version" | cut -d. -f2)"
-        steps[$step_minor]="$version"
-        ((step_minor > max_minor)) && max_minor="$step_minor"
+        local idx=$(( step_major * 100 + step_minor ))
+        steps[$idx]="$version"
     done <<< "$(find ../ -maxdepth 1 -type d -printf '%P\n' | sort -V)"
-    sed -i 's|^CONTAINERD_STEP_VERSIONS=(.*|CONTAINERD_STEP_VERSIONS=('"${steps[*]}"')|' ../../../hack/testdata/manifest/clean
-    sed -i 's|^CONTAINERD_STEP_VERSIONS=(.*|CONTAINERD_STEP_VERSIONS=('"${steps[*]}"')|' ../../../scripts/Manifest
+
+    # Emit in ascending index order (preserves 1.x before 2.x)
+    local sorted_steps=()
+    local idx=
+    for idx in $(echo "${!steps[@]}" | tr ' ' '\n' | sort -n); do
+        sorted_steps+=("${steps[$idx]}")
+    done
+
+    sed -i 's|^CONTAINERD_STEP_VERSIONS=(.*|CONTAINERD_STEP_VERSIONS=('"${sorted_steps[*]}"')|' ../../../hack/testdata/manifest/clean
+    sed -i 's|^CONTAINERD_STEP_VERSIONS=(.*|CONTAINERD_STEP_VERSIONS=('"${sorted_steps[*]}"')|' ../../../scripts/Manifest
 }
 
 function main() {
