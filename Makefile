@@ -220,6 +220,16 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
+dist/kubernetes-conformance-%.tar.gz:
+	${MAKE} build/packages/kubernetes-conformance/$*/images
+	cp packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*/
+	mkdir -p dist
+	tar cf - -C build packages/kubernetes-conformance/$* | gzip > dist/kubernetes-conformance-$*.tar.gz
+
+build/packages/kubernetes-conformance/%/images:
+	mkdir -p build/packages/kubernetes-conformance/$*/images
+	bin/save-manifest-assets.sh "kubernetes-conformance-images-$*" packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
+
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17
 	$(eval major = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\1/'))
@@ -237,6 +247,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/rhel-8
 	${MAKE} build/packages/kubernetes/$*/rhel-9
 	${MAKE} build/packages/kubernetes/$*/amazon-2023
+	${MAKE} build/packages/kubernetes/$*/rhel-10
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
 	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
@@ -244,16 +255,6 @@ dist/kubernetes-%.tar.gz:
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh "kubernetes-images-$*" packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
-
-dist/kubernetes-conformance-%.tar.gz:
-	${MAKE} build/packages/kubernetes-conformance/$*/images
-	cp packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*/
-	mkdir -p dist
-	tar cf - -C build packages/kubernetes-conformance/$* | gzip > dist/kubernetes-conformance-$*.tar.gz
-
-build/packages/kubernetes-conformance/%/images:
-	mkdir -p build/packages/kubernetes-conformance/$*/images
-	bin/save-manifest-assets.sh "kubernetes-conformance-images-$*" packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
 
 DEV := 0
 
