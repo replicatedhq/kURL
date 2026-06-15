@@ -207,7 +207,11 @@ function containerd_configure_schema_v3() {
     # config_path override eliminates the colon-separated default that io.containerd.transfer.v1.local
     # silently ignores, never reading hosts.toml as a result.
     # https://github.com/containerd/containerd/issues/12415
-    cat > /etc/containerd/conf.d/99-replicated.toml <<'EOF'
+    # Drop-in filename ordering convention: containerd merges conf.d/*.toml in sorted
+    # filename order, later files winning (verified against 2.0.5/2.1.0). kURL defaults use
+    # the 50- prefix; user CONTAINERD_TOML_CONFIG is written to 99-user.toml so it merges last
+    # and wins. The 51-98 range is reserved headroom for future kURL-managed drop-ins.
+    cat > /etc/containerd/conf.d/50-replicated.toml <<'EOF'
 version = 3
 
 [debug]
@@ -225,7 +229,7 @@ EOF
 
     if is_ubuntu_2404; then
         # we need to disable apparmor on ubuntu 24.04 to allow pods to be deleted
-        cat >> /etc/containerd/conf.d/99-replicated.toml <<'EOF'
+        cat >> /etc/containerd/conf.d/50-replicated.toml <<'EOF'
 
 [plugins.'io.containerd.cri.v1.runtime']
   disable_apparmor = true
@@ -235,7 +239,7 @@ EOF
     if [ -n "$pause_image" ]; then
         # Unquoted heredoc: $pause_image must expand. Heredoc append avoids
         # sed escaping issues with '/' or other special chars in image refs.
-        cat >> /etc/containerd/conf.d/99-replicated.toml <<EOF
+        cat >> /etc/containerd/conf.d/50-replicated.toml <<EOF
 
 [plugins.'io.containerd.cri.v1.images'.pinned_images]
   sandbox = '$pause_image'
@@ -277,24 +281,46 @@ function containerd_configure() {
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
-        log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
-        local tmp=$(mktemp)
-        echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
-        "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
+        if [ "${config_schema_version:-2}" -ge "3" ]; then
+            # 2.x: write the user TOML verbatim to a higher-numbered conf.d drop-in. containerd's
+            # own import merge (later filename wins) places these keys above kURL's
+            # 50-replicated defaults, restoring the 1.x "user patch wins" contract. A version
+            # header is not required — version-less fragments merge cleanly (verified on
+            # 2.0.5/2.1.0) — so the value is written as-is with no injection or key rewriting.
+            local user_dropin=/etc/containerd/conf.d/99-user.toml
+            log "Found Containerd TomlConfig set. Writing user overrides to $user_dropin"
+            echo "$CONTAINERD_TOML_CONFIG" > "$user_dropin"
+        else
+            # 1.x: unchanged — leaf-merge the user TOML into the single config.toml via bin/toml.
+            log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
+            local tmp=$(mktemp)
+            echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
+            "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
+        fi
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ] && [ "${config_schema_version:-2}" -ge "3" ]; then
-        logWarn "CONTAINERD_TOML_CONFIG patches were written for containerd 1.x table paths."
+        logWarn "CONTAINERD_TOML_CONFIG written to /etc/containerd/conf.d/99-user.toml for containerd 2.x."
         logWarn "containerd 2.x uses different plugin tables (io.containerd.cri.v1.runtime, io.containerd.cri.v1.images)."
         logWarn "Custom settings targeting io.containerd.grpc.v1.cri will be silently ignored by containerd 2.x."
         logWarn "Migrate your CONTAINERD_TOML_CONFIG to the 2.x table layout to take effect."
     fi
 
     if [ "${config_schema_version:-2}" -ge "3" ]; then
-        # Validate the effective merged config: the dump must parse cleanly AND contain the
-        # drop-in's settings, proving the conf.d import survived any CONTAINERD_TOML_CONFIG patch.
-        if ! containerd --config /etc/containerd/config.toml config dump | grep -q 'SystemdCgroup = true'; then
-            bail "containerd drop-in /etc/containerd/conf.d/99-replicated.toml was not applied to the merged config"
+        # Validate the effective merged config (base + all conf.d imports). A malformed or
+        # un-loadable 99-user.toml makes `config dump` exit non-zero (verified on 2.0.5/2.1.0);
+        # fail the install here, loudly, rather than after restart when containerd would refuse
+        # to start. `config dump` is a config-load op and needs no running daemon.
+        local dump_out=
+        if ! dump_out="$(containerd --config /etc/containerd/config.toml config dump 2>&1)"; then
+            bail "containerd rejected the merged config (check CONTAINERD_TOML_CONFIG / /etc/containerd/conf.d/99-user.toml):\n$dump_out"
+        fi
+        # The drop-in must survive the merge, proving the conf.d import is wired up. A user who
+        # deliberately sets SystemdCgroup = false now wins the merge and trips this bail — that
+        # is a correct, loud failure (kURL requires systemd cgroups), not a regression. Do not
+        # weaken this guard to tolerate it.
+        if ! echo "$dump_out" | grep -q 'SystemdCgroup = true'; then
+            bail "containerd drop-in /etc/containerd/conf.d/50-replicated.toml was not applied to the merged config"
         fi
     fi
 

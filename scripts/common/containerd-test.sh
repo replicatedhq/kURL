@@ -64,7 +64,29 @@ FIXTURE_17=scripts/common/test/testdata/containerd-config-default-1.7.toml
 FIXTURE_20=scripts/common/test/testdata/containerd-config-default-2.0.toml
 FIXTURE_21=scripts/common/test/testdata/containerd-config-default-2.1.toml
 
-DROPIN=/etc/containerd/conf.d/99-replicated.toml
+DROPIN=/etc/containerd/conf.d/50-replicated.toml
+USER_DROPIN=/etc/containerd/conf.d/99-user.toml
+
+# bin/toml stub for the 1.x leaf-merge path. The real Go tool (kurl_util/cmd/toml) merges the
+# patchfile into the basefile; its merge correctness is unit-tested in
+# kurl_util/cmd/toml/main_test.go. The 1.x test here only asserts that the user value lands in
+# config.toml (not on a drop-in), so a minimal append into the basefile suffices. install.sh
+# invokes it by absolute path ("$DIR/bin/toml"), so we point DIR at a temp dir holding the stub.
+TOML_STUB_DIR="$(mktemp -d)"
+mkdir -p "$TOML_STUB_DIR/bin"
+cat > "$TOML_STUB_DIR/bin/toml" <<'STUB'
+#!/bin/bash
+basefile= patchfile=
+for arg in "$@"; do
+    case "$arg" in
+        -basefile=*) basefile="${arg#-basefile=}" ;;
+        -patchfile=*) patchfile="${arg#-patchfile=}" ;;
+    esac
+done
+cat "$patchfile" >> "$basefile"
+STUB
+chmod +x "$TOML_STUB_DIR/bin/toml"
+DIR="$TOML_STUB_DIR"
 
 # --- 1.x tests: assert config.toml (sed approach) ---
 
@@ -104,12 +126,12 @@ function test_apparmor_ubuntu2404_1x() {
     _IS_UBUNTU_2404=1
 }
 
-# --- 2.x tests: assert conf.d/99-replicated.toml (drop-in approach) ---
+# --- 2.x tests: assert conf.d/50-replicated.toml (drop-in approach) ---
 
 function test_systemd_cgroup_2x() {
     run_configure_with_fixture "$FIXTURE_20"
     [ -f "$DROPIN" ]
-    assertEquals "99-replicated.toml exists for 2.x" "0" "$?"
+    assertEquals "50-replicated.toml exists for 2.x" "0" "$?"
     grep -A1 "io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options" "$DROPIN" \
         | grep -q 'SystemdCgroup = true'
     assertEquals "SystemdCgroup in drop-in under cri.v1.runtime" "0" "$?"
@@ -176,6 +198,97 @@ function test_systemd_cgroup_2_1x() {
     assertEquals "config.toml imports references conf.d for 2.1" "0" "$?"
 }
 
+# --- CONTAINERD_TOML_CONFIG tests ---
+#
+# NOTE: the `containerd config dump` stub does NOT simulate last-write-wins merge precedence —
+# it just cats config.toml + conf.d/*.toml in shell-glob order. So these tests assert file
+# PLACEMENT and ordering, not merged scalar precedence. True runtime precedence and TOML
+# parse-rejection are verified against real containerd 2.0.5/2.1.0 binaries in the plan's
+# Phase 1 step-0 verification and in CI.
+
+function run_configure_with_tomlconfig() {
+    FIXTURE="$1"
+    local toml="$2"
+    rm -rf /etc/containerd
+    CONTAINERD_PRESERVE_CONFIG="" CONTAINERD_TOML_CONFIG="$toml" containerd_configure >/dev/null
+}
+
+function test_tomlconfig_dropin_2x() {
+    local fixture="$1" label="$2"
+    run_configure_with_tomlconfig "$fixture" $'[debug]\n  level = "info"'
+    [ -f "$USER_DROPIN" ]
+    assertEquals "99-user.toml created for $label" "0" "$?"
+    grep -q 'level = "info"' "$USER_DROPIN"
+    assertEquals "user value present in 99-user.toml for $label" "0" "$?"
+    grep -q 'level = "warn"' "$DROPIN"
+    assertEquals "kURL default still in 50-replicated.toml for $label" "0" "$?"
+    # 2.x must NOT leaf-merge the user value into the base config.toml
+    ! grep -q 'level = "info"' /etc/containerd/config.toml
+    assertEquals "base config.toml not patched with user value for $label" "0" "$?"
+}
+
+function test_tomlconfig_dropin_ordering_2x() {
+    run_configure_with_tomlconfig "$FIXTURE_20" $'[debug]\n  level = "info"'
+    # 99-user.toml must sort after 50-replicated.toml so containerd's import merge applies it last
+    assertEquals "user drop-in sorts last in conf.d" "99-user.toml" \
+        "$(ls /etc/containerd/conf.d | tail -1)"
+}
+
+function test_tomlconfig_no_dropin_when_empty_2x() {
+    run_configure_with_tomlconfig "$FIXTURE_20" ""
+    assertEquals "no 99-user.toml when CONTAINERD_TOML_CONFIG empty (2.x)" "" \
+        "$(ls "$USER_DROPIN" 2>/dev/null || true)"
+}
+
+function test_tomlconfig_leafmerge_1x() {
+    run_configure_with_tomlconfig "$FIXTURE_17" $'[debug]\n  level = "info"'
+    # 1.x: user value is leaf-merged into config.toml via bin/toml (stubbed as append here)
+    grep -q 'level = "info"' /etc/containerd/config.toml
+    assertEquals "user value leaf-merged into config.toml for 1.x" "0" "$?"
+    assertEquals "no conf.d/99-user.toml on 1.x" "" \
+        "$(ls "$USER_DROPIN" 2>/dev/null || true)"
+}
+
+# Bail tests: `bail` calls exit, so run containerd_configure in a subshell and assert its exit
+# status. Each overrides the `containerd` stub locally to drive the rc-based validation gate
+# without a real TOML parser.
+
+function test_config_validation_bail_malformed_2x() {
+    FIXTURE="$FIXTURE_20"
+    rm -rf /etc/containerd
+    (
+        # simulate containerd rejecting a malformed merged config: `config dump` exits non-zero
+        function containerd() {
+            case "$*" in
+                "config default") cat "$FIXTURE" ;;
+                *"config dump"*) echo "toml: parse error" >&2; return 1 ;;
+                *) return 0 ;;
+            esac
+        }
+        CONTAINERD_PRESERVE_CONFIG="" CONTAINERD_TOML_CONFIG=$'[debug]\n  level = "info"' \
+            containerd_configure >/dev/null 2>&1
+    )
+    assertEquals "bail when config dump exits non-zero (2.x malformed)" "1" "$?"
+}
+
+function test_config_validation_bail_missing_systemdcgroup_2x() {
+    FIXTURE="$FIXTURE_20"
+    rm -rf /etc/containerd
+    (
+        # config dump succeeds (rc 0) but the drop-in's SystemdCgroup is absent from the merge
+        function containerd() {
+            case "$*" in
+                "config default") cat "$FIXTURE" ;;
+                *"config dump"*) echo "version = 3" ;;
+                *) return 0 ;;
+            esac
+        }
+        CONTAINERD_PRESERVE_CONFIG="" CONTAINERD_TOML_CONFIG="" \
+            containerd_configure >/dev/null 2>&1
+    )
+    assertEquals "bail when merged config lacks SystemdCgroup (2.x)" "1" "$?"
+}
+
 # --- upgrade logic tests (bail calls exit → wrap in subshells) ---
 
 function test_upgrade_1_7_to_2x_allowed() {
@@ -237,6 +350,13 @@ test_apparmor_ubuntu2404_2x
 test_pause_image_2x
 test_idempotent_2x
 test_systemd_cgroup_2_1x
+test_tomlconfig_dropin_2x "$FIXTURE_20" "containerd 2.0"
+test_tomlconfig_dropin_2x "$FIXTURE_21" "containerd 2.1"
+test_tomlconfig_dropin_ordering_2x
+test_tomlconfig_no_dropin_when_empty_2x
+test_tomlconfig_leafmerge_1x
+test_config_validation_bail_malformed_2x
+test_config_validation_bail_missing_systemdcgroup_2x
 test_upgrade_1_7_to_2x_allowed
 test_upgrade_1_6_to_2x_blocked
 test_upgrade_k8s_too_old_blocked
