@@ -22,7 +22,7 @@ function build_rhel_7() {
     docker rm -f "rhel-7-$PACKAGE_NAME" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-7-$PACKAGE_NAME" \
         centos:7.4.1708 \
         /bin/bash -c "\
@@ -49,7 +49,7 @@ function build_rhel_7_force() {
     docker rm -f "rhel-7-force-$PACKAGE_NAME" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-7-force-$PACKAGE_NAME" \
         centos:7.4.1708 \
         /bin/bash -c "\
@@ -72,7 +72,7 @@ function createrepo_rhel_7() {
     outdir="$(realpath "$OUT_DIR")/rhel-7"
 
     docker rm -f "rhel-7-createrepo-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-7-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         centos:7.4.1708 \
@@ -97,7 +97,7 @@ function build_rhel_8() {
     docker rm -f "rhel-8-$PACKAGE_NAME" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-8-$PACKAGE_NAME" \
         rockylinux:8.5 \
         /bin/bash -c "\
@@ -115,7 +115,7 @@ function createrepo_rhel_8() {
     outdir="$(realpath "$OUT_DIR")/rhel-8"
 
     docker rm -f "rhel-8-createrepo-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-8-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         rockylinux:8.5 \
@@ -138,13 +138,13 @@ function image_name_suffix() {
 function build_image_rhel_9() {
     local packages=("$@")
 
-    docker build -t "rhel-9-$(image_name_suffix)" -f bin/containertools/Dockerfile.rhel9 --build-arg PACKAGES="${packages[*]}" ./bin
+    docker build --platform linux/amd64 -t "rhel-9-$(image_name_suffix)" -f bin/containertools/Dockerfile.rhel9 --build-arg PACKAGES="${packages[*]}" ./bin
 }
 
 function build_image_amazon_2023() {
     local packages=("$@")
 
-    docker build -t "amazon-2023-$(image_name_suffix)" -f bin/containertools/Dockerfile.amazon2023 --build-arg PACKAGES="${packages[*]}" ./bin
+    docker build --platform linux/amd64 -t "amazon-2023-$(image_name_suffix)" -f bin/containertools/Dockerfile.amazon2023 --build-arg PACKAGES="${packages[*]}" ./bin
 }
 
 function build_rhel_9() {
@@ -156,7 +156,7 @@ function build_rhel_9() {
     docker rm -f "rhel-9-$PACKAGE_NAME" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-9-$PACKAGE_NAME" \
         -v "$PWD/bin/containertools":/opt/containertools \
         "rhel-9-$(image_name_suffix)" \
@@ -172,7 +172,7 @@ function build_amazon_2023() {
     mkdir -p "$outdir"
 
     docker rm -f "amazon-2023-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "amazon-2023-$PACKAGE_NAME" \
         -v "$PWD/bin/containertools":/opt/containertools \
         "amazon-2023-$(image_name_suffix)" \
@@ -186,7 +186,7 @@ function createrepo_rhel_9() {
     outdir="$(realpath "$OUT_DIR")/rhel-9"
 
     docker rm -f "rhel-9-createrepo-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "rhel-9-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         -v "$PWD/bin/containertools":/opt/containertools \
@@ -201,7 +201,7 @@ function createrepo_amazon_2023() {
     outdir="$(realpath "$OUT_DIR")/amazon-2023"
 
     docker rm -f "amazon-2023-createrepo-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "amazon-2023-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         -v "$PWD/bin/containertools":/opt/containertools \
@@ -231,7 +231,7 @@ function build_deps_amazon_2023() {
     # yum9
     if [ -f "$outdir/archives/repodata/repomd.xml" ]; then
         docker rm -f "amazon-2023-subdeps-$PACKAGE_NAME" 2>/dev/null || true
-        docker run \
+        docker run --platform linux/amd64 \
             --name "amazon-2023-subdeps-$PACKAGE_NAME" \
             -v "$outdir/archives":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
@@ -243,7 +243,7 @@ function build_deps_amazon_2023() {
     # dockerout
     if [ -f "$outdir/repodata/repomd.xml" ]; then
         docker rm -f "amazon-2023-subdeps-$PACKAGE_NAME" 2>/dev/null || true
-        docker run \
+        docker run --platform linux/amd64 \
             --name "amazon-2023-subdeps-$PACKAGE_NAME" \
             -v "$outdir":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
@@ -281,7 +281,7 @@ function build_deps_rhel_9() {
     # yum9
     if [ -f "$outdir/archives/repodata/repomd.xml" ]; then
         docker rm -f "rhel-9-subdeps-$PACKAGE_NAME" 2>/dev/null || true
-        docker run \
+        docker run --platform linux/amd64 \
             --name "rhel-9-subdeps-$PACKAGE_NAME" \
             -v "$outdir/archives":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
@@ -293,7 +293,7 @@ function build_deps_rhel_9() {
     # dockerout
     if [ -f "$outdir/repodata/repomd.xml" ]; then
         docker rm -f "rhel-9-subdeps-$PACKAGE_NAME" 2>/dev/null || true
-        docker run \
+        docker run --platform linux/amd64 \
             --name "rhel-9-subdeps-$PACKAGE_NAME" \
             -v "$outdir":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
@@ -320,7 +320,7 @@ function build_ol_7() {
     docker rm -f "ol-7-$PACKAGE_NAME" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
-    docker run \
+    docker run --platform linux/amd64 \
         --name "ol-7-$PACKAGE_NAME" \
         centos:7.4.1708 \
         /bin/bash -c "\
@@ -341,7 +341,7 @@ function createrepo_ol_7() {
     outdir="$(realpath "$OUT_DIR")/ol-7"
 
     docker rm -f "ol-7-createrepo-$PACKAGE_NAME" 2>/dev/null || true
-    docker run \
+    docker run --platform linux/amd64 \
         --name "ol-7-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         centos:7.4.1708 \
@@ -429,7 +429,7 @@ while read -r line || [ -n "$line" ]; do
             echo "$package" >> "$OUT_DIR"/ubuntu-24.04/Deps
 
             docker rm -f ubuntu-2204-"$package" 2>/dev/null || true
-            docker run \
+            docker run --platform linux/amd64 \
                 --name ubuntu-2204-"$package" \
                 ubuntu:22.04 \
                 /bin/bash -c "\
@@ -441,7 +441,7 @@ while read -r line || [ -n "$line" ]; do
             sudo chown -R $UID "$OUT_DIR"/ubuntu-22.04
 
             docker rm -f ubuntu-2004-"$package" 2>/dev/null || true
-            docker run \
+            docker run --platform linux/amd64 \
                 --name ubuntu-2004-"$package" \
                 ubuntu:20.04 \
                 /bin/bash -c "\
@@ -453,7 +453,7 @@ while read -r line || [ -n "$line" ]; do
             sudo chown -R $UID "$OUT_DIR"/ubuntu-20.04
 
             docker rm -f ubuntu-1804-"$package" 2>/dev/null || true
-            docker run \
+            docker run --platform linux/amd64 \
                 --name ubuntu-1804-"$package" \
                 ubuntu:18.04 \
                 /bin/bash -c "\
@@ -465,7 +465,7 @@ while read -r line || [ -n "$line" ]; do
             sudo chown -R $UID "$OUT_DIR"/ubuntu-18.04
 
             docker rm -f ubuntu-1604-"$package" 2>/dev/null || true
-            docker run \
+            docker run --platform linux/amd64 \
                 --name ubuntu-1604-"$package" \
                 ubuntu:16.04 \
                 /bin/bash -c "\
@@ -516,13 +516,18 @@ while read -r line || [ -n "$line" ]; do
             dockerfile=$(echo "$line" | awk '{ print $3 }')
             version=$(echo "$line" | awk '{ print $4 }')
 
+            if [ "$(uname -m)" != "x86_64" ] && echo "$dstdir" | grep -qE '^rhel-7(-force)?$'; then
+                echo "Skipping dockerout for $dstdir on non-x86_64 architecture"
+                continue
+            fi
+
             outdir="$OUT_DIR/$dstdir"
             name="dockerout-$PACKAGE_NAME-$dstdir"
 
             mkdir -p "$outdir"
 
-            docker build --build-arg VERSION="$version" -t "$name" - < "$dockerfile"
-            docker run --rm -v "$outdir":/out "$name"
+            docker build --platform linux/amd64 --build-arg VERSION="$version" -t "$name" - < "$dockerfile"
+            docker run --rm --platform linux/amd64 -v "$outdir":/out "$name"
             sudo chown -R $UID "$outdir"
             ;;
 
@@ -542,22 +547,26 @@ if [ "$(find "$OUT_DIR"/amazon-2023/archives/*.rpm 2>/dev/null | wc -l)" -gt 0 ]
 fi
 build_deps_amazon_2023 "${deps_amazon2023[@]}"
 
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7 "${pkgs_rhel7[@]}"
-fi
-if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
-    createrepo_rhel_7
-fi
+if [ "$(uname -m)" = "x86_64" ]; then
+    if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+        build_rhel_7 "${pkgs_rhel7[@]}"
+    fi
+    if [ "$(find "$OUT_DIR"/rhel-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+        createrepo_rhel_7
+    fi
 
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7_force "${pkgs_rhel7[@]}"
-fi
+    if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+        build_rhel_7_force "${pkgs_rhel7[@]}"
+    fi
 
-if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
-    build_ol_7 "${pkgs_ol7[@]}"
-fi
-if [ "$(find "$OUT_DIR"/ol-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
-    createrepo_ol_7
+    if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
+        build_ol_7 "${pkgs_ol7[@]}"
+    fi
+    if [ "$(find "$OUT_DIR"/ol-7/archives/*rpm 2>/dev/null | wc -l)" -gt 0 ]; then
+        createrepo_ol_7
+    fi
+else
+    echo "Skipping RHEL 7 and OL 7 package builds on non-x86_64 architecture"
 fi
 
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then

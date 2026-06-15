@@ -550,6 +550,21 @@ build/packages/kubernetes/%/rhel-9:
 	find build/packages/kubernetes/$*/rhel-9 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-rhel9-$*
 
+build/packages/kubernetes/%/rhel-10:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		--build-arg KUBERNETES_MINOR_VERSION=$(shell echo $* | sed 's/\.[0-9]*$$//') \
+		-t kurl/rhel-10-k8s:$* \
+		-f bundles/k8s-rhel10/Dockerfile \
+		bundles/k8s-rhel10
+	-docker rm -f k8s-rhel10-$* 2>/dev/null
+	docker create --name k8s-rhel10-$* kurl/rhel-10-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-10
+	docker cp k8s-rhel10-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-10/
+	find build/packages/kubernetes/$*/rhel-10 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
+	find build/packages/kubernetes/$*/rhel-10 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
+	docker rm k8s-rhel10-$*
+
 build/packages/kubernetes/%/amazon-2023:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \

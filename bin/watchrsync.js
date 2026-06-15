@@ -88,7 +88,9 @@ function onChange() {
   }
 }
 
+runSequence();
+
 chokidar.watch([
-  'scripts/**/*',
-  'addons/**/*',
+  'scripts/',
+  'addons/',
 ], { ignoreInitial: true }).on('all', onChange);
