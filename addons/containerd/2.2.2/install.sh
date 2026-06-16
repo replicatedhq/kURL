@@ -250,12 +250,49 @@ EOF
     # patching, so user patches that break the conf.d import are caught too.
 }
 
+# containerd_backup_config_on_schema_migration preserves the existing config when an
+# upgrade crosses the containerd 1.x (config schema v2) -> 2.x (schema v3) boundary,
+# before containerd_configure() regenerates /etc/containerd/config.toml from defaults.
+# The 2.x CRI plugin tables differ from 1.x so the old config is not reused; the backup
+# is an operator recovery/diff artifact, not an input to the regenerated config. It is
+# only written on this one-time schema crossing, so backups do not accumulate.
+function containerd_backup_config_on_schema_migration() {
+    local existing=/etc/containerd/config.toml
+    if [ ! -f "$existing" ]; then
+        return
+    fi
+
+    # Schema version already on disk reflects the previously installed containerd.
+    local old_schema_version=
+    old_schema_version=$(awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}' "$existing")
+    if [ "${old_schema_version:-2}" -ge "3" ]; then
+        # already on the 2.x schema (or newer) — not a 1.x -> 2.x migration
+        return
+    fi
+
+    # Schema version the about-to-be-configured containerd binary will emit.
+    local new_schema_version=
+    new_schema_version=$(containerd config default 2>/dev/null | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
+    if [ "${new_schema_version:-2}" -lt "3" ]; then
+        # staying on the 1.x schema — config.toml is regenerated in place as before
+        return
+    fi
+
+    local backup="${existing}.bak"
+    if [ -e "$backup" ]; then
+        backup="${existing}.bak.$(date +%s)"
+    fi
+    cp -a "$existing" "$backup"
+    logStep "Backed up containerd 1.x config to $backup before migrating to the 2.x schema"
+}
+
 function containerd_configure() {
     if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
         log "Skipping containerd configuration in order to preserve config."
         return
     fi
     mkdir -p /etc/containerd
+    containerd_backup_config_on_schema_migration
     containerd config default > /etc/containerd/config.toml
 
     # Read the config schema version from the generated file.
