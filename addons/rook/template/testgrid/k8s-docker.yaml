@@ -22,6 +22,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -87,6 +88,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -168,6 +171,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -249,6 +254,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
