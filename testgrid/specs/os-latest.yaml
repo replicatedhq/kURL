@@ -26,7 +26,7 @@
     bash centos2ol.sh -r
 - id: rocky-9
   name: Rocky Linux
-  version: "9.7"
+  version: "9.8"
   vmimageuri: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
     yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
@@ -35,7 +35,7 @@
   version: "10.2"
   vmimageuri: https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool
 - id: centos-9
   name: CentOS 9
   version: "stream"
