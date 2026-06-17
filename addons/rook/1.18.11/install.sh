@@ -801,6 +801,14 @@ function rook_should_fail_install() {
         fi
     fi
 
+    # Rook 1.18+ requires Kubernetes 1.31+
+    local rook_version_minor=
+    rook_version_minor="$(echo "$ROOK_VERSION" | cut -d. -f2)"
+    if [ "$rook_version_minor" -ge "18" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "31" ]; then
+        logFail "Rook Pre-init: Rook ${ROOK_VERSION} requires Kubernetes 1.31 or later."
+        return 0
+    fi
+
     return 1
 }
 
