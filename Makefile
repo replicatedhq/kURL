@@ -645,6 +645,10 @@ test: lint vet ## Check the code with linters and vet
 	install -d /usr/local/bin
 	install shunit2 /usr/local/bin/shunit2
 
+.PHONY: docker-test-containerd
+docker-test-containerd: ## Run containerd configure/upgrade regression tests in a disposable container. (Used in build-test github action)
+	docker run --rm -v `pwd`:/src -w /src ubuntu:24.04 bash ./scripts/common/containerd-test.sh
+
 .PHONY: docker-test-shell
 docker-test-shell: ## Run tests for code in shell but containerized. (Used in build-test github action)
 	docker build -t kurl-test-shell-rhel-7 -f hack/test-shell/Dockerfile.rhel-7 hack/test-shell

@@ -63,6 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: make docker-test-shell
+      - run: make docker-test-containerd
 
   build-test-success:
     runs-on: ubuntu-latest
