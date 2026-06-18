@@ -240,6 +240,19 @@ function test_tomlconfig_no_dropin_when_empty_2x() {
         "$(ls "$USER_DROPIN" 2>/dev/null || true)"
 }
 
+# Reconfigure path: a prior run wrote 99-user.toml; the user then clears CONTAINERD_TOML_CONFIG
+# and re-runs. Unlike config.toml/50-replicated.toml (regenerated each run), the user drop-in is
+# only written, so it must be explicitly removed or its stale overrides keep applying. No rm -rf
+# between the two runs here — that is the whole point.
+function test_tomlconfig_stale_dropin_removed_when_emptied_2x() {
+    run_configure_with_tomlconfig "$FIXTURE_20" $'[debug]\n  level = "info"'
+    [ -f "$USER_DROPIN" ]
+    assertEquals "precondition: 99-user.toml exists after first run (2.x)" "0" "$?"
+    CONTAINERD_PRESERVE_CONFIG="" CONTAINERD_TOML_CONFIG="" containerd_configure >/dev/null
+    assertEquals "stale 99-user.toml removed after emptying CONTAINERD_TOML_CONFIG (2.x)" "" \
+        "$(ls "$USER_DROPIN" 2>/dev/null || true)"
+}
+
 function test_tomlconfig_leafmerge_1x() {
     run_configure_with_tomlconfig "$FIXTURE_17" $'[debug]\n  level = "info"'
     # 1.x: user value is leaf-merged into config.toml via bin/toml (stubbed as append here)
@@ -354,6 +367,7 @@ test_tomlconfig_dropin_2x "$FIXTURE_20" "containerd 2.0"
 test_tomlconfig_dropin_2x "$FIXTURE_21" "containerd 2.1"
 test_tomlconfig_dropin_ordering_2x
 test_tomlconfig_no_dropin_when_empty_2x
+test_tomlconfig_stale_dropin_removed_when_emptied_2x
 test_tomlconfig_leafmerge_1x
 test_config_validation_bail_malformed_2x
 test_config_validation_bail_missing_systemdcgroup_2x

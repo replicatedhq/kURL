@@ -334,6 +334,12 @@ function containerd_configure() {
             echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
             "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
         fi
+    elif [ "${config_schema_version:-2}" -ge "3" ]; then
+        # CONTAINERD_TOML_CONFIG was cleared since a prior run: delete the stale user drop-in so
+        # its overrides stop applying. Unlike config.toml and 50-replicated.toml (regenerated each
+        # run), 99-user.toml is only ever written, never overwritten when empty, so it would
+        # otherwise persist and silently keep applying obsolete settings.
+        rm -f /etc/containerd/conf.d/99-user.toml
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ] && [ "${config_schema_version:-2}" -ge "3" ]; then
