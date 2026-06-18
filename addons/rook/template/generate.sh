@@ -86,6 +86,9 @@ function split_resources() {
             if [ ! -f "$filename" ]; then
                 insert_resources "$kustomization_file" "$(basename "$filename")"
             fi
+            if [ -s "${filename}" ]; then
+                echo "---" >> "${filename}"
+            fi
             cat "${tmpfile}" >> "${filename}"
         fi
     done

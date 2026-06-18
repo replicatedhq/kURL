@@ -1,7 +1,7 @@
 - name: Rook minimal airgap
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -22,6 +22,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -67,7 +68,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -87,6 +88,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -128,12 +131,11 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-# upgrade several versions
-- name: Upgrade from 1.9.11
+- name: Upgrade from 1.17.x
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -145,10 +147,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.9.12"
+      version: "1.17.x"
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -169,103 +171,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rook_ceph_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-
-    minio_object_store_info
-    validate_read_write_object_store rwtest minio.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-
-    # the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule
-    wait_for_minio_ready
-
-    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
-    echo $operatorVersion | grep __testver__
-
-    rook_ceph_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt
-
-    minio_object_store_info
-    validate_testfile rwtest minio.txt
-    validate_read_write_object_store postupgrade minioupgrade.txt
-
-    # validate data pools
-    cat <<EOF | kubectl apply -f -
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: cephfs-pvc
-    spec:
-      accessModes:
-      - ReadWriteMany
-      resources:
-        requests:
-          storage: 1Gi
-      storageClassName: rook-cephfs
-    ---
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: default-pvc
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
-    EOF
-    kubectl -n default get pvc
-    sleep 30
-    echo "after sleeping"
-    kubectl -n default get pvc
-    kubectl -n default get pvc default-pvc | grep Bound
-    kubectl -n default get pvc cephfs-pvc | grep Bound
-    kubectl -n default delete pvc cephfs-pvc default-pvc
-
-- name: Upgrade from 1.12.x
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "1.29.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    minio:
-      version: "latest"
-    kotsadm:
-      version: "latest"
-    ekco:
-      version: "latest"
-    rook:
-      version: "1.12.x"
-  upgradeSpec:
-    kubernetes:
-      version: "1.30.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    minio:
-      version: "latest"
-    kotsadm:
-      version: "latest"
-    ekco:
-      version: "latest"
-    rook:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      bypassUpgradeWarning: true
-  unsupportedOSIDs:
-    - centos-79 # Rook 1.13+ is not supported on centos-7
-    - ol-79 # Rook 1.13+ is not supported on centos-7
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -326,7 +233,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.30.x"
+      version: "1.31.x"
     flannel:
       version: latest
     containerd:
@@ -347,6 +254,8 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -377,62 +286,3 @@
 
     # Ensure Cephfs storage class is not applied
     ! kubectl get sc | grep rook-cephfs
-
-- name: Rook migrate from Longhorn
-  flags: "yes"
-  cpu: 6
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
-  installerSpec:
-    kubernetes:
-      # Longhorn is not compatible with kubernetes 1.25+.
-      version: "1.24.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    ekco:
-      version: "latest"
-    registry:
-      version: "2.7.1"
-    longhorn:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    ekco:
-      version: "latest"
-    registry:
-      version: "2.8.1"
-    rook:
-      version: "__testver__"
-      s3Override: "__testdist__"
-      bypassUpgradeWarning: true
-  unsupportedOSIDs:
-    - centos-79 # Rook 1.13+ is not supported on centos-7
-    - ol-79 # Rook 1.13+ is not supported on centos-7
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    ubuntu_2404_install_host_packages lvm2 nfs-common open-iscsi
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    # create a deployment using the longhorn storage class ("default" namespace).
-    create_deployment_with_mounted_volume "migration-test" "default" "/data"
-    # generate a random file and copies it to the pod deployed by the previously created deployment.
-    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    # pushes an image to the internal registry.
-    test_push_image_to_registry
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    # sleep for a while to guarantee that the pod has been scaled up.
-    sleep 120
-    # downloads the previously stored file and compares, expecting to see the same content.
-    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    # makes sure that the new pvc is being provisioned by rook.
-    pvc_uses_provisioner "migration-test" "default" "rook"
-    # pulls the image we pushed before the migration.
-    test_pull_image_from_registry

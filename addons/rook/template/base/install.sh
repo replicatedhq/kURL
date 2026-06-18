@@ -155,25 +155,9 @@ function rook_operator_crds_deploy() {
     mkdir -p "${dst}"
     cp "$src/crds.yaml" "$dst/crds.yaml"
 
-    # replace the CRDs if they already exist otherwise create them
-    # replace or create rather than apply to avoid the error "metadata.annotations: Too long"
-    if ! kubectl replace -f "$dst/crds.yaml" 2>/dev/null ; then
-
-        if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
-            # Rook 1.12 introduced a new CRD "cephcosidrivers.ceph.rook.io" which will cause
-            # `kubectl create` to fail on upgrades. The following logic will extract the new CRD yaml and create it.
-            semverParse "$ROOK_VERSION"
-            local rook_major_version="$major"
-            local rook_minor_version="$minor"
-            if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "12" ]; then
-                get_yaml_from_multidoc_yaml "$dst/crds.yaml" "cephcosidrivers.ceph.rook.io" | kubectl create -f -
-            fi
-
-            return
-        fi
-
-        kubectl create -f "$dst/crds.yaml"
-    fi
+    # Apply CRDs with server-side apply to avoid the error "metadata.annotations: Too long"
+    # and to handle both new and existing CRDs in a single command
+    kubectl apply --server-side --force-conflicts -f "$dst/crds.yaml"
 }
 
 function rook_operator_deploy() {
@@ -204,6 +188,18 @@ function rook_operator_deploy() {
     #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
     #   - https://tracker.ceph.com/issues/54019
     rook_maybe_bluefs_buffered_io
+
+    # apply CRDs separately with replace or create to avoid the error "metadata.annotations: Too long"
+    for crd in "$dst"/*-crd.yaml; do
+        if [ -f "$crd" ]; then
+            local basename_crd
+            basename_crd=$(basename "$crd")
+            sed -i "/^- $basename_crd$/d" "$dst/kustomization.yaml"
+            if ! kubectl replace -f "$crd" 2>/dev/null; then
+                kubectl create -f "$crd"
+            fi
+        fi
+    done
 
     kubectl -n rook-ceph apply -k "$dst/"
 }
@@ -803,6 +799,14 @@ function rook_should_fail_install() {
             logFail "Rook Pre-init: Rook ${ROOK_VERSION} is only compatible with EKCO add-on version 0.23.0 and above."
             return 0
         fi
+    fi
+
+    # Rook 1.18+ requires Kubernetes 1.31+
+    local rook_version_minor=
+    rook_version_minor="$(echo "$ROOK_VERSION" | cut -d. -f2)"
+    if [ "$rook_version_minor" -ge "18" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "31" ]; then
+        logFail "Rook Pre-init: Rook ${ROOK_VERSION} requires Kubernetes 1.31 or later."
+        return 0
     fi
 
     return 1
