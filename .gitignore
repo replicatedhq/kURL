@@ -31,7 +31,6 @@ sbom/
 
 # ai/editor metadata
 .claude
-.opencode
 .cursor
 .aider*
 .continue
