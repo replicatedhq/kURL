@@ -10,8 +10,8 @@ A user posts a YAML `Installer` manifest to the kURL.sh API and receives a deter
 
 The kURL project has two main repositories:
 
-- **kURL** (`/Users/xav/go/src/github.com/replicatedhq/kURL`) — builds the installer scripts, add-on packages, host packages, Go utilities, and the public API registry.
-- **kURL-testgrid** (`/Users/xav/go/src/github.com/replicatedhq/kURL-testgrid`) — the test automation platform that provisions real Linux VMs, runs kURL installers, executes Sonobuoy conformance tests, and publishes results at `https://testgrid.kurl.sh`.
+- **kURL** (`github.com/replicatedhq/kURL`) — builds the installer scripts, add-on packages, host packages, Go utilities, and the public API registry.
+- **kURL-testgrid** (`github.com/replicatedhq/kURL-testgrid`) — the test automation platform that provisions real Linux VMs, runs kURL installers, executes Sonobuoy conformance tests, and publishes results at `https://testgrid.kurl.sh`.
 
 ## 2. Repository structure
 
