@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 
 def api_request(url, api_key=None, data=None, method=None, timeout=60):
@@ -135,8 +135,8 @@ def main():
                 with open(os.path.join(inst_dir, "logs.txt"), "w") as f:
                     f.write(logs)
                 print("  saved instance logs")
-        except HTTPError as e:
-            if e.code != 404:
+        except (HTTPError, URLError) as e:
+            if not isinstance(e, HTTPError) or e.code != 404:
                 print(f"  warning: could not fetch instance logs: {e}", file=sys.stderr)
 
         # Sonobuoy results, if present.
@@ -147,8 +147,8 @@ def main():
                 with open(os.path.join(inst_dir, "sonobuoy.txt"), "w") as f:
                     f.write(results)
                 print("  saved sonobuoy results")
-        except HTTPError as e:
-            if e.code != 404:
+        except (HTTPError, URLError) as e:
+            if not isinstance(e, HTTPError) or e.code != 404:
                 print(f"  warning: could not fetch sonobuoy results: {e}", file=sys.stderr)
 
         # Per-node logs and support bundles.
@@ -191,8 +191,8 @@ def main():
                         except Exception as e:
                             print(f"  failed to decrypt {enc_path}: {e}", file=sys.stderr)
 
-            except HTTPError as e:
-                if e.code != 404:
+            except (HTTPError, URLError) as e:
+                if not isinstance(e, HTTPError) or e.code != 404:
                     print(f"  warning: could not fetch {node_id} node logs: {e}", file=sys.stderr)
 
     print(f"\nArtifacts written to: {out_dir}")
