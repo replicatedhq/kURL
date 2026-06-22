@@ -418,7 +418,6 @@ function verify_rook_updated_cluster() {
     fi
 }
 
-
 # rook_cluster_deploy_upgrade_flexvolumes_to_csi will check if the previous storageclass is using
 # the flex volume provisioner (if this is an upgrade from 1.0.4) and will deploy a new storageclass
 # with the CSI provisioner following this guide:
