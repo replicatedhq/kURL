@@ -19,6 +19,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -85,6 +88,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -168,6 +174,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -251,6 +260,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
