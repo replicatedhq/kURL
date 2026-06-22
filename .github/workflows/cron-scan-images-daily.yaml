@@ -12,7 +12,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/setup-node@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install dependencies
         working-directory: ./bin/scan-images/
         run: npm install
@@ -33,7 +33,7 @@ jobs:
       max-parallel: 5
     steps:
       - name: Checkout for Grype config
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           sparse-checkout: .grype.yaml
           sparse-checkout-cone-mode: false
