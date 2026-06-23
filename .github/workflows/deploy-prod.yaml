@@ -304,6 +304,15 @@ jobs:
         AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "dist"
 
+  notify-release:
+    uses: replicatedhq/reusable-workflows/.github/workflows/notify-release.yml@main
+    needs:
+    - github-release
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      slack_webhook: ${{ secrets.PRODUCTION_SYSTEMS_SLACK_WEBHOOK }}
+
   testgrid-run:
     runs-on: ubuntu-24.04
     needs:
