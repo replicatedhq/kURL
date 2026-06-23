@@ -179,6 +179,19 @@ tgrun queue --spec <spec> --os-spec <os-spec> --ref <ref> --api-token <token>
 
 Add-ons can define their own specs under `addons/<name>/template/testgrid/*.yaml`. During add-on tests, `bin/test-addon.sh` substitutes `__testver__` and `__testdist__` placeholders in the spec templates.
 
+#### Testgrid credentials for local runs
+
+A few local helpers (for example, `bin/test-addon.sh` and the `testgrid-failure-analysis` skill) read Testgrid secrets from environment variables. Put these values in a `.env` file at the repository root (not `.envrc`) and keep the file out of version control. `.env` is already listed in `.gitignore`.
+
+If you use `direnv`, the `.envrc` in the repo root will automatically source `.env` when you enter the directory. Example variables to set in `.env` (replace `...` with your own secrets):
+
+```bash
+export TESTGRID_API_TOKEN=...
+export TESTGRID_AGE_PASSPHRASE=...
+```
+
+Never commit real values, `.env` files, or `.envrc` to the repository.
+
 ### How Testgrid works (high-level)
 
 1. A user or CI invokes `tgrun queue` with a test spec and OS spec.
@@ -242,6 +255,7 @@ make kurl-util-image       # replicated/kurl-util:alpha
 - **Testgrid OS filtering is opt-out** via `unsupportedOSIDs`; there is no `supportedOSIDs`.
 - **Linux/amd64 required** for runtime testing. The scripts are not macOS-compatible; use a remote Linux VM or Docker.
 - **On Apple Silicon**, set `GOOS=linux`, `GOARCH=amd64`, and `DOCKER_DEFAULT_PLATFORM=linux/amd64` before building.
+- **Keep secrets in `.env`**. `.env` and `.envrc` are gitignored. If you use `direnv`, `.envrc` will automatically load `.env`; otherwise, source it manually. Never commit secrets, `.env`, or `.envrc`.
 
 ## 8. Useful commands
 
