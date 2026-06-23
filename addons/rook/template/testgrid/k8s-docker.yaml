@@ -1,7 +1,7 @@
 - name: Rook minimal airgap
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -19,6 +19,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -68,7 +71,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -85,6 +88,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -131,11 +137,11 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-- name: Upgrade from 1.17.x
+- name: Upgrade from 1.18.x
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -147,10 +153,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.17.x"
+      version: "1.18.x"
   upgradeSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -168,6 +174,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
@@ -233,7 +242,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -251,6 +260,9 @@
   unsupportedOSIDs:
     - centos-79 # Rook 1.13+ is not supported on centos-7
     - ol-79 # Rook 1.13+ is not supported on centos-7
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2

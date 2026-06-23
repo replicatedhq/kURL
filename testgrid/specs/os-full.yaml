@@ -41,8 +41,14 @@
   version: "10.2"
   vmimageuri: https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
   preinit: |
-    yum install -y --nobest nfs-utils fio container-selinux kernel-modules-extra lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils rrdtool
+    yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils rrdtool
     systemctl disable --now cockpit.socket
+    # Try to install the kernel-modules-extra version matching the running kernel.
+    # If the repos no longer have it, install the latest kernel+modules and reboot.
+    if ! yum install -y kernel-modules-extra-"$(uname -r)"; then
+        yum install -y kernel kernel-modules-extra
+        reboot
+    fi
 - id: centos-9
   name: CentOS 9
   version: "stream"
