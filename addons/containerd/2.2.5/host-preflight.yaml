@@ -10,22 +10,22 @@ spec:
         outcomes:
           - warn:
               when: "centos = 7"
-              message: "containerd addon supports centos 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.5"
+              message: "containerd addon supports centos 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.4"
           - warn:
               when: "rhel = 7"
-              message: "containerd addon supports rhel 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.5"
+              message: "containerd addon supports rhel 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.4"
           - warn:
               when: "ol = 7"
-              message: "containerd addon supports ol 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.5"
-          - pass:
+              message: "containerd addon supports ol 7, but only up to containerd 1.6.33, which will be installed instead of 2.2.4"
+          - fail:
               when: "centos = 8"
-              message: "containerd addon supports centos 8"
-          - pass:
+              message: "containerd addon does not support centos 8 because containerd 2.2.4 requires cgroup v2, which centos 8 does not enable by default"
+          - fail:
               when: "rhel = 8"
-              message: "containerd addon supports rhel 8"
-          - pass:
+              message: "containerd addon does not support rhel 8 because containerd 2.2.4 requires cgroup v2, which rhel 8 does not enable by default"
+          - fail:
               when: "ol = 8"
-              message: "containerd addon supports ol 8"
+              message: "containerd addon does not support ol 8 because containerd 2.2.4 requires cgroup v2, which ol 8 does not enable by default"
           - pass:
               when: "centos = 9"
               message: "containerd addon supports centos 9"
@@ -43,7 +43,7 @@ spec:
               message: "containerd addon does not support ubuntu 16.04"
           - warn:
               when: "ubuntu = 18.04"
-              message: "containerd addon supports ubuntu 18.04, but only up to containerd 1.6.21, which will be installed instead of 2.2.5"
+              message: "containerd addon supports ubuntu 18.04, but only up to containerd 1.6.21, which will be installed instead of 2.2.4"
           - fail:
               when: "ubuntu = 20.04"
               message: "containerd addon does not support ubuntu 20.04"

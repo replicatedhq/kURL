@@ -154,7 +154,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
@@ -228,17 +228,15 @@
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
 
-- name: Upgrade Containerd from 1.4.x to __testver__
+- name: Upgrade Containerd from 1.7.x to __testver__
   installerApiEndpoint: https://kurl.sh
   installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
     kubernetes:
-      version: "1.25.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
-      version: "1.4.x"
+      version: "1.7.x"
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -251,7 +249,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -286,61 +284,6 @@
     - centos-74
     - centos-79
     - ol-79
-    - ubuntu-2204
-    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-    - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
-    - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
-    - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
-
-- name: Upgrade Containerd from 1.5.x to __testver__
-  installerApiEndpoint: https://kurl.sh
-  installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
-    kubernetes:
-      version: "1.25.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "1.5.11"
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    ekco:
-      version: latest
-    kotsadm:
-      version: latest
-  upgradeSpec:
-    kubernetes:
-      version: "1.25.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    ekco:
-      version: latest
-    kotsadm:
-      version: latest
-  postUpgradeScript: |
-    containerd --version
-    containerd --version | grep "__testver__"
-  unsupportedOSIDs:
-    - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-    - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-    - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
-    - amazon-2023 # installer version v2024.07.02-0 does not know amazon 2023
-    - ubuntu-2404 # installer version v2024.07.02-0 does not know Ubuntu 2404.
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
