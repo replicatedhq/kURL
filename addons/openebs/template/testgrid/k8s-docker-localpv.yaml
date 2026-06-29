@@ -53,7 +53,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     minio:
       version: "latest"
     kotsadm:
@@ -75,6 +75,10 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu2404
+  - rocky-9
+  - rocky-10
+  - centos-9
 
 - name: airgap localpv
   airgap: true
@@ -128,7 +132,7 @@
     weave:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     minio:
       version: "latest"
     kotsadm:
@@ -149,8 +153,11 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - rocky-91 # docker is not supported on rhel 9 variants
-  - amazon-2023 # docker is not supported on amazon 2023
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu2404
+  - rocky-9
+  - rocky-10
+  - centos-9
 
 - name: localpv migrate from Rook 1.0.4 with old versions
   flags: "yes"
@@ -174,7 +181,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -190,7 +197,6 @@
     rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
     install_and_customize_kurl_integration_test_application
-
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -206,6 +212,10 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu2404
+  - rocky-9
+  - rocky-10
+  - centos-9
 
 - name: localpv migrate from rook 1.10.x and from k8s 1.24.x
   flags: "yes"
@@ -229,7 +239,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -242,6 +252,11 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+    - ubuntu2404
+    - rocky-9
+    - rocky-10
+    - centos-9
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -287,7 +302,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "latest"
     prometheus:
@@ -326,13 +341,19 @@
       echo "longhorn-system namespace still exists"
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu2404
+  - rocky-9
+  - rocky-10
+  - centos-9
 
 - name: localpv upgrade from latest
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.33.x"
     flannel:
       version: latest
     containerd:
@@ -346,7 +367,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.33.x"
     flannel:
       version: latest
     containerd:
@@ -400,7 +421,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "latest"
     prometheus:
@@ -447,3 +468,10 @@
       echo "longhorn-system namespace still exists"
       exit 1
     fi
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu2404
+  - rocky-9
+  - rocky-10
+  - centos-9
+  
