@@ -1,11 +1,11 @@
 - name: Minimal Latest, Rook
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.33.x"
     flannel:
       version: latest
     rook:
-      version: "1.9.x"
+      version: "latest"
     containerd:
       version: "latest"
     ekco:
@@ -13,14 +13,15 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: Kubernetes 1.24, Internal LB, Rook, Multi node
+
+- name: Kubernetes 1.34, Internal LB, Rook, Multi node
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.34.x
     flannel:
       version: latest
     rook:
-      version: "1.9.x"
+      version: "latest"
     containerd:
       version: "latest"
     kotsadm:
@@ -37,17 +38,18 @@
 - name: Kubernetes 1.21, Longhorn, Internal LB
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.21.x"
     flannel:
       version: latest
     longhorn:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
       enableInternalLoadBalancer: true
+
 - name: podImageOverrides
   installerSpec:
     kubernetes:
@@ -148,7 +150,7 @@
 - name: Upgrade k8s with the PR version of ekco
   installerSpec:
     kubernetes:
-      version: "1.28.0"
+      version: "1.33.0"
     flannel:
       version: latest
     containerd:
@@ -159,7 +161,7 @@
       enableInternalLoadBalancer: true
   upgradeSpec:
     kubernetes:
-      version: "1.29.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
