@@ -28,6 +28,15 @@ function velero_pre_init() {
         fi
     fi
 
+    if velero_version_ge "1.17.0"; then
+        if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+            bail "Velero $VELERO_VERSION does not support disabling S3 / Local Volume Provider snapshot storage. Use an object store (Rook or Minio) or pin Velero to a version earlier than 1.17."
+        fi
+        if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots; then
+            bail "Velero $VELERO_VERSION cannot be used with an existing Local Volume Provider snapshot PVC. Migrate to an object store before upgrading."
+        fi
+    fi
+
     velero_host_init
 }
 
@@ -61,7 +70,8 @@ function velero() {
     kubectl delete crd resticrepositories.velero.io --ignore-not-found
 
     # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; then
+    # Velero 1.17+ uses Kopia which does not support the Local Volume Provider.
+    if ! velero_version_ge "1.17.0" && { kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; }; then
         velero_patch_internal_pvc_snapshots "$src" "$dst"
     fi
 
@@ -111,6 +121,15 @@ function velero_host_init() {
     install_nfs_utils_if_missing_common "$DIR/addons/velero/$VELERO_VERSION"
 }
 
+function velero_version_ge() {
+    local target_version="$1"
+    semverCompare "${VELERO_VERSION//v/}" "$target_version"
+    if [ "$SEMVER_COMPARE_RESULT" != "-1" ]; then
+        return 0
+    fi
+    return 1
+}
+
 function velero_install() {
     local src="$1"
     local dst="$2"
@@ -118,9 +137,15 @@ function velero_install() {
     # Pre-apply CRDs since kustomize reorders resources. Grep to strip out sailboat emoji.
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install --crds-only | grep -v 'Velero is installed'
 
-    local nodeAgentArgs="--use-node-agent --uploader-type=restic"
-    if [ "$VELERO_DISABLE_RESTIC" = "1" ]; then
-        nodeAgentArgs=""
+    local nodeAgentArgs=""
+    if [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
+        if velero_version_ge "1.17.0"; then
+            nodeAgentArgs="--use-node-agent"
+        elif velero_version_ge "1.10.0"; then
+            nodeAgentArgs="--use-node-agent --uploader-type=restic"
+        else
+            nodeAgentArgs="--use-restic"
+        fi
     fi
 
     # detect if we need to use object store or pvc
@@ -128,8 +153,9 @@ function velero_install() {
     if ! kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default; then
 
         # Only use the PVC backup location for new installs where disableS3 is set to TRUE and
-        # there is a RWX storage class available (rook-cephfs or longhorn)
-        if [ "$KOTSADM_DISABLE_S3" == 1 ] && { kubectl get storageclass | grep "longhorn" || kubectl get storageclass | grep "rook-cephfs" ; } ; then
+        # there is a RWX storage class available (rook-cephfs or longhorn). Velero 1.17+ does not
+        # support the Local Volume Provider, so this path is only used for older versions.
+        if ! velero_version_ge "1.17.0" && [ "$KOTSADM_DISABLE_S3" == 1 ] && { kubectl get storageclass | grep "longhorn" || kubectl get storageclass | grep "rook-cephfs" ; } ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
         elif object_store_exists; then
             local ip=$($DIR/bin/kurl netutil format-ip-address $OBJECT_STORE_CLUSTER_IP)
@@ -145,12 +171,17 @@ function velero_install() {
         secretArgs="--secret-file velero-credentials"
     fi
 
+    local plugins="velero/velero-plugin-for-aws:v1.13.2,velero/velero-plugin-for-gcp:v1.13.2,velero/velero-plugin-for-microsoft-azure:v1.13.2,${KURL_UTIL_IMAGE}"
+    if ! velero_version_ge "1.17.0"; then
+        plugins="$plugins,replicated/local-volume-provider:0.6.10"
+    fi
+
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install \
         $nodeAgentArgs \
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
-        --plugins velero/velero-plugin-for-aws:v1.13.2,velero/velero-plugin-for-gcp:v1.13.2,velero/velero-plugin-for-microsoft-azure:v1.13.2,replicated/local-volume-provider:0.6.10,"$KURL_UTIL_IMAGE" \
+        --plugins "$plugins" \
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml"
 
@@ -259,7 +290,7 @@ function velero_patch_args() {
         done
     fi
 
-    # if the user has not disabled restic and specified a restic timeout, add it to the velero deployment
+    # if the user has not disabled file-system backups and specified a timeout, add it to the velero deployment
     if [ "${VELERO_DISABLE_RESTIC}" != "1" ] && [ -n "$VELERO_RESTIC_TIMEOUT" ]; then
         velero_insert_arg "--fs-backup-timeout=$VELERO_RESTIC_TIMEOUT" "$dst/kustomization.yaml"
     fi
