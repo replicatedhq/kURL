@@ -34,8 +34,8 @@
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get cm -n velero kurl-velero-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
   unsupportedOSIDs:
-    - centos-79 # Rook 1.13+ is not supported on centos-7
-    - ol-79 # Rook 1.13+ is not supported on centos-7
+    - centos-79
+    - ol-79
     - ol-8x
     - amzn-20
     - ubuntu-1804
@@ -68,6 +68,13 @@
     install_and_customize_kurl_integration_test_application
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
+
 - name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
@@ -85,6 +92,15 @@
       s3Override: "__testdist__"
     minio:
       version: "latest"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack lvm2
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
   unsupportedOSIDs:
     - centos-79
     - ol-79
@@ -102,7 +118,7 @@
     rook:
       version: 1.12.x
     containerd:
-      version: "latest"
+      version: "1.7.x"
     kotsadm:
       version: latest
     velero:
@@ -115,7 +131,7 @@
     rook:
       version: 1.12.x
     containerd:
-      version: "latest"
+      version: "1.7.x"
     kotsadm:
       version: latest
     velero:
@@ -124,6 +140,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
