@@ -5,7 +5,7 @@
     flannel:
       version: latest
     rook:
-      version: "latest"
+      version: "1.19.x"
     containerd:
       version: "latest"
     ekco:
@@ -13,6 +13,9 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79
+    - ol-79
+    - ubuntu-1804
 
 - name: Kubernetes 1.34, Internal LB, Rook, Multi node
   installerSpec:
@@ -21,7 +24,7 @@
     flannel:
       version: latest
     rook:
-      version: "latest"
+      version: "1.19.x"
     containerd:
       version: "latest"
     kotsadm:
@@ -35,6 +38,10 @@
   numPrimaryNodes: 3
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-79
+    - ol-79
+    - ubuntu-1804
+
 - name: Kubernetes 1.21, Longhorn, Internal LB
   installerSpec:
     kubernetes:
@@ -170,3 +177,8 @@
       version: "__testver__"
       s3Override: "__testdist__"
       enableInternalLoadBalancer: true
+  unsupportedOSIDs:
+    - centos-74
+    - centos-79
+    - ol-79
+    - ubuntu-1804
