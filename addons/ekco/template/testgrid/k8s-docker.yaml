@@ -157,7 +157,7 @@
 - name: Upgrade k8s with the PR version of ekco
   installerSpec:
     kubernetes:
-      version: "1.33.0"
+      version: "1.33.x"
     flannel:
       version: latest
     containerd:
