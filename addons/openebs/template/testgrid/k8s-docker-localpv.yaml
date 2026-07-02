@@ -1,7 +1,7 @@
 - name: basic localpv
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -27,6 +27,12 @@
     echo "$supportBundle"
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get cm -n openebs kurl-openebs-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
 
 - name: localpv upgrade from 2.6.0
   flags: "yes"
@@ -39,7 +45,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     minio:
       version: "2020-01-25T02-50-51Z"
     openebs:
@@ -75,7 +81,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  - ubuntu2404
+  - ubuntu-2404
   - rocky-9
   - rocky-10
   - centos-9
@@ -84,7 +90,7 @@
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.34.x"
     flannel:
       version: latest
     containerd:
@@ -106,6 +112,12 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
 
 - name: localpv upgrade from 1.12.0
   flags: "yes"
@@ -154,7 +166,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  - ubuntu2404
+  - ubuntu-2404
   - rocky-9
   - rocky-10
   - centos-9
@@ -170,7 +182,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     rook:
       version: "1.0.x"
     kotsadm:
@@ -212,7 +224,7 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  - ubuntu2404
+  - ubuntu-2404
   - rocky-9
   - rocky-10
   - centos-9
@@ -228,7 +240,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x"
     rook:
       version: "1.10.x"
     kotsadm:
@@ -285,7 +297,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "latest"
     prometheus:
@@ -343,7 +355,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  - ubuntu2404
+  - ubuntu-2404
+  - ubuntu-2204
   - rocky-9
   - rocky-10
   - centos-9
@@ -391,7 +404,12 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
 
 - name: localpv migrate from longhorn with kubernetes upgrade
   flags: "yes"
@@ -404,7 +422,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "latest"
     prometheus:
@@ -470,7 +488,7 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-  - ubuntu2404
+  - ubuntu-2404
   - rocky-9
   - rocky-10
   - centos-9
