@@ -45,7 +45,7 @@
     flannel:
       version: latest
     containerd:
-      version: "1.7.x"
+      version: "1.6.x"
     minio:
       version: "2020-01-25T02-50-51Z"
     openebs:
@@ -182,7 +182,7 @@
     flannel:
       version: latest
     containerd:
-      version: "1.7.x"
+      version: "1.6.x"
     rook:
       version: "1.0.x"
     kotsadm:
@@ -240,7 +240,7 @@
     flannel:
       version: latest
     containerd:
-      version: "1.7.x"
+      version: "1.6.x"
     rook:
       version: "1.10.x"
     kotsadm:
@@ -297,7 +297,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "1.7.x"
+      version: "1.6.x"
     ekco:
       version: "latest"
     prometheus:
@@ -422,7 +422,7 @@
     flannel:
       version: "latest"
     containerd:
-      version: "1.7.x"
+      version: "1.6.x"
     ekco:
       version: "latest"
     prometheus:
