@@ -3,9 +3,10 @@
 # passed with a flag
 
 function prompts_can_prompt() {
-    # Need the TTY to accept input and stdout to display
-    # Prompts when running the script through the terminal but not as a subshell
-    if [ -c /dev/tty ]; then
+    # Need a usable TTY to accept input.
+    # /dev/tty may exist as a character device without a controlling terminal
+    # (e.g. cloud-init / piped shells), so verify it can actually be opened.
+    if [ -c /dev/tty ] && { : < /dev/tty ; } 2>/dev/null; then
         return 0
     fi
     return 1
