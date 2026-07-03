@@ -30,8 +30,8 @@ function velero_pre_init() {
 
     if velero_version_ge "1.17.0"; then
         local bsl_provider
-        bsl_provider=$(velero_bsl_provider)
-        if velero_bsl_is_local_volume_provider "$bsl_provider"; then
+        bsl_provider=$(velero_bsl_provider) || true
+        if [ -n "$bsl_provider" ] && velero_bsl_is_local_volume_provider "$bsl_provider"; then
             bail "Velero $VELERO_VERSION cannot be used with the Local Volume Provider (provider: $bsl_provider). Velero 1.17+ uses Kopia, which does not support the Local Volume Provider. Migrate the default BackupStorageLocation to an object store (S3-compatible, Rook, or Minio) before upgrading."
         fi
         if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
@@ -148,7 +148,7 @@ function velero_bsl_provider() {
 function velero_bsl_is_local_volume_provider() {
     local provider="${1:-}"
     if [ -z "$provider" ]; then
-        provider=$(velero_bsl_provider)
+        return 1
     fi
     case "$provider" in
         replicated.com/hostpath|replicated.com/nfs|replicated.com/pvc)
