@@ -15,7 +15,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     ekco:
       version: 0.6.0
     containerd:
@@ -48,7 +48,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     minio:
       version: latest
     ekco:
@@ -103,7 +103,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     ekco:
       version: 0.6.0
     containerd:
@@ -132,7 +132,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     ekco:
       version: 0.6.0
     containerd:
@@ -161,7 +161,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     ekco:
       version: 0.6.0
     containerd:
@@ -190,7 +190,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.2.0
+      version: 1.10.1
     ekco:
       version: 0.6.0
     containerd:
@@ -417,7 +417,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.5.3
+      version: 1.10.1
     minio:
       version: latest
     ekco:
@@ -448,7 +448,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.5.3
+      version: 1.10.1
     minio:
       version: latest
     ekco:
@@ -518,7 +518,7 @@
     containerd:
       version: latest
     velero:
-      version: 1.8.x
+      version: 1.10.x
     ekco:
       version: latest
   upgradeSpec:
@@ -536,7 +536,7 @@
     containerd:
       version: latest
     velero:
-      version: 1.9.x
+      version: 1.10.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -564,7 +564,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.7.x
+      version: 1.10.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -621,7 +621,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.9.x
+      version: 1.10.x
     ekco:
       version: latest
   airgap: true
@@ -720,7 +720,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.7.x
+      version: 1.10.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -782,7 +782,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.7.x
+      version: 1.10.x
     ekco:
       version: latest
   airgap: true
@@ -1058,7 +1058,7 @@
     containerd:
       version: "latest"
     velero:
-      version: "1.8.x"
+      version: "1.10.x"
     kotsadm:
       version: "1.71.x"
     minio:

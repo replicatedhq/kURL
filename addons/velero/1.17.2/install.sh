@@ -29,6 +29,11 @@ function velero_pre_init() {
     fi
 
     if velero_version_ge "1.17.0"; then
+        local bsl_provider
+        bsl_provider=$(velero_bsl_provider)
+        if velero_bsl_is_local_volume_provider "$bsl_provider"; then
+            bail "Velero $VELERO_VERSION cannot be used with the Local Volume Provider (provider: $bsl_provider). Velero 1.17+ uses Kopia, which does not support the Local Volume Provider. Migrate the default BackupStorageLocation to an object store (S3-compatible, Rook, or Minio) before upgrading."
+        fi
         if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
             bail "Velero $VELERO_VERSION does not support disabling S3 / Local Volume Provider snapshot storage. Use an object store (Rook or Minio) or pin Velero to a version earlier than 1.17."
         fi
@@ -128,6 +133,31 @@ function velero_version_ge() {
         return 0
     fi
     return 1
+}
+
+# Returns the provider of the default BackupStorageLocation, or exits with an error if it does not exist.
+function velero_bsl_provider() {
+    if ! kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default; then
+        return 1
+    fi
+    kubectl -n "$VELERO_NAMESPACE" get backupstoragelocation default -o jsonpath='{.spec.provider}'
+}
+
+# Returns 0 if the provided BackupStorageLocation provider is one of the Local Volume Provider types.
+# If no provider is passed, the default BackupStorageLocation provider is used.
+function velero_bsl_is_local_volume_provider() {
+    local provider="${1:-}"
+    if [ -z "$provider" ]; then
+        provider=$(velero_bsl_provider)
+    fi
+    case "$provider" in
+        replicated.com/hostpath|replicated.com/nfs|replicated.com/pvc)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 function velero_install() {
