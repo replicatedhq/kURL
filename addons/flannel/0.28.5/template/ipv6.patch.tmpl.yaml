@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds
+  namespace: kube-flannel
+spec:
+  template:
+    spec:
+      containers:
+      - name: kube-flannel
+        env:
+        - name: FLANNEL_ENABLE_IPV6
+          value: "$FLANNEL_ENABLE_IPV6"
+        - name: FLANNEL_IPV6_NETWORK
+          value: "$POD_CIDR_IPV6"
