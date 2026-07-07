@@ -96,7 +96,7 @@
     kotsadm:
       version: 1.88.x
     velero:
-      version: 1.9.x
+      version: 1.10.x
     ekco:
       version: 0.19.x
     containerd:
@@ -286,7 +286,7 @@
       applicationSlug: a-test-app
       version: 1.57.0
     velero:
-      version: 1.6.0
+      version: 1.10.1
     ekco:
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
@@ -335,7 +335,7 @@
       s3Override: https://s3.kurl.sh/external/kotsadm-1.90.0.tar.gz
     velero:
       resticTimeout: 24h0m0s
-      version: 1.9.2
+      version: 1.10.1
     ekco:
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
@@ -416,7 +416,7 @@
       s3Override: https://s3.kurl.sh/external/kotsadm-1.90.0.tar.gz
     velero:
       resticTimeout: 24h0m0s
-      version: 1.9.2
+      version: 1.10.1
     ekco:
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
@@ -529,7 +529,7 @@
       applicationSlug: a-test-app
       version: 1.57.0
     velero:
-      version: 1.6.0
+      version: 1.10.1
     ekco:
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
@@ -635,7 +635,7 @@
       version: 1.38.0
     applicationSlug: cd4pe
     velero:
-      version: 1.5.1
+      version: 1.10.1
     ekco:
       version: 0.10.0
     containerd:
@@ -757,7 +757,7 @@
     registry:
       version: "2.7.x"
     velero:
-      version: "1.7.x"
+      version: "1.10.x"
     kotsadm:
       version: "1.80.x"
     ekco:

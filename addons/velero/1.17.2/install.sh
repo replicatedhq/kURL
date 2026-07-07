@@ -201,9 +201,9 @@ function velero_install() {
         secretArgs="--secret-file velero-credentials"
     fi
 
-    local plugins="velero/velero-plugin-for-aws:v__AWS_PLUGIN_VERSION__,velero/velero-plugin-for-gcp:v__GCP_PLUGIN_VERSION__,velero/velero-plugin-for-microsoft-azure:v__AZURE_PLUGIN_VERSION__,${KURL_UTIL_IMAGE}"
+    local plugins="velero/velero-plugin-for-aws:v1.13.2,velero/velero-plugin-for-gcp:v1.13.2,velero/velero-plugin-for-microsoft-azure:v1.13.2,${KURL_UTIL_IMAGE}"
     if ! velero_version_ge "1.17.0"; then
-        plugins="$plugins,replicated/local-volume-provider:__LOCAL_VOLUME_PROVIDER_VERSION__"
+        plugins="$plugins,replicated/local-volume-provider:0.6.10"
     fi
 
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install \

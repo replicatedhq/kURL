@@ -1,0 +1,9 @@
+image velero velero/velero:v1.17.2
+image velero-aws velero/velero-plugin-for-aws:v1.13.2
+image velero-gcp velero/velero-plugin-for-gcp:v1.13.2
+image velero-azure velero/velero-plugin-for-microsoft-azure:v1.13.2
+
+asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.17.2/velero-v1.17.2-linux-amd64.tar.gz
+
+yum nfs-utils
+apt nfs-common

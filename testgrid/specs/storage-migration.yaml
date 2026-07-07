@@ -1087,7 +1087,7 @@
     prometheus:
       version: 0.49.0-17.1.3
     velero:
-      version: 1.6.0
+      version: 1.10.1
     kotsadm:
       version: 1.57.0
     goldpinger:
@@ -1131,7 +1131,7 @@
     prometheus:
       version: 0.53.x
     velero:
-      version: 1.6.0
+      version: 1.10.1
     kotsadm:
       version: 1.90.0
     goldpinger:
@@ -1215,7 +1215,7 @@
     prometheus:
       version: "0.58.0-39.4.0"
     velero:
-      version: "1.9.0"
+      version: "1.10.1"
     kotsadm:
       version: "1.57.0"
     goldpinger:
@@ -1274,7 +1274,7 @@
     registry:
       version: 2.8.1
     velero:
-      version: 1.9.2
+      version: 1.10.1
       resticTimeout: 24h0m0s
     weave:
       version: 2.6.5-20221025
@@ -1353,7 +1353,7 @@
     registry:
       version: 2.8.1
     velero:
-      version: 1.9.2
+      version: 1.10.1
       resticTimeout: 24h0m0s
     weave:
       version: 2.6.5-20221025
@@ -1388,7 +1388,7 @@
     registry:
       version: 2.8.1
     velero:
-      version: 1.9.5
+      version: 1.10.1
       resticTimeout: 24h0m0s
     flannel:
       version: "0.21.x" # (replicated) changed to .x version
@@ -1451,7 +1451,7 @@
     registry:
       version: 2.8.1
     velero:
-      version: 1.9.5
+      version: 1.10.1
       resticTimeout: 24h0m0s
     flannel:
       version: "0.21.2"

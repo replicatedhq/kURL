@@ -2,15 +2,19 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.33.x"
     flannel:
       version: latest
-    rook:
-      version: 1.12.x
     containerd:
-      version: "latest"
+      version: "2.2.x"
+    minio:
+      version: "2025-10-15T17-29-55Z"
     kotsadm:
       version: latest
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -29,6 +33,13 @@
     echo "$supportBundle"
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get cm -n velero kurl-velero-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
+
 - name: "Velero Minimal Airgap"
   cpu: 6
   airgap: true
@@ -40,7 +51,7 @@
     rook:
       version: 1.12.x
     containerd:
-      version: "latest"
+      version: "1.7.x"
     kotsadm:
       version: latest
     registry:
@@ -57,87 +68,48 @@
     install_and_customize_kurl_integration_test_application
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
-- name: "Velero DisableS3 - Rook"
-  cpu: 6
-  installerSpec:
-    kubernetes:
-      version: "1.32.x"
-    flannel:
-      version: latest
-    rook:
-      version: 1.12.x
-    containerd:
-      version: "latest"
-    kotsadm:
-      version: latest
-      disableS3: true
-    velero:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  preInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-    ubuntu_2404_install_host_packages nfs-common lvm2
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    install_and_customize_kurl_integration_test_application
-    timeout 5m kubectl kots backup
-    timeout 5m kubectl kots backup ls
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
-- name: "Velero OpenEBS only"
-  installerSpec:
-    kubernetes:
-      version: "1.32.x"
-    flannel:
-      version: latest
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    containerd:
-      version: "latest"
-    velero:
-      version: "__testver__"
-      s3Override: "__testdist__"
-    minio:
-      version: "latest"
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
-  - ubuntu-2404 # kubernetes latest (1.19) isnt supported on Ubuntu 24.04.
 
-- name: "Velero remove restic"
+- name: "Velero upgrade"
   cpu: 8
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.33.x"
     flannel:
       version: latest
-    rook:
-      version: 1.12.x
     containerd:
-      version: "latest"
+      version: "1.7.x"
+    minio:
+      version: "2025-10-15T17-29-55Z"
     kotsadm:
       version: latest
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
     velero:
-      version: "1.9.x"
+      version: "1.16.x"
   upgradeSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.33.x"
     flannel:
       version: latest
-    rook:
-      version: 1.12.x
     containerd:
-      version: "latest"
+      version: "1.7.x"
+    minio:
+      version: "2025-10-15T17-29-55Z"
     kotsadm:
       version: latest
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common lvm2
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     install_and_customize_kurl_integration_test_application
