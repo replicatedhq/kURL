@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: ${VELERO_NAMESPACE}
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: velero
+        volumeMounts:
+        - mountPath: /var/velero-local-volume-provider/velero-internal-snapshots
+          name: velero-internal-snapshots
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: "status.podIP"
+      volumes:
+      - name: velero-internal-snapshots
+        persistentVolumeClaim:
+          claimName: velero-internal-snapshots
