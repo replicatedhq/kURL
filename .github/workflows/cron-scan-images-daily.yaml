@@ -11,7 +11,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
       - uses: actions/checkout@v7
       - name: Install dependencies
         working-directory: ./bin/scan-images/
