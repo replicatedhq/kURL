@@ -16,6 +16,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common open-iscsi
+    ubuntu_2604_install_host_packages nfs-common open-iscsi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -50,6 +51,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common open-iscsi
+    ubuntu_2604_install_host_packages nfs-common open-iscsi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -140,6 +142,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2 nfs-common open-iscsi
+    ubuntu_2604_install_host_packages lvm2 nfs-common open-iscsi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -219,6 +222,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common open-iscsi
+    ubuntu_2604_install_host_packages nfs-common open-iscsi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -249,6 +253,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack nfs-common open-iscsi
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack nfs-common open-iscsi
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info

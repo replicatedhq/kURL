@@ -516,6 +516,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -782,6 +783,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2 nfs-common
+    ubuntu_2604_install_host_packages lvm2 nfs-common
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -903,6 +905,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
@@ -1695,6 +1698,7 @@
     
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
@@ -1742,6 +1746,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd
+    ubuntu_2604_install_host_packages collectd
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1785,6 +1790,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
+    ubuntu_2604_install_host_packages collectd lvm2 nfs-common
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1828,6 +1834,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
+    ubuntu_2604_install_host_packages collectd lvm2 nfs-common
 
     FOLDER=/testsymbolic
     
@@ -1904,6 +1911,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages nfs-common containerd socat ebtables conntrack
 - name: longhorn
   installerSpec:
     contour:
@@ -1935,6 +1943,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common open-iscsi
+    ubuntu_2604_install_host_packages nfs-common open-iscsi
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -2210,6 +2219,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common
+    ubuntu_2604_install_host_packages nfs-common
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2242,6 +2252,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
 - name: "k8s_132x airgap"
   airgap: true
   installerSpec:
@@ -2268,6 +2279,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -2391,6 +2403,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
 - name: "k8s_132x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:

@@ -79,7 +79,7 @@
       version: latest
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_ubuntu_2404 ; then
+    if is_ubuntu_2404 || is_ubuntu_2604 ; then
       echo "Ubuntu 24.04 detected, installing lvm2 for rook"
       apt-get update && apt-get install -y lvm2
     fi
@@ -223,6 +223,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   preUpgradeScript: |
@@ -305,7 +306,7 @@
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    if is_ubuntu_2404 ; then
+    if is_ubuntu_2404 || is_ubuntu_2604 ; then
       echo "Ubuntu 24.04 detected, installing lvm2 for rook"
       apt-get update && apt-get install -y lvm2
     fi
