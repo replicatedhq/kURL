@@ -40,6 +40,7 @@
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
+    - ubuntu-2604 # docker is not supported on Ubuntu 26.04
 - name: "Upgrade to 1.25 to 1.35, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
@@ -173,6 +174,7 @@
     - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
     - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
     - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
+    - ubuntu-2604 # Ubuntu 26.04 isn't supported on installer version v2024.07.02-0.
     - rocky-98 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-9 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
