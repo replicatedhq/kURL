@@ -56,3 +56,6 @@ spec:
           - pass:
               when: "ubuntu = 24.04"
               message: "containerd addon supports ubuntu 24.04"
+          - pass:
+              when: "ubuntu = 26.04"
+              message: "containerd addon supports ubuntu 26.04"

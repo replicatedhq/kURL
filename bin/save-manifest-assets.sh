@@ -483,6 +483,12 @@ while read -r line || [ -n "$line" ]; do
             echo "$package" >> "$OUT_DIR"/ubuntu-24.04/Deps
             ;;
 
+        apt26)
+            mkdir -p "$OUT_DIR"/ubuntu-26.04
+            package=$(echo "$line" | awk '{ print $2 }')
+            echo "$package" >> "$OUT_DIR"/ubuntu-26.04/Deps
+            ;;
+
         yum)
             package=$(echo "$line" | awk '{ print $2 }')
             pkgs_rhel7+=("$package")

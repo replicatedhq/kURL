@@ -37,6 +37,7 @@ function containerd() {
     esac
 }
 function is_ubuntu_2404() { return "${_IS_UBUNTU_2404:-1}"; }
+function is_ubuntu_2604() { return "${_IS_UBUNTU_2604:-1}"; }
 function containerd_kubernetes_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
 function systemctl() { return 1; }      # "not active" → skip ctr pause-image import
 function kubernetes_version_minor() { echo "$1" | cut -d. -f2; }

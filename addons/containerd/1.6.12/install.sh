@@ -195,8 +195,8 @@ EOF
         "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
     fi
 
-    if is_ubuntu_2404 ; then
-        # we need to disable apparmor on ubuntu 24.04 to allow pods to be deleted
+    if is_ubuntu_2404 || is_ubuntu_2604 ; then
+        # we need to disable apparmor on ubuntu 24.04/26.04 to allow pods to be deleted
         sed -i 's/disable_apparmor = false/disable_apparmor = true/' /etc/containerd/config.toml
     fi
 
