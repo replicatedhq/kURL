@@ -5,9 +5,18 @@ set -euo pipefail
 VERSION=""
 CHARTVERSION=""
 
+function sed_i() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 function add_as_latest() {
     if ! grep -q "\"${VERSION}-${CHARTVERSION}\"" ../../../web/src/installers/versions.js; then
-        sed -i '' "/cron-goldpinger-update/a\\    \"${VERSION}-${CHARTVERSION}\"," ../../../web/src/installers/versions.js
+        sed_i "/cron-goldpinger-update/a\\
+    \"${VERSION}-${CHARTVERSION}\"," ../../../web/src/installers/versions.js
     fi
 }
 
@@ -30,7 +39,7 @@ function generate_bloomberg_dynamic() {
     helm template goldpinger goldpinger/goldpinger --version "$CHARTVERSION" --values ./values-bloomberg.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
     
     # Update version placeholders in install.sh (always use canonical template)
-    sed -i '' "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
+    sed_i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
     
     # Generate manifest with Bloomberg image
     grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "../$VERSION-$CHARTVERSION/Manifest"
