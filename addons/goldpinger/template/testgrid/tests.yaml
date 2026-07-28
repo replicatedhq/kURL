@@ -1,7 +1,7 @@
 - name: fresh install
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.35.x"
     weave:
       version: "latest"
     containerd:
@@ -25,13 +25,11 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade from latest
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -40,7 +38,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -61,13 +59,11 @@
     if [[ "$chart_source" == "bloomberg" ]]; then
       echo "Bloomberg chart migration completed successfully - pod label verified"
     fi
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: upgrade from oldest
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.33.x"
     weave:
       version: "latest"
     containerd:
@@ -76,7 +72,7 @@
       version: "3.2.0-4.1.1"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.33.x"
     weave:
       version: "latest"
     containerd:
@@ -97,14 +93,12 @@
     if [[ "$chart_source" == "bloomberg" ]]; then
       echo "Bloomberg chart migration from oldest version completed successfully - pod label verified"
     fi
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
 
 - name: airgap fresh install
   airgap: true
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -131,5 +125,3 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
-  unsupportedOSIDs:
-  - amazon-2023 # kubernetes latest (1.19) isnt supported on Amazon Linux 2023.
