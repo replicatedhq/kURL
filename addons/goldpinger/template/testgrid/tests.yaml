@@ -25,8 +25,13 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
-
-- name: upgrade from latest
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
+- name: upgrade from 3.10.x
   installerSpec:
     kubernetes:
       version: "1.35.x"
@@ -35,7 +40,7 @@
     containerd:
       version: "latest"
     goldpinger:
-      version: "latest"
+      version: "3.10.x"
   upgradeSpec:
     kubernetes:
       version: "1.35.x"
@@ -59,6 +64,12 @@
     if [[ "$chart_source" == "bloomberg" ]]; then
       echo "Bloomberg chart migration completed successfully - pod label verified"
     fi
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
 
 - name: upgrade from oldest
   installerSpec:
@@ -93,6 +104,12 @@
     if [[ "$chart_source" == "bloomberg" ]]; then
       echo "Bloomberg chart migration from oldest version completed successfully - pod label verified"
     fi
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
 
 - name: airgap fresh install
   airgap: true
@@ -125,3 +142,10 @@
     echo $supportBundle | base64 -d | grep 'kind: SupportBundle'
     echo "test if the support bundle has 'troubleshoot.io/kind: support-bundle' label"
     kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
+    
