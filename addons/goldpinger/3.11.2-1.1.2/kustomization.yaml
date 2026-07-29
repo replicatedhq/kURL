@@ -1,0 +1,5 @@
+namespace: kurl
+
+resources:
+- goldpinger.yaml
+- troubleshoot.yaml
