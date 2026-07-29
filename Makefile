@@ -425,8 +425,8 @@ build/manifests:
 	mkdir -p build
 	cp -r scripts/manifests build/
 
-build/helm: HELM_VERSION = 3.18.4
-build/helm: HELMFILE_VERSION = 1.1.2
+build/helm: HELM_VERSION = 3.21.3
+build/helm: HELMFILE_VERSION = 1.7.1
 build/helm:
 	mkdir -p build/helm
 	docker build \
