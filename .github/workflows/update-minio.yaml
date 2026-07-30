@@ -1,7 +1,5 @@
 name: cron-minio-update
 on:
-  schedule:
-  - cron: "0 1 * * 1" # “At 01:00 on Monday.”
   workflow_dispatch: {}
 
 jobs:
