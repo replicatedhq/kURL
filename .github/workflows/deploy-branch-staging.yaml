@@ -17,12 +17,12 @@ on:
       testgrid-spec:
         description: 'Testgrid test spec file (relative to repo root)'
         required: true
-        default: 'testgrid/specs/deploy.yaml'
+        default: 'testgrid/specs/ubuntu-2604.yaml'
         type: string
       testgrid-os-spec:
         description: 'Testgrid OS spec file (relative to repo root)'
         required: true
-        default: 'testgrid/specs/os-latest.yaml'
+        default: 'testgrid/specs/os-ubuntu-2604.yaml'
         type: string
       testgrid-ref:
         description: 'Testgrid ref (defaults to branch + version + timestamp)'
