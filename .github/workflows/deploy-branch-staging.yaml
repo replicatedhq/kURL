@@ -170,7 +170,9 @@ jobs:
           KURL_BIN_UTILS_FILE: kurl-bin-utils-${{ needs.get-tag.outputs.version_tag }}.tar.gz
         run: |
           if [ "${{ inputs.build-strategy }}" = "core-only" ]; then
-            CORE_BATCH="install.tmpl join.tmpl upgrade.tmpl tasks.tmpl common.tar.gz kurl-bin-utils-${VERSION_TAG}.tar.gz"
+            # Core packages + the specific Kubernetes version used by the Ubuntu 26.04 test spec.
+            # The rest (addons and other host packages) are copied from the previous staging release.
+            CORE_BATCH="install.tmpl join.tmpl upgrade.tmpl tasks.tmpl common.tar.gz kurl-bin-utils-${VERSION_TAG}.tar.gz kubernetes-1.32.13.tar.gz kubernetes-conformance-1.32.13.tar.gz"
             OUTPUT=$(printf '{"include": [{"batch": "%s"}]}' "$CORE_BATCH")
           else
             OUTPUT=$(./bin/list-all-packages-actions-matrix.sh)
