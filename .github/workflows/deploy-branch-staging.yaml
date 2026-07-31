@@ -47,6 +47,14 @@ on:
         description: 'Override the kURL version tag (defaults to latest-tag-branch-sha)'
         required: false
         type: string
+      build-strategy:
+        description: 'Package build strategy: full (build everything from source) or core-only (build core packages, copy the rest from the previous staging release)'
+        required: true
+        default: 'core-only'
+        type: choice
+        options:
+          - full
+          - core-only
       build-kurl-util-image:
         description: 'Build and push a branch-specific replicated/kurl-util:<VERSION_TAG> image'
         required: true
@@ -69,6 +77,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version_tag: ${{ steps.set-tag.outputs.version_tag }}
+      prev_version: ${{ steps.set-tag.outputs.prev_version }}
       branch_name: ${{ steps.set-tag.outputs.branch_name }}
       kurl_util_image: ${{ steps.set-tag.outputs.kurl_util_image }}
       testgrid_ref: ${{ steps.set-tag.outputs.testgrid_ref }}
@@ -100,11 +109,15 @@ jobs:
             REF="BRANCH-${BRANCH}-${VERSION_TAG}-$(date --utc +%FT%TZ)"
           fi
 
+          PREV_VERSION=$(curl -s "https://kurl-sh.s3.amazonaws.com/staging/VERSION")
+
+          echo "prev_version=$PREV_VERSION" >> "$GITHUB_OUTPUT"
           echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
           echo "branch_name=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "kurl_util_image=$KURL_UTIL_IMAGE" >> "$GITHUB_OUTPUT"
           echo "testgrid_ref=$REF" >> "$GITHUB_OUTPUT"
 
+          echo "prev_version=$PREV_VERSION"
           echo "version_tag=$VERSION_TAG"
           echo "kurl_util_image=$KURL_UTIL_IMAGE"
           echo "testgrid_ref=$REF"
@@ -156,8 +169,74 @@ jobs:
           KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
           KURL_BIN_UTILS_FILE: kurl-bin-utils-${{ needs.get-tag.outputs.version_tag }}.tar.gz
         run: |
-          OUTPUT=$(./bin/list-all-packages-actions-matrix.sh)
+          if [ "${{ inputs.build-strategy }}" = "core-only" ]; then
+            CORE_BATCH="install.tmpl join.tmpl upgrade.tmpl tasks.tmpl common.tar.gz kurl-bin-utils-${VERSION_TAG}.tar.gz"
+            OUTPUT=$(printf '{"include": [{"batch": "%s"}]}' "$CORE_BATCH")
+          else
+            OUTPUT=$(./bin/list-all-packages-actions-matrix.sh)
+          fi
           echo "matrix=$OUTPUT" >> "$GITHUB_OUTPUT"
+
+  copy-packages-from-staging:
+    runs-on: ubuntu-24.04
+    needs:
+      - get-tag
+    if: inputs.build-strategy == 'core-only'
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - id: set-matrix
+        name: Build copy matrix from previous staging
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+          S3_BUCKET: kurl-sh
+          STAGING_RELEASE: ${{ needs.get-tag.outputs.prev_version }}
+          KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+          KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
+        run: |
+          if [ -z "${STAGING_RELEASE}" ]; then
+            echo "error: could not read current staging/VERSION"
+            exit 1
+          fi
+          echo "copying packages from previous staging release ${STAGING_RELEASE}"
+          LIST_FROM_STAGE_S3=1 ./bin/list-all-packages-actions-matrix.sh
+
+  copy-packages:
+    runs-on: ubuntu-24.04
+    needs:
+      - get-tag
+      - copy-packages-from-staging
+    if: inputs.build-strategy == 'core-only'
+    strategy:
+      matrix: ${{ fromJSON(needs.copy-packages-from-staging.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 20
+    steps:
+      - name: copy packages from previous staging
+        env:
+          S3_BUCKET: kurl-sh
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: "us-east-1"
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          PREV_VERSION: ${{ needs.get-tag.outputs.prev_version }}
+        run: |
+          for package in ${{ matrix.batch }}; do
+            echo "copying ${package} from staging/${PREV_VERSION} to staging/${VERSION_TAG}"
+            aws s3api copy-object \
+              --copy-source "${S3_BUCKET}/staging/${PREV_VERSION}/${package}" \
+              --bucket "${S3_BUCKET}" \
+              --key "staging/${VERSION_TAG}/${package}"
+          done
 
   build-and-upload:
     runs-on: ubuntu-24.04
@@ -214,6 +293,8 @@ jobs:
     needs:
       - get-tag
       - build-and-upload
+      - copy-packages
+    if: always() && needs.build-and-upload.result == 'success' && (needs.copy-packages.result == 'success' || needs.copy-packages.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
 
