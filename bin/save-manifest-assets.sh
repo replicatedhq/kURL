@@ -477,6 +477,7 @@ while read -r line || [ -n "$line" ]; do
             sudo chown -R $UID "$OUT_DIR"/ubuntu-16.04
             ;;
 
+        # BEGIN GENERATED os-matrix: save-manifest-apt-cases — edit os-matrix.yaml, run 'make generate-os-matrix'
         apt24)
             mkdir -p "$OUT_DIR"/ubuntu-24.04
             package=$(echo "$line" | awk '{ print $2 }')
@@ -488,6 +489,7 @@ while read -r line || [ -n "$line" ]; do
             package=$(echo "$line" | awk '{ print $2 }')
             echo "$package" >> "$OUT_DIR"/ubuntu-26.04/Deps
             ;;
+        # END GENERATED os-matrix: save-manifest-apt-cases
 
         yum)
             package=$(echo "$line" | awk '{ print $2 }')

@@ -228,11 +228,13 @@ dist/kubernetes-%.tar.gz:
 		${MAKE} dist/kubernetes-conformance-$*.tar.gz ; \
 	} || true ;
 	${MAKE} build/packages/kubernetes/$*/images
+	# BEGIN GENERATED os-matrix: makefile-ubuntu-dist-list — edit os-matrix.yaml, run 'make generate-os-matrix'
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-24.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-26.04
+	# END GENERATED os-matrix: makefile-ubuntu-dist-list
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
@@ -482,6 +484,7 @@ build/packages/kubernetes/%/ubuntu-22.04:
 	docker cp k8s-ubuntu2204-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-22.04/
 	docker rm k8s-ubuntu2204-$*
 
+# BEGIN GENERATED os-matrix: makefile-ubuntu-modern-targets — edit os-matrix.yaml, run 'make generate-os-matrix'
 build/packages/kubernetes/%/ubuntu-24.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -507,6 +510,7 @@ build/packages/kubernetes/%/ubuntu-26.04:
 	mkdir -p build/packages/kubernetes/$*/ubuntu-26.04
 	docker cp k8s-ubuntu2604-$*:/archives/. build/packages/kubernetes/$*/ubuntu-26.04/
 	docker rm k8s-ubuntu2604-$*
+# END GENERATED os-matrix: makefile-ubuntu-modern-targets
 
 build/packages/kubernetes/%/rhel-7:
 	docker build \
