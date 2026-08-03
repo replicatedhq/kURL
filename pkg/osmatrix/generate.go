@@ -28,6 +28,20 @@ func (m *Matrix) Artifacts() ([]Artifact, error) {
 			Content: content,
 		})
 	}
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		if !o.BundleDockerfile {
+			continue
+		}
+		content, err := renderBundleDockerfile(o)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, Artifact{
+			Path:    bundleDockerfilePath(o),
+			Content: content,
+		})
+	}
 	return out, nil
 }
 
