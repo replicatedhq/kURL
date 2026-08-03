@@ -119,6 +119,10 @@ func (m *Matrix) spliceFiles() []spliceFile {
 		{path: filepath.Join("bin", "save-manifest-assets.sh"), regions: []spliceRegion{
 			{id: "save-manifest-apt-cases", body: m.renderSaveManifestAptCases},
 		}},
+		{path: filepath.Join("addons", "containerd", "template", "script.sh"), regions: []spliceRegion{
+			{id: "containerd-script-ubuntu-preflights", body: m.renderContainerdScriptPreflights},
+			{id: "containerd-script-ubuntu-manifests", body: m.renderContainerdScriptManifests},
+		}},
 	}
 }
 
