@@ -1,0 +1,14 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-flannel-cfg
+  namespace: kube-flannel
+data:
+  net-conf.json: |
+    {
+      "Network": "$POD_CIDR",
+      "EnableIPv4": $FLANNEL_ENABLE_IPV4,
+      "Backend": {
+        "Type": "$FLANNEL_BACKEND"
+      }
+    }
