@@ -162,6 +162,27 @@ func (m *Matrix) renderApparmorGuard() []string {
 	return []string{"    if " + strings.Join(preds, " || ") + "; then"}
 }
 
+// renderContainerdScriptPreflights renders the ubuntu add_supported_os_to_preflight_file
+// calls in addons/containerd/template/script.sh, one per host-package-shipping
+// Ubuntu release.
+func (m *Matrix) renderContainerdScriptPreflights() []string {
+	var lines []string
+	for _, o := range m.predicateUbuntuOSes() {
+		lines = append(lines, fmt.Sprintf("        add_supported_os_to_preflight_file \"$version\" \"ubuntu\" \"=\" %q", o.Version))
+	}
+	return lines
+}
+
+// renderContainerdScriptManifests renders the ubuntu add_os_package_to_manifest_file
+// calls in addons/containerd/template/script.sh, one per apt-family Ubuntu release.
+func (m *Matrix) renderContainerdScriptManifests() []string {
+	var lines []string
+	for _, o := range m.predicateUbuntuOSes() {
+		lines = append(lines, fmt.Sprintf("        add_os_package_to_manifest_file \"$version\" %q \"containerd\"", o.PackageFamily))
+	}
+	return lines
+}
+
 // aptOSes returns the OSes whose package family is an apt family, in registry
 // order.
 func (m *Matrix) aptOSes() []*OS {
