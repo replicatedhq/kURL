@@ -98,6 +98,38 @@ func TestGoldenCapabilityExclusions(t *testing.T) {
 	}
 }
 
+// TestGoldenBundleDockerfiles proves each generated Ubuntu bundle Dockerfile is
+// byte-identical to the committed file, so the parametrized template is a
+// zero-regression replacement for the hand-copied per-version Dockerfiles.
+func TestGoldenBundleDockerfiles(t *testing.T) {
+	m, root := loadRealMatrix(t)
+	rendered := 0
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		if !o.BundleDockerfile {
+			continue
+		}
+		t.Run(o.ID, func(t *testing.T) {
+			got, err := renderBundleDockerfile(o)
+			if err != nil {
+				t.Fatalf("renderBundleDockerfile %s: %v", o.ID, err)
+			}
+			path := filepath.Join(root, bundleDockerfilePath(o))
+			want, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("read committed Dockerfile %s: %v", path, err)
+			}
+			if !bytes.Equal(got, want) {
+				t.Errorf("rendered %s does not match committed file", bundleDockerfilePath(o))
+			}
+		})
+		rendered++
+	}
+	if rendered == 0 {
+		t.Fatal("expected at least one bundleDockerfile OS in the registry")
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {

@@ -204,6 +204,7 @@ oses:
     dockerSupported: false
     apparmorWorkaround: true
     hostPackagesShipped: true
+    bundleDockerfile: true
 
   - id: ubuntu-2604
     name: Ubuntu
@@ -218,6 +219,7 @@ oses:
     dockerSupported: false
     apparmorWorkaround: true
     hostPackagesShipped: true
+    bundleDockerfile: true
 
   - id: amazon-2023
     name: Amazon Linux

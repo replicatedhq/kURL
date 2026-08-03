@@ -58,6 +58,10 @@ type OS struct {
 	DockerSupported     *bool  `yaml:"dockerSupported,omitempty"`
 	ApparmorWorkaround  bool   `yaml:"apparmorWorkaround,omitempty"`
 	HostPackagesShipped bool   `yaml:"hostPackagesShipped,omitempty"`
+
+	// BundleDockerfile selects OSes that get a generated parametrized k8s bundle
+	// Dockerfile at bundles/k8s-ubuntu<versionMajor><versionMinor>/Dockerfile.
+	BundleDockerfile bool `yaml:"bundleDockerfile,omitempty"`
 }
 
 // Pool is an ordered list of OS ids that renders to one testgrid OS-spec file
