@@ -566,6 +566,7 @@ spec:
         checkName: "Docker Support"
         exclude: '{{kurl not .Installer.Spec.Docker.Version }}'
         outcomes:
+          # BEGIN GENERATED os-matrix: preflight-docker-support — edit os-matrix.yaml, run 'make generate-os-matrix'
           - fail:
               when: "ubuntu = 24.04"
               message: "Docker is not supported on Ubuntu 24.04"
@@ -575,10 +576,12 @@ spec:
           - fail:
               when: "amazonlinux = 2023"
               message: "Docker is not supported on AmazonLinux 2023"
+          # END GENERATED os-matrix: preflight-docker-support
     - hostOS:
         checkName: "Kubernetes Support"
         exclude: '{{kurl and .Installer.Spec.Kubernetes.Version (semverCompare ">= 1.24.0" .Installer.Spec.Kubernetes.Version) }}'
         outcomes:
+          # BEGIN GENERATED os-matrix: preflight-kubernetes-support — edit os-matrix.yaml, run 'make generate-os-matrix'
           - fail:
               when: "ubuntu = 24.04"
               message: "Kubernetes versions < 1.24.0 are not supported on Ubuntu 24.04"
@@ -588,3 +591,4 @@ spec:
           - fail:
               when: "amazonlinux = 2023"
               message: "Kubernetes versions < 1.24.0 are not supported on AmazonLinux 2023"
+          # END GENERATED os-matrix: preflight-kubernetes-support

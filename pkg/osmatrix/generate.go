@@ -92,6 +92,10 @@ func (m *Matrix) spliceFiles() []spliceFile {
 		addonTestgrid("velero", "k8s-docker.yaml"),
 		{path: filepath.Join("testgrid", "specs", "deploy.yaml"), regions: []spliceRegion{hostPkgs}},
 		{path: filepath.Join("testgrid", "specs", "full.yaml"), regions: []spliceRegion{hostPkgs}},
+		{path: filepath.Join("pkg", "preflight", "assets", "host-preflights.yaml"), regions: []spliceRegion{
+			{id: "preflight-docker-support", body: m.renderPreflightDockerSupport},
+			{id: "preflight-kubernetes-support", body: m.renderPreflightKubernetesSupport},
+		}},
 	}
 }
 

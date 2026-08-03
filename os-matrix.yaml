@@ -205,6 +205,7 @@ oses:
     apparmorWorkaround: true
     hostPackagesShipped: true
     bundleDockerfile: true
+    preflightName: Ubuntu
 
   - id: ubuntu-2604
     name: Ubuntu
@@ -220,6 +221,7 @@ oses:
     apparmorWorkaround: true
     hostPackagesShipped: true
     bundleDockerfile: true
+    preflightName: Ubuntu
 
   - id: amazon-2023
     name: Amazon Linux
@@ -232,6 +234,7 @@ oses:
     versionMajor: "2023"
     minKubernetes: "1.24"
     dockerSupported: false
+    preflightName: AmazonLinux
 
 # pools are ordered id lists that render to testgrid/specs/<name>.yaml.
 # trailingNewline preserves whether the committed file ends with a newline.

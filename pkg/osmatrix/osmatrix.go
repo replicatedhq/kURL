@@ -62,6 +62,10 @@ type OS struct {
 	// BundleDockerfile selects OSes that get a generated parametrized k8s bundle
 	// Dockerfile at bundles/k8s-ubuntu<versionMajor><versionMinor>/Dockerfile.
 	BundleDockerfile bool `yaml:"bundleDockerfile,omitempty"`
+
+	// PreflightName is the OS's display name in host-preflight `message` text
+	// (e.g. "Ubuntu", "AmazonLinux"). The preflight `when` token is Distro.
+	PreflightName string `yaml:"preflightName,omitempty"`
 }
 
 // Pool is an ordered list of OS ids that renders to one testgrid OS-spec file
