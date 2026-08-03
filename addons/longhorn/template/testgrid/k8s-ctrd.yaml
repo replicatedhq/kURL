@@ -15,8 +15,10 @@
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common open-iscsi
     ubuntu_2604_install_host_packages nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -50,8 +52,10 @@
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common open-iscsi
     ubuntu_2604_install_host_packages nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -141,8 +145,10 @@
       version: "latest"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2 nfs-common open-iscsi
     ubuntu_2604_install_host_packages lvm2 nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -221,8 +227,10 @@
       s3Override: "__testdist__"
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common open-iscsi
     ubuntu_2604_install_host_packages nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -252,8 +260,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack nfs-common open-iscsi
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info

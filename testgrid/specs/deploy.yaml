@@ -222,8 +222,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   preUpgradeScript: |
