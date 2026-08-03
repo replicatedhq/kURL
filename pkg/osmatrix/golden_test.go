@@ -64,6 +64,40 @@ func TestGoldenPools(t *testing.T) {
 	}
 }
 
+// TestGoldenCapabilityExclusions checks the real registry's capability fields
+// reproduce the OS-capability exclusions that appear (repeated) in testgrid
+// specs: k8s < 1.24 and no-docker both exclude exactly amazon-2023, ubuntu-2404
+// and ubuntu-2604 today.
+func TestGoldenCapabilityExclusions(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+	want := map[string]bool{"amazon-2023": true, "ubuntu-2404": true, "ubuntu-2604": true}
+
+	for _, tc := range []struct {
+		name       string
+		k8s        string
+		usesDocker bool
+	}{
+		{"old-k8s", "1.19.x", false},
+		{"docker", "1.32.x", true},
+	} {
+		got := m.CapabilityExcludedIDs(tc.k8s, tc.usesDocker)
+		if len(got) != len(want) {
+			t.Errorf("%s: excluded %v, want keys %v", tc.name, got, want)
+			continue
+		}
+		for _, id := range got {
+			if !want[id] {
+				t.Errorf("%s: unexpected excluded id %q", tc.name, id)
+			}
+		}
+	}
+
+	// Current k8s without docker excludes nothing on capability grounds.
+	if got := m.CapabilityExcludedIDs("1.32.x", false); len(got) != 0 {
+		t.Errorf("modern k8s no-docker should exclude nothing, got %v", got)
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {
