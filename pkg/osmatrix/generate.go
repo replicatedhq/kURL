@@ -112,6 +112,13 @@ func (m *Matrix) spliceFiles() []spliceFile {
 		containerdInstall(filepath.Join("template", "base")),
 		containerdInstall("2.2.5"),
 		containerdInstall("2.2.6"),
+		{path: "Makefile", regions: []spliceRegion{
+			{id: "makefile-ubuntu-dist-list", body: m.renderMakefileDistList},
+			{id: "makefile-ubuntu-modern-targets", body: m.renderMakefileModernTargets},
+		}},
+		{path: filepath.Join("bin", "save-manifest-assets.sh"), regions: []spliceRegion{
+			{id: "save-manifest-apt-cases", body: m.renderSaveManifestAptCases},
+		}},
 	}
 }
 

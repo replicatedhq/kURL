@@ -162,6 +162,38 @@ func (m *Matrix) renderApparmorGuard() []string {
 	return []string{"    if " + strings.Join(preds, " || ") + "; then"}
 }
 
+// aptOSes returns the OSes whose package family is an apt family, in registry
+// order.
+func (m *Matrix) aptOSes() []*OS {
+	var out []*OS
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		if strings.HasPrefix(o.PackageFamily, "apt") {
+			out = append(out, o)
+		}
+	}
+	return out
+}
+
+// renderSaveManifestAptCases renders the apt<NN> case arms of
+// bin/save-manifest-assets.sh, one per apt-family OS, separated by a blank line.
+func (m *Matrix) renderSaveManifestAptCases() []string {
+	var lines []string
+	for i, o := range m.aptOSes() {
+		if i > 0 {
+			lines = append(lines, "")
+		}
+		lines = append(lines,
+			"        "+o.PackageFamily+")",
+			"            mkdir -p \"$OUT_DIR\"/ubuntu-"+o.Version,
+			"            package=$(echo \"$line\" | awk '{ print $2 }')",
+			"            echo \"$package\" >> \"$OUT_DIR\"/ubuntu-"+o.Version+"/Deps",
+			"            ;;",
+		)
+	}
+	return lines
+}
+
 // renderBailSupportedUbuntu renders the supported-Ubuntu case pattern line of
 // bailIfUnsupportedOS in scripts/common/preflights.sh, e.g.
 // "        ubuntu18.04|...|ubuntu26.04)".
