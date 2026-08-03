@@ -45,11 +45,14 @@ func (m *Matrix) Artifacts() ([]Artifact, error) {
 	return out, nil
 }
 
-// spliceRegion is one BEGIN/END-delimited generated region inside a
-// hand-maintained file.
+// spliceRegion is a generated region inside a hand-maintained file. Exactly one
+// of body/transform is set: body renders a single-occurrence region from the
+// registry; transform rewrites every occurrence of the region from its own
+// current content plus the registry.
 type spliceRegion struct {
-	id   string
-	body func() []string
+	id        string
+	body      func() []string
+	transform func(current []string) []string
 }
 
 // spliceFile is a hand-maintained file with one or more generated regions.
@@ -62,6 +65,15 @@ type spliceFile struct {
 // generated in place from the registry (bucket 5: shell predicates and lists).
 func (m *Matrix) spliceFiles() []spliceFile {
 	common := func(f string) string { return filepath.Join("scripts", "common", f) }
+	// hostPkgs is the per-test host-package install region (bucket 3), which
+	// appears in many addon and shared testgrid specs.
+	hostPkgs := spliceRegion{id: "ubuntu-host-packages", transform: m.renderUbuntuHostPackageCalls}
+	addonTestgrid := func(addon, file string) spliceFile {
+		return spliceFile{
+			path:    filepath.Join("addons", addon, "template", "testgrid", file),
+			regions: []spliceRegion{hostPkgs},
+		}
+	}
 	return []spliceFile{
 		{path: common("host-packages.sh"), regions: []spliceRegion{
 			{id: "ubuntu-predicates", body: m.renderHostPackagesPredicates},
@@ -73,6 +85,13 @@ func (m *Matrix) spliceFiles() []spliceFile {
 		{path: common("preflights.sh"), regions: []spliceRegion{
 			{id: "bail-supported-ubuntu", body: m.renderBailSupportedUbuntu},
 		}},
+		addonTestgrid("collectd", "k8s-docker.yaml"),
+		addonTestgrid("containerd", "k8s-ctrd.yaml"),
+		addonTestgrid("longhorn", "k8s-ctrd.yaml"),
+		addonTestgrid("rook", "k8s-docker.yaml"),
+		addonTestgrid("velero", "k8s-docker.yaml"),
+		{path: filepath.Join("testgrid", "specs", "deploy.yaml"), regions: []spliceRegion{hostPkgs}},
+		{path: filepath.Join("testgrid", "specs", "full.yaml"), regions: []spliceRegion{hostPkgs}},
 	}
 }
 
@@ -90,7 +109,11 @@ func (m *Matrix) splicedContent(root string, sf spliceFile) (content []byte, fou
 		return nil, false, fmt.Errorf("read %s: %w", sf.path, err)
 	}
 	for _, r := range sf.regions {
-		data, err = SpliceRegion(data, r.id, r.body())
+		if r.transform != nil {
+			data, err = SpliceAllRegions(data, r.id, r.transform)
+		} else {
+			data, err = SpliceRegion(data, r.id, r.body())
+		}
 		if err != nil {
 			return nil, false, fmt.Errorf("%s region %q: %w", sf.path, r.id, err)
 		}

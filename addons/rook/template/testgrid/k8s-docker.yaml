@@ -26,8 +26,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -94,8 +96,10 @@
     - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
@@ -181,8 +185,10 @@
     - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
@@ -268,8 +274,10 @@
     - ubuntu-1804
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     rhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
