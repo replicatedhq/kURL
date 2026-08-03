@@ -42,6 +42,16 @@ func run(args []string) error {
 		return fmt.Errorf("usage: os-matrix-gen [generate|check] [-matrix path] [-root dir]")
 	}
 
+	// snapshot does not need the registry; it reads the committed testgrid specs.
+	if cmd == "snapshot" {
+		snap, err := osmatrix.MatrixSnapshot(filepath.Join(*root, "testgrid", "specs"))
+		if err != nil {
+			return err
+		}
+		fmt.Print(snap)
+		return nil
+	}
+
 	m, err := osmatrix.Load(*matrixPath)
 	if err != nil {
 		return err
