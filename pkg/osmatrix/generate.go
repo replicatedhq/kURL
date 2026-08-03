@@ -79,6 +79,14 @@ func (m *Matrix) spliceFiles() []spliceFile {
 	spec := func(file string, regions ...spliceRegion) spliceFile {
 		return spliceFile{path: filepath.Join("testgrid", "specs", file), regions: regions}
 	}
+	// apparmor is the containerd apparmor guard (bucket 4), which appears twice in
+	// the base install.sh and each generated per-version copy.
+	apparmor := spliceRegion{id: "containerd-apparmor-guard", transform: func(_ []string) []string {
+		return m.renderApparmorGuard()
+	}}
+	containerdInstall := func(ver string) spliceFile {
+		return spliceFile{path: filepath.Join("addons", "containerd", ver, "install.sh"), regions: []spliceRegion{apparmor}}
+	}
 	return []spliceFile{
 		{path: common("host-packages.sh"), regions: []spliceRegion{
 			{id: "ubuntu-predicates", body: m.renderHostPackagesPredicates},
@@ -101,6 +109,9 @@ func (m *Matrix) spliceFiles() []spliceFile {
 			{id: "preflight-docker-support", body: m.renderPreflightDockerSupport},
 			{id: "preflight-kubernetes-support", body: m.renderPreflightKubernetesSupport},
 		}},
+		containerdInstall(filepath.Join("template", "base")),
+		containerdInstall("2.2.5"),
+		containerdInstall("2.2.6"),
 	}
 }
 

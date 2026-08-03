@@ -182,7 +182,9 @@ EOF
         log "Set containerd sandbox_image to $pause_image"
     fi
 
+    # BEGIN GENERATED os-matrix: containerd-apparmor-guard — edit os-matrix.yaml, run 'make generate-os-matrix'
     if is_ubuntu_2404 || is_ubuntu_2604; then
+    # END GENERATED os-matrix: containerd-apparmor-guard
         # we need to disable apparmor on ubuntu 24.04/26.04 to allow pods to be deleted
         sed -i 's/disable_apparmor = false/disable_apparmor = true/' /etc/containerd/config.toml
     fi
@@ -227,7 +229,9 @@ version = 3
   SystemdCgroup = true
 EOF
 
+    # BEGIN GENERATED os-matrix: containerd-apparmor-guard — edit os-matrix.yaml, run 'make generate-os-matrix'
     if is_ubuntu_2404 || is_ubuntu_2604; then
+    # END GENERATED os-matrix: containerd-apparmor-guard
         # we need to disable apparmor on ubuntu 24.04/26.04 to allow pods to be deleted
         cat >> /etc/containerd/conf.d/50-replicated.toml <<'EOF'
 

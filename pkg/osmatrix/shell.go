@@ -3,7 +3,10 @@ package osmatrix
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
+
+const distroUbuntu = "ubuntu"
 
 // This file renders the OS-derived regions of the hand-maintained shell scripts
 // (bucket 5 of replicatedhq/kURL#6081). Each renderer returns the lines that go
@@ -18,7 +21,7 @@ func (m *Matrix) predicateUbuntuOSes() []*OS {
 	var out []*OS
 	for i := range m.OSes {
 		o := &m.OSes[i]
-		if o.Distro == "ubuntu" && o.HostPackagesShipped {
+		if o.Distro == distroUbuntu && o.HostPackagesShipped {
 			out = append(out, o)
 		}
 	}
@@ -30,7 +33,7 @@ func (m *Matrix) ubuntuOSes() []*OS {
 	var out []*OS
 	for i := range m.OSes {
 		o := &m.OSes[i]
-		if o.Distro == "ubuntu" {
+		if o.Distro == distroUbuntu {
 			out = append(out, o)
 		}
 	}
@@ -134,6 +137,29 @@ func (m *Matrix) renderUbuntuHostPackageCalls(current []string) []string {
 		out = append(out, indent+installHostPackagesFn(o)+" "+pkgs)
 	}
 	return out
+}
+
+// apparmorUbuntuOSes returns the Ubuntu OSes needing the apparmor workaround, in
+// registry order.
+func (m *Matrix) apparmorUbuntuOSes() []*OS {
+	var out []*OS
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		if o.Distro == distroUbuntu && o.ApparmorWorkaround {
+			out = append(out, o)
+		}
+	}
+	return out
+}
+
+// renderApparmorGuard renders the containerd apparmor guard line, e.g.
+// "    if is_ubuntu_2404 || is_ubuntu_2604; then".
+func (m *Matrix) renderApparmorGuard() []string {
+	var preds []string
+	for _, o := range m.apparmorUbuntuOSes() {
+		preds = append(preds, predicateName(o))
+	}
+	return []string{"    if " + strings.Join(preds, " || ") + "; then"}
 }
 
 // renderBailSupportedUbuntu renders the supported-Ubuntu case pattern line of
