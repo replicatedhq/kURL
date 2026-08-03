@@ -1,6 +1,9 @@
 package osmatrix
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 // This file renders the OS-derived regions of the hand-maintained shell scripts
 // (bucket 5 of replicatedhq/kURL#6081). Each renderer returns the lines that go
@@ -97,6 +100,40 @@ func (m *Matrix) renderContainerdTestPredicates() []string {
 			predicateName(o), versionDigits(o)))
 	}
 	return lines
+}
+
+var hostPackageCallRE = regexp.MustCompile(`^(\s*)ubuntu_\d+_install_host_packages\b[ \t]*(.*)$`)
+
+// installHostPackagesFn is the ubuntu_<NN><NN>_install_host_packages function
+// name for an Ubuntu OS.
+func installHostPackagesFn(o *OS) string {
+	return "ubuntu_" + versionDigits(o) + "_install_host_packages"
+}
+
+// renderUbuntuHostPackageCalls regenerates a host-package install region: one
+// `ubuntu_<NN>04_install_host_packages <pkgs>` call per host-package-shipping
+// Ubuntu release. The package list and indentation are taken from the region's
+// current content (test-specific), so adding an Ubuntu release adds a matching
+// call to every region without changing the packages. If the current region has
+// no recognizable call, it is returned unchanged.
+func (m *Matrix) renderUbuntuHostPackageCalls(current []string) []string {
+	var indent, pkgs string
+	found := false
+	for _, l := range current {
+		if mt := hostPackageCallRE.FindStringSubmatch(l); mt != nil {
+			indent, pkgs = mt[1], mt[2]
+			found = true
+			break
+		}
+	}
+	if !found {
+		return current
+	}
+	var out []string
+	for _, o := range m.predicateUbuntuOSes() {
+		out = append(out, indent+installHostPackagesFn(o)+" "+pkgs)
+	}
+	return out
 }
 
 // renderBailSupportedUbuntu renders the supported-Ubuntu case pattern line of

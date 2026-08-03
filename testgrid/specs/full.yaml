@@ -515,8 +515,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -782,8 +784,10 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2 nfs-common
     ubuntu_2604_install_host_packages lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -904,8 +908,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
@@ -1697,8 +1703,10 @@
             - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
     
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
@@ -1745,8 +1753,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd
     ubuntu_2604_install_host_packages collectd
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1789,8 +1799,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
     ubuntu_2604_install_host_packages collectd lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1833,8 +1845,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
     ubuntu_2604_install_host_packages collectd lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 
     FOLDER=/testsymbolic
     
@@ -1910,8 +1924,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages nfs-common containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: longhorn
   installerSpec:
     contour:
@@ -1942,8 +1958,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common open-iscsi
     ubuntu_2604_install_host_packages nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -2218,8 +2236,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common
     ubuntu_2604_install_host_packages nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2251,8 +2271,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "k8s_132x airgap"
   airgap: true
   installerSpec:
@@ -2278,8 +2300,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -2402,8 +2426,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "k8s_132x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
