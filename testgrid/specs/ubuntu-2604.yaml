@@ -1,0 +1,13 @@
+#file: noinspection YAMLSchemaValidation
+- name: "Basic install on Ubuntu 26.04"
+  installerSpec:
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: "1.32.x"
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest

@@ -570,6 +570,9 @@ spec:
               when: "ubuntu = 24.04"
               message: "Docker is not supported on Ubuntu 24.04"
           - fail:
+              when: "ubuntu = 26.04"
+              message: "Docker is not supported on Ubuntu 26.04"
+          - fail:
               when: "amazonlinux = 2023"
               message: "Docker is not supported on AmazonLinux 2023"
     - hostOS:
@@ -579,6 +582,9 @@ spec:
           - fail:
               when: "ubuntu = 24.04"
               message: "Kubernetes versions < 1.24.0 are not supported on Ubuntu 24.04"
+          - fail:
+              when: "ubuntu = 26.04"
+              message: "Kubernetes versions < 1.24.0 are not supported on Ubuntu 26.04"
           - fail:
               when: "amazonlinux = 2023"
               message: "Kubernetes versions < 1.24.0 are not supported on AmazonLinux 2023"

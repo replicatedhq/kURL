@@ -1,0 +1,5 @@
+- id: ubuntu-2604
+  name: Ubuntu
+  version: "26.04"
+  vmimageuri: https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img
+  preinit: "apt-get update && apt-get install -y socat ebtables conntrack fio containerd"

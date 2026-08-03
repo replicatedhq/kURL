@@ -82,6 +82,7 @@
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404
+  - ubuntu-2604
   - rocky-9
   - rocky-10
   - centos-9
@@ -167,6 +168,7 @@
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404
+  - ubuntu-2604
   - rocky-9
   - rocky-10
   - centos-9
@@ -225,6 +227,7 @@
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404
+  - ubuntu-2604
   - rocky-9
   - rocky-10
   - centos-9
@@ -266,6 +269,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404
+    - ubuntu-2604
     - rocky-9
     - rocky-10
     - centos-9
@@ -356,6 +360,7 @@
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404
+  - ubuntu-2604
   - ubuntu-2204
   - rocky-9
   - rocky-10
@@ -489,6 +494,7 @@
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404
+  - ubuntu-2604
   - rocky-9
   - rocky-10
   - centos-9

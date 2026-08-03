@@ -14,3 +14,4 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd
+    ubuntu_2604_install_host_packages collectd

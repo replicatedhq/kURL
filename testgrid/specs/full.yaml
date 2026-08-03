@@ -27,6 +27,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -60,6 +61,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -86,6 +88,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -115,6 +118,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -144,6 +148,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -173,6 +178,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -203,6 +209,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_containerd_rook_block
   cpu: 6
   installerSpec:
@@ -235,6 +242,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -269,6 +277,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
     kubernetes:
@@ -303,6 +312,7 @@
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s119_helm
   installerSpec:
     kubernetes:
@@ -363,6 +373,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
@@ -382,6 +393,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s129_selinux
   flags: "yes"
   installerSpec:
@@ -433,6 +445,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -465,6 +478,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s24x_rook_upgrade_17x_110x
   flags: "yes"
   cpu: 6
@@ -502,6 +516,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -544,6 +559,7 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -572,6 +588,7 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "K8s 1.22x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -601,6 +618,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "K8s 1.22x Airgap"
   cpu: 6
   installerSpec:
@@ -633,6 +651,7 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.32 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -700,6 +719,7 @@
   - centos-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on amazon 2023
+  - ubuntu-2604 # docker is not supported on ubuntu 2604
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -731,6 +751,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
 - name: "K8s 1.32x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -762,6 +783,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2 nfs-common
+    ubuntu_2604_install_host_packages lvm2 nfs-common
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -794,6 +816,7 @@
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
 - name: "Upgrade to 1.24, disable s3, weave to flannel"
   flags: "yes"
   cpu: 7
@@ -836,6 +859,7 @@
   - centos-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on ubuntu 2404
+  - ubuntu-2604 # docker is not supported on ubuntu 2604
 - name: "Upgrade to 1.32 minimal airgap"
   installerSpec:
     kubernetes:
@@ -881,6 +905,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
@@ -974,6 +999,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
@@ -1081,6 +1107,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: rook-upgrade-to-1.5
   flags: "yes"
   installerSpec:
@@ -1147,6 +1174,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: rook-upgrade-to-1.5-airgap
   flags: "yes"
   airgap: true
@@ -1226,6 +1254,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "k8s_125x containerd 1.5.x upgrade to latest"
   installerSpec:
     kubernetes:
@@ -1304,6 +1333,7 @@
   - ol-79 # containerd 1.2.x does not install on oracle-linux-7
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1346,6 +1376,7 @@
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1389,6 +1420,7 @@
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1432,6 +1464,7 @@
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
+  - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1527,6 +1560,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
   flags: "yes"
   installerSpec:
@@ -1570,6 +1604,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   flags: "yes kubernetes-upgrade-ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   installerSpec:
@@ -1663,6 +1698,7 @@
     
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
@@ -1710,6 +1746,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd
+    ubuntu_2604_install_host_packages collectd
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1753,6 +1790,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
+    ubuntu_2604_install_host_packages collectd lvm2 nfs-common
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1796,6 +1834,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
+    ubuntu_2604_install_host_packages collectd lvm2 nfs-common
 
     FOLDER=/testsymbolic
     
@@ -1872,6 +1911,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages nfs-common containerd socat ebtables conntrack
 - name: longhorn
   installerSpec:
     contour:
@@ -1903,6 +1943,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common open-iscsi
+    ubuntu_2604_install_host_packages nfs-common open-iscsi
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -1931,6 +1972,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -1960,6 +2002,7 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -2176,6 +2219,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages nfs-common
+    ubuntu_2604_install_host_packages nfs-common
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2208,6 +2252,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
 - name: "k8s_132x airgap"
   airgap: true
   installerSpec:
@@ -2234,6 +2279,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
+    ubuntu_2604_install_host_packages containerd socat ebtables conntrack
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -2301,6 +2347,7 @@
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 8
@@ -2356,6 +2403,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     ubuntu_2404_install_host_packages lvm2
+    ubuntu_2604_install_host_packages lvm2
 - name: "k8s_132x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:

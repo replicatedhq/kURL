@@ -344,7 +344,7 @@ function reset_dnf_module_kurl_local() {
 # host_packages_shipped returns true if we do ship host packages for the distro
 # we are running the installation on.
 function host_packages_shipped() {
-    if ! is_rhel_9_variant && ! is_amazon_2023 && ! is_ubuntu_2404; then
+    if ! is_rhel_9_variant && ! is_amazon_2023 && ! is_ubuntu_2404 && ! is_ubuntu_2604; then
         return 0
     fi
     return 1
@@ -380,6 +380,17 @@ function is_amazon_2023() {
 # is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.
 function is_ubuntu_2404() {
     if [ "$DIST_VERSION_MAJOR" != "24" ]; then
+        return 1
+    fi
+    if [ "$LSB_DIST" != "ubuntu" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# is_ubuntu_2604 returns 0 if the current distro is Ubuntu 26.04.
+function is_ubuntu_2604() {
+    if [ "$DIST_VERSION_MAJOR" != "26" ]; then
         return 1
     fi
     if [ "$LSB_DIST" != "ubuntu" ]; then

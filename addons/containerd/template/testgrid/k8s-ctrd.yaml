@@ -24,6 +24,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd
     ubuntu_2404_install_host_packages containerd
+    ubuntu_2604_install_host_packages containerd
 
   postInstallScript: |
     echo "checking /etc/containerd/config.toml"
@@ -146,6 +147,7 @@
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 2604.
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -214,6 +216,7 @@
     - centos-9 # docker is not supported on rhel 9 variants
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
+    - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 2604.
 
 - name: Upgrade Containerd from 1.7.x to __testver__
   installerApiEndpoint: https://kurl.sh
@@ -318,7 +321,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
     containerd --version
-    if ! is_ubuntu_2404 && ! is_amazon_2023; then
+    if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
       containerd --version | grep "__testver__"
     fi
 
