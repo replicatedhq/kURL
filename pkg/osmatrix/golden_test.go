@@ -130,6 +130,36 @@ func TestGoldenBundleDockerfiles(t *testing.T) {
 	}
 }
 
+// TestGoldenSpliceRegionsInSync proves that regenerating every shell splice
+// region from the registry reproduces the committed file exactly — i.e. the
+// generated regions already match what is checked in (bucket 5). This is the
+// equivalence gate for the marker-generated shell files.
+func TestGoldenSpliceRegionsInSync(t *testing.T) {
+	m, root := loadRealMatrix(t)
+	files := m.spliceFiles()
+	if len(files) == 0 {
+		t.Fatal("expected splice files")
+	}
+	for _, sf := range files {
+		t.Run(sf.path, func(t *testing.T) {
+			desired, found, err := m.splicedContent(root, sf)
+			if err != nil {
+				t.Fatalf("splice %s: %v", sf.path, err)
+			}
+			if !found {
+				t.Fatalf("splice file %s not found in repo", sf.path)
+			}
+			committed, err := os.ReadFile(filepath.Join(root, sf.path))
+			if err != nil {
+				t.Fatalf("read %s: %v", sf.path, err)
+			}
+			if !bytes.Equal(desired, committed) {
+				t.Errorf("regenerated %s differs from committed (region drift)", sf.path)
+			}
+		})
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {
