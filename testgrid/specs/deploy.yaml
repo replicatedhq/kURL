@@ -38,9 +38,11 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
     - ubuntu-2604 # docker is not supported on Ubuntu 26.04
+    # END GENERATED os-matrix: unsupported-capability
 - name: "Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:

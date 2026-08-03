@@ -65,14 +65,19 @@ type spliceFile struct {
 // generated in place from the registry (bucket 5: shell predicates and lists).
 func (m *Matrix) spliceFiles() []spliceFile {
 	common := func(f string) string { return filepath.Join("scripts", "common", f) }
-	// hostPkgs is the per-test host-package install region (bucket 3), which
-	// appears in many addon and shared testgrid specs.
+	// hostPkgs is the per-test host-package install region (bucket 3); cap is the
+	// per-test OS-capability exclusion region (bucket 2). Both appear across many
+	// addon and shared testgrid specs.
 	hostPkgs := spliceRegion{id: "ubuntu-host-packages", transform: m.renderUbuntuHostPackageCalls}
-	addonTestgrid := func(addon, file string) spliceFile {
+	capReg := spliceRegion{id: "unsupported-capability", transform: m.renderUnsupportedCapability}
+	addonTestgrid := func(addon, file string, regions ...spliceRegion) spliceFile {
 		return spliceFile{
 			path:    filepath.Join("addons", addon, "template", "testgrid", file),
-			regions: []spliceRegion{hostPkgs},
+			regions: regions,
 		}
+	}
+	spec := func(file string, regions ...spliceRegion) spliceFile {
+		return spliceFile{path: filepath.Join("testgrid", "specs", file), regions: regions}
 	}
 	return []spliceFile{
 		{path: common("host-packages.sh"), regions: []spliceRegion{
@@ -85,13 +90,13 @@ func (m *Matrix) spliceFiles() []spliceFile {
 		{path: common("preflights.sh"), regions: []spliceRegion{
 			{id: "bail-supported-ubuntu", body: m.renderBailSupportedUbuntu},
 		}},
-		addonTestgrid("collectd", "k8s-docker.yaml"),
-		addonTestgrid("containerd", "k8s-ctrd.yaml"),
-		addonTestgrid("longhorn", "k8s-ctrd.yaml"),
-		addonTestgrid("rook", "k8s-docker.yaml"),
-		addonTestgrid("velero", "k8s-docker.yaml"),
-		{path: filepath.Join("testgrid", "specs", "deploy.yaml"), regions: []spliceRegion{hostPkgs}},
-		{path: filepath.Join("testgrid", "specs", "full.yaml"), regions: []spliceRegion{hostPkgs}},
+		addonTestgrid("collectd", "k8s-docker.yaml", hostPkgs),
+		addonTestgrid("containerd", "k8s-ctrd.yaml", hostPkgs, capReg),
+		addonTestgrid("longhorn", "k8s-ctrd.yaml", hostPkgs),
+		addonTestgrid("rook", "k8s-docker.yaml", hostPkgs),
+		addonTestgrid("velero", "k8s-docker.yaml", hostPkgs),
+		spec("deploy.yaml", hostPkgs, capReg),
+		spec("full.yaml", hostPkgs, capReg),
 		{path: filepath.Join("pkg", "preflight", "assets", "host-preflights.yaml"), regions: []spliceRegion{
 			{id: "preflight-docker-support", body: m.renderPreflightDockerSupport},
 			{id: "preflight-kubernetes-support", body: m.renderPreflightKubernetesSupport},
