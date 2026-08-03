@@ -1,0 +1,259 @@
+# os-matrix.yaml — the single source of truth for kURL's supported operating systems.
+#
+# Each OS is declared once here; every downstream OS-keyed artifact (testgrid OS
+# specs, and — as the refactor lands — shell predicates, preflight rules, host
+# package plumbing and the Ubuntu build Dockerfile/Makefile targets) is RENDERED
+# from this file and committed. Adding a supported OS should be one entry here
+# plus `make generate-os-matrix`.
+#
+# See replicatedhq/kURL#6081. Do not hand-edit generated artifacts; edit this
+# file and regenerate. `make verify-generated` fails if committed generated
+# files drift from this source.
+#
+# Fields:
+#   key            unique registry key (defaults to id). Set only when two
+#                  entries share a testgrid id but differ (e.g. a pinned minor).
+#   id             testgrid OS id emitted into testgrid/specs/*.yaml
+#   name/version   testgrid display name/version
+#   vmimageuri     testgrid cloud image
+#   preinit        testgrid pre-init script
+#   preinitStyle   how preinit is serialized: empty | quoted | block
+#                  (presentation only; keeps regenerated specs byte-identical)
+#   distro/versionMajor/packageFamily  installer identity (shell/build plumbing)
+#   minKubernetes/dockerSupported/apparmorWorkaround/hostPackagesShipped
+#                  capability constraints (drive computed preflight/exclusion rules)
+
+oses:
+  - id: amzn-20
+    name: Amazon Linux
+    version: "2.0"
+    vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20230307.0/kvm/amzn2-kvm-2.0.20230307.0-x86_64.xfs.gpt.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-79
+    name: CentOS
+    version: "7.9"
+    vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-74
+    name: CentOS
+    version: "7.4"
+    vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1708.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-78
+    name: CentOS
+    version: "7.8"
+    vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2003.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-81
+    name: CentOS
+    version: "8.1"
+    vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-82
+    name: CentOS
+    version: "8.2"
+    vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-83
+    name: CentOS
+    version: "8.3"
+    vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-84
+    name: CentOS
+    version: "8.4"
+    vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
+    preinit: ""
+    preinitStyle: empty
+
+  - id: centos-8-stream-2024-04
+    name: CentOS
+    version: "8.2024-04"
+    vmimageuri: https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20240415.0.x86_64.qcow2
+    preinit: "yum update -y && yum install -y traceroute iptables bind-utils"
+    preinitStyle: quoted
+
+  - id: centos-9
+    name: CentOS 9
+    version: "stream"
+    vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    preinitStyle: block
+
+  - id: ol-79
+    name: Oracle Linux
+    version: "7.9"
+    vmimageuri: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+    preinit: |
+      curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+      chmod +x centos2ol.sh
+      bash centos2ol.sh -r
+    preinitStyle: block
+
+  - id: ol-8x
+    name: Oracle Linux
+    version: "8.x"
+    vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
+    preinit: |
+      curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+      chmod +x centos2ol.sh
+      bash centos2ol.sh -r
+    preinitStyle: block
+
+  - id: rocky-9
+    name: Rocky Linux
+    version: "9.8"
+    vmimageuri: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    preinitStyle: block
+
+  # Same testgrid id as rocky-9 but pinned to 9.7 (vault) for the customer pool.
+  - key: rocky-9-customer
+    id: rocky-9
+    name: Rocky Linux
+    version: "9.7"
+    vmimageuri: https://dl.rockylinux.org/vault/rocky/9.7/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    preinitStyle: block
+
+  - id: rocky-91
+    name: Rocky Linux
+    version: "9.1"
+    vmimageuri: https://dl.rockylinux.org/vault/rocky/9.1/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    preinitStyle: block
+
+  - id: rocky-98
+    name: Rocky Linux
+    version: "9.8"
+    vmimageuri: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
+    preinitStyle: block
+
+  - id: rocky-10
+    name: Rocky Linux
+    version: "10.2"
+    vmimageuri: https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
+    preinit: |
+      yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils rrdtool
+      systemctl disable --now cockpit.socket
+      # Try to install the kernel-modules-extra version matching the running kernel.
+      # If the repos no longer have it, install the latest kernel+modules and reboot.
+      if ! yum install -y kernel-modules-extra-"$(uname -r)"; then
+          yum install -y kernel kernel-modules-extra
+          reboot
+      fi
+    preinitStyle: block
+
+  - id: ubuntu-1804
+    name: Ubuntu
+    version: "18.04"
+    vmimageuri: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+    preinit: ""
+    preinitStyle: empty
+    distro: ubuntu
+    versionMajor: "18"
+
+  - id: ubuntu-2004
+    name: Ubuntu
+    version: "20.04"
+    vmimageuri: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+    preinit: ""
+    preinitStyle: empty
+    distro: ubuntu
+    versionMajor: "20"
+
+  - id: ubuntu-2204
+    name: Ubuntu
+    version: "22.04"
+    vmimageuri: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+    preinit: ""
+    preinitStyle: empty
+    distro: ubuntu
+    versionMajor: "22"
+
+  - id: ubuntu-2404
+    name: Ubuntu
+    version: "24.04"
+    vmimageuri: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+    preinit: "apt-get update && apt-get install -y socat ebtables conntrack fio containerd"
+    preinitStyle: quoted
+    distro: ubuntu
+    versionMajor: "24"
+    packageFamily: apt24
+    minKubernetes: "1.24"
+    dockerSupported: false
+    apparmorWorkaround: true
+    hostPackagesShipped: true
+
+  - id: ubuntu-2604
+    name: Ubuntu
+    version: "26.04"
+    vmimageuri: https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img
+    preinit: "apt-get update && apt-get install -y socat ebtables conntrack fio containerd"
+    preinitStyle: quoted
+    distro: ubuntu
+    versionMajor: "26"
+    packageFamily: apt26
+    minKubernetes: "1.24"
+    dockerSupported: false
+    apparmorWorkaround: true
+    hostPackagesShipped: true
+
+  - id: amazon-2023
+    name: Amazon Linux
+    version: "2023"
+    vmimageuri: https://cdn.amazonlinux.com/al2023/os-images/2023.11.20260406.2/kvm/al2023-kvm-2023.11.20260406.2-kernel-6.1-x86_64.xfs.gpt.qcow2
+    preinit: |
+      yum install -y --nobest policycoreutils-python-utils nfs-utils fio container-selinux ebtables-legacy lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl containerd
+    preinitStyle: block
+    distro: amazonlinux
+    versionMajor: "2023"
+    minKubernetes: "1.24"
+    dockerSupported: false
+
+# pools are ordered id lists that render to testgrid/specs/<name>.yaml.
+# trailingNewline preserves whether the committed file ends with a newline.
+pools:
+  - name: os-latest
+    trailingNewline: false
+    ids: [amzn-20, centos-79, ol-79, rocky-9, rocky-10, centos-9, ubuntu-1804, ubuntu-2204, ubuntu-2404, amazon-2023, ubuntu-2604]
+
+  - name: os-firstlast
+    trailingNewline: false
+    ids: [amzn-20, centos-79, ol-79, rocky-9, rocky-10, centos-9, ubuntu-1804, ubuntu-2004, ubuntu-2204, ubuntu-2404, amazon-2023, ubuntu-2604]
+
+  - name: os-customer-common
+    trailingNewline: true
+    ids: [rocky-9-customer, ubuntu-2204, ubuntu-2604]
+
+  - name: os-full
+    trailingNewline: true
+    ids: [amzn-20, centos-79, ol-79, ol-8x, rocky-91, rocky-98, rocky-10, centos-9, ubuntu-1804, ubuntu-2004, ubuntu-2204, ubuntu-2404, amazon-2023, ubuntu-2604]
+
+  - name: os-removed
+    trailingNewline: false
+    ids: [centos-81, centos-82, centos-83, centos-84, centos-8-stream-2024-04, centos-74, centos-78, ol-8x]
+
+  - name: os-ubuntu-2604
+    trailingNewline: true
+    ids: [ubuntu-2604]
