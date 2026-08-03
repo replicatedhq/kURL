@@ -45,8 +45,61 @@ func (m *Matrix) Artifacts() ([]Artifact, error) {
 	return out, nil
 }
 
-// Write renders all artifacts and writes them under root. It returns the list of
-// paths that changed on disk.
+// spliceRegion is one BEGIN/END-delimited generated region inside a
+// hand-maintained file.
+type spliceRegion struct {
+	id   string
+	body func() []string
+}
+
+// spliceFile is a hand-maintained file with one or more generated regions.
+type spliceFile struct {
+	path    string
+	regions []spliceRegion
+}
+
+// spliceFiles lists the hand-maintained files whose OS-derived regions are
+// generated in place from the registry (bucket 5: shell predicates and lists).
+func (m *Matrix) spliceFiles() []spliceFile {
+	common := func(f string) string { return filepath.Join("scripts", "common", f) }
+	return []spliceFile{
+		{path: common("host-packages.sh"), regions: []spliceRegion{
+			{id: "ubuntu-predicates", body: m.renderHostPackagesPredicates},
+			{id: "host-packages-shipped", body: m.renderHostPackagesShippedGuard},
+		}},
+		{path: common("containerd-test.sh"), regions: []spliceRegion{
+			{id: "ubuntu-predicate-stubs", body: m.renderContainerdTestPredicates},
+		}},
+		{path: common("preflights.sh"), regions: []spliceRegion{
+			{id: "bail-supported-ubuntu", body: m.renderBailSupportedUbuntu},
+		}},
+	}
+}
+
+// splicedContent reads a splice file under root and returns its content with all
+// generated regions refreshed from the registry. found is false when the file
+// does not exist under root (used so hermetic tests on synthetic roots skip the
+// real shell files; the real repo's presence is enforced by golden tests).
+func (m *Matrix) splicedContent(root string, sf spliceFile) (content []byte, found bool, err error) {
+	full := filepath.Join(root, sf.path)
+	data, err := os.ReadFile(full)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("read %s: %w", sf.path, err)
+	}
+	for _, r := range sf.regions {
+		data, err = SpliceRegion(data, r.id, r.body())
+		if err != nil {
+			return nil, false, fmt.Errorf("%s region %q: %w", sf.path, r.id, err)
+		}
+	}
+	return data, true, nil
+}
+
+// Write renders all artifacts and refreshes all splice regions under root,
+// returning the list of paths that changed on disk.
 func (m *Matrix) Write(root string) ([]string, error) {
 	arts, err := m.Artifacts()
 	if err != nil {
@@ -67,12 +120,29 @@ func (m *Matrix) Write(root string) ([]string, error) {
 		}
 		changed = append(changed, a.Path)
 	}
+	for _, sf := range m.spliceFiles() {
+		desired, found, err := m.splicedContent(root, sf)
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			continue
+		}
+		existing, _ := os.ReadFile(filepath.Join(root, sf.path))
+		if string(existing) == string(desired) {
+			continue
+		}
+		if err := os.WriteFile(filepath.Join(root, sf.path), desired, 0o644); err != nil {
+			return nil, fmt.Errorf("write %s: %w", sf.path, err)
+		}
+		changed = append(changed, sf.path)
+	}
 	return changed, nil
 }
 
-// Check renders all artifacts and returns the list of repo-relative paths whose
-// committed contents differ from what the registry would generate (i.e. stale
-// generated files). An empty result means everything is in sync.
+// Check returns the repo-relative paths whose committed contents differ from
+// what the registry would generate (stale whole-file artifacts or drifted splice
+// regions). An empty result means everything is in sync.
 func (m *Matrix) Check(root string) ([]string, error) {
 	arts, err := m.Artifacts()
 	if err != nil {
@@ -88,6 +158,19 @@ func (m *Matrix) Check(root string) ([]string, error) {
 		}
 		if string(existing) != string(a.Content) {
 			stale = append(stale, a.Path)
+		}
+	}
+	for _, sf := range m.spliceFiles() {
+		desired, found, err := m.splicedContent(root, sf)
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			continue
+		}
+		existing, _ := os.ReadFile(filepath.Join(root, sf.path))
+		if string(existing) != string(desired) {
+			stale = append(stale, sf.path)
 		}
 	}
 	return stale, nil
