@@ -131,20 +131,31 @@ the addon-only `test-addon-pr.yaml`. The **`.github/workflows/testgrid-pr.yaml`*
 workflow lets a maintainer run Testgrid against a PR's own build **before** merge,
 without touching the shared `staging/VERSION` pointer.
 
-- **Trigger:** add the **`run-testgrid`** label to a PR (label add requires write
-  access — this is the security gate), or run it manually via
+- **Trigger:** add the **`run-testgrid`** label to a PR, or run it manually via
   Actions → **testgrid-pr** → Run workflow with a `branch` input.
 - **Build:** fast **core-only** strategy — rebuilds a small core batch from the
   PR's source and copies the rest from the last staging release. Publishes under a
   unique RC tag to `s3://kurl-sh/staging/<latest-tag>-rc-pr<num>-<sha>/`. Never
-  promoted to prod.
+  promoted to prod. A **label run reuses `kurl-util:alpha` and rebuilds only the
+  core `.tmpl`/`common`/`kurl-bin-utils` batch**; to rebuild extra packages or a
+  branch-specific `kurl-util` image, use `workflow_dispatch` with the
+  `extra-packages` / `build-kurl-util-image` inputs.
 - **OS pool:** defaults to the `os-firstlast.yaml` subset; add the **`testgrid-full`**
   label to run the full `os-full.yaml` matrix.
 - **Report:** comments the Testgrid run URL back on the PR.
 - **Security:** plain `pull_request` (never `pull_request_target`), so fork code
   never runs with secrets (fork PRs are skipped — use `workflow_dispatch`).
-  Privileged jobs run in the `testgrid-pr` GitHub Environment, which can be given
-  required reviewers for manual approval as defense in depth.
+- **Required before enabling (hard prerequisites):**
+  1. A **dedicated least-privilege S3 credential** in the secrets
+     `AWS_STAGING_PR_ACCESS_KEY_ID` / `AWS_STAGING_PR_SECRET_ACCESS_KEY`. This
+     **must not** be the prod credential (`AWS_PROD_*`); its IAM policy must allow
+     writes only under `s3://kurl-sh/staging/*` and explicitly **deny**
+     `s3://kurl-sh/dist/*` and `s3://kurl-sh/staging/VERSION`. The credentialed
+     jobs run PR-authored code, so the IAM policy — not the workflow text — is the
+     blast-radius boundary.
+  2. The **`testgrid-pr` GitHub Environment must have required reviewers**, so
+     every run pauses for maintainer approval before secrets are exposed (the
+     `run-testgrid` label alone is addable at Triage level).
 - **Expiry:** RC artifacts live under `staging/v20…-rc-…/` and are swept by
   `bin/cleanup-staging-s3.sh` (30-day `staging/v20*` cutoff). Optionally add an S3
   lifecycle rule expiring `staging/*-rc-*` sooner.
