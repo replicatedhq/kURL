@@ -283,6 +283,65 @@ oses:
 	}
 }
 
+func TestRenderUnsupportedCapabilityEmptiedRegionKeepsCategoryAndRegrows(t *testing.T) {
+	// Greptile P1: when every constraint in a region is relaxed, the region body
+	// shrinks to empty. Category memory was inferred only from present lines, so a
+	// later matrix edit that re-adds a constraint had nothing to grow into and the
+	// OS was silently omitted -> TestGrid runs an unsupported combination.
+	//
+	// The fix persists the tracked category as an anchor comment when a category
+	// empties, so a subsequent regenerate recovers it and regrows correctly. This
+	// exercises the full cross-regenerate cycle: relax -> empty (anchor) -> re-add.
+
+	// Cycle 1: ubuntu-2404 is docker-SUPPORTED, so the docker constraint is gone.
+	const relaxed = `
+oses:
+  - id: ubuntu-2404
+    name: Ubuntu
+    version: "24.04"
+    vmimageuri: https://example.com/noble.img
+    preinit: ""
+    preinitStyle: empty
+pools: []
+`
+	m0 := mustParse(t, relaxed)
+	region := []string{
+		"  - ubuntu-2404 # docker is not supported on Ubuntu 24.04",
+	}
+	emptied := m0.renderUnsupportedCapability(region)
+	joined0 := strings.Join(emptied, "\n")
+	if strings.Contains(joined0, "ubuntu-2404") {
+		t.Errorf("relaxed docker exclusion must be dropped, got:\n%s", joined0)
+	}
+	if !strings.Contains(joined0, "os-matrix-capability-anchor: docker") {
+		t.Errorf("emptied docker region must keep a docker anchor so it can regrow, got:\n%s", joined0)
+	}
+
+	// Cycle 2: ubuntu-2404 is docker-UNSUPPORTED again. Feeding the anchor-only
+	// body from cycle 1 must regrow the exclusion under the docker category.
+	const reAdded = `
+oses:
+  - id: ubuntu-2404
+    name: Ubuntu
+    version: "24.04"
+    vmimageuri: https://example.com/noble.img
+    preinit: ""
+    preinitStyle: empty
+    dockerSupported: false
+pools: []
+`
+	m1 := mustParse(t, reAdded)
+	regrown := m1.renderUnsupportedCapability(emptied)
+	joined1 := strings.Join(regrown, "\n")
+	want := "  - ubuntu-2404 # docker is not supported on Ubuntu 24.04"
+	if !strings.Contains(joined1, want) {
+		t.Errorf("re-added constraint must regrow the OS into the (previously empty) region, got:\n%s", joined1)
+	}
+	if strings.Contains(joined1, "os-matrix-capability-anchor") {
+		t.Errorf("anchor must be dropped once the category has a real exclusion again, got:\n%s", joined1)
+	}
+}
+
 func TestCapabilityCategory(t *testing.T) {
 	cases := map[string]string{
 		"# Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.": "k8s",
