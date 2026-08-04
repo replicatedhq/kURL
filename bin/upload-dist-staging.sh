@@ -51,8 +51,13 @@ function package_has_changes() {
     # invisible here and the kubernetes tarball would never be rebuilt or
     # re-shipped, leaving the new OS with no host packages. Include bundles/ in the
     # diff for kubernetes packages so bundle changes force a rebuild.
+    # Match only real kubernetes package keys (kubernetes-<version>, which start
+    # with a digit, e.g. kubernetes-1.35.7). Do NOT match kubernetes-conformance-*
+    # archives: those are built from packages/kubernetes/<ver>/conformance/Manifest
+    # (sonobuoy images) and do not depend on bundles/, so watching bundles/ for them
+    # would needlessly rebuild and re-upload every conformance archive.
     local paths=( "${path}" )
-    if echo "${key}" | grep -q "kubernetes-" ; then
+    if echo "${key}" | grep -qE "kubernetes-[0-9]" ; then
         paths+=( "bundles/" )
     fi
 
