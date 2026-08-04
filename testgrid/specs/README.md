@@ -148,14 +148,23 @@ without touching the shared `staging/VERSION` pointer.
 - **Required before enabling (hard prerequisites):**
   1. A **dedicated least-privilege S3 credential** in the secrets
      `AWS_STAGING_PR_ACCESS_KEY_ID` / `AWS_STAGING_PR_SECRET_ACCESS_KEY`. This
-     **must not** be the prod credential (`AWS_PROD_*`); its IAM policy must allow
-     writes only under `s3://kurl-sh/staging/*` and explicitly **deny**
-     `s3://kurl-sh/dist/*` and `s3://kurl-sh/staging/VERSION`. The credentialed
-     jobs run PR-authored code, so the IAM policy — not the workflow text — is the
-     blast-radius boundary.
-  2. The **`testgrid-pr` GitHub Environment must have required reviewers**, so
-     every run pauses for maintainer approval before secrets are exposed (the
-     `run-testgrid` label alone is addable at Triage level).
+     **must not** be the prod credential (`AWS_PROD_*`). The credentialed jobs run
+     PR-authored code, so an exfiltrated credential is only as powerful as its IAM
+     policy — that policy, not the workflow text, is the blast-radius boundary.
+     The workflow only ever **writes** under `staging/<rc-tag>/` (the per-PR RC
+     prefix `staging/*-rc-*`), so scope the policy to exactly that:
+     - Allow `s3:ListBucket` + `s3:GetObject` on `staging/*` (read, to copy
+       packages from the previous staging release).
+     - Allow `s3:PutObject` / `s3:DeleteObject` **only** on `staging/*-rc-*` — not
+       all of `staging/*`.
+     - Explicitly **deny** writes to `dist/*`, `staging/VERSION`, and the shared
+       unversioned metadata `staging/addons-gen.json` +
+       `staging/supported-versions-gen.json`. (Do **not** deny `staging/*-gen.json`
+       broadly — that would also block the versioned
+       `staging/<rc-tag>/addons-gen.json` this workflow must write.)
+  2. The **`testgrid-pr` GitHub Environment must have required reviewers.** This —
+     not the `run-testgrid` label (which is addable at Triage level) — is the gate
+     that limits who can start a credentialed run.
 - **Expiry:** RC artifacts live under `staging/v20…-rc-…/` and are swept by
   `bin/cleanup-staging-s3.sh` (30-day `staging/v20*` cutoff). Optionally add an S3
   lifecycle rule expiring `staging/*-rc-*` sooner.

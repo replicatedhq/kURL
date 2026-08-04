@@ -30,23 +30,36 @@ name: testgrid-pr
 #   * Trigger is plain `pull_request` (NOT pull_request_target), so untrusted
 #     fork code never runs with repository secrets. Fork PRs are skipped (a
 #     maintainer must push the branch and use workflow_dispatch to test a fork).
-#   * The `run-testgrid` label gates execution; applying a label requires write
-#     access, so only maintainers can start a run.
+#   * The `run-testgrid` label starts a run, but a label is addable at
+#     Triage-level access — it is NOT a strong gate on its own. The real gate on
+#     secret exposure is the `testgrid-pr` Environment's required reviewers (see
+#     provisioning below). Do not treat the label as maintainer-only.
 #
 # ── REQUIRED provisioning before enabling this workflow ─────────────────────
 #   These are hard prerequisites — the workflow is a security risk without them:
 #   1. Dedicated least-privilege S3 credential. The privileged jobs use the
 #      secrets AWS_STAGING_PR_ACCESS_KEY_ID / AWS_STAGING_PR_SECRET_ACCESS_KEY.
-#      This MUST be a NEW IAM user, NOT the prod credential (AWS_PROD_*). Its
-#      policy MUST allow writes only under s3://kurl-sh/staging/* and explicitly
-#      DENY s3://kurl-sh/dist/* and s3://kurl-sh/staging/VERSION. Because the
-#      credentialed jobs run PR-authored code (`make dist/*`, `make
-#      generate-addons`), the IAM policy — not the workflow text — is the real
-#      blast-radius boundary.
+#      This MUST be a NEW IAM user, NOT the prod credential (AWS_PROD_*). Because
+#      the credentialed jobs run PR-authored code (`make dist/*`, `make
+#      generate-addons`), an exfiltrated credential is as powerful as its IAM
+#      policy — that policy, not the workflow text, is the blast-radius boundary.
+#      The workflow only ever WRITES under staging/<rc-tag>/ (the per-PR RC
+#      prefix, staging/*-rc-*), so scope the policy to exactly that:
+#        - Allow s3:ListBucket + s3:GetObject on staging/*  (READ, to copy
+#          packages from the previous staging release).
+#        - Allow s3:PutObject / s3:DeleteObject ONLY on staging/*-rc-*  (the RC
+#          prefix — NOT all of staging/*).
+#        - Explicit DENY on writes to: dist/*, staging/VERSION, and the shared
+#          unversioned metadata staging/addons-gen.json +
+#          staging/supported-versions-gen.json. (These keys lack the `-rc-`
+#          segment so the scoped write-allow already excludes them; deny them
+#          explicitly as belt-and-suspenders. Do NOT deny staging/*-gen.json
+#          broadly — that would also block the versioned
+#          staging/<rc-tag>/addons-gen.json this workflow must write.)
 #   2. The `testgrid-pr` GitHub Environment MUST be configured with required
 #      reviewers, so every run pauses for maintainer approval before any secret
-#      is exposed. (The `run-testgrid` label alone is addable by Triage-level
-#      access; the environment gate is what makes secret exposure write-gated.)
+#      is exposed. This — not the label — is the gate that limits who can start a
+#      credentialed run.
 #
 # ── Cost / expectations ─────────────────────────────────────────────────────
 #   * Core-only build: rebuilds a handful of core packages and copies the rest
