@@ -44,6 +44,38 @@ func capabilityCategory(comment string) string {
 	}
 }
 
+// capabilityAnchorRE matches a persisted category anchor: a comment-only line the
+// generator leaves inside a region whose tracked category currently constrains no
+// OS. A region's tracked categories are normally inferred from its exclusion
+// lines, but if every constraint is relaxed the body shrinks to empty and that
+// memory is lost -- a later constraint-add then has no category to grow into and
+// the OS is silently omitted. The anchor carries the category across regenerate
+// cycles so an emptied region still regrows correctly.
+var capabilityAnchorRE = regexp.MustCompile(`^(\s*)#\s*os-matrix-capability-anchor:\s*(k8s|docker)\b`)
+
+// capabilityAnchorCategory returns the category recorded by an anchor line, or ""
+// if the line is not an anchor.
+func capabilityAnchorCategory(line string) string {
+	if mt := capabilityAnchorRE.FindStringSubmatch(line); mt != nil {
+		return mt[2]
+	}
+	return ""
+}
+
+// capabilityAnchorLine renders the anchor comment for a tracked category that
+// currently constrains no OS. The wording deliberately avoids the substrings
+// capabilityCategory keys on, so an anchor is never mistaken for an exclusion.
+func capabilityAnchorLine(indent, category string) string {
+	reason := "no OS is currently constrained for this category"
+	switch category {
+	case categoryK8s:
+		reason = "no OS currently declares a Kubernetes floor"
+	case categoryDocker:
+		reason = "no OS is currently without Docker support"
+	}
+	return fmt.Sprintf("%s# os-matrix-capability-anchor: %s (%s; kept so this region regrows if a constraint is added)", indent, category, reason)
+}
+
 // capabilityOSIDs returns the OS ids (registry order) constrained by the given
 // capability category.
 func (m *Matrix) capabilityOSIDs(category string) []string {
@@ -110,24 +142,41 @@ func (m *Matrix) isCapabilityExclusionLine(line string) bool {
 // both directions. Making the marked region authoritative (replace, not append)
 // is what lets relaxing a constraint correctly SHRINK the exclusions.
 // Hand-authored subset regions live outside the markers and are never passed here.
+//
+// If relaxing a constraint empties a tracked category entirely, a category anchor
+// comment is left in its place so the region remembers what it tracks; a later
+// regenerate that re-adds the constraint regrows the exclusion instead of
+// forgetting the category and silently omitting the OS.
 func (m *Matrix) renderUnsupportedCapability(current []string) []string {
+	// First pass: find the indent and the categories this region tracks. A region
+	// tracks a category if it has an exclusion line for it OR a persisted anchor
+	// for it. The anchor is what lets a region that has shrunk to empty still
+	// remember its category across regenerate cycles (without it, an emptied region
+	// forgets what to grow and silently omits a later-re-added OS).
 	indent := "  "
 	indentSet := false
-	hasCapabilityLine := false
-	for _, l := range current {
-		mt := unsupportedLineRE.FindStringSubmatch(l)
-		if mt == nil {
-			continue
-		}
+	setIndent := func(s string) {
 		if !indentSet {
-			indent = mt[1]
+			indent = s
 			indentSet = true
 		}
-		if capabilityCategory(mt[3]) != "" {
-			hasCapabilityLine = true
+	}
+	trackedCats := map[string]bool{}
+	for _, l := range current {
+		if mt := unsupportedLineRE.FindStringSubmatch(l); mt != nil {
+			setIndent(mt[1])
+			if c := capabilityCategory(mt[3]); c != "" {
+				trackedCats[c] = true
+			}
+			continue
+		}
+		if c := capabilityAnchorCategory(l); c != "" {
+			setIndent(capabilityAnchorRE.FindStringSubmatch(l)[1])
+			trackedCats[c] = true
 		}
 	}
-	if !hasCapabilityLine {
+	if len(trackedCats) == 0 {
+		// Not a capability region (no exclusion lines, no anchors): leave as-is.
 		return append([]string(nil), current...)
 	}
 
@@ -143,8 +192,7 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 		justified[cat] = s
 	}
 
-	present := map[string]bool{}    // every capability id in the region, for dedup by id
-	regionCats := map[string]bool{} // categories this region actually tracks
+	present := map[string]bool{} // every capability id in the region, for dedup by id
 	var out []string
 	for _, l := range current {
 		mt := unsupportedLineRE.FindStringSubmatch(l)
@@ -157,12 +205,14 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 					continue
 				}
 				present[mt[2]] = true
-				regionCats[c] = true
 				out = append(out, l)
 				continue
 			}
 		}
-		out = append(out, l) // non-capability line: preserve verbatim
+		if capabilityAnchorCategory(l) != "" {
+			continue // drop stale anchors; re-emitted below only where still needed
+		}
+		out = append(out, l) // non-capability, non-anchor line: preserve verbatim
 	}
 	// Grow every category the region tracks, symmetric with the shrink side, so a
 	// newly-constrained OS of either category is appended under its own comment.
@@ -181,7 +231,7 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 	// untracked category is therefore a golden-matrix regression, not a fix (see
 	// TestRenderUnsupportedCapabilityDoesNotGrowUntrackedCategory).
 	for _, c := range []string{categoryK8s, categoryDocker} {
-		if !regionCats[c] {
+		if !trackedCats[c] {
 			continue
 		}
 		for _, id := range m.capabilityOSIDs(c) {
@@ -190,6 +240,16 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 			}
 			present[id] = true
 			out = append(out, fmt.Sprintf("%s- %s # %s", indent, id, m.capabilityComment(c, id)))
+		}
+	}
+	// If a tracked category currently constrains no OS, the shrink+grow above left
+	// it with no line. Persist an anchor so the next regenerate still knows the
+	// region tracks it and regrows when a constraint is re-added. (A category with
+	// at least one constrained OS already has its line above, so needs no anchor —
+	// keeping existing, populated regions byte-identical.)
+	for _, c := range []string{categoryK8s, categoryDocker} {
+		if trackedCats[c] && len(m.capabilityOSIDs(c)) == 0 {
+			out = append(out, capabilityAnchorLine(indent, c))
 		}
 	}
 	return out
