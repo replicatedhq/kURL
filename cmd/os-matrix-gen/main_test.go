@@ -28,6 +28,30 @@ func TestFlagsHonoredAfterSubcommand(t *testing.T) {
 	}
 }
 
+// TestMatrixDefaultsRelativeToRoot guards the fix for the "root uses the wrong
+// matrix" finding: with -root set and no -matrix, the registry must be resolved
+// under that root, not the current working directory. We point -root at an empty
+// temp dir (which has no os-matrix.yaml) and assert the load error references a
+// path UNDER that root — proving the command did not silently fall back to the
+// CWD's os-matrix.yaml (which exists in this repo checkout and would otherwise
+// let it check/write the target root using the wrong matrix).
+func TestMatrixDefaultsRelativeToRoot(t *testing.T) {
+	root := t.TempDir()
+	want := filepath.Join(root, "os-matrix.yaml")
+
+	for _, cmd := range []string{"generate", "check"} {
+		t.Run(cmd, func(t *testing.T) {
+			err := run([]string{cmd, "-root", root})
+			if err == nil {
+				t.Fatalf("%s -root %s: expected error for missing registry under root", cmd, root)
+			}
+			if !strings.Contains(err.Error(), want) {
+				t.Errorf("%s: matrix not resolved under -root; error does not reference %q: %v", cmd, want, err)
+			}
+		})
+	}
+}
+
 // TestUnknownSubcommandErrors ensures an unrecognized subcommand is reported
 // rather than silently parsed as a flag.
 func TestUnknownSubcommandErrors(t *testing.T) {

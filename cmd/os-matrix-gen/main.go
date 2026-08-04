@@ -10,7 +10,7 @@
 //
 // Flags follow the subcommand:
 //
-//	-matrix   path to the registry (default: os-matrix.yaml)
+//	-matrix   path to the registry (default: <root>/os-matrix.yaml)
 //	-root     repo root the generated paths are relative to (default: ".")
 //
 //	os-matrix-gen generate -matrix path/to/os-matrix.yaml -root .
@@ -43,10 +43,21 @@ func run(args []string) error {
 	// `check -root d` are honored (a single top-level flag.Parse stops at the
 	// subcommand and would silently ignore any flags that follow it).
 	fs := flag.NewFlagSet("os-matrix-gen "+cmd, flag.ContinueOnError)
-	matrixPath := fs.String("matrix", "os-matrix.yaml", "path to the os-matrix registry")
+	matrixPath := fs.String("matrix", "", "path to the os-matrix registry (default: <root>/os-matrix.yaml)")
 	root := fs.String("root", ".", "repo root that generated paths are relative to")
 	if err := fs.Parse(args[1:]); err != nil {
 		return err
+	}
+
+	// When -matrix is not given, resolve the registry relative to -root so root
+	// selection is self-consistent: `check -root /path/to/repo` must read THAT
+	// repo's os-matrix.yaml, not the one in the current working directory —
+	// otherwise the command could falsely approve the target repo (or overwrite
+	// its generated files) using another checkout's matrix. An explicit -matrix
+	// is honored verbatim. With the default root ".", this is os-matrix.yaml,
+	// unchanged from before.
+	if *matrixPath == "" {
+		*matrixPath = filepath.Join(*root, "os-matrix.yaml")
 	}
 
 	switch cmd {
