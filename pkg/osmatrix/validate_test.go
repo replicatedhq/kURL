@@ -14,8 +14,10 @@ func TestValidateAcceptsValidRegistry(t *testing.T) {
 }
 
 func TestValidateRejectsInjection(t *testing.T) {
-	cases := map[string]string{
-		"id shell metachar": `
+	cases := []struct {
+		name, yaml, wantSubstr string
+	}{
+		{"id shell metachar", `
 oses:
   - id: "ubuntu-2404$(touch pwned)"
     name: Ubuntu
@@ -23,8 +25,8 @@ oses:
     vmimageuri: https://e/x.img
     preinit: ""
     preinitStyle: empty
-pools: []`,
-		"name newline": `
+pools: []`, "field id"},
+		{"name newline", `
 oses:
   - id: ubuntu-2404
     name: "Ubuntu\ninjected: key"
@@ -32,8 +34,8 @@ oses:
     vmimageuri: https://e/x.img
     preinit: ""
     preinitStyle: empty
-pools: []`,
-		"vmimageuri metachar": `
+pools: []`, "field name"},
+		{"vmimageuri metachar", `
 oses:
   - id: ubuntu-2404
     name: Ubuntu
@@ -41,9 +43,19 @@ oses:
     vmimageuri: "https://e/x.img; rm -rf /"
     preinit: ""
     preinitStyle: empty
-pools: []`,
-		"version backtick": "\noses:\n  - id: ubuntu-2404\n    name: Ubuntu\n    version: \"24.04`id`\"\n    vmimageuri: https://e/x.img\n    preinit: \"\"\n    preinitStyle: empty\npools: []",
-		"ubuntu version non-numeric": `
+pools: []`, "field vmimageuri"},
+		{"version backtick", "\noses:\n  - id: centos-x\n    name: CentOS\n    version: \"9`id`\"\n    vmimageuri: https://e/x.img\n    preinit: \"\"\n    preinitStyle: empty\npools: []", "field version"},
+		{"minKubernetes newline", `
+oses:
+  - id: ubuntu-2404
+    name: Ubuntu
+    version: "24.04"
+    vmimageuri: https://e/x.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24\ninjected: key"
+pools: []`, "field minKubernetes"},
+		{"ubuntu version non-numeric", `
 oses:
   - id: ubuntu-x
     name: Ubuntu
@@ -52,8 +64,8 @@ oses:
     preinit: ""
     preinitStyle: empty
     distro: ubuntu
-pools: []`,
-		"quoted preinit newline": `
+pools: []`, "ubuntu version"},
+		{"quoted preinit newline", `
 oses:
   - id: ubuntu-2404
     name: Ubuntu
@@ -61,8 +73,8 @@ oses:
     vmimageuri: https://e/x.img
     preinit: "line1\nline2"
     preinitStyle: quoted
-pools: []`,
-		"bad pool name": `
+pools: []`, "quoted preinit must not contain a newline"},
+		{"bad pool name", `
 oses:
   - id: ubuntu-2404
     name: Ubuntu
@@ -72,8 +84,8 @@ oses:
     preinitStyle: empty
 pools:
   - name: "../../etc/passwd"
-    ids: [ubuntu-2404]`,
-		"packageFamily metachar": `
+    ids: [ubuntu-2404]`, "pool name"},
+		{"packageFamily metachar", `
 oses:
   - id: ubuntu-2404
     name: Ubuntu
@@ -82,11 +94,16 @@ oses:
     preinit: ""
     preinitStyle: empty
     packageFamily: "apt24 x"
-pools: []`,
+pools: []`, "field packageFamily"},
 	}
-	for name, y := range cases {
-		if _, err := Parse([]byte(y)); err == nil {
-			t.Errorf("%s: expected validation error, got nil", name)
+	for _, c := range cases {
+		_, err := Parse([]byte(c.yaml))
+		if err == nil {
+			t.Errorf("%s: expected validation error, got nil", c.name)
+			continue
+		}
+		if !strings.Contains(err.Error(), c.wantSubstr) {
+			t.Errorf("%s: error %q does not mention %q", c.name, err, c.wantSubstr)
 		}
 	}
 }
