@@ -47,7 +47,19 @@ function package_has_changes() {
         return 0
     fi
 
-    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ) ; then
+    # kubernetes host packages (kubelet/kubectl/kubeadm .debs and .rpms) are built
+    # from the per-OS bundle Dockerfiles in bundles/ (e.g. bundles/k8s-ubuntu2604),
+    # not from anything under packages/kubernetes/<version>/. A change that only
+    # touches bundles/ -- such as adding a new supported OS -- would otherwise be
+    # invisible here and the kubernetes tarball would never be rebuilt or
+    # re-shipped, leaving the new OS with no host packages. Include bundles/ in the
+    # diff for kubernetes packages so bundle changes force a rebuild.
+    local paths=( "${path}" )
+    if echo "${key}" | grep -q "kubernetes-" ; then
+        paths+=( "bundles/" )
+    fi
+
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${paths[@]}" "${VERSION_TAG}" -- "${paths[@]}" ) ; then
         return 1
     else
         return 0
@@ -214,8 +226,9 @@ function main() {
 
     git fetch
 
-    # TODO: kubernetes changes do not yet take into account changes in bundles/
-    # These need to manually be rebuilt when changing that path.
+    # kubernetes packages are rebuilt when either packages/kubernetes/<version>/
+    # or bundles/ changes -- see package_has_changes(). Bundle changes (e.g.
+    # adding a new supported OS) must force a rebuild so the host packages ship.
 
     while read -r line; do
         package="$(echo "${line}" | cut -f1 -d' ')"
