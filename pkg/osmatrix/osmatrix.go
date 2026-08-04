@@ -10,8 +10,35 @@ package osmatrix
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
+)
+
+// Field validation patterns. Every scalar that gets interpolated into a
+// generated shell script, Dockerfile, YAML document, or a write path must be
+// constrained at the registry boundary so a crafted os-matrix.yaml value cannot
+// inject into generated output (Go's %q does not escape $ or backtick, and
+// several render sites concatenate raw). See replicatedhq/kURL#6081 review.
+var (
+	// reSlug matches ids, keys, distros, package families, pool names.
+	reSlug = regexp.MustCompile(`^[a-z0-9._-]+$`)
+	// reDigits matches a bare integer (versionMajor).
+	reDigits = regexp.MustCompile(`^[0-9]+$`)
+	// reVersion is an injection-safe charset for any OS version string
+	// (accepts "24.04", "stream", "2023", "8.x", "8.2024-04"): no whitespace,
+	// quotes, shell/YAML metacharacters or newlines.
+	reVersion = regexp.MustCompile(`^[a-zA-Z0-9.-]+$`)
+	// reUbuntuVersion is the stricter shape required of Ubuntu versions, which
+	// are interpolated into shell function names (is_ubuntu_<NN><NN>) and the
+	// bundle Dockerfile FROM tag.
+	reUbuntuVersion = regexp.MustCompile(`^[0-9]+\.[0-9]+$`)
+	// reName allows human display names (letters, digits, spaces and a few
+	// punctuation marks) but rejects newlines, quotes and shell/YAML specials.
+	reName = regexp.MustCompile(`^[a-zA-Z0-9 ._()-]+$`)
+	// reURI is an injection-safe charset for cloud-image URLs.
+	reURI = regexp.MustCompile(`^[a-zA-Z0-9:/._~%?=&+-]+$`)
 )
 
 // PreinitStyle controls how an OS's preinit script is serialized into the
@@ -102,7 +129,73 @@ func Parse(data []byte) (*Matrix, error) {
 	if err := m.index(); err != nil {
 		return nil, err
 	}
+	if err := m.validate(); err != nil {
+		return nil, err
+	}
 	return &m, nil
+}
+
+// validate enforces the format (not just presence) of every scalar the
+// generators interpolate, so a malformed or malicious registry edit fails
+// generation loudly instead of producing corrupt or injected output.
+func (m *Matrix) validate() error {
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		checks := []struct {
+			name, val string
+			re        *regexp.Regexp
+			optional  bool
+		}{
+			{"id", o.ID, reSlug, false},
+			{"key", o.Key, reSlug, true},
+			{"distro", o.Distro, reSlug, true},
+			{"packageFamily", o.PackageFamily, reSlug, true},
+			{"versionMajor", o.VersionMajor, reDigits, true},
+			{"version", o.Version, reVersion, false},
+			{"name", o.Name, reName, false},
+			{"vmimageuri", o.VMImageURI, reURI, false},
+			{"preflightName", o.PreflightName, reName, true},
+		}
+		for _, c := range checks {
+			if c.optional && c.val == "" {
+				continue
+			}
+			if !c.re.MatchString(c.val) {
+				return fmt.Errorf("os %q: field %s has invalid value %q (must match %s)", o.key(), c.name, c.val, c.re)
+			}
+		}
+		// Ubuntu versions feed shell function names and the bundle Dockerfile
+		// FROM tag, so they must be strictly numeric major.minor.
+		if o.Distro == "ubuntu" && !reUbuntuVersion.MatchString(o.Version) {
+			return fmt.Errorf("os %q: ubuntu version %q must match %s", o.key(), o.Version, reUbuntuVersion)
+		}
+		// A quoted preinit is rendered on one YAML line; a newline would break it.
+		if o.PreinitStyle == PreinitQuoted && strings.Contains(o.Preinit, "\n") {
+			return fmt.Errorf("os %q: quoted preinit must not contain a newline (use preinitStyle: block)", o.key())
+		}
+	}
+	// Every OS with a Kubernetes floor must share the SAME floor: the generated
+	// "Kubernetes Support" preflight encodes a single floor in its exclude
+	// clause, so divergent floors would silently render wrong messages.
+	floor := ""
+	for i := range m.OSes {
+		v := m.OSes[i].MinKubernetes
+		if v == "" {
+			continue
+		}
+		if floor == "" {
+			floor = v
+		} else if v != floor {
+			return fmt.Errorf("divergent minKubernetes floors (%q vs %q); the generated preflight assumes a single floor", floor, v)
+		}
+	}
+	// Pool names become file paths (testgrid/specs/<name>.yaml); keep them slugs.
+	for _, p := range m.Pools {
+		if !reSlug.MatchString(p.Name) {
+			return fmt.Errorf("pool name %q is not a safe slug (must match %s)", p.Name, reSlug)
+		}
+	}
+	return nil
 }
 
 // Load reads and validates a registry from a file path.

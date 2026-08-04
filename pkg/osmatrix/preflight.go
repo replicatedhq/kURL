@@ -52,6 +52,8 @@ func (m *Matrix) renderPreflightKubernetesSupport() []string {
 
 // commonKubernetesFloor returns the patch-qualified Kubernetes floor shared by
 // all min-constrained OSes (e.g. "1.24" -> "1.24.0"). Returns "" if none.
+// Matrix.validate guarantees all min-constrained OSes share one floor, so
+// taking the first is safe — divergent floors fail at Parse, not here.
 func (m *Matrix) commonKubernetesFloor() string {
 	floor := ""
 	for i := range m.OSes {

@@ -10,6 +10,17 @@
 # file and regenerate. `make verify-generated` fails if committed generated
 # files drift from this source.
 #
+# SCOPE / intentional exclusions: the "single registry entry to add an OS"
+# guarantee covers the active/template artifacts. It does NOT rewrite the
+# pinned, frozen containerd addon versions (the apt<NN> lines already committed
+# in addons/containerd/<1.5.x-2.2.x>/Manifest and any guards in their frozen
+# install.sh) — those are immutable released versions. Only the containerd
+# template (template/base + template/script.sh) and the currently-active
+# per-version install.sh guards are registry-driven; a future containerd
+# generation picks up new OSes from there. The legacy Ubuntu Makefile build
+# targets (18.04/20.04/22.04) and their older bundle Dockerfiles also stay
+# hand-authored (distinct legacy build flow).
+#
 # Fields:
 #   key            unique registry key (defaults to id). Set only when two
 #                  entries share a testgrid id but differ (e.g. a pinned minor).
