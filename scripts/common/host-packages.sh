@@ -502,7 +502,11 @@ function preflights_require_host_packages() {
                     fail=1
                     ;;
                 ubuntu)
-                    if ! echo "$deps_file" | grep -q "ubuntu-24"; then
+                    # Only inspect the Deps file that matches the running Ubuntu
+                    # release. host_packages_shipped() is false for Ubuntu 24.04
+                    # and 26.04, so both must be matched here or the required
+                    # host-package check is silently skipped.
+                    if ! echo "$deps_file" | grep -q "ubuntu-${DIST_VERSION}"; then
                         continue
                     fi
                     seen+=("$dep")
