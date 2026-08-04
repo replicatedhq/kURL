@@ -13,12 +13,15 @@ import (
 // rather than hand-enumerated per spec. Spec-specific exclusions (a pinned kURL
 // version, an addon-version constraint) stay hand-authored, outside the markers.
 //
-// The transform is conservative: it preserves every existing line in a region
-// verbatim (so committed content, comments and all, is byte-identical) and only
-// APPENDS a capability OS that is missing from the region. Adding an Ubuntu
-// release to os-matrix.yaml therefore adds its exclusion line to every capability
-// region on regenerate, while the TestGrid coverage matrix for existing OSes is
-// provably unchanged (see TestGoldenMatrixSnapshot).
+// A marked region is authoritative for its capability category: on regenerate it
+// is rewritten to list EXACTLY the OSes the registry constrains for that category.
+// Still-justified lines are preserved verbatim (so committed content, comments and
+// all, is byte-identical), newly-constrained OSes are added, and OSes the registry
+// no longer constrains — removed, or with the relevant constraint relaxed — are
+// dropped. Adding an Ubuntu release to os-matrix.yaml therefore adds its exclusion
+// line to every capability region, and relaxing/removing one shrinks it, while the
+// TestGrid coverage matrix for existing OSes is provably unchanged (see
+// TestGoldenMatrixSnapshot).
 
 var unsupportedLineRE = regexp.MustCompile(`^(\s*)-\s+([A-Za-z0-9._-]+)\s*(#.*)?$`)
 
@@ -96,14 +99,19 @@ func (m *Matrix) isCapabilityExclusionLine(line string) bool {
 	return m.isCapabilityOSID(mt[2]) && capabilityCategory(mt[3]) != ""
 }
 
-// renderUnsupportedCapability regenerates a capability-exclusion region:
-// existing lines are preserved verbatim and any capability OS of the region's
-// category that is missing is appended.
+// renderUnsupportedCapability regenerates a capability-exclusion region so it
+// lists EXACTLY the OSes the registry currently constrains for the region's
+// category. Still-justified exclusions keep their committed line verbatim (typos
+// and all, so existing output stays byte-identical); an exclusion the registry no
+// longer justifies — because the OS was removed OR its constraint for this
+// category was relaxed — is dropped; a newly-constrained OS is appended. Making
+// the marked region authoritative (replace, not append) is what lets relaxing a
+// constraint correctly SHRINK the exclusions. Hand-authored subset regions live
+// outside the markers and are never passed here.
 func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 	category := ""
 	indent := "  "
 	indentSet := false
-	present := map[string]bool{}
 	for _, l := range current {
 		mt := unsupportedLineRE.FindStringSubmatch(l)
 		if mt == nil {
@@ -113,14 +121,44 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 			indent = mt[1]
 			indentSet = true
 		}
-		present[mt[2]] = true
 		if c := capabilityCategory(mt[3]); c != "" && category == "" {
 			category = c
 		}
 	}
-	out := append([]string(nil), current...)
 	if category == "" {
-		return out
+		return append([]string(nil), current...)
+	}
+
+	// A region may mix categories (an OS excluded for docker next to one excluded
+	// for a Kubernetes floor), so justify each line against its OWN comment's
+	// category rather than the region's primary category.
+	justified := map[string]map[string]bool{}
+	for _, cat := range []string{categoryK8s, categoryDocker} {
+		s := map[string]bool{}
+		for _, id := range m.capabilityOSIDs(cat) {
+			s[id] = true
+		}
+		justified[cat] = s
+	}
+
+	present := map[string]bool{} // every capability id kept, for append dedup by id
+	var out []string
+	for _, l := range current {
+		mt := unsupportedLineRE.FindStringSubmatch(l)
+		if mt != nil {
+			if c := capabilityCategory(mt[3]); c != "" {
+				// Keep the line only while the registry still constrains this OS
+				// for the line's own category; otherwise drop it (OS removed or
+				// its constraint for that category relaxed).
+				if !justified[c][mt[2]] {
+					continue
+				}
+				present[mt[2]] = true
+				out = append(out, l)
+				continue
+			}
+		}
+		out = append(out, l) // non-capability line: preserve verbatim
 	}
 	for _, id := range m.capabilityOSIDs(category) {
 		if !present[id] {

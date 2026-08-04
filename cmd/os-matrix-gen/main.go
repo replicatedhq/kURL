@@ -6,11 +6,15 @@
 //
 //	os-matrix-gen generate   # write generated files
 //	os-matrix-gen check      # exit non-zero if any generated file is stale
+//	os-matrix-gen snapshot   # print the spec×OS coverage snapshot
 //
-// Flags:
+// Flags follow the subcommand:
 //
 //	-matrix   path to the registry (default: os-matrix.yaml)
 //	-root     repo root the generated paths are relative to (default: ".")
+//
+//	os-matrix-gen generate -matrix path/to/os-matrix.yaml -root .
+//	os-matrix-gen check -root /path/to/repo
 package main
 
 import (
@@ -30,26 +34,36 @@ func main() {
 }
 
 func run(args []string) error {
-	fs := flag.NewFlagSet("os-matrix-gen", flag.ContinueOnError)
+	if len(args) == 0 {
+		return fmt.Errorf("usage: os-matrix-gen [generate|check|snapshot] [-matrix path] [-root dir]")
+	}
+	cmd := args[0]
+
+	// Parse flags AFTER the subcommand token so `generate -matrix p` and
+	// `check -root d` are honored (a single top-level flag.Parse stops at the
+	// subcommand and would silently ignore any flags that follow it).
+	fs := flag.NewFlagSet("os-matrix-gen "+cmd, flag.ContinueOnError)
 	matrixPath := fs.String("matrix", "os-matrix.yaml", "path to the os-matrix registry")
 	root := fs.String("root", ".", "repo root that generated paths are relative to")
-	if err := fs.Parse(args); err != nil {
+	if err := fs.Parse(args[1:]); err != nil {
 		return err
 	}
 
-	cmd := fs.Arg(0)
-	if cmd == "" {
-		return fmt.Errorf("usage: os-matrix-gen [generate|check] [-matrix path] [-root dir]")
-	}
-
-	// snapshot does not need the registry; it reads the committed testgrid specs.
-	if cmd == "snapshot" {
+	switch cmd {
+	case "snapshot":
+		// snapshot does not need the registry; it reads the committed testgrid specs.
 		snap, err := osmatrix.MatrixSnapshot(filepath.Join(*root, "testgrid", "specs"))
 		if err != nil {
 			return err
 		}
 		fmt.Print(snap)
 		return nil
+
+	case "generate", "check":
+		// handled below, after loading the registry
+
+	default:
+		return fmt.Errorf("unknown command %q (want generate, check, or snapshot)", cmd)
 	}
 
 	m, err := osmatrix.Load(*matrixPath)
@@ -86,8 +100,6 @@ func run(args []string) error {
 			fmt.Fprintln(os.Stderr, "  stale:", filepath.Clean(p))
 		}
 		return fmt.Errorf("%d generated file(s) out of date", len(stale))
-
-	default:
-		return fmt.Errorf("unknown command %q (want generate or check)", cmd)
 	}
+	return nil
 }
