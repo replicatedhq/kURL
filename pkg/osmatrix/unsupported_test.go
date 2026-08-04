@@ -167,6 +167,52 @@ pools: []
 	}
 }
 
+func TestRenderUnsupportedCapabilityGrowsNonPrimaryCategory(t *testing.T) {
+	// A MIXED region: amazon-2023 is excluded for docker (the PRIMARY category,
+	// first line) and ubuntu-2604 for a Kubernetes floor. A newly-constrained
+	// k8s-only OS (ubuntu-2804) must be appended under its OWN (non-primary)
+	// category — the growth side is per-category, symmetric with shrink.
+	const mixedGrow = `
+oses:
+  - id: amazon-2023
+    name: Amazon Linux
+    version: "2023"
+    vmimageuri: https://example.com/al2023.img
+    preinit: ""
+    preinitStyle: empty
+    dockerSupported: false
+  - id: ubuntu-2604
+    name: Ubuntu
+    version: "26.04"
+    vmimageuri: https://example.com/resolute.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24"
+  - id: ubuntu-2804
+    name: Ubuntu
+    version: "28.04"
+    vmimageuri: https://example.com/oracular.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24"
+pools: []
+`
+	m := mustParse(t, mixedGrow)
+	region := []string{
+		"  - amazon-2023 # docker is not supported on amazon 2023",
+		"  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04",
+	}
+	got := strings.Join(m.renderUnsupportedCapability(region), "\n")
+	want2804 := "  - ubuntu-2804 # Kubernetes versions < 1.24 are not supported on Ubuntu 28.04"
+	if !strings.Contains(got, want2804) {
+		t.Errorf("newly-constrained non-primary (k8s) OS must be appended under its own category, got:\n%s", got)
+	}
+	// amazon-2023 is docker-only; it must not be re-appended under k8s.
+	if strings.Contains(got, "amazon-2023 # Kubernetes") {
+		t.Errorf("docker-only OS wrongly appended under k8s, got:\n%s", got)
+	}
+}
+
 func TestCapabilityCategory(t *testing.T) {
 	cases := map[string]string{
 		"# Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.": "k8s",

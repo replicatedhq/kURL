@@ -100,18 +100,20 @@ func (m *Matrix) isCapabilityExclusionLine(line string) bool {
 }
 
 // renderUnsupportedCapability regenerates a capability-exclusion region so it
-// lists EXACTLY the OSes the registry currently constrains for the region's
-// category. Still-justified exclusions keep their committed line verbatim (typos
-// and all, so existing output stays byte-identical); an exclusion the registry no
-// longer justifies — because the OS was removed OR its constraint for this
-// category was relaxed — is dropped; a newly-constrained OS is appended. Making
-// the marked region authoritative (replace, not append) is what lets relaxing a
-// constraint correctly SHRINK the exclusions. Hand-authored subset regions live
-// outside the markers and are never passed here.
+// lists EXACTLY the OSes the registry currently constrains for the categories the
+// region tracks. Still-justified exclusions keep their committed line verbatim
+// (typos and all, so existing output stays byte-identical); an exclusion the
+// registry no longer justifies — because the OS was removed OR its constraint for
+// that category was relaxed — is dropped; a newly-constrained OS is appended under
+// its own comment category. Both the shrink and grow sides operate per-category,
+// so a region that mixes docker and Kubernetes-floor exclusions stays correct in
+// both directions. Making the marked region authoritative (replace, not append)
+// is what lets relaxing a constraint correctly SHRINK the exclusions.
+// Hand-authored subset regions live outside the markers and are never passed here.
 func (m *Matrix) renderUnsupportedCapability(current []string) []string {
-	category := ""
 	indent := "  "
 	indentSet := false
+	hasCapabilityLine := false
 	for _, l := range current {
 		mt := unsupportedLineRE.FindStringSubmatch(l)
 		if mt == nil {
@@ -121,17 +123,17 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 			indent = mt[1]
 			indentSet = true
 		}
-		if c := capabilityCategory(mt[3]); c != "" && category == "" {
-			category = c
+		if capabilityCategory(mt[3]) != "" {
+			hasCapabilityLine = true
 		}
 	}
-	if category == "" {
+	if !hasCapabilityLine {
 		return append([]string(nil), current...)
 	}
 
 	// A region may mix categories (an OS excluded for docker next to one excluded
-	// for a Kubernetes floor), so justify each line against its OWN comment's
-	// category rather than the region's primary category.
+	// for a Kubernetes floor), so BOTH sides work per-category: justify each line
+	// against its OWN comment's category, and grow each category the region tracks.
 	justified := map[string]map[string]bool{}
 	for _, cat := range []string{categoryK8s, categoryDocker} {
 		s := map[string]bool{}
@@ -141,7 +143,8 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 		justified[cat] = s
 	}
 
-	present := map[string]bool{} // every capability id kept, for append dedup by id
+	present := map[string]bool{}    // every capability id in the region, for dedup by id
+	regionCats := map[string]bool{} // categories this region actually tracks
 	var out []string
 	for _, l := range current {
 		mt := unsupportedLineRE.FindStringSubmatch(l)
@@ -154,15 +157,27 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 					continue
 				}
 				present[mt[2]] = true
+				regionCats[c] = true
 				out = append(out, l)
 				continue
 			}
 		}
 		out = append(out, l) // non-capability line: preserve verbatim
 	}
-	for _, id := range m.capabilityOSIDs(category) {
-		if !present[id] {
-			out = append(out, fmt.Sprintf("%s- %s # %s", indent, id, m.capabilityComment(category, id)))
+	// Grow every category the region tracks, symmetric with the shrink side, so a
+	// newly-constrained OS of either category is appended under its own comment.
+	// Dedup by id (an OS constrained by both categories is listed once, under the
+	// first category encountered) so a region never gains a duplicate line.
+	for _, c := range []string{categoryK8s, categoryDocker} {
+		if !regionCats[c] {
+			continue
+		}
+		for _, id := range m.capabilityOSIDs(c) {
+			if present[id] {
+				continue
+			}
+			present[id] = true
+			out = append(out, fmt.Sprintf("%s- %s # %s", indent, id, m.capabilityComment(c, id)))
 		}
 	}
 	return out
