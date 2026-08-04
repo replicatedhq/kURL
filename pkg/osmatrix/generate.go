@@ -132,7 +132,10 @@ func (m *Matrix) spliceFiles() []spliceFile {
 // does not exist under root (used so hermetic tests on synthetic roots skip the
 // real shell files; the real repo's presence is enforced by golden tests).
 func (m *Matrix) splicedContent(root string, sf spliceFile) (content []byte, found bool, err error) {
-	full := filepath.Join(root, sf.path)
+	full, err := safeJoin(root, sf.path)
+	if err != nil {
+		return nil, false, err
+	}
 	data, err := os.ReadFile(full)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -205,11 +208,15 @@ func (m *Matrix) Write(root string) ([]string, error) {
 		if !found {
 			continue
 		}
-		existing, _ := os.ReadFile(filepath.Join(root, sf.path))
+		full, err := safeJoin(root, sf.path)
+		if err != nil {
+			return nil, err
+		}
+		existing, _ := os.ReadFile(full)
 		if string(existing) == string(desired) {
 			continue
 		}
-		if err := os.WriteFile(filepath.Join(root, sf.path), desired, 0o644); err != nil {
+		if err := os.WriteFile(full, desired, 0o644); err != nil {
 			return nil, fmt.Errorf("write %s: %w", sf.path, err)
 		}
 		changed = append(changed, sf.path)
@@ -248,7 +255,11 @@ func (m *Matrix) Check(root string) ([]string, error) {
 		if !found {
 			continue
 		}
-		existing, _ := os.ReadFile(filepath.Join(root, sf.path))
+		full, err := safeJoin(root, sf.path)
+		if err != nil {
+			return nil, err
+		}
+		existing, _ := os.ReadFile(full)
 		if string(existing) != string(desired) {
 			stale = append(stale, sf.path)
 		}
