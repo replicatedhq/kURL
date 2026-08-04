@@ -168,6 +168,18 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 	// newly-constrained OS of either category is appended under its own comment.
 	// Dedup by id (an OS constrained by both categories is listed once, under the
 	// first category encountered) so a region never gains a duplicate line.
+	//
+	// We deliberately grow ONLY categories the region already tracks. A category a
+	// region does NOT track is one this spec has no exclusion rule for, and adding
+	// one would wrongly skip a combination the matrix says should run. This is safe
+	// for the k8s category because validate() forces a single shared floor: a
+	// region without k8s lines belongs to a spec whose Kubernetes version is at or
+	// above that floor (else it would already exclude the existing constrained
+	// OSes), so a newly-added k8s-constrained OS — which shares that same floor — is
+	// still supported there and must stay omitted. For docker it is safe because a
+	// region without docker lines is a spec that does not use docker. Growing an
+	// untracked category is therefore a golden-matrix regression, not a fix (see
+	// TestRenderUnsupportedCapabilityDoesNotGrowUntrackedCategory).
 	for _, c := range []string{categoryK8s, categoryDocker} {
 		if !regionCats[c] {
 			continue

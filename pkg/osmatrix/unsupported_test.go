@@ -213,6 +213,76 @@ pools: []
 	}
 }
 
+func TestRenderUnsupportedCapabilityDoesNotGrowUntrackedCategory(t *testing.T) {
+	// Greptile flagged: "a docker-only region omits a newly-added OS that has a
+	// Kubernetes minimum but no Docker restriction, so TestGrid attempts the
+	// unsupported install." That omission is CORRECT, and this test locks it in.
+	//
+	// validate() forces every k8s-constrained OS to share ONE floor. A region
+	// that tracks only docker belongs to a spec whose k8s version is >= that
+	// floor (otherwise it would already carry k8s-exclusion lines for the
+	// existing constrained OSes). A newly-added k8s-constrained OS therefore has
+	// that same floor, so the docker-only spec still SUPPORTS it — appending it
+	// would wrongly skip a combination the matrix says should run, breaking the
+	// golden snapshot. The k8s-only OS must land ONLY in regions that track k8s.
+	//
+	// This is also the guard against "fixing" the finding by growing every
+	// category unconditionally: that change fails here.
+	const k8sOnlyAdd = `
+oses:
+  - id: amazon-2023
+    name: Amazon Linux
+    version: "2023"
+    vmimageuri: https://example.com/al2023.img
+    preinit: ""
+    preinitStyle: empty
+    dockerSupported: false
+  - id: ubuntu-2604
+    name: Ubuntu
+    version: "26.04"
+    vmimageuri: https://example.com/resolute.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24"
+  - id: ubuntu-2804
+    name: Ubuntu
+    version: "28.04"
+    vmimageuri: https://example.com/oracular.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24"
+`
+	m := mustParse(t, k8sOnlyAdd)
+
+	// Docker-only region: the new k8s-only OSes support docker, so under the
+	// single-floor invariant the spec supports them — they must NOT appear.
+	dockerRegion := []string{
+		"  - amazon-2023 # docker is not supported on amazon 2023",
+	}
+	gotDocker := strings.Join(m.renderUnsupportedCapability(dockerRegion), "\n")
+	for _, id := range []string{"ubuntu-2604", "ubuntu-2804"} {
+		if strings.Contains(gotDocker, id) {
+			t.Errorf("k8s-only OS %s wrongly grown into a docker-only region (would skip a supported combination), got:\n%s", id, gotDocker)
+		}
+	}
+	if !strings.Contains(gotDocker, "amazon-2023") {
+		t.Errorf("docker exclusion amazon-2023 must be kept, got:\n%s", gotDocker)
+	}
+
+	// A region that DOES track k8s correctly grows to include the new OS.
+	k8sRegion := []string{
+		"  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04",
+	}
+	gotK8s := strings.Join(m.renderUnsupportedCapability(k8sRegion), "\n")
+	want2804 := "  - ubuntu-2804 # Kubernetes versions < 1.24 are not supported on Ubuntu 28.04"
+	if !strings.Contains(gotK8s, want2804) {
+		t.Errorf("k8s region must grow to include the new k8s-constrained OS, got:\n%s", gotK8s)
+	}
+	if strings.Contains(gotK8s, "amazon-2023") {
+		t.Errorf("docker-only OS amazon-2023 wrongly grown into a k8s region, got:\n%s", gotK8s)
+	}
+}
+
 func TestCapabilityCategory(t *testing.T) {
 	cases := map[string]string{
 		"# Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.": "k8s",
