@@ -130,9 +130,12 @@ func (m *Matrix) renderUnsupportedCapability(current []string) []string {
 	return out
 }
 
-// wrapCapabilityRuns introduces BEGIN/END markers around each maximal run of
-// consecutive capability-exclusion lines that already lists the COMPLETE current
-// capability set for its category. Only these "full" regions become generatable:
+// wrapCapabilityRuns is the ONE-TIME migration that introduced the bucket-2
+// markers; it is invoked only from tests, not from the generate/check pipeline
+// (that pipeline only re-fills already-marked regions via
+// renderUnsupportedCapability). It wraps each maximal run of consecutive
+// capability-exclusion lines that already lists the COMPLETE current capability
+// set for its category. Only these "full" regions become generatable:
 // a spec that excludes just a subset of the capability OSes (e.g. only
 // amazon-2023, because the others are excluded for another reason or predate the
 // test) is intentionally not tracking the whole capability rule, so wrapping it
