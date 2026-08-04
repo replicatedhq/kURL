@@ -124,9 +124,36 @@ This allows addon templates to reference the version and package under test dyna
 
 ---
 
+## Pre-merge Testgrid for core changes (`testgrid-pr.yaml`)
+
+Core kURL changes (`scripts/`, `packages/`, staging metadata) are not covered by
+the addon-only `test-addon-pr.yaml`. The **`.github/workflows/testgrid-pr.yaml`**
+workflow lets a maintainer run Testgrid against a PR's own build **before** merge,
+without touching the shared `staging/VERSION` pointer.
+
+- **Trigger:** add the **`run-testgrid`** label to a PR (label add requires write
+  access — this is the security gate), or run it manually via
+  Actions → **testgrid-pr** → Run workflow with a `branch` input.
+- **Build:** fast **core-only** strategy — rebuilds a small core batch from the
+  PR's source and copies the rest from the last staging release. Publishes under a
+  unique RC tag to `s3://kurl-sh/staging/<latest-tag>-rc-pr<num>-<sha>/`. Never
+  promoted to prod.
+- **OS pool:** defaults to the `os-firstlast.yaml` subset; add the **`testgrid-full`**
+  label to run the full `os-full.yaml` matrix.
+- **Report:** comments the Testgrid run URL back on the PR.
+- **Security:** plain `pull_request` (never `pull_request_target`), so fork code
+  never runs with secrets (fork PRs are skipped — use `workflow_dispatch`).
+  Privileged jobs run in the `testgrid-pr` GitHub Environment, which can be given
+  required reviewers for manual approval as defense in depth.
+- **Expiry:** RC artifacts live under `staging/v20…-rc-…/` and are swept by
+  `bin/cleanup-staging-s3.sh` (30-day `staging/v20*` cutoff). Optionally add an S3
+  lifecycle rule expiring `staging/*-rc-*` sooner.
+
+---
+
 ## Summary
 
 - **Testgrid does not auto-discover spec files.** Each workflow explicitly passes `--spec` and `--os-spec` to `tgrun`.
-- **Only `os-latest.yaml`, `os-firstlast.yaml`, and `os-customer-common.yaml` are actively used.** `os-full.yaml` and `os-removed.yaml` are not referenced by any CI workflow.
+- **`os-latest.yaml`, `os-firstlast.yaml`, and `os-customer-common.yaml` are actively used.** `os-firstlast.yaml` is also the default subset for `testgrid-pr.yaml`, which uses `os-full.yaml` when the `testgrid-full` label is applied. `os-removed.yaml` is not referenced by any CI workflow.
 - **OS filtering is opt-out via `unsupportedOSIDs`.** If an OS is not listed there, the test runs on it.
 - **Addons define their own test specs** and are submitted separately via the `addon-testgrid-tester` action.
