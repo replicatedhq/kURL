@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Artifact is one generated file: a repo-relative path and its rendered content.
@@ -152,6 +153,25 @@ func (m *Matrix) splicedContent(root string, sf spliceFile) (content []byte, fou
 	return data, true, nil
 }
 
+// safeJoin joins a repo-relative path to root and verifies the result stays
+// within root, so a generated path can never escape the repository (defense in
+// depth on top of the slug validation of pool names).
+func safeJoin(root, rel string) (string, error) {
+	full := filepath.Join(root, rel)
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return "", err
+	}
+	absFull, err := filepath.Abs(full)
+	if err != nil {
+		return "", err
+	}
+	if absFull != absRoot && !strings.HasPrefix(absFull, absRoot+string(filepath.Separator)) {
+		return "", fmt.Errorf("generated path %q escapes repo root", rel)
+	}
+	return full, nil
+}
+
 // Write renders all artifacts and refreshes all splice regions under root,
 // returning the list of paths that changed on disk.
 func (m *Matrix) Write(root string) ([]string, error) {
@@ -161,7 +181,10 @@ func (m *Matrix) Write(root string) ([]string, error) {
 	}
 	var changed []string
 	for _, a := range arts {
-		full := filepath.Join(root, a.Path)
+		full, err := safeJoin(root, a.Path)
+		if err != nil {
+			return nil, err
+		}
 		existing, err := os.ReadFile(full)
 		if err == nil && string(existing) == string(a.Content) {
 			continue
@@ -204,7 +227,10 @@ func (m *Matrix) Check(root string) ([]string, error) {
 	}
 	var stale []string
 	for _, a := range arts {
-		full := filepath.Join(root, a.Path)
+		full, err := safeJoin(root, a.Path)
+		if err != nil {
+			return nil, err
+		}
 		existing, err := os.ReadFile(full)
 		if err != nil {
 			stale = append(stale, a.Path)
