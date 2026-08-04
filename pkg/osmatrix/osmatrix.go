@@ -151,6 +151,7 @@ func (m *Matrix) validate() error {
 			{"distro", o.Distro, reSlug, true},
 			{"packageFamily", o.PackageFamily, reSlug, true},
 			{"versionMajor", o.VersionMajor, reDigits, true},
+			{"minKubernetes", o.MinKubernetes, reVersion, true},
 			{"version", o.Version, reVersion, false},
 			{"name", o.Name, reName, false},
 			{"vmimageuri", o.VMImageURI, reURI, false},
