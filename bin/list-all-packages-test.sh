@@ -34,10 +34,16 @@ testKubernetesWatchesOwnPathBundlesAndOsMatrix() {
     assertPathWatched "kubernetes must watch os-matrix.yaml (DRY single source)" "${paths}" "os-matrix.yaml"
 }
 
-testConformanceKubernetesWatchesOsMatrix() {
+testConformanceKubernetesWatchesOnlyOwnPath() {
+    # kubernetes-conformance archives are built from
+    # packages/kubernetes/<ver>/conformance/Manifest (sonobuoy images), not from
+    # bundles/ or os-matrix.yaml -- so they must NOT be dragged into a rebuild by
+    # an OS/bundle change. The kubernetes-[0-9] match excludes them.
     local paths
     paths="$(change_detection_paths "kubernetes-conformance-1.29.1.tar.gz" "packages/kubernetes/1.29.1/")"
-    assertPathWatched "conformance kubernetes must watch os-matrix.yaml" "${paths}" "os-matrix.yaml"
+    assertPathWatched "conformance must watch its own path" "${paths}" "packages/kubernetes/1.29.1/"
+    assertPathNotWatched "conformance must NOT watch os-matrix.yaml" "${paths}" "os-matrix.yaml"
+    assertPathNotWatched "conformance must NOT watch bundles/" "${paths}" "bundles/"
 }
 
 testNonKubernetesWatchesOnlyOwnPath() {

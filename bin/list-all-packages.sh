@@ -80,11 +80,17 @@ function list_all() {
 # kubernetes tarball is never rebuilt, leaving the new OS with no host packages
 # ("kubelet: command not found"). Watch os-matrix.yaml (the authoritative source)
 # and bundles/ for kubernetes packages; every package always watches its own path.
+#
+# The match is kubernetes-[0-9] (e.g. kubernetes-1.35.7), NOT a bare
+# "kubernetes-" substring, so it excludes kubernetes-conformance-<ver>. Conformance
+# archives are built from packages/kubernetes/<ver>/conformance/Manifest (sonobuoy
+# images) and depend on neither bundles/ nor os-matrix.yaml, so a change to those
+# must not needlessly rebuild and re-ship every conformance archive.
 function change_detection_paths() {
     local key="$1"
     local base_path="$2"
     echo "${base_path}"
-    if echo "${key}" | grep -q "kubernetes-" ; then
+    if echo "${key}" | grep -qE "kubernetes-[0-9]" ; then
         echo "bundles/"
         echo "os-matrix.yaml"
     fi
