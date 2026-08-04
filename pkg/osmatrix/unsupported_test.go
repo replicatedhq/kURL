@@ -107,6 +107,66 @@ func TestRenderUnsupportedCapabilityPreservesTypos(t *testing.T) {
 	}
 }
 
+func TestRenderUnsupportedCapabilityShrinksWhenOSRemoved(t *testing.T) {
+	// capFixture's docker-unsupported set is exactly amazon-2023, ubuntu-2404,
+	// ubuntu-2604. A region that still lists a since-removed OS must drop it so
+	// TestGrid stops skipping combinations the current matrix says should run.
+	m := mustParse(t, capFixture)
+	region := []string{
+		"  - amazon-2023 # docker is not supported on amazon 2023",
+		"  - ubuntu-2404 # docker is not supported on Ubuntu 24.04",
+		"  - ubuntu-2604 # docker is not supported on Ubuntu 26.04",
+		"  - ubuntu-2804 # docker is not supported on Ubuntu 28.04", // OS removed from registry
+	}
+	got := strings.Join(m.renderUnsupportedCapability(region), "\n")
+	if strings.Contains(got, "ubuntu-2804") {
+		t.Errorf("stale exclusion ubuntu-2804 should be dropped, got:\n%s", got)
+	}
+	for _, id := range []string{"amazon-2023", "ubuntu-2404", "ubuntu-2604"} {
+		if !strings.Contains(got, id) {
+			t.Errorf("still-justified exclusion %s must be kept, got:\n%s", id, got)
+		}
+	}
+}
+
+func TestRenderUnsupportedCapabilityShrinksWhenConstraintRelaxed(t *testing.T) {
+	// ubuntu-2404 keeps dockerSupported:false (still a docker-capability OS) but
+	// has NO minKubernetes — so its k8s exclusion is no longer justified and must
+	// be dropped, even though the OS remains constrained for docker. This proves
+	// the shrink decision is per-category, not "is this OS constrained at all".
+	const relaxed = `
+oses:
+  - id: ubuntu-2404
+    name: Ubuntu
+    version: "24.04"
+    vmimageuri: https://example.com/noble.img
+    preinit: ""
+    preinitStyle: empty
+    dockerSupported: false
+  - id: ubuntu-2604
+    name: Ubuntu
+    version: "26.04"
+    vmimageuri: https://example.com/resolute.img
+    preinit: ""
+    preinitStyle: empty
+    minKubernetes: "1.24"
+    dockerSupported: false
+pools: []
+`
+	m := mustParse(t, relaxed)
+	region := []string{
+		"  - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04",
+		"  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04",
+	}
+	got := strings.Join(m.renderUnsupportedCapability(region), "\n")
+	if strings.Contains(got, "ubuntu-2404") {
+		t.Errorf("relaxed k8s exclusion ubuntu-2404 should be dropped, got:\n%s", got)
+	}
+	if !strings.Contains(got, "ubuntu-2604") {
+		t.Errorf("still-justified k8s exclusion ubuntu-2604 must be kept, got:\n%s", got)
+	}
+}
+
 func TestCapabilityCategory(t *testing.T) {
 	cases := map[string]string{
 		"# Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.": "k8s",
