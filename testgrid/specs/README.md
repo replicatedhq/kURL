@@ -11,6 +11,13 @@ Testgrid runs are driven by YAML spec files that come in two categories:
 
 Both are submitted to Testgrid via `tgrun queue --spec <test-spec> --os-spec <os-spec>`.
 
+> **The `os-*.yaml` files are generated.** They are rendered from the single OS
+> registry at [`os-matrix.yaml`](../../os-matrix.yaml) (repo root). Do **not**
+> hand-edit them — edit `os-matrix.yaml` and run `make generate-os-matrix`.
+> `make verify-generated` (part of `make test`/CI) fails if they drift. To add a
+> supported OS, add one entry to `os-matrix.yaml` and list it in the relevant
+> pools, then regenerate. See replicatedhq/kURL#6081.
+
 ---
 
 ## How OSs Are Determined

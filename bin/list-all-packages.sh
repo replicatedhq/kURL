@@ -64,3 +64,34 @@ function list_all() {
     list_all_addons
     list_all_packages
 }
+
+# change_detection_paths echoes, one per line, the repository paths whose changes
+# must force a rebuild of the package identified by key. It is the single source
+# for that decision, shared by the staging and versioned upload scripts so the two
+# never drift.
+#
+# kubernetes host packages (kubelet/kubectl/kubeadm .debs and .rpms) are built
+# from the per-OS bundle Dockerfiles in bundles/ (e.g. bundles/k8s-ubuntu2604),
+# not from anything under packages/kubernetes/<version>/. The set of supported
+# OSes is driven by the single-source os-matrix.yaml (replicatedhq/kURL#6081),
+# which regenerates those bundle Dockerfiles and the build Makefile. So adding a
+# supported OS touches os-matrix.yaml and bundles/ but nothing under
+# packages/kubernetes/<version>/ -- and unless both are watched here the
+# kubernetes tarball is never rebuilt, leaving the new OS with no host packages
+# ("kubelet: command not found"). Watch os-matrix.yaml (the authoritative source)
+# and bundles/ for kubernetes packages; every package always watches its own path.
+#
+# The match is kubernetes-[0-9] (e.g. kubernetes-1.35.7), NOT a bare
+# "kubernetes-" substring, so it excludes kubernetes-conformance-<ver>. Conformance
+# archives are built from packages/kubernetes/<ver>/conformance/Manifest (sonobuoy
+# images) and depend on neither bundles/ nor os-matrix.yaml, so a change to those
+# must not needlessly rebuild and re-ship every conformance archive.
+function change_detection_paths() {
+    local key="$1"
+    local base_path="$2"
+    echo "${base_path}"
+    if echo "${key}" | grep -qE "kubernetes-[0-9]" ; then
+        echo "bundles/"
+        echo "os-matrix.yaml"
+    fi
+}

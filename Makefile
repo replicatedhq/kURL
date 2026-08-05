@@ -228,11 +228,13 @@ dist/kubernetes-%.tar.gz:
 		${MAKE} dist/kubernetes-conformance-$*.tar.gz ; \
 	} || true ;
 	${MAKE} build/packages/kubernetes/$*/images
+	# BEGIN GENERATED os-matrix: makefile-ubuntu-dist-list — edit os-matrix.yaml, run 'make generate-os-matrix'
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-24.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-26.04
+	# END GENERATED os-matrix: makefile-ubuntu-dist-list
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
@@ -482,6 +484,7 @@ build/packages/kubernetes/%/ubuntu-22.04:
 	docker cp k8s-ubuntu2204-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-22.04/
 	docker rm k8s-ubuntu2204-$*
 
+# BEGIN GENERATED os-matrix: makefile-ubuntu-modern-targets — edit os-matrix.yaml, run 'make generate-os-matrix'
 build/packages/kubernetes/%/ubuntu-24.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -507,6 +510,7 @@ build/packages/kubernetes/%/ubuntu-26.04:
 	mkdir -p build/packages/kubernetes/$*/ubuntu-26.04
 	docker cp k8s-ubuntu2604-$*:/archives/. build/packages/kubernetes/$*/ubuntu-26.04/
 	docker rm k8s-ubuntu2604-$*
+# END GENERATED os-matrix: makefile-ubuntu-modern-targets
 
 build/packages/kubernetes/%/rhel-7:
 	docker build \
@@ -646,12 +650,20 @@ vet: ## Go vet the code
 	GOOS=linux go vet ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test
-test: lint vet ## Check the code with linters and vet
+test: lint vet verify-generated ## Check the code with linters and vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 	@## Avoid merge accidentally changes into the scripts/Manifest file
 	@cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
 	&& echo '### SUCCESS: No changes merged on the script/Manifests! ###' \
 	|| (echo '### ERROR: You cannot merge changes on the script manifest!. If you want change the spec please ensure that you also change the ./hack/testdata/manifest/clean file. ###'; exit 1);
+
+.PHONY: generate-os-matrix
+generate-os-matrix: ## Render OS-keyed artifacts from the single-source os-matrix.yaml
+	go run ./cmd/os-matrix-gen generate
+
+.PHONY: verify-generated
+verify-generated: ## Fail if committed generated OS-matrix artifacts are stale
+	go run ./cmd/os-matrix-gen check
 
 /usr/local/bin/shunit2: SHUNIT2_VERSION = 2.1.8
 /usr/local/bin/shunit2:
@@ -684,6 +696,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	# TODO:
 	#   - find tests
 	#   - add to ci
+	./bin/list-all-packages-test.sh
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
