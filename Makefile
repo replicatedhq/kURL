@@ -696,6 +696,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/test/docker-version-test.sh
 	./scripts/common/test/ip-address-test.sh
 	./scripts/common/test/semver-test.sh
+	./scripts/common/test/upload-dist-bundles-watch-test.sh
 
 ##@ Release
 
