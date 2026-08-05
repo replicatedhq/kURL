@@ -41,7 +41,7 @@
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
     - ubuntu-2604 # docker is not supported on Ubuntu 26.04
-- name: "Upgrade to 1.25 to 1.35, Migrate from Rook 1.12.x to OpenEBS + Minio"
+- name: "Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -60,7 +60,7 @@
       version: 1.12.x
   upgradeSpec:
     kubernetes:
-      version: 1.35.x
+      version: 1.36.x
     containerd:
       version: 1.6.x
     flannel:
@@ -80,7 +80,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_ubuntu_2404 || is_ubuntu_2604 ; then
-      echo "Ubuntu 24.04 detected, installing lvm2 for rook"
+      echo "Ubuntu 24.04+ detected, installing lvm2 for rook"
       apt-get update && apt-get install -y lvm2
     fi
   postInstallScript: |
@@ -178,7 +178,7 @@
     - rocky-98 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-9 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
-- name: "Upgrade from k8s 1.31 to 1.35 - Airgap"
+- name: "Upgrade from k8s 1.31 to 1.36 - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
@@ -201,7 +201,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.35.x
+      version: 1.36.x
     kurl:
       installerVersion: ""
     flannel:
@@ -236,10 +236,10 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
-- name: k8s135x_cis_benchmarks_checks
+- name: k8s136x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.36.x"
       cisCompliance: true
     containerd:
       version: "latest"
@@ -262,10 +262,10 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
-- name: "k8s_135x with kurl in-cluster support bundle spec"
+- name: "k8s_136x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.36.x"
     containerd:
       version: latest
     flannel:
@@ -285,10 +285,10 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
-- name: "k8s_135x with rook"
+- name: "k8s_136x with rook"
   installerSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.36.x"
     containerd:
       version: latest
     flannel:
@@ -307,7 +307,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     if is_ubuntu_2404 || is_ubuntu_2604 ; then
-      echo "Ubuntu 24.04 detected, installing lvm2 for rook"
+      echo "Ubuntu 24.04+ detected, installing lvm2 for rook"
       apt-get update && apt-get install -y lvm2
     fi
   postInstallScript: |
