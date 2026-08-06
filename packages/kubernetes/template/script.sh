@@ -2,9 +2,16 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array latest kURL-support versions (1.21, 1.22, 1.23, 1.24) available
+# Populate VERSIONS array latest kURL-support versions (1.33, 1.34, 1.35, 1.36) available
 VERSIONS=()
 function find_available_versions() {
+    docker build -t k8s136 - < Dockerfile.136
+    local versions136=($(docker run k8s136 apt list -a kubelet 2>/dev/null | grep -Eo '1\.36\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions136[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.36: ${versions136[0]}"
+        VERSIONS+=("${versions136[0]}")
+    fi
+
     docker build -t k8s135 - < Dockerfile.135
     local versions135=($(docker run k8s135 apt list -a kubelet 2>/dev/null | grep -Eo '1\.35\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions135[@]} -gt 0 ]; then
@@ -24,13 +31,6 @@ function find_available_versions() {
     if [ ${#versions133[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.33: ${versions133[0]}"
         VERSIONS+=("${versions133[0]}")
-    fi
-
-    docker build -t k8s132 - < Dockerfile.132
-    local versions132=($(docker run k8s132 apt list -a kubelet 2>/dev/null | grep -Eo '1\.32\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions132[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.32: ${versions132[0]}"
-        VERSIONS+=("${versions132[0]}")
     fi
 
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
@@ -126,6 +126,13 @@ function get_latest_sonobuoy_release_version() {
 }
 
 function update_available_versions() {
+    local version136=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.36' ) )
+    if [ ${#version136[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-136/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version136[0]}" ; then
+            sed -i "/cron-kubernetes-update-136/a\    \"${version136[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
     local version135=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.35' ) )
     if [ ${#version135[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-135/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version135[0]}" ; then
@@ -144,13 +151,6 @@ function update_available_versions() {
     if [ ${#version133[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-133/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version133[0]}" ; then
             sed -i "/cron-kubernetes-update-133/a\    \"${version133[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version132=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.32' ) )
-    if [ ${#version132[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-132/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version132[0]}" ; then
-            sed -i "/cron-kubernetes-update-132/a\    \"${version132[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 }
