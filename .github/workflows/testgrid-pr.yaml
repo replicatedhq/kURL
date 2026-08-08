@@ -1,0 +1,526 @@
+name: testgrid-pr
+
+# Opt-in, PRE-MERGE Testgrid run for CORE kURL changes (scripts/, packages/,
+# staging metadata) that are not covered by the addon-only pre-merge tests.
+#
+# It builds the PR's kURL version with a fast core-only strategy, publishes it
+# under a unique release-candidate (RC) tag to a per-PR versioned staging path,
+# queues a Testgrid run against that version, and comments the run URL on the PR.
+#
+# It NEVER promotes the build to prod: it does NOT run set-current-version and
+# does NOT overwrite the shared s3://kurl-sh/staging/VERSION pointer or the
+# unversioned staging metadata.
+#
+# ── How to trigger ──────────────────────────────────────────────────────────
+#   * Label a PR with `run-testgrid` (only maintainers with write access can add
+#     labels — this is the security gate). Add `testgrid-full` to run the full
+#     OS matrix instead of the default first/last subset.
+#   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
+#
+# ── What a label run builds ─────────────────────────────────────────────────
+#   * A LABEL run reuses the existing replicated/kurl-util:alpha image and
+#     rebuilds ONLY the core batch (install/join/upgrade/tasks.tmpl, common.tar.gz,
+#     kurl-bin-utils); everything else is copied from the last staging release.
+#   * To rebuild EXTRA packages (e.g. a specific kubernetes-<ver>.tar.gz) or to
+#     build a branch-specific kurl-util image, use workflow_dispatch and set the
+#     `extra-packages` / `build-kurl-util-image` inputs (not available on label
+#     runs, which are intentionally fast).
+#
+# ── Security model ──────────────────────────────────────────────────────────
+#   * Trigger is plain `pull_request` (NOT pull_request_target), so untrusted
+#     fork code never runs with repository secrets. Fork PRs are skipped (a
+#     maintainer must push the branch and use workflow_dispatch to test a fork).
+#   * The `run-testgrid` label starts a run, but a label is addable at
+#     Triage-level access — it is NOT a strong gate on its own. The real gate on
+#     secret exposure is the `testgrid-pr` Environment's required reviewers (see
+#     provisioning below). Do not treat the label as maintainer-only.
+#
+# ── REQUIRED provisioning before enabling this workflow ─────────────────────
+#   These are hard prerequisites — the workflow is a security risk without them:
+#   1. Dedicated least-privilege S3 credential. The privileged jobs use the
+#      secrets AWS_STAGING_PR_ACCESS_KEY_ID / AWS_STAGING_PR_SECRET_ACCESS_KEY.
+#      This MUST be a NEW IAM user, NOT the prod credential (AWS_PROD_*). Because
+#      the credentialed jobs run PR-authored code (`make dist/*`, `make
+#      generate-addons`), an exfiltrated credential is as powerful as its IAM
+#      policy — that policy, not the workflow text, is the blast-radius boundary.
+#      The workflow only ever WRITES under staging/<rc-tag>/ (the per-PR RC
+#      prefix, staging/*-rc-*), so scope the policy to exactly that:
+#        - Allow s3:ListBucket + s3:GetObject on staging/*  (READ, to copy
+#          packages from the previous staging release).
+#        - Allow s3:PutObject / s3:DeleteObject ONLY on staging/*-rc-*  (the RC
+#          prefix — NOT all of staging/*).
+#        - Explicit DENY on writes to: dist/*, staging/VERSION, and the shared
+#          unversioned metadata staging/addons-gen.json +
+#          staging/supported-versions-gen.json. (These keys lack the `-rc-`
+#          segment so the scoped write-allow already excludes them; deny them
+#          explicitly as belt-and-suspenders. Do NOT deny staging/*-gen.json
+#          broadly — that would also block the versioned
+#          staging/<rc-tag>/addons-gen.json this workflow must write.)
+#   2. The `testgrid-pr` GitHub Environment MUST be configured with required
+#      reviewers, so every run pauses for maintainer approval before any secret
+#      is exposed. This — not the label — is the gate that limits who can start a
+#      credentialed run.
+#
+# ── Cost / expectations ─────────────────────────────────────────────────────
+#   * Core-only build: rebuilds a handful of core packages and copies the rest
+#     from the last staging release, so it is much cheaper than a full build.
+#   * Default OS subset (os-firstlast) keeps VM cost down; `testgrid-full` opts
+#     into the full matrix. RC artifacts land under staging/<rc-tag>/ and are
+#     auto-expired by bin/cleanup-staging-s3.sh (staging/v20* prefix, 30 days).
+#     RC builds are NEVER promoted to prod.
+
+on:
+  pull_request:
+    types:
+      - labeled
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build and test'
+        required: true
+        type: string
+      testgrid-spec:
+        description: 'Testgrid test spec file (relative to repo root)'
+        required: true
+        default: 'testgrid/specs/deploy.yaml'
+        type: string
+      testgrid-os-spec:
+        description: 'Testgrid OS spec file (relative to repo root)'
+        required: true
+        default: 'testgrid/specs/os-firstlast.yaml'
+        type: string
+      extra-packages:
+        description: 'Extra core packages to build (space-separated), e.g. "kubernetes-1.32.13.tar.gz"'
+        required: false
+        default: ''
+        type: string
+      build-kurl-util-image:
+        description: 'Build and push a branch-specific replicated/kurl-util image (slow; default reuses :alpha)'
+        required: false
+        default: false
+        type: boolean
+      priority:
+        description: 'Testgrid run priority'
+        required: false
+        default: '0'
+        type: string
+
+# One run per PR (or per dispatched branch); newer commits cancel older runs.
+concurrency:
+  group: testgrid-pr-${{ github.event.pull_request.number || inputs.branch }}
+  cancel-in-progress: true
+
+jobs:
+  get-tag:
+    # Only run for a manual dispatch, or for a PR that a maintainer has labeled
+    # `run-testgrid`. Fork PRs are skipped (they cannot access secrets and the
+    # label gate would otherwise produce confusing failures).
+    if: >-
+      ${{ github.repository_owner == 'replicatedhq' &&
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'replicated-ci-kurl' &&
+          (github.event_name == 'workflow_dispatch' ||
+           (github.event.label.name == 'run-testgrid' &&
+            github.event.pull_request.head.repo.full_name == github.repository)) }}
+    runs-on: ubuntu-24.04
+    outputs:
+      version_tag: ${{ steps.set-tag.outputs.version_tag }}
+      prev_version: ${{ steps.set-tag.outputs.prev_version }}
+      kurl_util_image: ${{ steps.set-tag.outputs.kurl_util_image }}
+      testgrid_ref: ${{ steps.set-tag.outputs.testgrid_ref }}
+      testgrid_os_spec: ${{ steps.set-tag.outputs.testgrid_os_spec }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+          fetch-depth: 0
+
+      - id: set-tag
+        env:
+          # Empty on workflow_dispatch, set on pull_request.
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DISPATCH_BRANCH: ${{ inputs.branch }}
+          BUILD_UTIL_IMAGE: ${{ inputs.build-kurl-util-image }}
+        run: |
+          set -euo pipefail
+          git fetch --tags -f
+
+          LATEST_TAG=$(git tag | grep '^v20' | sort | tail -1)
+
+          if [ -n "${PR_NUMBER}" ]; then
+            SHORT_SHA="${PR_HEAD_SHA:0:7}"
+            VERSION_TAG="${LATEST_TAG}-rc-pr${PR_NUMBER}-${SHORT_SHA}"
+          else
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            SAFE_BRANCH="${DISPATCH_BRANCH//\//-}"
+            VERSION_TAG="${LATEST_TAG}-rc-${SAFE_BRANCH}-${SHORT_SHA}"
+          fi
+
+          if [ "${BUILD_UTIL_IMAGE}" = "true" ]; then
+            KURL_UTIL_IMAGE="replicated/kurl-util:${VERSION_TAG}"
+          else
+            KURL_UTIL_IMAGE="replicated/kurl-util:alpha"
+          fi
+
+          REF="PR-${VERSION_TAG}-$(date --utc +%FT%TZ)"
+
+          PREV_VERSION=$(curl -s "https://kurl-sh.s3.amazonaws.com/staging/VERSION")
+          if [ -z "${PREV_VERSION}" ]; then
+            echo "error: could not read current staging/VERSION"
+            exit 1
+          fi
+
+          {
+            echo "prev_version=${PREV_VERSION}"
+            echo "version_tag=${VERSION_TAG}"
+            echo "kurl_util_image=${KURL_UTIL_IMAGE}"
+            echo "testgrid_ref=${REF}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "prev_version=${PREV_VERSION}"
+          echo "version_tag=${VERSION_TAG}"
+          echo "kurl_util_image=${KURL_UTIL_IMAGE}"
+          echo "testgrid_ref=${REF}"
+
+      - id: os-spec
+        name: Select OS spec
+        env:
+          DISPATCH_OS_SPEC: ${{ inputs.testgrid-os-spec }}
+          FULL_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'testgrid-full') }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            OS_SPEC="${DISPATCH_OS_SPEC}"
+          elif [ "${FULL_LABEL}" = "true" ]; then
+            OS_SPEC="testgrid/specs/os-full.yaml"
+          else
+            OS_SPEC="testgrid/specs/os-firstlast.yaml"
+          fi
+          echo "testgrid_os_spec=${OS_SPEC}" >> "$GITHUB_OUTPUT"
+          echo "using OS spec: ${OS_SPEC}"
+
+  kurl-util-image:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    needs:
+      - get-tag
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        if: inputs.build-kurl-util-image
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: build and push kurl-util image
+        if: inputs.build-kurl-util-image
+        env:
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make -C kurl_util build-and-push-kurl-util-image
+
+      - name: skip kurl-util image build
+        if: ${{ !inputs.build-kurl-util-image }}
+        run: |
+          echo "Using existing kurl-util image: ${{ needs.get-tag.outputs.kurl_util_image }}"
+
+  build-matrix:
+    runs-on: ubuntu-24.04
+    needs:
+      - get-tag
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+
+      - id: set-matrix
+        name: Build core package matrix
+        env:
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          EXTRA_PACKAGES: ${{ inputs.extra-packages }}
+        run: |
+          set -euo pipefail
+          # Core packages always rebuilt from the PR's source. Any additional
+          # packages a core change requires (e.g. a specific Kubernetes version)
+          # are supplied via the extra-packages input. Everything else is copied
+          # from the previous staging release by the copy-packages job.
+          CORE_BATCH="install.tmpl join.tmpl upgrade.tmpl tasks.tmpl common.tar.gz kurl-bin-utils-${VERSION_TAG}.tar.gz"
+          if [ -n "${EXTRA_PACKAGES}" ]; then
+            CORE_BATCH="${CORE_BATCH} ${EXTRA_PACKAGES}"
+          fi
+          OUTPUT=$(printf '{"include": [{"batch": "%s"}]}' "${CORE_BATCH}")
+          echo "matrix=${OUTPUT}" >> "$GITHUB_OUTPUT"
+          echo "core batch: ${CORE_BATCH}"
+
+  copy-packages-from-staging:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    needs:
+      - get-tag
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - id: set-matrix
+        name: Build copy matrix from previous staging
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_PR_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_PR_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+          S3_BUCKET: kurl-sh
+          STAGING_RELEASE: ${{ needs.get-tag.outputs.prev_version }}
+          KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+          KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
+        run: |
+          set -euo pipefail
+          if [ -z "${STAGING_RELEASE}" ]; then
+            echo "error: could not read current staging/VERSION"
+            exit 1
+          fi
+          echo "copying packages from previous staging release ${STAGING_RELEASE}"
+          LIST_FROM_STAGE_S3=1 ./bin/list-all-packages-actions-matrix.sh
+
+  copy-packages:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    needs:
+      - get-tag
+      - copy-packages-from-staging
+    strategy:
+      matrix: ${{ fromJSON(needs.copy-packages-from-staging.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 20
+    steps:
+      - name: copy packages from previous staging
+        env:
+          S3_BUCKET: kurl-sh
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_PR_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_PR_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: "us-east-1"
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          PREV_VERSION: ${{ needs.get-tag.outputs.prev_version }}
+        run: |
+          set -euo pipefail
+
+          # Exponential-backoff retry for flaky S3 calls (mirrors bin/upload-dist-staging.sh).
+          retry() {
+            local retries="$1"; shift
+            local count=0 exit wait
+            until "$@"; do
+              exit=$?
+              wait=$((2 ** count))
+              count=$((count + 1))
+              if [ "${count}" -lt "${retries}" ]; then
+                echo "Retry ${count}/${retries} exited ${exit}, retrying in ${wait}s..."
+                sleep "${wait}"
+              else
+                echo "Retry ${count}/${retries} exited ${exit}, no more retries left."
+                return "${exit}"
+              fi
+            done
+            return 0
+          }
+
+          for package in ${{ matrix.batch }}; do
+            echo "copying ${package} from staging/${PREV_VERSION} to staging/${VERSION_TAG}"
+            retry 5 aws s3api copy-object \
+              --copy-source "${S3_BUCKET}/staging/${PREV_VERSION}/${package}" \
+              --bucket "${S3_BUCKET}" \
+              --key "staging/${VERSION_TAG}/${package}"
+          done
+
+  build-and-upload:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    # Depends on copy-packages so the freshly built core packages are uploaded
+    # AFTER the copies from the previous staging release. The copy set and the
+    # build set overlap on the *.tmpl files (and any extra-packages), so build
+    # must be the last writer — otherwise a stale copy could clobber the PR's
+    # own code and Testgrid would run the wrong build.
+    needs:
+      - get-tag
+      - build-matrix
+      - kurl-util-image
+      - copy-packages
+    strategy:
+      matrix: ${{ fromJSON(needs.build-matrix.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: setup env
+        id: env
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> "$GITHUB_ENV"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: build and upload versioned packages
+        env:
+          S3_BUCKET: kurl-sh
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_PR_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_PR_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: "us-east-1"
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
+          KURL_BIN_UTILS_FILE: kurl-bin-utils-${{ needs.get-tag.outputs.version_tag }}.tar.gz
+        run: |
+          set -euo pipefail
+
+          # Exponential-backoff retry for flaky S3 calls (mirrors bin/upload-dist-staging.sh).
+          retry() {
+            local retries="$1"; shift
+            local count=0 exit wait
+            until "$@"; do
+              exit=$?
+              wait=$((2 ** count))
+              count=$((count + 1))
+              if [ "${count}" -lt "${retries}" ]; then
+                echo "Retry ${count}/${retries} exited ${exit}, retrying in ${wait}s..."
+                sleep "${wait}"
+              else
+                echo "Retry ${count}/${retries} exited ${exit}, no more retries left."
+                return "${exit}"
+              fi
+            done
+            return 0
+          }
+
+          for package in ${{ matrix.batch }}; do
+            echo "building package ${package}"
+            make "dist/${package}"
+
+            MD5="$(openssl md5 -binary "dist/${package}" | base64)"
+            GITSHA="$(git rev-parse HEAD)"
+
+            echo "uploading package ${package} to s3://${S3_BUCKET}/staging/${VERSION_TAG}/${package}"
+            retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${VERSION_TAG}/${package}" \
+              --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+            make clean
+          done
+
+  generate-addons:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    needs:
+      - get-tag
+      - build-and-upload
+      - copy-packages
+    if: always() && needs.build-and-upload.result == 'success' && needs.copy-packages.result == 'success'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '18'
+
+      - run: npm install
+
+      - name: generate addon metadata (versioned path only)
+        # VERSIONED_ONLY=1 makes generate-addons write ONLY the versioned
+        # staging/<rc-tag>/*-gen.json and skip the shared unversioned
+        # staging/*-gen.json that live staging installs consume. There is no
+        # write-then-restore race, and nothing to undo if the run is cancelled.
+        env:
+          S3_BUCKET: kurl-sh
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_PR_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_PR_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
+          DIST_FOLDER: "staging"
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          VERSIONED_ONLY: "1"
+        run: |
+          make generate-addons
+
+  testgrid-run:
+    runs-on: ubuntu-24.04
+    environment: testgrid-pr
+    needs:
+      - get-tag
+      - generate-addons
+    outputs:
+      msg: ${{ steps.queue.outputs.msg }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+
+      - name: pin empty installerVersion values to RC version
+        env:
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          TESTGRID_SPEC: ${{ github.event_name == 'workflow_dispatch' && inputs.testgrid-spec || 'testgrid/specs/deploy.yaml' }}
+        run: |
+          set -euo pipefail
+          sed -i "s/installerVersion: \"\"/installerVersion: \"${VERSION_TAG}\"/g" "${TESTGRID_SPEC}"
+
+      - name: pull tgrun
+        run: |
+          docker pull replicated/tgrun:latest
+
+      - name: queue testgrid run
+        id: queue
+        env:
+          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+          TESTGRID_REF: ${{ needs.get-tag.outputs.testgrid_ref }}
+          TESTGRID_SPEC: ${{ github.event_name == 'workflow_dispatch' && inputs.testgrid-spec || 'testgrid/specs/deploy.yaml' }}
+          TESTGRID_OS_SPEC: ${{ needs.get-tag.outputs.testgrid_os_spec }}
+          PRIORITY: ${{ github.event_name == 'workflow_dispatch' && inputs.priority || '0' }}
+        run: |
+          set -euo pipefail
+          docker run --rm -e TESTGRID_API_TOKEN -v "$(pwd)":/wrk -w /wrk \
+            replicated/tgrun:latest queue --staging \
+              --kurl-version "${VERSION_TAG}" \
+              --ref "${TESTGRID_REF}" \
+              --spec "${TESTGRID_SPEC}" \
+              --os-spec "${TESTGRID_OS_SPEC}" \
+              --priority "${PRIORITY}"
+
+          MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
+          echo "msg=$MSG" >> "$GITHUB_OUTPUT"
+          echo "::notice ::${MSG}"
+
+  comment-pr:
+    runs-on: ubuntu-24.04
+    needs:
+      - get-tag
+      - testgrid-run
+    # Only PR-triggered runs have a PR to comment on.
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Post Testgrid run URL
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
+        with:
+          message: ${{ needs.testgrid-run.outputs.msg }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: testgrid-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          allow-repeats: false

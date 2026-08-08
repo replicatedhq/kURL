@@ -124,9 +124,56 @@ This allows addon templates to reference the version and package under test dyna
 
 ---
 
+## Pre-merge Testgrid for core changes (`testgrid-pr.yaml`)
+
+Core kURL changes (`scripts/`, `packages/`, staging metadata) are not covered by
+the addon-only `test-addon-pr.yaml`. The **`.github/workflows/testgrid-pr.yaml`**
+workflow lets a maintainer run Testgrid against a PR's own build **before** merge,
+without touching the shared `staging/VERSION` pointer.
+
+- **Trigger:** add the **`run-testgrid`** label to a PR, or run it manually via
+  Actions → **testgrid-pr** → Run workflow with a `branch` input.
+- **Build:** fast **core-only** strategy — rebuilds a small core batch from the
+  PR's source and copies the rest from the last staging release. Publishes under a
+  unique RC tag to `s3://kurl-sh/staging/<latest-tag>-rc-pr<num>-<sha>/`. Never
+  promoted to prod. A **label run reuses `kurl-util:alpha` and rebuilds only the
+  core `.tmpl`/`common`/`kurl-bin-utils` batch**; to rebuild extra packages or a
+  branch-specific `kurl-util` image, use `workflow_dispatch` with the
+  `extra-packages` / `build-kurl-util-image` inputs.
+- **OS pool:** defaults to the `os-firstlast.yaml` subset; add the **`testgrid-full`**
+  label to run the full `os-full.yaml` matrix.
+- **Report:** comments the Testgrid run URL back on the PR.
+- **Security:** plain `pull_request` (never `pull_request_target`), so fork code
+  never runs with secrets (fork PRs are skipped — use `workflow_dispatch`).
+- **Required before enabling (hard prerequisites):**
+  1. A **dedicated least-privilege S3 credential** in the secrets
+     `AWS_STAGING_PR_ACCESS_KEY_ID` / `AWS_STAGING_PR_SECRET_ACCESS_KEY`. This
+     **must not** be the prod credential (`AWS_PROD_*`). The credentialed jobs run
+     PR-authored code, so an exfiltrated credential is only as powerful as its IAM
+     policy — that policy, not the workflow text, is the blast-radius boundary.
+     The workflow only ever **writes** under `staging/<rc-tag>/` (the per-PR RC
+     prefix `staging/*-rc-*`), so scope the policy to exactly that:
+     - Allow `s3:ListBucket` + `s3:GetObject` on `staging/*` (read, to copy
+       packages from the previous staging release).
+     - Allow `s3:PutObject` / `s3:DeleteObject` **only** on `staging/*-rc-*` — not
+       all of `staging/*`.
+     - Explicitly **deny** writes to `dist/*`, `staging/VERSION`, and the shared
+       unversioned metadata `staging/addons-gen.json` +
+       `staging/supported-versions-gen.json`. (Do **not** deny `staging/*-gen.json`
+       broadly — that would also block the versioned
+       `staging/<rc-tag>/addons-gen.json` this workflow must write.)
+  2. The **`testgrid-pr` GitHub Environment must have required reviewers.** This —
+     not the `run-testgrid` label (which is addable at Triage level) — is the gate
+     that limits who can start a credentialed run.
+- **Expiry:** RC artifacts live under `staging/v20…-rc-…/` and are swept by
+  `bin/cleanup-staging-s3.sh` (30-day `staging/v20*` cutoff). Optionally add an S3
+  lifecycle rule expiring `staging/*-rc-*` sooner.
+
+---
+
 ## Summary
 
 - **Testgrid does not auto-discover spec files.** Each workflow explicitly passes `--spec` and `--os-spec` to `tgrun`.
-- **Only `os-latest.yaml`, `os-firstlast.yaml`, and `os-customer-common.yaml` are actively used.** `os-full.yaml` and `os-removed.yaml` are not referenced by any CI workflow.
+- **`os-latest.yaml`, `os-firstlast.yaml`, and `os-customer-common.yaml` are actively used.** `os-firstlast.yaml` is also the default subset for `testgrid-pr.yaml`, which uses `os-full.yaml` when the `testgrid-full` label is applied. `os-removed.yaml` is not referenced by any CI workflow.
 - **OS filtering is opt-out via `unsupportedOSIDs`.** If an OS is not listed there, the test runs on it.
 - **Addons define their own test specs** and are submitted separately via the `addon-testgrid-tester` action.
