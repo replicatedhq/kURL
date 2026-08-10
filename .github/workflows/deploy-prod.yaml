@@ -250,28 +250,18 @@ jobs:
 
     - name: Read Changelog
       id: read-changelog
-      uses: juliangruber/read-file-action@v1
-      with:
-        path: ./CHANGELOG.md
-
-    - name: GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
-      with:
-        tag_name: ${{ env.GIT_TAG }}
-        release_name: Release ${{ env.GIT_TAG }}
-        body: ${{ steps.read-changelog.outputs.content }}
-        draft: false
-        prerelease: false
+      run: |
+        {
+          echo 'content<<EOF'
+          cat ./CHANGELOG.md
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
 
     - name: Get Cosign Key
-      run: | 
+      run: |
         echo $COSIGN_KEY | base64 -d > ./cosign.key
       env:
-        COSIGN_KEY: ${{secrets.COSIGN_KEY}}
+        COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
 
     - uses: sigstore/cosign-installer@v4.1.2
 
@@ -282,10 +272,15 @@ jobs:
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
 
-    - uses: shogo82148/actions-upload-release-asset@v1
+    - name: GitHub Release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: sbom/assets/*
+        tag_name: ${{ steps.get_tag.outputs.GIT_TAG }}
+        name: Release ${{ steps.get_tag.outputs.GIT_TAG }}
+        body: ${{ steps.read-changelog.outputs.content }}
+        files: sbom/assets/*
 
   set-current-version:
     runs-on: ubuntu-24.04
