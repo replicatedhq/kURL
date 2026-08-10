@@ -251,10 +251,11 @@ jobs:
     - name: Read Changelog
       id: read-changelog
       run: |
+        delimiter="ghadelimiter_$(openssl rand -hex 16)"
         {
-          echo 'content<<EOF'
+          echo "content<<${delimiter}"
           cat ./CHANGELOG.md
-          echo 'EOF'
+          echo "${delimiter}"
         } >> "$GITHUB_OUTPUT"
 
     - name: Get Cosign Key
