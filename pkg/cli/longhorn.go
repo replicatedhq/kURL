@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	lhv1b1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
+	lhv1b2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	"github.com/spf13/cobra"
 )
 
@@ -59,9 +59,9 @@ func NewLonghornRollbackMigrationReplicas(cli CLI) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("error creating client: %w", err)
 			}
-			lhv1b1.AddToScheme(cli.Scheme())
+			lhv1b2.AddToScheme(cli.Scheme())
 
-			var l1b1Volumes lhv1b1.VolumeList
+			var l1b1Volumes lhv1b2.VolumeList
 			if err := cli.List(cmd.Context(), &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
 				return fmt.Errorf("error listing longhorn volumes: %w", err)
 			}
@@ -130,7 +130,7 @@ func NewLonghornPrepareForMigration(cli CLI) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("error creating client: %w", err)
 			}
-			lhv1b1.AddToScheme(cli.Scheme())
+			lhv1b2.AddToScheme(cli.Scheme())
 
 			var scaledDown bool
 			var nodes corev1.NodeList
@@ -319,12 +319,12 @@ func waitForPodsToBeScaledDown(ctx context.Context, logger *log.Logger, cli clie
 // scaleDownReplicas scales down the number of replicas for all volumes to 1. Returns a bool indicating if any
 // of the volumes were scaled down.
 func scaleDownReplicas(ctx context.Context, logger *log.Logger, cli client.Client) (bool, error) {
-	var l1b1Volumes lhv1b1.VolumeList
+	var l1b1Volumes lhv1b2.VolumeList
 	if err := cli.List(ctx, &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
 		return false, fmt.Errorf("error listing longhorn volumes: %w", err)
 	}
 
-	var volumesToScale []lhv1b1.Volume
+	var volumesToScale []lhv1b2.Volume
 	for _, volume := range l1b1Volumes.Items {
 		if volume.Spec.NumberOfReplicas == 1 {
 			logger.Printf("Volume %s already has 1 replica, skipping.", volume.Name)
@@ -341,7 +341,7 @@ func scaleDownReplicas(ctx context.Context, logger *log.Logger, cli client.Clien
 		logger.Printf("Scaling down replicas for volume %s.", volume.Name)
 		for {
 			nsn := types.NamespacedName{Namespace: longhornNamespace, Name: volume.Name}
-			var updatedVolume lhv1b1.Volume
+			var updatedVolume lhv1b2.Volume
 			if err := cli.Get(ctx, nsn, &updatedVolume); err != nil {
 				return false, fmt.Errorf("error getting volume %s: %w", volume.Name, err)
 			}
@@ -371,14 +371,14 @@ func scaleDownReplicas(ctx context.Context, logger *log.Logger, cli client.Clien
 
 // unhealthyVolumes returns a list of attached volumes that are not in a healthy state.
 func unhealthyVolumes(ctx context.Context, logger *log.Logger, cli client.Client) ([]string, error) {
-	var volumes lhv1b1.VolumeList
+	var volumes lhv1b2.VolumeList
 	if err := cli.List(ctx, &volumes, client.InNamespace(longhornNamespace)); err != nil {
 		return nil, fmt.Errorf("error listing volumes: %w", err)
 	}
 	var result []string
 	for _, volume := range volumes.Items {
 		logger.Printf("Checking health of volume %s.", volume.Name)
-		if volume.Status.State != lhv1b1.VolumeStateAttached || isVolumeHealthy(volume) {
+		if volume.Status.State != lhv1b2.VolumeStateAttached || isVolumeHealthy(volume) {
 			continue
 		}
 		result = append(result, volume.Name)
@@ -387,22 +387,22 @@ func unhealthyVolumes(ctx context.Context, logger *log.Logger, cli client.Client
 }
 
 // isVolumeHealthy returns true if the volume is in a healthy state.
-func isVolumeHealthy(vol lhv1b1.Volume) bool {
+func isVolumeHealthy(vol lhv1b2.Volume) bool {
 	for _, cond := range vol.Status.Conditions {
-		if cond.Type != lhv1b1.VolumeConditionTypeScheduled {
+		if cond.Type != lhv1b2.VolumeConditionTypeScheduled {
 			continue
 		}
-		if cond.Status == lhv1b1.ConditionStatusTrue {
+		if cond.Status == lhv1b2.ConditionStatusTrue {
 			break
 		}
 		return false
 	}
-	return vol.Status.Robustness == lhv1b1.VolumeRobustnessHealthy
+	return vol.Status.Robustness == lhv1b2.VolumeRobustnessHealthy
 }
 
 // unhealthyNodes returns a list of nodes that are not in a healthy state.
 func unhealthyNodes(ctx context.Context, logger *log.Logger, cli client.Client) ([]string, error) {
-	var longhornNodes lhv1b1.NodeList
+	var longhornNodes lhv1b2.NodeList
 	if err := cli.List(ctx, &longhornNodes); err != nil {
 		return nil, fmt.Errorf("error listing longhorn nodes: %w", err)
 	}
@@ -419,17 +419,17 @@ func unhealthyNodes(ctx context.Context, logger *log.Logger, cli client.Client) 
 }
 
 // isNodeHealthy returns true if the node is in a healthy state.
-func isNodeHealthy(ctx context.Context, cli client.Client, node lhv1b1.Node) (bool, error) {
-	if !nodeIs(lhv1b1.NodeConditionTypeReady, node) {
+func isNodeHealthy(ctx context.Context, cli client.Client, node lhv1b2.Node) (bool, error) {
+	if !nodeIs(lhv1b2.NodeConditionTypeReady, node) {
 		return false, nil
 	}
-	if !nodeIs(lhv1b1.NodeConditionTypeSchedulable, node) {
+	if !nodeIs(lhv1b2.NodeConditionTypeSchedulable, node) {
 		return false, nil
 	}
-	if !disksAre(lhv1b1.DiskConditionTypeReady, node.Status.DiskStatus) {
+	if !disksAre(lhv1b2.DiskConditionTypeReady, node.Status.DiskStatus) {
 		return false, nil
 	}
-	if !disksAre(lhv1b1.DiskConditionTypeSchedulable, node.Status.DiskStatus) {
+	if !disksAre(lhv1b2.DiskConditionTypeSchedulable, node.Status.DiskStatus) {
 		return false, nil
 	}
 	if over, err := disksAreOvercommited(ctx, cli, node.Status.DiskStatus); err != nil {
@@ -441,8 +441,8 @@ func isNodeHealthy(ctx context.Context, cli client.Client, node lhv1b1.Node) (bo
 }
 
 // disksAreOvercommited returns true if any disk in the node is overcommited.
-func disksAreOvercommited(ctx context.Context, cli client.Client, disks map[string]*lhv1b1.DiskStatus) (bool, error) {
-	var cfg lhv1b1.Setting
+func disksAreOvercommited(ctx context.Context, cli client.Client, disks map[string]*lhv1b2.DiskStatus) (bool, error) {
+	var cfg lhv1b2.Setting
 	nsn := client.ObjectKey{Name: overProvisioningSetting, Namespace: longhornNamespace}
 	if err := cli.Get(ctx, nsn, &cfg); err != nil {
 		return false, fmt.Errorf("error getting over provisioning setting: %w", err)
@@ -463,25 +463,25 @@ func disksAreOvercommited(ctx context.Context, cli client.Client, disks map[stri
 }
 
 // disksAre returns true if all disks are in the given condition.
-func disksAre(condition string, disks map[string]*lhv1b1.DiskStatus) bool {
+func disksAre(condition string, disks map[string]*lhv1b2.DiskStatus) bool {
 	for _, disk := range disks {
 		for _, cond := range disk.Conditions {
 			if cond.Type != condition {
 				continue
 			}
-			return cond.Status == lhv1b1.ConditionStatusTrue
+			return cond.Status == lhv1b2.ConditionStatusTrue
 		}
 	}
 	return false
 }
 
 // nodeIs returns true if the node is in the given condition.
-func nodeIs(condition string, node lhv1b1.Node) bool {
+func nodeIs(condition string, node lhv1b2.Node) bool {
 	for _, cond := range node.Status.Conditions {
 		if cond.Type != condition {
 			continue
 		}
-		return cond.Status == lhv1b1.ConditionStatusTrue
+		return cond.Status == lhv1b2.ConditionStatusTrue
 	}
 	return false
 }
