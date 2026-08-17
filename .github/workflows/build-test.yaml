@@ -83,7 +83,7 @@ jobs:
             package_json="${action_dir}package.json"
             dist_dir="${action_dir}dist"
 
-            if [ ! -f "$action_yml" ] || [ ! -f "$package_json" ] || [ ! -d "$dist_dir" ]; then
+            if [ ! -f "$action_yml" ] || [ ! -f "$package_json" ]; then
               continue
             fi
 
@@ -98,10 +98,11 @@ jobs:
               npm run build
             )
 
-            if ! git diff --quiet -- "$dist_dir"; then
-              echo "ERROR: ${action_dir}dist/index.js is out of date."
+            if [ -n "$(git status --porcelain -- "$dist_dir")" ]; then
+              echo "ERROR: ${action_dir}dist/ has uncommitted changes."
               echo "Run 'npm run build' in ${action_dir} and commit the changes."
-              git diff -- "$dist_dir"
+              git status --porcelain -- "$dist_dir"
+              git diff -- "$dist_dir" || true
               failed=1
             fi
           done
