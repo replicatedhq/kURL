@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	lhv1b1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
+	lhv1b2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,43 +22,43 @@ func Test_scaleDownReplicas(t *testing.T) {
 
 	scaleDownReplicasWaitTime = 0
 	volumes := []client.Object{
-		&lhv1b1.Volume{
+		&lhv1b2.Volume{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "vol-0",
 				Namespace: longhornNamespace,
 			},
-			Spec: lhv1b1.VolumeSpec{
+			Spec: lhv1b2.VolumeSpec{
 				NumberOfReplicas: 3,
 			},
 		},
-		&lhv1b1.Volume{
+		&lhv1b2.Volume{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "vol-1",
 				Namespace: longhornNamespace,
 			},
-			Spec: lhv1b1.VolumeSpec{
+			Spec: lhv1b2.VolumeSpec{
 				NumberOfReplicas: 3,
 			},
 		},
-		&lhv1b1.Volume{
+		&lhv1b2.Volume{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "vol-2",
 				Namespace: longhornNamespace,
 			},
-			Spec: lhv1b1.VolumeSpec{
+			Spec: lhv1b2.VolumeSpec{
 				NumberOfReplicas: 3,
 			},
 		},
 	}
 
 	scheme := runtime.NewScheme()
-	lhv1b1.AddToScheme(scheme)
+	lhv1b2.AddToScheme(scheme)
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(volumes...).Build()
 	scaled, err := scaleDownReplicas(context.Background(), discardLogger, cli)
 	assert.True(t, scaled)
 	require.NoError(t, err)
 
-	var gotVolumes lhv1b1.VolumeList
+	var gotVolumes lhv1b2.VolumeList
 	err = cli.List(context.Background(), &gotVolumes, &client.ListOptions{})
 	require.NoError(t, err)
 
@@ -83,13 +83,13 @@ func Test_unhealthyVolumes(t *testing.T) {
 		{
 			name: "if the volume is not attached then it is should be considered healthy",
 			objects: []client.Object{
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-0",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State: lhv1b1.VolumeStateDetached,
+					Status: lhv1b2.VolumeStatus{
+						State: lhv1b2.VolumeStateDetached,
 					},
 				},
 			},
@@ -98,17 +98,17 @@ func Test_unhealthyVolumes(t *testing.T) {
 			name:     "if the volume is not scheduled then it is should be considered unhealthy",
 			expected: []string{"volume-0"},
 			objects: []client.Object{
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-0",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State: lhv1b1.VolumeStateAttached,
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.VolumeConditionTypeScheduled,
-								Status: lhv1b1.ConditionStatusFalse,
+					Status: lhv1b2.VolumeStatus{
+						State: lhv1b2.VolumeStateAttached,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.VolumeConditionTypeScheduled,
+								Status: lhv1b2.ConditionStatusFalse,
 							},
 						},
 					},
@@ -119,18 +119,18 @@ func Test_unhealthyVolumes(t *testing.T) {
 			name:     "if the volume robustness is not healthy then the volume is not healthy",
 			expected: []string{"volume-0"},
 			objects: []client.Object{
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-0",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State:      lhv1b1.VolumeStateAttached,
-						Robustness: lhv1b1.VolumeRobustnessUnknown,
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.VolumeConditionTypeScheduled,
-								Status: lhv1b1.ConditionStatusTrue,
+					Status: lhv1b2.VolumeStatus{
+						State:      lhv1b2.VolumeStateAttached,
+						Robustness: lhv1b2.VolumeRobustnessUnknown,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.VolumeConditionTypeScheduled,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -140,18 +140,18 @@ func Test_unhealthyVolumes(t *testing.T) {
 		{
 			name: "healthy volume should not be included in the result",
 			objects: []client.Object{
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-0",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State:      lhv1b1.VolumeStateAttached,
-						Robustness: lhv1b1.VolumeRobustnessHealthy,
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.VolumeConditionTypeScheduled,
-								Status: lhv1b1.ConditionStatusTrue,
+					Status: lhv1b2.VolumeStatus{
+						State:      lhv1b2.VolumeStateAttached,
+						Robustness: lhv1b2.VolumeRobustnessHealthy,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.VolumeConditionTypeScheduled,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -161,34 +161,34 @@ func Test_unhealthyVolumes(t *testing.T) {
 		{
 			name: "detached unhealthy volumes should be ignored",
 			objects: []client.Object{
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-0",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State:      lhv1b1.VolumeStateDetached,
-						Robustness: lhv1b1.VolumeRobustnessDegraded,
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.VolumeConditionTypeScheduled,
-								Status: lhv1b1.ConditionStatusTrue,
+					Status: lhv1b2.VolumeStatus{
+						State:      lhv1b2.VolumeStateDetached,
+						Robustness: lhv1b2.VolumeRobustnessDegraded,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.VolumeConditionTypeScheduled,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
 				},
-				&lhv1b1.Volume{
+				&lhv1b2.Volume{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "volume-1",
 						Namespace: longhornNamespace,
 					},
-					Status: lhv1b1.VolumeStatus{
-						State:      lhv1b1.VolumeStateAttached,
-						Robustness: lhv1b1.VolumeRobustnessHealthy,
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.VolumeConditionTypeScheduled,
-								Status: lhv1b1.ConditionStatusTrue,
+					Status: lhv1b2.VolumeStatus{
+						State:      lhv1b2.VolumeStateAttached,
+						Robustness: lhv1b2.VolumeRobustnessHealthy,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.VolumeConditionTypeScheduled,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -198,7 +198,7 @@ func Test_unhealthyVolumes(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			scheme := runtime.NewScheme()
-			lhv1b1.AddToScheme(scheme)
+			lhv1b2.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
 			result, err := unhealthyVolumes(context.Background(), discardLogger, cli)
 			require.NoError(t, err)
@@ -223,15 +223,15 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if the node is not ready then it is should be considered unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						Conditions: map[string]lhv1b1.Condition{
-							"": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusFalse,
+					Status: lhv1b2.NodeStatus{
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusFalse,
 							},
 						},
 					},
@@ -242,19 +242,19 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if the node is not schedulable then it is should be considered unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+					Status: lhv1b2.NodeStatus{
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusFalse,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusFalse,
 							},
 						},
 					},
@@ -265,29 +265,29 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if the node contain a disk that is not ready then it is should be considered unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						DiskStatus: map[string]*lhv1b1.DiskStatus{
+					Status: lhv1b2.NodeStatus{
+						DiskStatus: map[string]*lhv1b2.DiskStatus{
 							"disk-0": {
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusFalse,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusFalse,
 									},
 								},
 							},
 						},
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusTrue,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -298,33 +298,33 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if the node contain a disk that is not scheduleable then it is should be considered unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						DiskStatus: map[string]*lhv1b1.DiskStatus{
+					Status: lhv1b2.NodeStatus{
+						DiskStatus: map[string]*lhv1b2.DiskStatus{
 							"disk-0": {
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusTrue,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
-									"1": {
-										Type:   lhv1b1.DiskConditionTypeSchedulable,
-										Status: lhv1b1.ConditionStatusFalse,
+									{
+										Type:   lhv1b2.DiskConditionTypeSchedulable,
+										Status: lhv1b2.ConditionStatusFalse,
 									},
 								},
 							},
 						},
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusTrue,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -335,42 +335,42 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if the node has not enough space in a disk then it is should be considered unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Setting{
+				&lhv1b2.Setting{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      overProvisioningSetting,
 						Namespace: longhornNamespace,
 					},
 					Value: "100",
 				},
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						DiskStatus: map[string]*lhv1b1.DiskStatus{
+					Status: lhv1b2.NodeStatus{
+						DiskStatus: map[string]*lhv1b2.DiskStatus{
 							"disk-0": {
 								StorageScheduled: 100,
 								StorageAvailable: 100,
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusTrue,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
-									"1": {
-										Type:   lhv1b1.DiskConditionTypeSchedulable,
-										Status: lhv1b1.ConditionStatusTrue,
+									{
+										Type:   lhv1b2.DiskConditionTypeSchedulable,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
 								},
 							},
 						},
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusTrue,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -380,42 +380,42 @@ func Test_unhealthyNodes(t *testing.T) {
 		{
 			name: "if disk usage is still under the threshold then it is should be considered healthy",
 			objects: []client.Object{
-				&lhv1b1.Setting{
+				&lhv1b2.Setting{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      overProvisioningSetting,
 						Namespace: longhornNamespace,
 					},
 					Value: "200",
 				},
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						DiskStatus: map[string]*lhv1b1.DiskStatus{
+					Status: lhv1b2.NodeStatus{
+						DiskStatus: map[string]*lhv1b2.DiskStatus{
 							"disk-0": {
 								StorageScheduled: 199,
 								StorageAvailable: 100,
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusTrue,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
-									"1": {
-										Type:   lhv1b1.DiskConditionTypeSchedulable,
-										Status: lhv1b1.ConditionStatusTrue,
+									{
+										Type:   lhv1b2.DiskConditionTypeSchedulable,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
 								},
 							},
 						},
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusTrue,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -426,56 +426,56 @@ func Test_unhealthyNodes(t *testing.T) {
 			name:     "if only one of disk usage is over limit then the node is unhealthy",
 			expected: []string{"node-0"},
 			objects: []client.Object{
-				&lhv1b1.Setting{
+				&lhv1b2.Setting{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      overProvisioningSetting,
 						Namespace: longhornNamespace,
 					},
 					Value: "200",
 				},
-				&lhv1b1.Node{
+				&lhv1b2.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-0",
 					},
-					Status: lhv1b1.NodeStatus{
-						DiskStatus: map[string]*lhv1b1.DiskStatus{
+					Status: lhv1b2.NodeStatus{
+						DiskStatus: map[string]*lhv1b2.DiskStatus{
 							"disk-0": {
 								StorageScheduled: 199,
 								StorageAvailable: 100,
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusTrue,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
-									"1": {
-										Type:   lhv1b1.DiskConditionTypeSchedulable,
-										Status: lhv1b1.ConditionStatusTrue,
+									{
+										Type:   lhv1b2.DiskConditionTypeSchedulable,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
 								},
 							},
 							"disk-1": {
 								StorageScheduled: 101,
 								StorageAvailable: 50,
-								Conditions: map[string]lhv1b1.Condition{
-									"0": {
-										Type:   lhv1b1.DiskConditionTypeReady,
-										Status: lhv1b1.ConditionStatusTrue,
+								Conditions: []lhv1b2.Condition{
+									{
+										Type:   lhv1b2.DiskConditionTypeReady,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
-									"1": {
-										Type:   lhv1b1.DiskConditionTypeSchedulable,
-										Status: lhv1b1.ConditionStatusTrue,
+									{
+										Type:   lhv1b2.DiskConditionTypeSchedulable,
+										Status: lhv1b2.ConditionStatusTrue,
 									},
 								},
 							},
 						},
-						Conditions: map[string]lhv1b1.Condition{
-							"0": {
-								Type:   lhv1b1.NodeConditionTypeReady,
-								Status: lhv1b1.ConditionStatusTrue,
+						Conditions: []lhv1b2.Condition{
+							{
+								Type:   lhv1b2.NodeConditionTypeReady,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
-							"1": {
-								Type:   lhv1b1.NodeConditionTypeSchedulable,
-								Status: lhv1b1.ConditionStatusTrue,
+							{
+								Type:   lhv1b2.NodeConditionTypeSchedulable,
+								Status: lhv1b2.ConditionStatusTrue,
 							},
 						},
 					},
@@ -485,7 +485,7 @@ func Test_unhealthyNodes(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			scheme := runtime.NewScheme()
-			lhv1b1.AddToScheme(scheme)
+			lhv1b2.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
 			result, err := unhealthyNodes(context.Background(), discardLogger, cli)
 			require.NoError(t, err)
@@ -499,16 +499,16 @@ func Test_nodeIs(t *testing.T) {
 		name      string
 		expected  bool
 		condition string
-		node      lhv1b1.Node
+		node      lhv1b2.Node
 	}{
 		{
 			name:      "if condition is not found then returns false",
 			expected:  false,
 			condition: "DiskConditionReasonDiskNotReady",
-			node: lhv1b1.Node{
-				Status: lhv1b1.NodeStatus{
-					Conditions: map[string]lhv1b1.Condition{
-						"foo": {
+			node: lhv1b2.Node{
+				Status: lhv1b2.NodeStatus{
+					Conditions: []lhv1b2.Condition{
+						{
 							Type:   "foo",
 							Status: "bar",
 						},
@@ -519,25 +519,25 @@ func Test_nodeIs(t *testing.T) {
 		{
 			name:      "if multiple conditions are present it should filter by the right one",
 			expected:  true,
-			condition: lhv1b1.NodeConditionTypeReady,
-			node: lhv1b1.Node{
-				Status: lhv1b1.NodeStatus{
-					Conditions: map[string]lhv1b1.Condition{
-						"0": {
+			condition: lhv1b2.NodeConditionTypeReady,
+			node: lhv1b2.Node{
+				Status: lhv1b2.NodeStatus{
+					Conditions: []lhv1b2.Condition{
+						{
 							Type:   "foo",
-							Status: lhv1b1.ConditionStatusFalse,
+							Status: lhv1b2.ConditionStatusFalse,
 						},
-						"1": {
+						{
 							Type:   "bar",
-							Status: lhv1b1.ConditionStatusFalse,
+							Status: lhv1b2.ConditionStatusFalse,
 						},
-						"2": {
-							Type:   lhv1b1.NodeConditionTypeReady,
-							Status: lhv1b1.ConditionStatusTrue,
+						{
+							Type:   lhv1b2.NodeConditionTypeReady,
+							Status: lhv1b2.ConditionStatusTrue,
 						},
-						"3": {
+						{
 							Type:   "baz",
-							Status: lhv1b1.ConditionStatusFalse,
+							Status: lhv1b2.ConditionStatusFalse,
 						},
 					},
 				},
@@ -546,13 +546,13 @@ func Test_nodeIs(t *testing.T) {
 		{
 			name:      "condition is found and status is true then returns true",
 			expected:  true,
-			condition: lhv1b1.NodeConditionTypeReady,
-			node: lhv1b1.Node{
-				Status: lhv1b1.NodeStatus{
-					Conditions: map[string]lhv1b1.Condition{
-						"": {
-							Type:   lhv1b1.NodeConditionTypeReady,
-							Status: lhv1b1.ConditionStatusTrue,
+			condition: lhv1b2.NodeConditionTypeReady,
+			node: lhv1b2.Node{
+				Status: lhv1b2.NodeStatus{
+					Conditions: []lhv1b2.Condition{
+						{
+							Type:   lhv1b2.NodeConditionTypeReady,
+							Status: lhv1b2.ConditionStatusTrue,
 						},
 					},
 				},
