@@ -65,6 +65,52 @@ jobs:
       - run: make docker-test-shell
       - run: make docker-test-containerd
 
+  validate-github-actions-bundles:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Verify GitHub Actions bundles are up-to-date
+        run: |
+          set -euo pipefail
+          failed=0
+          for action_dir in .github/actions/*/; do
+            action_yml="${action_dir}action.yml"
+            package_json="${action_dir}package.json"
+            dist_dir="${action_dir}dist"
+
+            if [ ! -f "$action_yml" ] || [ ! -f "$package_json" ] || [ ! -d "$dist_dir" ]; then
+              continue
+            fi
+
+            if ! grep -qE "main: ['\"]dist/index.js['\"]" "$action_yml"; then
+              continue
+            fi
+
+            echo "Checking ${action_dir}..."
+            (
+              cd "$action_dir"
+              npm ci
+              npm run build
+            )
+
+            if ! git diff --quiet -- "$dist_dir"; then
+              echo "ERROR: ${action_dir}dist/index.js is out of date."
+              echo "Run 'npm run build' in ${action_dir} and commit the changes."
+              git diff -- "$dist_dir"
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All GitHub Actions bundles are up-to-date."
+
   build-test-success:
     runs-on: ubuntu-latest
     if: ${{ always() }}
@@ -73,12 +119,14 @@ jobs:
       - build-kurl-utils
       - build-bin-kurl
       - test-shell
+      - validate-github-actions-bundles
     steps:
       - run: |
           if   [ "${{ needs.validate-go-mod.result }}" = "failure" ] \
             || [ "${{ needs.build-kurl-utils.result }}" = "failure" ] \
             || [ "${{ needs.build-bin-kurl.result }}" = "failure" ] \
-            || [ "${{ needs.test-shell.result }}" = "failure" ]
+            || [ "${{ needs.test-shell.result }}" = "failure" ] \
+            || [ "${{ needs.validate-github-actions-bundles.result }}" = "failure" ]
           then
             echo "build test failure"
             exit 1
