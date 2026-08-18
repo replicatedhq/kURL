@@ -7,12 +7,12 @@ customer-migration-specs.yaml	5	Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2
 customer-migration-specs.yaml	6	Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
 customer-migration-specs.yaml	7	Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs	amazon-2023,ol-8x,rocky-9,rocky-91
 deploy.yaml	0	Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
-deploy.yaml	1	Upgrade to 1.25 to 1.35, Migrate from Rook 1.12.x to OpenEBS + Minio	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	1	Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
 deploy.yaml	2	Migrate from Longhorn + Minio to OpenEBS + Minio	amazon-2023,centos-9,rocky-10,rocky-9,rocky-98,ubuntu-2404,ubuntu-2604
-deploy.yaml	3	Upgrade from k8s 1.31 to 1.35 - Airgap	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
-deploy.yaml	4	k8s135x_cis_benchmarks_checks	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
-deploy.yaml	5	k8s_135x with kurl in-cluster support bundle spec	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
-deploy.yaml	6	k8s_135x with rook	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	3	Upgrade from k8s 1.31 to 1.36 - Airgap	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	4	k8s136x_cis_benchmarks_checks	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	5	k8s_136x with kurl in-cluster support bundle spec	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	6	k8s_136x with rook	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
 full.yaml	0	k8s119_containerd149	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	1	k8s121x_containerd	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	10	k8s119_helm	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
