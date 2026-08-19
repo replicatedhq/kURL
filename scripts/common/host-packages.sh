@@ -344,7 +344,9 @@ function reset_dnf_module_kurl_local() {
 # host_packages_shipped returns true if we do ship host packages for the distro
 # we are running the installation on.
 function host_packages_shipped() {
+    # BEGIN GENERATED os-matrix: host-packages-shipped — edit os-matrix.yaml, run 'make generate-os-matrix'
     if ! is_rhel_9_variant && ! is_amazon_2023 && ! is_ubuntu_2404 && ! is_ubuntu_2604; then
+    # END GENERATED os-matrix: host-packages-shipped
         return 0
     fi
     return 1
@@ -377,6 +379,7 @@ function is_amazon_2023() {
     return 0
 }
 
+# BEGIN GENERATED os-matrix: ubuntu-predicates — edit os-matrix.yaml, run 'make generate-os-matrix'
 # is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.
 function is_ubuntu_2404() {
     if [ "$DIST_VERSION_MAJOR" != "24" ]; then
@@ -398,6 +401,7 @@ function is_ubuntu_2604() {
     fi
     return 0
 }
+# END GENERATED os-matrix: ubuntu-predicates
 
 # ensure_host_package calls either _apt_ensure_host_package or _yum_ensure_host_package
 function ensure_host_package() {

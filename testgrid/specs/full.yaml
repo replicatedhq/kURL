@@ -25,9 +25,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -59,9 +61,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -86,9 +90,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -116,9 +122,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -146,9 +154,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -176,9 +186,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -207,9 +219,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_containerd_rook_block
   cpu: 6
   installerSpec:
@@ -240,9 +254,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variantsl
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -275,9 +291,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
     kubernetes:
@@ -310,9 +328,11 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s119_helm
   installerSpec:
     kubernetes:
@@ -371,9 +391,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
@@ -391,9 +413,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s129_selinux
   flags: "yes"
   installerSpec:
@@ -443,9 +467,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -476,9 +502,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: k8s24x_rook_upgrade_17x_110x
   flags: "yes"
   cpu: 6
@@ -515,8 +543,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -557,9 +587,11 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -586,9 +618,11 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: "K8s 1.22x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -616,9 +650,11 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: "K8s 1.22x Airgap"
   cpu: 6
   installerSpec:
@@ -649,9 +685,11 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+  # END GENERATED os-matrix: unsupported-capability
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.32 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -717,9 +755,11 @@
   - rocky-91 # doc:
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on amazon 2023
   - ubuntu-2604 # docker is not supported on ubuntu 2604
+  # END GENERATED os-matrix: unsupported-capability
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -782,8 +822,10 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2 nfs-common
     ubuntu_2604_install_host_packages lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -857,9 +899,11 @@
   - rocky-91 # docker is not supported on rhel 9 variantsl
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on ubuntu 2404
   - ubuntu-2604 # docker is not supported on ubuntu 2604
+  # END GENERATED os-matrix: unsupported-capability
 - name: "Upgrade to 1.32 minimal airgap"
   installerSpec:
     kubernetes:
@@ -904,8 +948,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
@@ -997,9 +1043,11 @@
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --benchmark cis-1.8 --exit-code=1
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
@@ -1105,9 +1153,11 @@
       version: "0.4.x"
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: rook-upgrade-to-1.5
   flags: "yes"
   installerSpec:
@@ -1172,9 +1222,11 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: rook-upgrade-to-1.5-airgap
   flags: "yes"
   airgap: true
@@ -1252,9 +1304,11 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: "k8s_125x containerd 1.5.x upgrade to latest"
   installerSpec:
     kubernetes:
@@ -1558,9 +1612,11 @@
     echo $k8sVersion | grep 1.32
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
   flags: "yes"
   installerSpec:
@@ -1602,9 +1658,11 @@
     echo $operatorVersion | grep 1.5.12
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: "Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   flags: "yes kubernetes-upgrade-ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   installerSpec:
@@ -1697,8 +1755,10 @@
             - name: vdb" > /opt/kurl-testgrid/patchfile.yaml
     
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
   postInstallScript: |
     # validate that our custom config is applied
     kubectl -n rook-ceph get cephcluster -oyaml | grep some-other-node
@@ -1745,8 +1805,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd
     ubuntu_2604_install_host_packages collectd
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger
   flags: "yes"
   installerSpec:
@@ -1789,8 +1851,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
     ubuntu_2604_install_host_packages collectd lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: (k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links
   flags: "yes"
   installerSpec:
@@ -1833,8 +1897,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages collectd lvm2 nfs-common
     ubuntu_2604_install_host_packages collectd lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 
     FOLDER=/testsymbolic
     
@@ -1910,8 +1976,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages nfs-common containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: longhorn
   installerSpec:
     contour:
@@ -1942,8 +2010,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common open-iscsi
     ubuntu_2604_install_host_packages nfs-common open-iscsi
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -1970,9 +2040,11 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -2000,9 +2072,11 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -2218,8 +2292,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages nfs-common
     ubuntu_2604_install_host_packages nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: k8s124-airgap-rook
   installerSpec:
     kubernetes:
@@ -2251,8 +2327,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2 nfs-common
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "k8s_132x airgap"
   airgap: true
   installerSpec:
@@ -2278,8 +2356,10 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
     amazon_2023_install_host_packages containerd lvm2 conntrack-tools socat container-selinux git
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -2345,9 +2425,11 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
+    # END GENERATED os-matrix: unsupported-capability
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 8
@@ -2402,8 +2484,10 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
     ubuntu_2404_install_host_packages lvm2
     ubuntu_2604_install_host_packages lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
 - name: "k8s_132x with kurl in-cluster support bundle spec"
   installerSpec:
     kubernetes:

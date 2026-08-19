@@ -1,0 +1,116 @@
+customer-migration-specs.yaml	0	Cust sha1:171aaa33103c04449567bfeadb0a49833ca7a6b0: k8s 1.25.4 -> 1.27, containerd 1.6.19 -> 1.6.x, weave -> flannel, OpenEBS 3.4.x -> 3.7.x	
+customer-migration-specs.yaml	1	Cust sha1:9aed61a879834bbff0586a61784b4f56135671f7: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x	amazon-2023
+customer-migration-specs.yaml	2	Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x	amazon-2023,ubuntu-2204
+customer-migration-specs.yaml	3	Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+customer-migration-specs.yaml	4	Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+customer-migration-specs.yaml	5	Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+customer-migration-specs.yaml	6	Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+customer-migration-specs.yaml	7	Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs	amazon-2023,ol-8x,rocky-9,rocky-91
+deploy.yaml	0	Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
+deploy.yaml	1	Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	2	Migrate from Longhorn + Minio to OpenEBS + Minio	amazon-2023,centos-9,rocky-10,rocky-9,rocky-98,ubuntu-2404,ubuntu-2604
+deploy.yaml	3	Upgrade from k8s 1.31 to 1.36 - Airgap	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	4	k8s136x_cis_benchmarks_checks	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	5	k8s_136x with kurl in-cluster support bundle spec	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+deploy.yaml	6	k8s_136x with rook	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+full.yaml	0	k8s119_containerd149	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	1	k8s121x_containerd	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	10	k8s119_helm	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	11	k8s120_minimal_containerd1411	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	12	k8s129_selinux	
+full.yaml	13	k8s120	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	14	k8s120-airgap	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	15	k8s24x_rook_upgrade_17x_110x	centos-74,centos-81
+full.yaml	16	remove_all_object_storage	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	17	K8s 1.22x Rook	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	18	K8s 1.22x Rook, disableS3	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
+full.yaml	19	K8s 1.22x Airgap	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	2	k8s1184_1202_containerd	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	20	Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.32 airgap	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
+full.yaml	21	K8s 1.24x Rook	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	22	K8s 1.32x Rook, disableS3	centos-74,centos-81
+full.yaml	23	K8s 1.24x Airgap	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	24	Upgrade to 1.24, disable s3, weave to flannel	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
+full.yaml	25	Upgrade to 1.32 minimal airgap	centos-81
+full.yaml	26	k8s132-all-the-flags	centos-81
+full.yaml	27	ekco-podimageoverrides	centos-81
+full.yaml	28	k8s123x_124x_upgrade_cis_benchmarks_checks	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	29	k8s132x_reserved_resources	centos-81
+full.yaml	3	k8s119x_containerd148	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	30	less_command	centos-81
+full.yaml	31	weave latest multinode	centos-81
+full.yaml	32	flannel latest multinode	centos-81
+full.yaml	33	k8s121x_openebs_containerd	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	34	rook-upgrade-to-1.5	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	35	rook-upgrade-to-1.5-airgap	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	36	k8s_125x containerd 1.5.x upgrade to latest	centos-9,rocky-9,rocky-91,ubuntu-2204
+full.yaml	37	containerd upgrade from 1.2.x to 1.4.x	amazon-2023,centos-74,centos-79,centos-9,ol-79,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	38	containerd upgrade from 1.3.x to 1.5.x	amazon-2023,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	39	containerd upgrade from 1.4.x to 1.6.x	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	4	k8s119x_containerd139	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	40	containerd upgrade from 1.4.x to 1.6.x (kubernetes 1.24.x to 1.28.x)	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	41	containerd upgrade from 1.6.x to 1.7.x (kubernetes 1.28.x to 1.32.x)	
+full.yaml	42	custom-kurl-install-directory	centos-81
+full.yaml	43	Upgrade Kubernetes from 1.19 to 1.32	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	44	Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	45	Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins	
+full.yaml	46	CoreDNS preserve kurl.nameserver	
+full.yaml	47	k8s132-rook-override-node-storage	centos-74,centos-81
+full.yaml	48	1.32 with all metrics and kots	centos-81
+full.yaml	49	(k8s 1.32) install addons not deprecated less prometheus, goldpinger	centos-74,centos-81
+full.yaml	5	k8s119_containerd1412	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	50	(k8s 1.32) install addons not deprecated less prometheus, goldpinger with symbolic links	centos-74,centos-81
+full.yaml	51	K8s 1.32x Airgap with invalid proxyAddress	centos-81
+full.yaml	52	longhorn	centos-81
+full.yaml	53	k8s122	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	54	k8s122-airgap	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
+full.yaml	55	minimal-124	centos-81
+full.yaml	56	minimal-125	centos-81
+full.yaml	57	minimal-126	centos-81
+full.yaml	58	minimal-127	centos-81
+full.yaml	59	minimal-128	centos-81
+full.yaml	6	k8s119_containerd146-airgap	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	60	minimal-129	centos-81
+full.yaml	61	minimal-130	centos-81
+full.yaml	62	minimal-131	centos-81
+full.yaml	63	minimal-132	centos-81
+full.yaml	64	k8s124x_cis_benchmarks_checks	centos-81
+full.yaml	65	k8s132x_reserved_resources	centos-81
+full.yaml	66	k8s132-openebs	centos-81
+full.yaml	67	k8s124-airgap-rook	centos-74,centos-81
+full.yaml	68	k8s_132x airgap	
+full.yaml	69	Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
+full.yaml	7	k8s119_containerd_rook_block	amazon-2023,centos-74,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	70	weave to flannel single node with addons and openebs	centos-74,centos-81
+full.yaml	71	k8s_132x with kurl in-cluster support bundle spec	centos-81
+full.yaml	72	merge-installer-hostpreflight-and-upgrade	centos-81
+full.yaml	73	reset and reinstall	centos-81
+full.yaml	8	k8s119_ctrd_longhorn	amazon-2023,centos-9,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+full.yaml	9	k8s119_ctrd_longhorn-airgap	amazon-2023,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
+k8s-upgrade.yaml	0	119 to 131	amazon-2023
+latest.yaml	0	latest	amazon-2023,amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+latest.yaml	1	openebs	amazon-2023,amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
+storage-migration.yaml	0	Migrate from Rook 1.0.4 to OpenEBS + Minio	amazon-2023
+storage-migration.yaml	1	Migrate from Rook 1.12.x to OpenEBS + Minio	
+storage-migration.yaml	10	Migrate from Rook 1.8.x to Rook 1.12.x	amazon-2023
+storage-migration.yaml	11	Migrate from Longhorn + Minio to Rook 1.12.x	amazon-2023
+storage-migration.yaml	12	Migrate from Rook 1.0.4 to OpenEBS + Minio (multi-node)	amazon-2023
+storage-migration.yaml	13	Migrate from Rook 1.12.x to OpenEBS + Minio (multi-node)	
+storage-migration.yaml	14	Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)	amazon-2023
+storage-migration.yaml	15	Migrate from Rook 1.12.x to OpenEBS 3.4.0 with localpv migrate	centos-74
+storage-migration.yaml	16	Migrate from Rook 1.0.4 to OpenEBS + Minio (Docker config)	amazon-2023,rocky-9,rocky-91,ubuntu-2204
+storage-migration.yaml	17	Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio	
+storage-migration.yaml	18	Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)	amazon-2023,rocky-9,rocky-91,ubuntu-2204
+storage-migration.yaml	19	Cust 1 - Migrate from Rook+OpenEBS 1.6.0 to OpenEBS 3.3.0 (Kubernetes 1.19.x to 1.21.x)	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+storage-migration.yaml	2	Migrate from Longhorn (S3 disabled) to OpenEBS + Minio	
+storage-migration.yaml	20	Cust 1 - Migrate from Weave to Flannel (Kubernetes 1.21.x to 1.23.x, Docker to Containerd)	amazon-2023,ol-8x,rocky-9,rocky-91,ubuntu-2204
+storage-migration.yaml	21	Cust 1 - Upgrade from Kubernetes 1.23.x to 1.25.x	amazon-2023,rocky-9,rocky-91
+storage-migration.yaml	22	Install Rook with minimum node count of 3	centos-74
+storage-migration.yaml	3	Migrate from Longhorn + Minio to OpenEBS + Minio	
+storage-migration.yaml	4	Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)	amazon-2023
+storage-migration.yaml	5	Migrate from Rook 1.12.x to OpenEBS (S3 disabled)	
+storage-migration.yaml	6	Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)	
+storage-migration.yaml	7	Migrate from Longhorn + Minio to OpenEBS (S3 disabled)	
+storage-migration.yaml	8	Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)	
+storage-migration.yaml	9	Migrate from Rook 1.0.4 to Rook 1.8.x	amazon-2023
+ubuntu-2604.yaml	0	Basic install on Ubuntu 26.04	

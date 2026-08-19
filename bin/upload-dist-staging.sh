@@ -44,22 +44,13 @@ function package_has_changes() {
         return 0
     fi
 
-    # kubernetes host packages (kubelet/kubectl/kubeadm .debs and .rpms) are built
-    # from the per-OS bundle Dockerfiles in bundles/ (e.g. bundles/k8s-ubuntu2604),
-    # not from anything under packages/kubernetes/<version>/. A change that only
-    # touches bundles/ -- such as adding a new supported OS -- would otherwise be
-    # invisible here and the kubernetes tarball would never be rebuilt or
-    # re-shipped, leaving the new OS with no host packages. Include bundles/ in the
-    # diff for kubernetes packages so bundle changes force a rebuild.
-    # Match only real kubernetes package keys (kubernetes-<version>, which start
-    # with a digit, e.g. kubernetes-1.35.7). Do NOT match kubernetes-conformance-*
-    # archives: those are built from packages/kubernetes/<ver>/conformance/Manifest
-    # (sonobuoy images) and do not depend on bundles/, so watching bundles/ for them
-    # would needlessly rebuild and re-upload every conformance archive.
-    local paths=( "${path}" )
-    if echo "${key}" | grep -qE "kubernetes-[0-9]" ; then
-        paths+=( "bundles/" )
-    fi
+    # The set of paths whose changes force a rebuild lives in one place --
+    # change_detection_paths() in list-all-packages.sh -- so staging and versioned
+    # stay in sync. For kubernetes packages that includes bundles/ and the
+    # single-source os-matrix.yaml, because host packages are built from the bundle
+    # Dockerfiles (regenerated from os-matrix.yaml), not from packages/kubernetes/.
+    local paths=()
+    while IFS= read -r p; do paths+=( "${p}" ); done < <(change_detection_paths "${key}" "${path}")
 
     if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${paths[@]}" "${GITSHA}" -- "${paths[@]}" ) ; then
         return 1
