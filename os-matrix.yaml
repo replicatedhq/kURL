@@ -41,6 +41,9 @@ oses:
     vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20230307.0/kvm/amzn2-kvm-2.0.20230307.0-x86_64.xfs.gpt.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: amazonlinux
+    versionMajor: "2"
+    packageFamily: yum
 
   - id: centos-79
     name: CentOS
@@ -48,6 +51,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "7"
+    packageFamily: yum
 
   - id: centos-74
     name: CentOS
@@ -55,6 +61,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1708.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "7"
+    packageFamily: yum
 
   - id: centos-78
     name: CentOS
@@ -62,6 +71,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2003.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "7"
+    packageFamily: yum
 
   - id: centos-81
     name: CentOS
@@ -69,6 +81,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: centos-82
     name: CentOS
@@ -76,6 +91,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: centos-83
     name: CentOS
@@ -83,6 +101,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: centos-84
     name: CentOS
@@ -90,6 +111,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
     preinit: ""
     preinitStyle: empty
+    distro: centos
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: centos-8-stream-2024-04
     name: CentOS
@@ -97,6 +121,9 @@ oses:
     vmimageuri: https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20240415.0.x86_64.qcow2
     preinit: "yum update -y && yum install -y traceroute iptables bind-utils"
     preinitStyle: quoted
+    distro: centos
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: centos-9
     name: CentOS 9
@@ -105,6 +132,9 @@ oses:
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
+    distro: centos
+    versionMajor: "9"
+    packageFamily: yum9
 
   - id: ol-79
     name: Oracle Linux

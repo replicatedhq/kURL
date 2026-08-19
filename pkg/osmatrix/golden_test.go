@@ -160,6 +160,52 @@ func TestGoldenSpliceRegionsInSync(t *testing.T) {
 	}
 }
 
+// TestGoldenCentOSFamilyIdentity pins the installer-identity capability fields the
+// pathfinder populated for the CentOS/RHEL family and Amazon Linux 2. These make
+// the registry the single source of truth for these OSes' distro/version/package
+// family (previously implicit in hand-authored shell/build plumbing) and are the
+// data later convoy legs build family-driven generation on. They are deliberately
+// inert w.r.t. today's generated artifacts (TestGoldenSpliceRegionsInSync and
+// TestGoldenPools prove byte-identity), so this test guards against silent removal.
+func TestGoldenCentOSFamilyIdentity(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+	want := map[string]struct{ distro, versionMajor, packageFamily string }{
+		"amzn-20":                 {"amazonlinux", "2", "yum"},
+		"centos-74":               {"centos", "7", "yum"},
+		"centos-78":               {"centos", "7", "yum"},
+		"centos-79":               {"centos", "7", "yum"},
+		"centos-81":               {"centos", "8", "yum8"},
+		"centos-82":               {"centos", "8", "yum8"},
+		"centos-83":               {"centos", "8", "yum8"},
+		"centos-84":               {"centos", "8", "yum8"},
+		"centos-8-stream-2024-04": {"centos", "8", "yum8"},
+		"centos-9":                {"centos", "9", "yum9"},
+	}
+	for id, w := range want {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing expected OS %q", id)
+			continue
+		}
+		if o.Distro != w.distro || o.VersionMajor != w.versionMajor || o.PackageFamily != w.packageFamily {
+			t.Errorf("%s identity = {distro:%q versionMajor:%q packageFamily:%q}, want {distro:%q versionMajor:%q packageFamily:%q}",
+				id, o.Distro, o.VersionMajor, o.PackageFamily, w.distro, w.versionMajor, w.packageFamily)
+		}
+		// The CentOS family and Amazon Linux 2 use SELinux, not the apparmor
+		// workaround, and impose no Kubernetes floor or docker exclusion today —
+		// keep them out of the capability-derived preflight/exclusion regions.
+		if o.ApparmorWorkaround {
+			t.Errorf("%s must not set apparmorWorkaround (RHEL family uses SELinux)", id)
+		}
+		if o.MinKubernetes != "" {
+			t.Errorf("%s must not set minKubernetes this leg (would drift preflight regions)", id)
+		}
+		if o.DockerSupported != nil {
+			t.Errorf("%s must not set dockerSupported this leg (would drift preflight/exclusion regions)", id)
+		}
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {
