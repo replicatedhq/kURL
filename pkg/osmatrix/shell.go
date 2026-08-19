@@ -82,27 +82,19 @@ func (m *Matrix) renderHostPackagesPredicates() []string {
 	return lines
 }
 
-// familyHostPackageExclusionPredicates are the RHEL/Amazon FAMILY-level shell
-// predicates that exclude an OS from host_packages_shipped, in committed order.
-//
-// Unlike the per-version apt predicates (is_ubuntu_<NN>04), which are data-driven
-// from the registry's host-package-shipping Ubuntu entries, these are FAMILY
-// predicates — is_rhel_9_variant matches EL 9/10 across centos|rhel|ol|rocky, and
-// is_amazon_2023 matches Amazon Linux 2023 — whose definitions are hand-authored
-// in scripts/common/host-packages.sh rather than generated per OS. They therefore
-// cannot be derived from a single registry entry today.
-//
-// TODO(os-matrix, later convoy legs): once the Rocky/Oracle/Amazon-2023 registry
-// entries carry a capability field naming their host-package-exclusion predicate,
-// derive this list from the registry instead of hard-coding it. This pathfinder
-// leg cannot: those entries are owned by later legs and must not be edited here.
-var familyHostPackageExclusionPredicates = []string{"is_rhel_9_variant", "is_amazon_2023"}
-
 // renderHostPackagesShippedGuard renders the single `if ...; then` line of
-// host_packages_shipped: the fixed RHEL/Amazon family predicates followed by one
-// data-driven `is_ubuntu_<NN>04` clause per host-package-shipping Ubuntu release.
+// host_packages_shipped: the FAMILY predicates of every family handled by a
+// dedicated/native package path (HostPackagesShipped, registry order) followed by
+// one data-driven `is_ubuntu_<NN>04` clause per host-package-shipping Ubuntu
+// release. Both halves are registry-derived, so adding a family or a shipping
+// Ubuntu extends the guard.
 func (m *Matrix) renderHostPackagesShippedGuard() []string {
-	preds := append([]string(nil), familyHostPackageExclusionPredicates...)
+	var preds []string
+	for i := range m.Families {
+		if m.Families[i].HostPackagesShipped {
+			preds = append(preds, m.Families[i].Predicate)
+		}
+	}
 	for _, o := range m.predicateUbuntuOSes() {
 		preds = append(preds, predicateName(o))
 	}

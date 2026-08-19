@@ -206,6 +206,57 @@ func TestGoldenCentOSFamilyIdentity(t *testing.T) {
 	}
 }
 
+// TestGoldenFamilyModel pins the shared distro-family model the pathfinder
+// established: the two families the RHEL/Amazon predicates render from, and the
+// member OSes tagged into them from the CentOS/Amazon driving data. The predicate
+// bodies' byte-identity is proven by TestGoldenSpliceRegionsInSync (the
+// family-predicates region of host-packages.sh); this test guards the registry
+// data those predicates derive from, and documents the extension point later legs
+// use (tagging their OSes with `family: rhel-9-variant` etc.).
+func TestGoldenFamilyModel(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+
+	wantFamilies := map[string]struct {
+		predicate           string
+		lsbDist             []string
+		versionMajors       []string
+		hostPackagesShipped bool
+	}{
+		"rhel-9-variant": {"is_rhel_9_variant", []string{"centos", "rhel", "ol", "rocky"}, []string{"9", "10"}, true},
+		"amazon-2023":    {"is_amazon_2023", []string{"amzn"}, []string{"2023"}, true},
+	}
+	if len(m.Families) != len(wantFamilies) {
+		t.Errorf("registry has %d families, want %d", len(m.Families), len(wantFamilies))
+	}
+	for i := range m.Families {
+		f := &m.Families[i]
+		w, ok := wantFamilies[f.Name]
+		if !ok {
+			t.Errorf("unexpected family %q", f.Name)
+			continue
+		}
+		if f.Predicate != w.predicate || !equalStrings(f.LSBDist, w.lsbDist) ||
+			!equalStrings(f.VersionMajors, w.versionMajors) || f.HostPackagesShipped != w.hostPackagesShipped {
+			t.Errorf("family %q = {predicate:%q lsbDist:%v versionMajors:%v hostPackagesShipped:%v}, want {%q %v %v %v}",
+				f.Name, f.Predicate, f.LSBDist, f.VersionMajors, f.HostPackagesShipped,
+				w.predicate, w.lsbDist, w.versionMajors, w.hostPackagesShipped)
+		}
+	}
+
+	// The CentOS/Amazon driving data tags at least one member into each family.
+	wantTags := map[string]string{"centos-9": "rhel-9-variant", "amazon-2023": "amazon-2023"}
+	for id, family := range wantTags {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing %q", id)
+			continue
+		}
+		if o.Family != family {
+			t.Errorf("%s family = %q, want %q", id, o.Family, family)
+		}
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {

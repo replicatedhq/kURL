@@ -33,6 +33,40 @@
 #   distro/versionMajor/packageFamily  installer identity (shell/build plumbing)
 #   minKubernetes/dockerSupported/apparmorWorkaround/hostPackagesShipped
 #                  capability constraints (drive computed preflight/exclusion rules)
+#   family         membership in a `families` entry below (shared shell predicate)
+
+# families are distro families whose membership is defined by an $LSB_DIST set and
+# a set of $DIST_VERSION_MAJOR values rather than by a single OS row. Each renders
+# one shared shell predicate (is_<predicate>) into scripts/common/host-packages.sh
+# — called by hand-written installer code and by the generated host_packages_shipped
+# guard. A family exists because its predicate must match machines kURL never
+# testgrids (e.g. stock RHEL) across several distros/majors. OSes join a family via
+# their `family:` tag; later convoy legs (Rocky/Oracle/Amazon-2023/Ubuntu-legacy)
+# add their family's per-OS capability data on top of this shared model — e.g. a
+# Rocky leg tags rocky-9/rocky-10 with `family: rhel-9-variant`.
+#
+# Fields:
+#   name/predicate  registry key / rendered shell function name
+#   description     completes the predicate doc comment
+#   lsbDist         the $LSB_DIST tokens the predicate matches
+#   versionMajors   the $DIST_VERSION_MAJOR values the predicate matches
+#   hostPackagesShipped  true => family is handled by a dedicated/native package
+#                  path, so it is excluded from generic host_packages_shipped
+#                  detection (its predicate appears in that guard's negated clause).
+families:
+  - name: rhel-9-variant
+    predicate: is_rhel_9_variant
+    description: RHEL 9 (or 10) or a derivative
+    lsbDist: [centos, rhel, ol, rocky]
+    versionMajors: ["9", "10"]
+    hostPackagesShipped: true
+
+  - name: amazon-2023
+    predicate: is_amazon_2023
+    description: Amazon 2023.
+    lsbDist: [amzn]
+    versionMajors: ["2023"]
+    hostPackagesShipped: true
 
 oses:
   - id: amzn-20
@@ -135,6 +169,7 @@ oses:
     distro: centos
     versionMajor: "9"
     packageFamily: yum9
+    family: rhel-9-variant
 
   - id: ol-79
     name: Oracle Linux
@@ -276,6 +311,7 @@ oses:
     minKubernetes: "1.24"
     dockerSupported: false
     preflightName: AmazonLinux
+    family: amazon-2023
 
 # pools are ordered id lists that render to testgrid/specs/<name>.yaml.
 # trailingNewline preserves whether the committed file ends with a newline.

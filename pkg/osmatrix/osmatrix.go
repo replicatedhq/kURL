@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -36,9 +37,14 @@ var (
 	reUbuntuVersion = regexp.MustCompile(`^[0-9]+\.[0-9]+$`)
 	// reName allows human display names (letters, digits, spaces and a few
 	// punctuation marks) but rejects newlines, quotes and shell/YAML specials.
+	// It also validates a family's predicate description, which is rendered into
+	// a shell comment line.
 	reName = regexp.MustCompile(`^[a-zA-Z0-9 ._()-]+$`)
 	// reURI is an injection-safe charset for cloud-image URLs.
 	reURI = regexp.MustCompile(`^[a-zA-Z0-9:/._~%?=&+-]+$`)
+	// rePredicate matches a shell function name (a family predicate such as
+	// is_rhel_9_variant); it is both defined and called in generated shell.
+	rePredicate = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 )
 
 // PreinitStyle controls how an OS's preinit script is serialized into the
@@ -79,6 +85,13 @@ type OS struct {
 	VersionMajor  string `yaml:"versionMajor,omitempty"`
 	PackageFamily string `yaml:"packageFamily,omitempty"`
 
+	// Family names the distro family (see Matrix.Families) this OS belongs to.
+	// A family renders one shared shell predicate (is_<name>) matched by LSB_DIST
+	// and major version, rather than a per-version predicate. Membership is the
+	// hook later convoy legs use to attach their family's per-OS capability data
+	// to the shared model. Optional.
+	Family string `yaml:"family,omitempty"`
+
 	// Capability constraints. These drive computed preflight rules and the
 	// capability-derived subset of testgrid unsupportedOSIDs.
 	MinKubernetes       string `yaml:"minKubernetes,omitempty"`
@@ -95,6 +108,33 @@ type OS struct {
 	PreflightName string `yaml:"preflightName,omitempty"`
 }
 
+// Family is a distro family whose membership is defined by an LSB_DIST set and a
+// set of major versions rather than by a single registry OS entry. It renders one
+// shared shell predicate — is_<Predicate> — that hand-written installer code and
+// the host_packages_shipped guard call. A family exists because its predicate must
+// match machines kURL never testgrids (e.g. stock RHEL) and spans several distros
+// and majors, so it cannot be derived from one OS row. OSes join via OS.Family;
+// later convoy legs add their family's per-OS capability data on top of this model.
+type Family struct {
+	// Name is the family's registry key (referenced by OS.Family).
+	Name string `yaml:"name"`
+	// Predicate is the shell function name the family renders and callers use
+	// (e.g. "is_rhel_9_variant").
+	Predicate string `yaml:"predicate"`
+	// Description completes the predicate's doc comment, verbatim:
+	// "# <Predicate> returns 0 if the current distro is <Description>".
+	Description string `yaml:"description"`
+	// LSBDist is the set of $LSB_DIST tokens the predicate matches.
+	LSBDist []string `yaml:"lsbDist"`
+	// VersionMajors is the set of $DIST_VERSION_MAJOR values the predicate matches.
+	VersionMajors []string `yaml:"versionMajors"`
+	// HostPackagesShipped mirrors OS.HostPackagesShipped: true means this family
+	// is handled by a dedicated/native package path, so it is EXCLUDED from the
+	// generic host_packages_shipped detection (its predicate appears in that
+	// guard's negated clause). RHEL-9-variant and Amazon-2023 use their own repos.
+	HostPackagesShipped bool `yaml:"hostPackagesShipped"`
+}
+
 // Pool is an ordered list of OS ids that renders to one testgrid OS-spec file
 // (testgrid/specs/<name>.yaml). Order and trailing-newline are preserved so the
 // rendered file is byte-identical to the committed original.
@@ -106,10 +146,12 @@ type Pool struct {
 
 // Matrix is the whole registry.
 type Matrix struct {
-	OSes  []OS   `yaml:"oses"`
-	Pools []Pool `yaml:"pools"`
+	Families []Family `yaml:"families"`
+	OSes     []OS     `yaml:"oses"`
+	Pools    []Pool   `yaml:"pools"`
 
-	byKey map[string]*OS
+	byKey    map[string]*OS
+	byFamily map[string]*Family
 }
 
 // key returns the entry's lookup key (Key, defaulting to ID).
@@ -190,6 +232,52 @@ func (m *Matrix) validate() error {
 			return fmt.Errorf("divergent minKubernetes floors (%q vs %q); the generated preflight assumes a single floor", floor, v)
 		}
 	}
+	// Families render shell predicate definitions and are called by name, so every
+	// interpolated scalar must be constrained at the registry boundary.
+	for i := range m.Families {
+		f := &m.Families[i]
+		if !reSlug.MatchString(f.Name) {
+			return fmt.Errorf("family %q: name is not a safe slug (must match %s)", f.Name, reSlug)
+		}
+		if !rePredicate.MatchString(f.Predicate) {
+			return fmt.Errorf("family %q: predicate %q is not a safe shell function name (must match %s)", f.Name, f.Predicate, rePredicate)
+		}
+		if !reName.MatchString(f.Description) {
+			return fmt.Errorf("family %q: description %q has invalid value (must match %s)", f.Name, f.Description, reName)
+		}
+		if len(f.LSBDist) == 0 {
+			return fmt.Errorf("family %q: lsbDist must list at least one distro token", f.Name)
+		}
+		for _, d := range f.LSBDist {
+			if !reSlug.MatchString(d) {
+				return fmt.Errorf("family %q: lsbDist token %q is not a safe slug (must match %s)", f.Name, d, reSlug)
+			}
+		}
+		if len(f.VersionMajors) == 0 {
+			return fmt.Errorf("family %q: versionMajors must list at least one major", f.Name)
+		}
+		for _, v := range f.VersionMajors {
+			if !reDigits.MatchString(v) {
+				return fmt.Errorf("family %q: versionMajor %q must be a bare integer (must match %s)", f.Name, v, reDigits)
+			}
+		}
+	}
+	// An OS's family tag must reference a declared family, and — when the OS
+	// carries a major version — that major must be one the family matches, so a
+	// mistagged OS fails loudly instead of silently escaping its predicate.
+	for i := range m.OSes {
+		o := &m.OSes[i]
+		if o.Family == "" {
+			continue
+		}
+		f, ok := m.byFamily[o.Family]
+		if !ok {
+			return fmt.Errorf("os %q: unknown family %q", o.key(), o.Family)
+		}
+		if o.VersionMajor != "" && !slices.Contains(f.VersionMajors, o.VersionMajor) {
+			return fmt.Errorf("os %q: versionMajor %q is not in family %q majors %v", o.key(), o.VersionMajor, f.Name, f.VersionMajors)
+		}
+	}
 	// Pool names become file paths (testgrid/specs/<name>.yaml); keep them slugs.
 	for _, p := range m.Pools {
 		if !reSlug.MatchString(p.Name) {
@@ -209,6 +297,18 @@ func Load(path string) (*Matrix, error) {
 }
 
 func (m *Matrix) index() error {
+	m.byFamily = make(map[string]*Family, len(m.Families))
+	for i := range m.Families {
+		f := &m.Families[i]
+		if f.Name == "" {
+			return fmt.Errorf("family entry %d has empty name", i)
+		}
+		if _, dup := m.byFamily[f.Name]; dup {
+			return fmt.Errorf("duplicate family name %q", f.Name)
+		}
+		m.byFamily[f.Name] = f
+	}
+
 	m.byKey = make(map[string]*OS, len(m.OSes))
 	for i := range m.OSes {
 		o := &m.OSes[i]
