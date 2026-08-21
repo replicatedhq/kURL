@@ -1139,10 +1139,10 @@ github.com/rogpeppe/go-internal v1.8.1/go.mod h1:JeRgkft04UBgHMgCIwADu4Pn6Mtm5d4
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.15.0 h1:D0RCU5rMAp+SpgkiNdrjfJ+LX4J1M32V2NeCY7EJ6hc=
 github.com/rogpeppe/go-internal v1.15.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
-github.com/rook/rook v1.16.6 h1:bxFo4lIFzlKR2HtQB61BPEB3gdAVXXKR4hquXu6xbrQ=
-github.com/rook/rook v1.16.6/go.mod h1:BC0r+mIKY8tSUWInNAH1v93A5o/KuhU8G5uzGyFJuD4=
-github.com/rook/rook/pkg/apis v0.0.0-20241216163035-3170ac6a0c58 h1:z7TkRb4D+XvXIGg4ClSjZw8gAPQcZg9zUSFfZ0pUcTY=
-github.com/rook/rook/pkg/apis v0.0.0-20241216163035-3170ac6a0c58/go.mod h1:ybPZNHfwtlMsl7Xbgm0Ka8rpg0s3qsWaXgOffubA+0U=
+github.com/rook/rook v1.20.6 h1:2+Qe/CLcZ2WrXf9Vhf21JwZQqN8cVXPQskZzHf3KLjU=
+github.com/rook/rook v1.20.6/go.mod h1:O2WeHmEM4Jqd8rYaS/+LBe6DiwDWZi80NIKoHdMssz4=
+github.com/rook/rook/pkg/apis v0.0.0-20260820210534-4e1b7a626891 h1:ZmYYGMjNLwp7wEv+GnvWme2T9OUJFtMX20044c9ZSag=
+github.com/rook/rook/pkg/apis v0.0.0-20260820210534-4e1b7a626891/go.mod h1:2Zjpi93nYPNhDGGuFW6q0XzQ3/zZJNTV03VOaTOEt7I=
 github.com/rubenv/sql-migrate v1.8.1 h1:EPNwCvjAowHI3TnZ+4fQu3a915OpnQoPAjTXCGOy2U0=
 github.com/rubenv/sql-migrate v1.8.1/go.mod h1:BTIKBORjzyxZDS6dzoiw6eAFYJ1iNlGAtjn4LGeVjS8=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
