@@ -206,6 +206,70 @@ func TestGoldenCentOSFamilyIdentity(t *testing.T) {
 	}
 }
 
+// TestGoldenUbuntuLegacyIdentity pins the capability modeling of the legacy Ubuntu
+// releases (18.04/20.04/22.04). Unlike the newer 24.04/26.04 — which kURL special-
+// cases (native containerd, the apparmor workaround, no Docker, a 1.24 Kubernetes
+// floor) — legacy Ubuntu is the *default* apt path: Docker is supported, there is no
+// Kubernetes floor, and kURL ships bundled host packages for it via the generic dpkg
+// path (bundles/k8s-ubuntu1804/2004/2204). So the only registry identity these rows
+// need is distro + versionMajor; the remaining capability fields are deliberately
+// ABSENT and this test locks that in.
+//
+// For Ubuntu these absences are behavior-critical, not merely inert: each field is
+// consumed generatively (see shell.go). Setting them here would silently change
+// committed artifacts and installer behavior —
+//   - packageFamily apt* => phantom save-manifest apt<NN> cases + containerd manifest
+//     entries (legacy Ubuntu's apt plumbing is the hand-authored bare `apt)` fan-out
+//     in bin/save-manifest-assets.sh, outside the generated markers per the os-matrix
+//     scope note), so it must stay empty;
+//   - hostPackagesShipped => an is_ubuntu_<NN>04 predicate + a host_packages_shipped
+//     negated clause claiming a native path, which is the OPPOSITE of reality (kURL
+//     bundles them);
+//   - apparmorWorkaround => a wrong is_ubuntu_<NN>04 arm in the containerd apparmor
+//     guard;
+//   - dockerSupported=false / minKubernetes => wrong Docker/Kubernetes preflight fail
+//     outcomes and testgrid capability exclusions (see TestGoldenCapabilityExclusions,
+//     which pins today's exclusion set to exactly amazon-2023/ubuntu-2404/ubuntu-2604).
+func TestGoldenUbuntuLegacyIdentity(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+	want := map[string]struct{ distro, versionMajor string }{
+		"ubuntu-1804": {"ubuntu", "18"},
+		"ubuntu-2004": {"ubuntu", "20"},
+		"ubuntu-2204": {"ubuntu", "22"},
+	}
+	for id, w := range want {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing expected OS %q", id)
+			continue
+		}
+		if o.Distro != w.distro || o.VersionMajor != w.versionMajor {
+			t.Errorf("%s identity = {distro:%q versionMajor:%q}, want {distro:%q versionMajor:%q}",
+				id, o.Distro, o.VersionMajor, w.distro, w.versionMajor)
+		}
+		// Deliberately-absent capability fields — each is consumed generatively for
+		// distro==ubuntu, so a non-zero value here would drift committed artifacts.
+		if o.PackageFamily != "" {
+			t.Errorf("%s must not set packageFamily (no apt<NN> family; legacy Ubuntu uses the hand-authored bare `apt` path, so a value would emit phantom save-manifest/containerd cases)", id)
+		}
+		if o.HostPackagesShipped {
+			t.Errorf("%s must not set hostPackagesShipped (kURL ships bundled host packages for it via the generic dpkg path; setting it would render a spurious is_ubuntu_%s04 predicate + guard clause)", id, o.VersionMajor)
+		}
+		if o.ApparmorWorkaround {
+			t.Errorf("%s must not set apparmorWorkaround (only 24.04+ needs it; setting it would add a wrong arm to the containerd apparmor guard)", id)
+		}
+		if o.MinKubernetes != "" {
+			t.Errorf("%s must not set minKubernetes (legacy Ubuntu has no Kubernetes floor; setting it would drift the Kubernetes-support preflight + exclusions)", id)
+		}
+		if o.DockerSupported != nil {
+			t.Errorf("%s must not set dockerSupported (Docker is supported on legacy Ubuntu; setting false would drift the Docker-support preflight + exclusions)", id)
+		}
+		if o.Family != "" {
+			t.Errorf("%s must not set a family (no legacy-Ubuntu family predicate exists)", id)
+		}
+	}
+}
+
 // TestGoldenFamilyModel pins the shared distro-family model the pathfinder
 // established: the two families the RHEL/Amazon predicates render from, and the
 // member OSes tagged into them from the CentOS/Amazon driving data. The predicate
