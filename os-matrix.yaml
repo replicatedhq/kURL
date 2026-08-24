@@ -208,6 +208,10 @@ oses:
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
+    distro: rocky
+    versionMajor: "9"
+    packageFamily: yum9
+    family: rhel-9-variant
 
   # Same testgrid id as rocky-9 but pinned to 9.7 (vault) for the customer pool.
   - key: rocky-9-customer
@@ -218,6 +222,10 @@ oses:
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
+    distro: rocky
+    versionMajor: "9"
+    packageFamily: yum9
+    family: rhel-9-variant
 
   - id: rocky-91
     name: Rocky Linux
@@ -226,6 +234,10 @@ oses:
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
+    distro: rocky
+    versionMajor: "9"
+    packageFamily: yum9
+    family: rhel-9-variant
 
   - id: rocky-98
     name: Rocky Linux
@@ -234,6 +246,10 @@ oses:
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
+    distro: rocky
+    versionMajor: "9"
+    packageFamily: yum9
+    family: rhel-9-variant
 
   - id: rocky-10
     name: Rocky Linux
@@ -249,6 +265,10 @@ oses:
           reboot
       fi
     preinitStyle: block
+    distro: rocky
+    versionMajor: "10"
+    packageFamily: yum10
+    family: rhel-9-variant
 
   - id: ubuntu-1804
     name: Ubuntu

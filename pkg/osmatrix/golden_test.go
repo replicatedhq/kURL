@@ -257,6 +257,47 @@ func TestGoldenFamilyModel(t *testing.T) {
 	}
 }
 
+// TestGoldenRockyFamily pins the Rocky Linux capability data tagged onto the
+// pathfinder's rhel-9-variant model. Rocky ships no dedicated testgrid family
+// predicate of its own — it joins is_rhel_9_variant (whose lsbDist already lists
+// "rocky") via each OS's `family:` tag — so this test guards the per-OS identity
+// data (distro/versionMajor/packageFamily) and the family membership the runtime
+// predicate relies on. Rocky needs no dockerSupported/minKubernetes/apparmor
+// constraint: is_docker_version_supported treats rocky as Docker-capable at every
+// major, and host-package shipping is handled at the rhel-9-variant family level.
+func TestGoldenRockyFamily(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+
+	want := map[string]struct {
+		distro, versionMajor, packageFamily, family string
+	}{
+		"rocky-9":          {"rocky", "9", "yum9", "rhel-9-variant"},
+		"rocky-9-customer": {"rocky", "9", "yum9", "rhel-9-variant"},
+		"rocky-91":         {"rocky", "9", "yum9", "rhel-9-variant"},
+		"rocky-98":         {"rocky", "9", "yum9", "rhel-9-variant"},
+		"rocky-10":         {"rocky", "10", "yum10", "rhel-9-variant"},
+	}
+	for key, w := range want {
+		o, ok := m.OS(key)
+		if !ok {
+			t.Errorf("registry missing %q", key)
+			continue
+		}
+		if o.Distro != w.distro || o.VersionMajor != w.versionMajor ||
+			o.PackageFamily != w.packageFamily || o.Family != w.family {
+			t.Errorf("%s = {distro:%q versionMajor:%q packageFamily:%q family:%q}, want {%q %q %q %q}",
+				key, o.Distro, o.VersionMajor, o.PackageFamily, o.Family,
+				w.distro, w.versionMajor, w.packageFamily, w.family)
+		}
+		// Rocky inherits Docker support and the k8s floor from the shared model;
+		// it must not carry its own capability constraints.
+		if o.MinKubernetes != "" || o.DockerSupported != nil || o.ApparmorWorkaround || o.HostPackagesShipped {
+			t.Errorf("%s carries unexpected capability constraint(s): minKubernetes=%q dockerSupported=%v apparmor=%v hostPackagesShipped=%v",
+				key, o.MinKubernetes, o.DockerSupported, o.ApparmorWorkaround, o.HostPackagesShipped)
+		}
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {
