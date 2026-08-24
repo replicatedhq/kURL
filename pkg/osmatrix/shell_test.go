@@ -82,6 +82,30 @@ pools: []
 	}
 }
 
+// TestRenderHostPackagesShippedGuardEmpty covers the degenerate edge (review
+// hardening): a registry with zero shipping families AND zero shipping Ubuntus must
+// not emit the malformed `if ; then`. With nothing excluded from generic detection,
+// the guard is vacuously true, so it renders `if true; then`.
+func TestRenderHostPackagesShippedGuardEmpty(t *testing.T) {
+	m := mustParse(t, `
+oses:
+  - id: ubuntu-2204
+    name: Ubuntu
+    version: "22.04"
+    vmimageuri: https://e/z.img
+    preinit: ""
+    preinitStyle: empty
+    distro: ubuntu
+    versionMajor: "22"
+pools: []
+`)
+	got := strings.Join(m.renderHostPackagesShippedGuard(), "\n")
+	want := "    if true; then"
+	if got != want {
+		t.Errorf("empty guard = %q, want %q", got, want)
+	}
+}
+
 func TestRenderApparmorGuard(t *testing.T) {
 	m := mustParse(t, `
 oses:

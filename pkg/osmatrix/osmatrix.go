@@ -234,6 +234,7 @@ func (m *Matrix) validate() error {
 	}
 	// Families render shell predicate definitions and are called by name, so every
 	// interpolated scalar must be constrained at the registry boundary.
+	seenPredicate := make(map[string]string, len(m.Families))
 	for i := range m.Families {
 		f := &m.Families[i]
 		if !reSlug.MatchString(f.Name) {
@@ -242,6 +243,19 @@ func (m *Matrix) validate() error {
 		if !rePredicate.MatchString(f.Predicate) {
 			return fmt.Errorf("family %q: predicate %q is not a safe shell function name (must match %s)", f.Name, f.Predicate, rePredicate)
 		}
+		// The is_ubuntu_<NNNN> namespace is owned by the generated per-version Ubuntu
+		// predicates (see predicateName); a family squatting that prefix would emit a
+		// second definition of the same function that silently shadows.
+		if strings.HasPrefix(f.Predicate, "is_ubuntu_") {
+			return fmt.Errorf("family %q: predicate %q uses the reserved is_ubuntu_ prefix (owned by the generated per-version Ubuntu predicates)", f.Name, f.Predicate)
+		}
+		// index() dedups families on Name only, but two distinct families sharing a
+		// predicate would render duplicate function defs that silently shadow, so the
+		// predicate must be unique too.
+		if prev, dup := seenPredicate[f.Predicate]; dup {
+			return fmt.Errorf("family %q: duplicate family predicate %q (already used by family %q)", f.Name, f.Predicate, prev)
+		}
+		seenPredicate[f.Predicate] = f.Name
 		if !reName.MatchString(f.Description) {
 			return fmt.Errorf("family %q: description %q has invalid value (must match %s)", f.Name, f.Description, reName)
 		}

@@ -45,10 +45,20 @@
 # add their family's per-OS capability data on top of this shared model — e.g. a
 # Rocky leg tags rocky-9/rocky-10 with `family: rhel-9-variant`.
 #
+# NAMESPACE NOTE — OS.distro and family.lsbDist are two different identities and
+# are NOT reconciled by validation (they legitimately differ):
+#   OS.distro       build/plumbing identity used to derive Go-side artifact names
+#                   and package plumbing (e.g. Amazon Linux is distro: amazonlinux).
+#   family.lsbDist  the runtime $LSB_DIST tokens the rendered predicate matches at
+#                   install time (e.g. Amazon Linux reports $LSB_DIST=amzn).
+# So an OS's distro (amazonlinux) and its family's lsbDist token (amzn) can and do
+# differ; validate() deliberately does not cross-check one against the other.
+#
 # Fields:
 #   name/predicate  registry key / rendered shell function name
 #   description     completes the predicate doc comment
-#   lsbDist         the $LSB_DIST tokens the predicate matches
+#   lsbDist         the $LSB_DIST tokens the predicate matches (runtime identity;
+#                   see the NAMESPACE NOTE above — distinct from OS.distro)
 #   versionMajors   the $DIST_VERSION_MAJOR values the predicate matches
 #   hostPackagesShipped  true => family is handled by a dedicated/native package
 #                  path, so it is excluded from generic host_packages_shipped

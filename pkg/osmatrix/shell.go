@@ -98,6 +98,12 @@ func (m *Matrix) renderHostPackagesShippedGuard() []string {
 	for _, o := range m.predicateUbuntuOSes() {
 		preds = append(preds, predicateName(o))
 	}
+	// With zero shipping families AND zero shipping Ubuntus there is nothing to
+	// exclude from generic detection; joining an empty clause list would emit the
+	// malformed `if ; then`, so render the vacuously-true guard instead.
+	if len(preds) == 0 {
+		return []string{"    if true; then"}
+	}
 	clauses := make([]string, len(preds))
 	for i, p := range preds {
 		clauses[i] = "! " + p
