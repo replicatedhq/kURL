@@ -206,6 +206,49 @@ func TestGoldenCentOSFamilyIdentity(t *testing.T) {
 	}
 }
 
+// TestGoldenOracleFamilyIdentity pins the installer-identity capability fields for
+// the Oracle Linux family leg (ol-79 EL7, ol-8x EL8). Distro is "oracle" — the
+// troubleshoot hostOS analyzer token used by the hand-authored Oracle preflights
+// (e.g. rook's `when: "oracle < 8"`), matching how the pathfinder used
+// "amazonlinux" for Amazon. Oracle 7/8 predate the rhel-9-variant family (majors
+// 9/10), so they carry NO family tag; like the CentOS leg these fields are inert
+// w.r.t. today's generated artifacts (TestGoldenSpliceRegionsInSync and
+// TestGoldenPools prove byte-identity), so this test guards against silent removal.
+func TestGoldenOracleFamilyIdentity(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+	want := map[string]struct{ distro, versionMajor, packageFamily string }{
+		"ol-79": {"oracle", "7", "yum"},
+		"ol-8x": {"oracle", "8", "yum8"},
+	}
+	for id, w := range want {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing expected OS %q", id)
+			continue
+		}
+		if o.Distro != w.distro || o.VersionMajor != w.versionMajor || o.PackageFamily != w.packageFamily {
+			t.Errorf("%s identity = {distro:%q versionMajor:%q packageFamily:%q}, want {distro:%q versionMajor:%q packageFamily:%q}",
+				id, o.Distro, o.VersionMajor, o.PackageFamily, w.distro, w.versionMajor, w.packageFamily)
+		}
+		// Oracle Linux 7/8 use SELinux (not the apparmor workaround), support
+		// Docker, and impose no Kubernetes floor — keep them out of the
+		// capability-derived preflight/exclusion regions, and out of any family
+		// (rhel-9-variant matches majors 9/10 only, which EL7/EL8 are not).
+		if o.ApparmorWorkaround {
+			t.Errorf("%s must not set apparmorWorkaround (Oracle family uses SELinux)", id)
+		}
+		if o.MinKubernetes != "" {
+			t.Errorf("%s must not set minKubernetes this leg (would drift preflight regions)", id)
+		}
+		if o.DockerSupported != nil {
+			t.Errorf("%s must not set dockerSupported this leg (would drift preflight/exclusion regions)", id)
+		}
+		if o.Family != "" {
+			t.Errorf("%s must not set family (rhel-9-variant matches majors 9/10, not EL7/EL8)", id)
+		}
+	}
+}
+
 // TestGoldenFamilyModel pins the shared distro-family model the pathfinder
 // established: the two families the RHEL/Amazon predicates render from, and the
 // member OSes tagged into them from the CentOS/Amazon driving data. The predicate
