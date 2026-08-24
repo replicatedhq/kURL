@@ -190,6 +190,9 @@ oses:
       chmod +x centos2ol.sh
       bash centos2ol.sh -r
     preinitStyle: block
+    distro: oracle
+    versionMajor: "7"
+    packageFamily: yum
 
   - id: ol-8x
     name: Oracle Linux
@@ -200,6 +203,9 @@ oses:
       chmod +x centos2ol.sh
       bash centos2ol.sh -r
     preinitStyle: block
+    distro: oracle
+    versionMajor: "8"
+    packageFamily: yum8
 
   - id: rocky-9
     name: Rocky Linux
