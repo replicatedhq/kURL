@@ -160,6 +160,103 @@ func TestGoldenSpliceRegionsInSync(t *testing.T) {
 	}
 }
 
+// TestGoldenCentOSFamilyIdentity pins the installer-identity capability fields the
+// pathfinder populated for the CentOS/RHEL family and Amazon Linux 2. These make
+// the registry the single source of truth for these OSes' distro/version/package
+// family (previously implicit in hand-authored shell/build plumbing) and are the
+// data later convoy legs build family-driven generation on. They are deliberately
+// inert w.r.t. today's generated artifacts (TestGoldenSpliceRegionsInSync and
+// TestGoldenPools prove byte-identity), so this test guards against silent removal.
+func TestGoldenCentOSFamilyIdentity(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+	want := map[string]struct{ distro, versionMajor, packageFamily string }{
+		"amzn-20":                 {"amazonlinux", "2", "yum"},
+		"centos-74":               {"centos", "7", "yum"},
+		"centos-78":               {"centos", "7", "yum"},
+		"centos-79":               {"centos", "7", "yum"},
+		"centos-81":               {"centos", "8", "yum8"},
+		"centos-82":               {"centos", "8", "yum8"},
+		"centos-83":               {"centos", "8", "yum8"},
+		"centos-84":               {"centos", "8", "yum8"},
+		"centos-8-stream-2024-04": {"centos", "8", "yum8"},
+		"centos-9":                {"centos", "9", "yum9"},
+	}
+	for id, w := range want {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing expected OS %q", id)
+			continue
+		}
+		if o.Distro != w.distro || o.VersionMajor != w.versionMajor || o.PackageFamily != w.packageFamily {
+			t.Errorf("%s identity = {distro:%q versionMajor:%q packageFamily:%q}, want {distro:%q versionMajor:%q packageFamily:%q}",
+				id, o.Distro, o.VersionMajor, o.PackageFamily, w.distro, w.versionMajor, w.packageFamily)
+		}
+		// The CentOS family and Amazon Linux 2 use SELinux, not the apparmor
+		// workaround, and impose no Kubernetes floor or docker exclusion today —
+		// keep them out of the capability-derived preflight/exclusion regions.
+		if o.ApparmorWorkaround {
+			t.Errorf("%s must not set apparmorWorkaround (RHEL family uses SELinux)", id)
+		}
+		if o.MinKubernetes != "" {
+			t.Errorf("%s must not set minKubernetes this leg (would drift preflight regions)", id)
+		}
+		if o.DockerSupported != nil {
+			t.Errorf("%s must not set dockerSupported this leg (would drift preflight/exclusion regions)", id)
+		}
+	}
+}
+
+// TestGoldenFamilyModel pins the shared distro-family model the pathfinder
+// established: the two families the RHEL/Amazon predicates render from, and the
+// member OSes tagged into them from the CentOS/Amazon driving data. The predicate
+// bodies' byte-identity is proven by TestGoldenSpliceRegionsInSync (the
+// family-predicates region of host-packages.sh); this test guards the registry
+// data those predicates derive from, and documents the extension point later legs
+// use (tagging their OSes with `family: rhel-9-variant` etc.).
+func TestGoldenFamilyModel(t *testing.T) {
+	m, _ := loadRealMatrix(t)
+
+	wantFamilies := map[string]struct {
+		predicate           string
+		lsbDist             []string
+		versionMajors       []string
+		hostPackagesShipped bool
+	}{
+		"rhel-9-variant": {"is_rhel_9_variant", []string{"centos", "rhel", "ol", "rocky"}, []string{"9", "10"}, true},
+		"amazon-2023":    {"is_amazon_2023", []string{"amzn"}, []string{"2023"}, true},
+	}
+	if len(m.Families) != len(wantFamilies) {
+		t.Errorf("registry has %d families, want %d", len(m.Families), len(wantFamilies))
+	}
+	for i := range m.Families {
+		f := &m.Families[i]
+		w, ok := wantFamilies[f.Name]
+		if !ok {
+			t.Errorf("unexpected family %q", f.Name)
+			continue
+		}
+		if f.Predicate != w.predicate || !equalStrings(f.LSBDist, w.lsbDist) ||
+			!equalStrings(f.VersionMajors, w.versionMajors) || f.HostPackagesShipped != w.hostPackagesShipped {
+			t.Errorf("family %q = {predicate:%q lsbDist:%v versionMajors:%v hostPackagesShipped:%v}, want {%q %v %v %v}",
+				f.Name, f.Predicate, f.LSBDist, f.VersionMajors, f.HostPackagesShipped,
+				w.predicate, w.lsbDist, w.versionMajors, w.hostPackagesShipped)
+		}
+	}
+
+	// The CentOS/Amazon driving data tags at least one member into each family.
+	wantTags := map[string]string{"centos-9": "rhel-9-variant", "amazon-2023": "amazon-2023"}
+	for id, family := range wantTags {
+		o, ok := m.OS(id)
+		if !ok {
+			t.Errorf("registry missing %q", id)
+			continue
+		}
+		if o.Family != family {
+			t.Errorf("%s family = %q, want %q", id, o.Family, family)
+		}
+	}
+}
+
 func truncate(b []byte) string {
 	const maxLen = 400
 	if len(b) > maxLen {

@@ -83,15 +83,32 @@ func (m *Matrix) renderHostPackagesPredicates() []string {
 }
 
 // renderHostPackagesShippedGuard renders the single `if ...; then` line of
-// host_packages_shipped, appending a `&& ! is_ubuntu_<NN>04` clause per
-// host-package-shipping Ubuntu release.
+// host_packages_shipped: the FAMILY predicates of every family handled by a
+// dedicated/native package path (HostPackagesShipped, registry order) followed by
+// one data-driven `is_ubuntu_<NN>04` clause per host-package-shipping Ubuntu
+// release. Both halves are registry-derived, so adding a family or a shipping
+// Ubuntu extends the guard.
 func (m *Matrix) renderHostPackagesShippedGuard() []string {
-	line := "    if ! is_rhel_9_variant && ! is_amazon_2023"
-	for _, o := range m.predicateUbuntuOSes() {
-		line += " && ! " + predicateName(o)
+	var preds []string
+	for i := range m.Families {
+		if m.Families[i].HostPackagesShipped {
+			preds = append(preds, m.Families[i].Predicate)
+		}
 	}
-	line += "; then"
-	return []string{line}
+	for _, o := range m.predicateUbuntuOSes() {
+		preds = append(preds, predicateName(o))
+	}
+	// With zero shipping families AND zero shipping Ubuntus there is nothing to
+	// exclude from generic detection; joining an empty clause list would emit the
+	// malformed `if ; then`, so render the vacuously-true guard instead.
+	if len(preds) == 0 {
+		return []string{"    if true; then"}
+	}
+	clauses := make([]string, len(preds))
+	for i, p := range preds {
+		clauses[i] = "! " + p
+	}
+	return []string{"    if " + strings.Join(clauses, " && ") + "; then"}
 }
 
 // renderContainerdTestPredicates renders the is_ubuntu_<NN>04 test stubs for

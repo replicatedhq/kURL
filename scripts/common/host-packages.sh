@@ -352,6 +352,7 @@ function host_packages_shipped() {
     return 1
 }
 
+# BEGIN GENERATED os-matrix: family-predicates — edit os-matrix.yaml, run 'make generate-os-matrix'
 # is_rhel_9_variant returns 0 if the current distro is RHEL 9 (or 10) or a derivative
 function is_rhel_9_variant() {
     if [ "$DIST_VERSION_MAJOR" != "9" ] && [ "$DIST_VERSION_MAJOR" != "10" ]; then
@@ -378,6 +379,7 @@ function is_amazon_2023() {
     fi
     return 0
 }
+# END GENERATED os-matrix: family-predicates
 
 # BEGIN GENERATED os-matrix: ubuntu-predicates — edit os-matrix.yaml, run 'make generate-os-matrix'
 # is_ubuntu_2404 returns 0 if the current distro is Ubuntu 24.04.

@@ -90,6 +90,7 @@ func (m *Matrix) spliceFiles() []spliceFile {
 	}
 	return []spliceFile{
 		{path: common("host-packages.sh"), regions: []spliceRegion{
+			{id: "family-predicates", body: m.renderFamilyPredicates},
 			{id: "ubuntu-predicates", body: m.renderHostPackagesPredicates},
 			{id: "host-packages-shipped", body: m.renderHostPackagesShippedGuard},
 		}},
