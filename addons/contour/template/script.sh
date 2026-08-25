@@ -36,9 +36,11 @@ if [ "$CONTOUR_VERSION" = "1.13.1" ]; then
     exit 0
 fi
 
-upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:v([0-9]+\.[0-9]+\.[0-9]+)'
+# the envoy tag is not always a plain 'v<major>.<minor>.<patch>'; contour 1.33+ ships
+# distroless envoy images tagged 'distroless-v<major>.<minor>.<patch>'
+upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:([^"[:space:]]+)'
 [[ "$fileContents" =~ $upstreamEnvoyVersionPattern ]]
-ENVOY_VERSION="${BASH_REMATCH[1]}" # 1.16.2
+ENVOY_VERSION="${BASH_REMATCH[1]}" # v1.16.2 or distroless-v1.38.3
 
 echo "envoy version: $ENVOY_VERSION"
 
