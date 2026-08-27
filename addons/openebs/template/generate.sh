@@ -36,7 +36,7 @@ function generate() {
     # get images in files
     mkdir -p "$tmpdir"
     grep 'image: ' "$dir/spec/openebs.tmpl.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
-    sed -e '/ name: .*_IMAGE/,/ value: .*$/!d' "$dir/spec/openebs.tmpl.yaml" | grep ' value: ' | sed 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
+    sed -e '/ name: .*_IMAGE$/,/ value: .*$/!d' "$dir/spec/openebs.tmpl.yaml" | grep ' value: ' | sed -n 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/p' >> "$tmpdir/Manifest"
     sort "$tmpdir/Manifest" | uniq >> "$dir/Manifest"
     rm -rf "$tmpdir"
 }
