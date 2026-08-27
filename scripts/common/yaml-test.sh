@@ -105,7 +105,7 @@ function test_insert_patches_k8s_126() {
 
     echo -e "resources:\n- r1\n" > "$tmpdir/k1.yaml"
     insert_patches "$tmpdir/k1.yaml" "patch.yaml"
-    assertEquals "uses patchesStrategicMerge on k8s < 1.27" "$(echo -e "resources:\n- r1\npatchesStrategicMerge:\n- patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
+    assertEquals "uses patchesStrategicMerge on k8s < 1.27" "$(echo -e "resources:\n- r1\n\npatchesStrategicMerge:\n- patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
 }
 
 function test_insert_patches_k8s_127() {
@@ -122,7 +122,7 @@ function test_insert_patches_k8s_127() {
 
     echo -e "resources:\n- r1\n" > "$tmpdir/k1.yaml"
     insert_patches "$tmpdir/k1.yaml" "patch.yaml"
-    assertEquals "uses patches on k8s >= 1.27" "$(echo -e "resources:\n- r1\npatches:\n- path: patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
+    assertEquals "uses patches on k8s >= 1.27" "$(echo -e "resources:\n- r1\n\npatches:\n- path: patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
 }
 
 function test_yaml_indent() {

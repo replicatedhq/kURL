@@ -71,8 +71,12 @@ function prometheus() {
 
     # change ClusterIP services to NodePorts if required
     if [ -z "$PROMETHEUS_SERVICE_TYPE" ] || [ "$PROMETHEUS_SERVICE_TYPE" = "NodePort" ] ; then
-        cp "$src/nodeport-services.yaml" "$operatordst"
-        insert_patches_strategic_merge "$operatordst/kustomization.yaml" nodeport-services.yaml
+        cp "$src/nodeport-alertmanager.yaml" "$operatordst"
+        cp "$src/nodeport-prometheus.yaml" "$operatordst"
+        cp "$src/nodeport-grafana.yaml" "$operatordst"
+        insert_patches "$operatordst/kustomization.yaml" nodeport-alertmanager.yaml
+        insert_patches "$operatordst/kustomization.yaml" nodeport-prometheus.yaml
+        insert_patches "$operatordst/kustomization.yaml" nodeport-grafana.yaml
     fi
 
     kubectl apply -k "$operatordst/"
