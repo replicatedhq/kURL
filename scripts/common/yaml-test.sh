@@ -91,6 +91,40 @@ function test_insert_bases_no_kubectl() {
     assertEquals "inserts the first base" "$(echo -e "resources:\n- b2\n")" "$(cat "$tmpdir/k2.yaml")"
 }
 
+function test_insert_patches_k8s_126() {
+    local tmpdir=
+    tmpdir="$(mktemp -d)"
+
+    kubelet_version(){
+        echo "v1.26.0"
+    }
+    semverParse(){
+        # shellcheck disable=SC2034
+        minor="26"
+    }
+
+    echo -e "resources:\n- r1\n" > "$tmpdir/k1.yaml"
+    insert_patches "$tmpdir/k1.yaml" "patch.yaml"
+    assertEquals "uses patchesStrategicMerge on k8s < 1.27" "$(echo -e "resources:\n- r1\npatchesStrategicMerge:\n- patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
+}
+
+function test_insert_patches_k8s_127() {
+    local tmpdir=
+    tmpdir="$(mktemp -d)"
+
+    kubelet_version(){
+        echo "v1.27.0"
+    }
+    semverParse(){
+        # shellcheck disable=SC2034
+        minor="27"
+    }
+
+    echo -e "resources:\n- r1\n" > "$tmpdir/k1.yaml"
+    insert_patches "$tmpdir/k1.yaml" "patch.yaml"
+    assertEquals "uses patches on k8s >= 1.27" "$(echo -e "resources:\n- r1\npatches:\n- path: patch.yaml\n")" "$(cat "$tmpdir/k1.yaml")"
+}
+
 function test_yaml_indent() {
   assertEquals "$(echo -e "   blah1\n   blah2\n     \"blah3\"")" "$(echo -e "blah1\nblah2\n  \"blah3\"" | yaml_indent "   ")"
 }

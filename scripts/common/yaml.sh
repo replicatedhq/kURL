@@ -62,6 +62,28 @@ function insert_patches_strategic_merge() {
     sed -i "/patchesStrategicMerge.*/a - $patch_file" "$kustomization_file"
 }
 
+function insert_patches() {
+    local kustomization_file="$1"
+    local patch_file="$2"
+
+    # we care about the current kubernetes version here, not the target version - this function can be called from pre-init addons
+    local kubeletVersion=
+    kubeletVersion="$(kubelet_version)"
+    semverParse "$kubeletVersion"
+    local kubeletMinor="$minor"
+
+    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
+    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
+    if [ "$kubeletMinor" -ge "27" ]; then
+        if ! grep -q "^patches:" "$kustomization_file"; then
+            echo "patches:" >> "$kustomization_file"
+        fi
+        sed -i "/^patches:.*/a - path: $patch_file" "$kustomization_file"
+    else
+        insert_patches_strategic_merge "$kustomization_file" "$patch_file"
+    fi
+}
+
 function insert_resources() {
     local kustomization_file="$1"
     local resource_file="$2"
