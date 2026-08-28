@@ -64,7 +64,11 @@ function generate() {
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
         grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
-        curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep '_IMAGE: ' | sed -E 's/.*_IMAGE: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+        # Newer Rook operator.yaml stores the CSI sidecar images in a ConfigMap as
+        # quoted image refs (e.g. provisioner: "registry.k8s.io/...:v1.2.3").
+        # Older versions kept them in commented _IMAGE: lines. Extract any quoted
+        # image reference so both formats work.
+        curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' | sed -E 's/"([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+)"/image \2-\3 \1\2\/\3:\4/' ; \
     } >> "${dir}/Manifest"
 }
 
