@@ -23,6 +23,7 @@ jobs:
       id: update
       working-directory: ./addons/rook/template
       run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
         ./generate.sh --version=${{ github.event.inputs.version }} ${{ github.event.inputs.force == 'true' && '--force' || '' }}
 
     - name: Create Pull Request # creates a PR if there are differences
