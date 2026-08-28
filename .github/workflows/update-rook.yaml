@@ -21,8 +21,8 @@ jobs:
 
     - name: Install Helm
       env:
-        HELM_VERSION: 4.2.4
-        HELM_SHA256: c306b46f719b0a4da32d0f78ee21bf90ce8d602f15b22ab753f0674d1670a7f3
+        HELM_VERSION: 3.21.4
+        HELM_SHA256: 61f88ab166748cb19604d7884cb100ae9ccb13804ddeb98e08af167eacbb6a14
       run: |
         curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" -o helm.tar.gz
         echo "${HELM_SHA256}  helm.tar.gz" | sha256sum -c
