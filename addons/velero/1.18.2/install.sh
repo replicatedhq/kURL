@@ -203,7 +203,7 @@ function velero_install() {
 
     local plugins="velero/velero-plugin-for-aws:v1.14.2,velero/velero-plugin-for-gcp:v1.14.2,velero/velero-plugin-for-microsoft-azure:v1.14.2,${KURL_UTIL_IMAGE}"
     if ! velero_version_ge "1.17.0"; then
-        plugins="$plugins,replicated/local-volume-provider:0.6.14"
+        plugins="$plugins,replicated/local-volume-provider:0.6.15"
     fi
 
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install \
