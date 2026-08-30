@@ -29051,189 +29051,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 
 /***/ }),
 
-/***/ 4649:
-/***/ ((__unused_webpack_module, exports) => {
-
-var __webpack_unused_export__;
-
-/*!
- * content-type
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-__webpack_unused_export__ = ({ value: true });
-__webpack_unused_export__ = format;
-exports.qg = parse;
-const TEXT_REGEXP = /^[\u0009\u0020-\u007e\u0080-\u00ff]*$/;
-const TOKEN_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
-/**
- * RegExp to match chars that must be quoted-pair in RFC 9110 sec 5.6.4
- */
-const QUOTE_REGEXP = /[\\"]/g;
-/**
- * RegExp to match type in RFC 9110 sec 8.3.1
- *
- * media-type = type "/" subtype
- * type       = token
- * subtype    = token
- */
-const TYPE_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
-/**
- * Null object perf optimization. Faster than `Object.create(null)` and `{ __proto__: null }`.
- */
-const NullObject = /* @__PURE__ */ (() => {
-    const C = function () { };
-    C.prototype = Object.create(null);
-    return C;
-})();
-/**
- * Format an object into a `Content-Type` header.
- */
-function format(obj) {
-    const { type, parameters } = obj;
-    if (!type || !TYPE_REGEXP.test(type)) {
-        throw new TypeError(`Invalid type: ${type}`);
-    }
-    let result = type;
-    if (parameters) {
-        for (const param of Object.keys(parameters)) {
-            if (!TOKEN_REGEXP.test(param)) {
-                throw new TypeError(`Invalid parameter name: ${param}`);
-            }
-            result += `; ${param}=${qstring(parameters[param])}`;
-        }
-    }
-    return result;
-}
-/**
- * Parse a `Content-Type` header.
- */
-function parse(header, options) {
-    const stopChar = options?.comma === true ? COMMA : 65536; // Sentinel for "no stop char".
-    const len = header.length;
-    let index = skipOWS(header, options?.start ?? 0, len);
-    const valueStart = index;
-    index = skipValue(header, index, len, stopChar);
-    const valueEnd = trailingOWS(header, valueStart, index);
-    const type = header.slice(valueStart, valueEnd).toLowerCase();
-    if (options?.parameters === false) {
-        return { type, index, parameters: new NullObject() };
-    }
-    return parseParameters(header, type, index, len, stopChar);
-}
-const SP = 32; // " "
-const HTAB = 9; // "\t"
-const SEMI = 59; // ";"
-const EQ = 61; // "="
-const DQUOTE = 34; // '"'
-const BSLASH = 92; // "\\"
-const COMMA = 44; // ","
-/**
- * Parses the parameters of a `Content-Type` header starting at the given index.
- */
-function parseParameters(header, type, index, len, stopChar) {
-    const parameters = new NullObject();
-    parameter: while (index < len) {
-        if (header.charCodeAt(index) === stopChar)
-            break;
-        index = skipOWS(header, index + 1 /* Skip over ; */, len);
-        const keyStart = index;
-        while (index < len) {
-            const code = header.charCodeAt(index);
-            if (code === stopChar)
-                break parameter;
-            if (code === SEMI)
-                continue parameter;
-            if (code === EQ) {
-                const keyEnd = trailingOWS(header, keyStart, index);
-                const key = header.slice(keyStart, keyEnd).toLowerCase();
-                index = skipOWS(header, index + 1, len);
-                if (index < len && header.charCodeAt(index) === DQUOTE) {
-                    index++;
-                    let value = "";
-                    while (index < len) {
-                        const code = header.charCodeAt(index++);
-                        if (code === DQUOTE) {
-                            index = skipValue(header, index, len, stopChar);
-                            if (parameters[key] === undefined)
-                                parameters[key] = value;
-                            break;
-                        }
-                        if (code === BSLASH && index < len) {
-                            value += header[index++];
-                            continue;
-                        }
-                        value += String.fromCharCode(code);
-                    }
-                    continue parameter;
-                }
-                const valueStart = index;
-                index = skipValue(header, index, len, stopChar);
-                if (parameters[key] === undefined) {
-                    const valueEnd = trailingOWS(header, valueStart, index);
-                    parameters[key] = header.slice(valueStart, valueEnd);
-                }
-                continue parameter;
-            }
-            index++;
-        }
-    }
-    return { type, index, parameters };
-}
-/**
- * Skip over characters until a semicolon or other exit character.
- */
-function skipValue(str, index, len, stopChar) {
-    while (index < len) {
-        const code = str.charCodeAt(index);
-        if (code === SEMI || code === stopChar)
-            break;
-        index++;
-    }
-    return index;
-}
-/**
- * Skip optional whitespace (OWS) in an HTTP header value.
- *
- * OWS is defined in RFC 9110 sec 5.6.3 as SP (" ") or HTAB ("\t").
- */
-function skipOWS(header, index, len) {
-    while (index < len) {
-        const char = header.charCodeAt(index);
-        if (char !== SP && char !== HTAB)
-            break;
-        index++;
-    }
-    return index;
-}
-/**
- * Trim optional whitespace (OWS) from the end of a substring.
- *
- * OWS is defined in RFC 9110 sec 5.6.3 as SP (" ") or HTAB ("\t").
- */
-function trailingOWS(header, start, end) {
-    while (end > start) {
-        const char = header.charCodeAt(end - 1);
-        if (char !== SP && char !== HTAB)
-            break;
-        end--;
-    }
-    return end;
-}
-/**
- * Serialize a parameter value.
- */
-function qstring(str) {
-    if (TOKEN_REGEXP.test(str))
-        return str;
-    if (TEXT_REGEXP.test(str))
-        return `"${str.replace(QUOTE_REGEXP, "\\$&")}"`;
-    throw new TypeError(`Invalid parameter value: ${str}`);
-}
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
 /***/ 5483:
 /***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
@@ -32461,8 +32278,8 @@ __nccwpck_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/universal-user-agent/index.js
 var universal_user_agent = __nccwpck_require__(6396);
-// EXTERNAL MODULE: ./node_modules/@octokit/request/dist-bundle/index.js + 2 modules
-var dist_bundle = __nccwpck_require__(2053);
+// EXTERNAL MODULE: ./node_modules/@octokit/request/dist-bundle/index.js + 3 modules
+var dist_bundle = __nccwpck_require__(7561);
 // EXTERNAL MODULE: ./node_modules/@octokit/request-error/dist-src/index.js
 var dist_src = __nccwpck_require__(1015);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/dist-bundle/index.js
@@ -33430,19 +33247,28 @@ async function githubAppJwt({
 /**
  * toad-cache
  *
- * @copyright 2024 Igor Savin <kibertoad@gmail.com>
+ * @copyright 2026 Igor Savin <kibertoad@gmail.com>
  * @license MIT
- * @version 3.7.0
+ * @version 3.7.3
  */
-class FifoMap {
-  constructor(max = 1000, ttlInMsecs = 0) {
-    if (isNaN(max) || max < 0) {
-      throw new Error('Invalid max value')
-    }
+/**
+ * Validates the shared cache constructor parameters.
+ * Both values must be non-negative integers.
+ *
+ * @param {number} max
+ * @param {number} ttlInMsecs
+ */
+function validateCacheParams(max, ttlInMsecs) {
+  if (typeof max !== 'number' || !Number.isInteger(max) || max < 0) {
+    throw new Error('Invalid max value')
+  }
 
-    if (isNaN(ttlInMsecs) || ttlInMsecs < 0) {
-      throw new Error('Invalid ttl value')
-    }
+  if (typeof ttlInMsecs !== 'number' || !Number.isInteger(ttlInMsecs) || ttlInMsecs < 0) {
+    throw new Error('Invalid ttl value')
+  }
+}class FifoMap {
+  constructor(max = 1000, ttlInMsecs = 0) {
+    validateCacheParams(max, ttlInMsecs);
 
     this.first = null;
     this.items = new Map();
@@ -33456,15 +33282,15 @@ class FifoMap {
   }
 
   clear() {
-    this.items = new Map();
+    this.items.clear();
     this.first = null;
     this.last = null;
   }
 
   delete(key) {
-    if (this.items.has(key)) {
-      const deletedItem = this.items.get(key);
+    const deletedItem = this.items.get(key);
 
+    if (deletedItem !== undefined) {
       this.items.delete(key);
 
       if (deletedItem.prev !== null) {
@@ -33508,15 +33334,17 @@ class FifoMap {
   }
 
   expiresAt(key) {
-    if (this.items.has(key)) {
-      return this.items.get(key).expiry
+    const item = this.items.get(key);
+
+    if (item !== undefined) {
+      return item.expiry
     }
   }
 
   get(key) {
-    if (this.items.has(key)) {
-      const item = this.items.get(key);
+    const item = this.items.get(key);
 
+    if (item !== undefined) {
       if (this.ttl > 0 && item.expiry <= Date.now()) {
         this.delete(key);
         return
@@ -33527,10 +33355,10 @@ class FifoMap {
   }
 
   getMany(keys) {
-    const result = [];
+    const result = new Array(keys.length);
 
     for (var i = 0; i < keys.length; i++) {
-      result.push(this.get(keys[i]));
+      result[i] = this.get(keys[i]);
     }
 
     return result
@@ -33542,17 +33370,17 @@ class FifoMap {
 
   set(key, value) {
     // Replace existing item
-    if (this.items.has(key)) {
-      const item = this.items.get(key);
-      item.value = value;
+    const existing = this.items.get(key);
 
-      item.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
+    if (existing !== undefined) {
+      existing.value = value;
+      existing.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
 
       return
     }
 
     // Add new item
-    if (this.max > 0 && this.size === this.max) {
+    if (this.max > 0 && this.size >= this.max) {
       this.evict();
     }
 
@@ -33573,15 +33401,185 @@ class FifoMap {
 
     this.last = item;
   }
-}class LruMap {
+}class FifoObject {
   constructor(max = 1000, ttlInMsecs = 0) {
-    if (isNaN(max) || max < 0) {
-      throw new Error('Invalid max value')
+    validateCacheParams(max, ttlInMsecs);
+
+    this.first = null;
+    this.items = Object.create(null);
+    this.last = null;
+    this.size = 0;
+    this.max = max;
+    this.ttl = ttlInMsecs;
+  }
+
+  clear() {
+    this.items = Object.create(null);
+    this.first = null;
+    this.last = null;
+    this.size = 0;
+  }
+
+  delete(key) {
+    const deletedItem = this.items[key];
+
+    if (deletedItem !== undefined) {
+      delete this.items[key];
+      this.size--;
+
+      if (deletedItem.prev !== null) {
+        deletedItem.prev.next = deletedItem.next;
+      }
+
+      if (deletedItem.next !== null) {
+        deletedItem.next.prev = deletedItem.prev;
+      }
+
+      if (this.first === deletedItem) {
+        this.first = deletedItem.next;
+      }
+
+      if (this.last === deletedItem) {
+        this.last = deletedItem.prev;
+      }
+    }
+  }
+
+  deleteMany(keys) {
+    for (var i = 0; i < keys.length; i++) {
+      this.delete(keys[i]);
+    }
+  }
+
+  evict() {
+    if (this.size > 0) {
+      const item = this.first;
+
+      delete this.items[item.key];
+
+      if (--this.size === 0) {
+        this.first = null;
+        this.last = null;
+      } else {
+        this.first = item.next;
+        this.first.prev = null;
+      }
+    }
+  }
+
+  expiresAt(key) {
+    const item = this.items[key];
+
+    if (item !== undefined) {
+      return item.expiry
+    }
+  }
+
+  get(key) {
+    const item = this.items[key];
+
+    if (item !== undefined) {
+      if (this.ttl > 0 && item.expiry <= Date.now()) {
+        this.delete(key);
+        return
+      }
+
+      return item.value
+    }
+  }
+
+  getMany(keys) {
+    const result = new Array(keys.length);
+
+    for (var i = 0; i < keys.length; i++) {
+      result[i] = this.get(keys[i]);
     }
 
-    if (isNaN(ttlInMsecs) || ttlInMsecs < 0) {
-      throw new Error('Invalid ttl value')
+    return result
+  }
+
+  keys() {
+    return Object.keys(this.items)
+  }
+
+  set(key, value) {
+    // Replace existing item
+    const existing = this.items[key];
+
+    if (existing !== undefined) {
+      existing.value = value;
+      existing.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
+
+      return
     }
+
+    // Add new item
+    if (this.max > 0 && this.size >= this.max) {
+      this.evict();
+    }
+
+    const item = {
+      expiry: this.ttl > 0 ? Date.now() + this.ttl : this.ttl,
+      key: key,
+      prev: this.last,
+      next: null,
+      value,
+    };
+    this.items[key] = item;
+
+    if (++this.size === 1) {
+      this.first = item;
+    } else {
+      this.last.next = item;
+    }
+
+    this.last = item;
+  }
+}/**
+ * Creates a zeroed statistics record for a single collection window.
+ *
+ * @returns {object}
+ */
+function createEmptyStatisticsRecord() {
+  return {
+    cacheSize: 0,
+    hits: 0,
+    falsyHits: 0,
+    emptyHits: 0,
+    misses: 0,
+    expirations: 0,
+    evictions: 0,
+    invalidateOne: 0,
+    invalidateAll: 0,
+    sets: 0,
+  }
+}class HitStatisticsRecord {
+  constructor() {
+    this.records = {};
+  }
+
+  initForCache(cacheId, currentTimeStamp) {
+    this.records[cacheId] = {
+      [currentTimeStamp]: createEmptyStatisticsRecord(),
+    };
+  }
+
+  resetForCache(cacheId) {
+    if (!this.records[cacheId]) {
+      return
+    }
+
+    for (let key of Object.keys(this.records[cacheId])) {
+      this.records[cacheId][key] = createEmptyStatisticsRecord();
+    }
+  }
+
+  getStatistics() {
+    return this.records
+  }
+}class LruMap {
+  constructor(max = 1000, ttlInMsecs = 0) {
+    validateCacheParams(max, ttlInMsecs);
 
     this.first = null;
     this.items = new Map();
@@ -33615,6 +33613,7 @@ class FifoMap {
       prev.next = next;
     }
 
+    /* v8 ignore next 3 -- next is always non-null here: the early return above guarantees item !== this.last in a well-formed list */
     if (next !== null) {
       next.prev = prev;
     }
@@ -33623,15 +33622,15 @@ class FifoMap {
   }
 
   clear() {
-    this.items = new Map();
+    this.items.clear();
     this.first = null;
     this.last = null;
   }
 
   delete(key) {
-    if (this.items.has(key)) {
-      const item = this.items.get(key);
+    const item = this.items.get(key);
 
+    if (item !== undefined) {
       this.items.delete(key);
 
       if (item.prev !== null) {
@@ -33675,15 +33674,17 @@ class FifoMap {
   }
 
   expiresAt(key) {
-    if (this.items.has(key)) {
-      return this.items.get(key).expiry
+    const item = this.items.get(key);
+
+    if (item !== undefined) {
+      return item.expiry
     }
   }
 
   get(key) {
-    if (this.items.has(key)) {
-      const item = this.items.get(key);
+    const item = this.items.get(key);
 
+    if (item !== undefined) {
       // Item has already expired
       if (this.ttl > 0 && item.expiry <= Date.now()) {
         this.delete(key);
@@ -33697,10 +33698,10 @@ class FifoMap {
   }
 
   getMany(keys) {
-    const result = [];
+    const result = new Array(keys.length);
 
     for (var i = 0; i < keys.length; i++) {
-      result.push(this.get(keys[i]));
+      result[i] = this.get(keys[i]);
     }
 
     return result
@@ -33712,21 +33713,18 @@ class FifoMap {
 
   set(key, value) {
     // Replace existing item
-    if (this.items.has(key)) {
-      const item = this.items.get(key);
-      item.value = value;
+    const existing = this.items.get(key);
 
-      item.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
-
-      if (this.last !== item) {
-        this.bumpLru(item);
-      }
+    if (existing !== undefined) {
+      existing.value = value;
+      existing.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
+      this.bumpLru(existing);
 
       return
     }
 
     // Add new item
-    if (this.max > 0 && this.size === this.max) {
+    if (this.max > 0 && this.size >= this.max) {
       this.evict();
     }
 
@@ -33749,13 +33747,7 @@ class FifoMap {
   }
 }class LruObject {
   constructor(max = 1000, ttlInMsecs = 0) {
-    if (isNaN(max) || max < 0) {
-      throw new Error('Invalid max value')
-    }
-
-    if (isNaN(ttlInMsecs) || ttlInMsecs < 0) {
-      throw new Error('Invalid ttl value')
-    }
+    validateCacheParams(max, ttlInMsecs);
 
     this.first = null;
     this.items = Object.create(null);
@@ -33786,6 +33778,7 @@ class FifoMap {
       prev.next = next;
     }
 
+    /* v8 ignore next 3 -- next is always non-null here: the early return above guarantees item !== this.last in a well-formed list */
     if (next !== null) {
       next.prev = prev;
     }
@@ -33801,9 +33794,9 @@ class FifoMap {
   }
 
   delete(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
+    const item = this.items[key];
 
+    if (item !== undefined) {
       delete this.items[key];
       this.size--;
 
@@ -33848,15 +33841,17 @@ class FifoMap {
   }
 
   expiresAt(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      return this.items[key].expiry
+    const item = this.items[key];
+
+    if (item !== undefined) {
+      return item.expiry
     }
   }
 
   get(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
+    const item = this.items[key];
 
+    if (item !== undefined) {
       // Item has already expired
       if (this.ttl > 0 && item.expiry <= Date.now()) {
         this.delete(key);
@@ -33870,10 +33865,10 @@ class FifoMap {
   }
 
   getMany(keys) {
-    const result = [];
+    const result = new Array(keys.length);
 
     for (var i = 0; i < keys.length; i++) {
-      result.push(this.get(keys[i]));
+      result[i] = this.get(keys[i]);
     }
 
     return result
@@ -33885,21 +33880,18 @@ class FifoMap {
 
   set(key, value) {
     // Replace existing item
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
-      item.value = value;
+    const existing = this.items[key];
 
-      item.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
-
-      if (this.last !== item) {
-        this.bumpLru(item);
-      }
+    if (existing !== undefined) {
+      existing.value = value;
+      existing.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
+      this.bumpLru(existing);
 
       return
     }
 
     // Add new item
-    if (this.max > 0 && this.size === this.max) {
+    if (this.max > 0 && this.size >= this.max) {
       this.evict();
     }
 
@@ -33920,48 +33912,6 @@ class FifoMap {
 
     this.last = item;
   }
-}class HitStatisticsRecord {
-  constructor() {
-    this.records = {};
-  }
-
-  initForCache(cacheId, currentTimeStamp) {
-    this.records[cacheId] = {
-      [currentTimeStamp]: {
-        cacheSize: 0,
-        hits: 0,
-        falsyHits: 0,
-        emptyHits: 0,
-        misses: 0,
-        expirations: 0,
-        evictions: 0,
-        invalidateOne: 0,
-        invalidateAll: 0,
-        sets: 0,
-      },
-    };
-  }
-
-  resetForCache(cacheId) {
-    for (let key of Object.keys(this.records[cacheId])) {
-      this.records[cacheId][key] = {
-        cacheSize: 0,
-        hits: 0,
-        falsyHits: 0,
-        emptyHits: 0,
-        misses: 0,
-        expirations: 0,
-        evictions: 0,
-        invalidateOne: 0,
-        invalidateAll: 0,
-        sets: 0,
-      };
-    }
-  }
-
-  getStatistics() {
-    return this.records
-  }
 }/**
  *
  * @param {Date} date
@@ -33979,32 +33929,24 @@ function getTimestamp(date) {
 
     this.collectionStart = new Date();
     this.currentTimeStamp = getTimestamp(this.collectionStart);
+    this.archiveAfter = this.collectionStart.getTime() + this.statisticTtlInHours * 3_600_000;
 
     this.records = globalStatisticsRecord || new HitStatisticsRecord();
     this.records.initForCache(this.cacheId, this.currentTimeStamp);
   }
 
   get currentRecord() {
+    const cacheRecords = this.records.records[this.cacheId];
     // safety net
-    /* c8 ignore next 14 */
-    if (!this.records.records[this.cacheId][this.currentTimeStamp]) {
-      this.records.records[this.cacheId][this.currentTimeStamp] = {
-        cacheSize: 0,
-        hits: 0,
-        falsyHits: 0,
-        emptyHits: 0,
-        misses: 0,
-        expirations: 0,
-        evictions: 0,
-        sets: 0,
-        invalidateOne: 0,
-        invalidateAll: 0,
-      };
+    /* c8 ignore next 3 */
+    if (!cacheRecords[this.currentTimeStamp]) {
+      cacheRecords[this.currentTimeStamp] = createEmptyStatisticsRecord();
     }
 
-    return this.records.records[this.cacheId][this.currentTimeStamp]
+    return cacheRecords[this.currentTimeStamp]
   }
 
+  /* v8 ignore next 3 -- kept for compatibility, no longer used internally */
   hoursPassed() {
     return (Date.now() - this.collectionStart) / 1000 / 60 / 60
   }
@@ -34063,15 +34005,19 @@ function getTimestamp(date) {
   }
 
   archiveIfNeeded() {
-    if (this.hoursPassed() >= this.statisticTtlInHours) {
+    if (Date.now() >= this.archiveAfter) {
       this.collectionStart = new Date();
       this.currentTimeStamp = getTimestamp(this.collectionStart);
+      this.archiveAfter = this.collectionStart.getTime() + this.statisticTtlInHours * 3_600_000;
       this.records.initForCache(this.cacheId, this.currentTimeStamp);
     }
   }
 }class LruObjectHitStatistics extends LruObject {
   constructor(max, ttlInMsecs, cacheId, globalStatisticsRecord, statisticTtlInHours) {
-    super(max || 1000, ttlInMsecs || 0);
+    // Pass through as-is: the base constructor applies the 1000/0 defaults for
+    // omitted (undefined) values and validates everything else, so explicit 0
+    // stays unlimited and null/NaN are rejected the same way as the base class.
+    super(max, ttlInMsecs);
 
     if (!cacheId) {
       throw new Error('Cache id is mandatory')
@@ -34095,15 +34041,19 @@ function getTimestamp(date) {
   }
 
   evict() {
+    const hadItems = this.size > 0;
     super.evict();
-    this.hitStatistics.addEviction();
+    if (hadItems) {
+      this.hitStatistics.addEviction();
+    }
     this.hitStatistics.setCacheSize(this.size);
   }
 
   delete(key, isExpiration = false) {
+    const existed = this.items[key] !== undefined;
     super.delete(key);
 
-    if (!isExpiration) {
+    if (existed && !isExpiration) {
       this.hitStatistics.addInvalidateOne();
     }
     this.hitStatistics.setCacheSize(this.size);
@@ -34117,9 +34067,9 @@ function getTimestamp(date) {
   }
 
   get(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
+    const item = this.items[key];
 
+    if (item !== undefined) {
       // Item has already expired
       if (this.ttl > 0 && item.expiry <= Date.now()) {
         this.delete(key, true);
@@ -34131,152 +34081,15 @@ function getTimestamp(date) {
       this.bumpLru(item);
       if (!item.value) {
         this.hitStatistics.addFalsyHit();
-      }
-      if (item.value === undefined || item.value === null || item.value === '') {
-        this.hitStatistics.addEmptyHit();
+        // Empty values are a subset of falsy values
+        if (item.value === undefined || item.value === null || item.value === '') {
+          this.hitStatistics.addEmptyHit();
+        }
       }
       this.hitStatistics.addHit();
       return item.value
     }
     this.hitStatistics.addMiss();
-  }
-}class FifoObject {
-  constructor(max = 1000, ttlInMsecs = 0) {
-    if (isNaN(max) || max < 0) {
-      throw new Error('Invalid max value')
-    }
-
-    if (isNaN(ttlInMsecs) || ttlInMsecs < 0) {
-      throw new Error('Invalid ttl value')
-    }
-
-    this.first = null;
-    this.items = Object.create(null);
-    this.last = null;
-    this.size = 0;
-    this.max = max;
-    this.ttl = ttlInMsecs;
-  }
-
-  clear() {
-    this.items = Object.create(null);
-    this.first = null;
-    this.last = null;
-    this.size = 0;
-  }
-
-  delete(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const deletedItem = this.items[key];
-
-      delete this.items[key];
-      this.size--;
-
-      if (deletedItem.prev !== null) {
-        deletedItem.prev.next = deletedItem.next;
-      }
-
-      if (deletedItem.next !== null) {
-        deletedItem.next.prev = deletedItem.prev;
-      }
-
-      if (this.first === deletedItem) {
-        this.first = deletedItem.next;
-      }
-
-      if (this.last === deletedItem) {
-        this.last = deletedItem.prev;
-      }
-    }
-  }
-
-  deleteMany(keys) {
-    for (var i = 0; i < keys.length; i++) {
-      this.delete(keys[i]);
-    }
-  }
-
-  evict() {
-    if (this.size > 0) {
-      const item = this.first;
-
-      delete this.items[item.key];
-
-      if (--this.size === 0) {
-        this.first = null;
-        this.last = null;
-      } else {
-        this.first = item.next;
-        this.first.prev = null;
-      }
-    }
-  }
-
-  expiresAt(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      return this.items[key].expiry
-    }
-  }
-
-  get(key) {
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
-
-      if (this.ttl > 0 && item.expiry <= Date.now()) {
-        this.delete(key);
-        return
-      }
-
-      return item.value
-    }
-  }
-
-  getMany(keys) {
-    const result = [];
-
-    for (var i = 0; i < keys.length; i++) {
-      result.push(this.get(keys[i]));
-    }
-
-    return result
-  }
-
-  keys() {
-    return Object.keys(this.items)
-  }
-
-  set(key, value) {
-    // Replace existing item
-    if (Object.prototype.hasOwnProperty.call(this.items, key)) {
-      const item = this.items[key];
-      item.value = value;
-
-      item.expiry = this.ttl > 0 ? Date.now() + this.ttl : this.ttl;
-
-      return
-    }
-
-    // Add new item
-    if (this.max > 0 && this.size === this.max) {
-      this.evict();
-    }
-
-    const item = {
-      expiry: this.ttl > 0 ? Date.now() + this.ttl : this.ttl,
-      key: key,
-      prev: this.last,
-      next: null,
-      value,
-    };
-    this.items[key] = item;
-
-    if (++this.size === 1) {
-      this.first = item;
-    } else {
-      this.last.next = item;
-    }
-
-    this.last = item;
   }
 }
 ;// CONCATENATED MODULE: ./node_modules/@octokit/auth-app/dist-node/index.js
@@ -34931,8 +34744,8 @@ function Collection() {
 
 /* harmony default export */ const before_after_hook = ({ Singular, Collection });
 
-// EXTERNAL MODULE: ./node_modules/@octokit/request/dist-bundle/index.js + 2 modules
-var dist_bundle = __nccwpck_require__(2053);
+// EXTERNAL MODULE: ./node_modules/@octokit/request/dist-bundle/index.js + 3 modules
+var dist_bundle = __nccwpck_require__(7561);
 // EXTERNAL MODULE: ./node_modules/@octokit/graphql/dist-bundle/index.js
 var graphql_dist_bundle = __nccwpck_require__(9964);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/auth-token/dist-bundle/index.js
@@ -34991,7 +34804,7 @@ var createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/version.js
-const VERSION = "7.0.6";
+const VERSION = "7.0.7";
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/index.js
@@ -35146,7 +34959,7 @@ class Octokit {
 /* harmony export */   rp: () => (/* binding */ GraphqlResponseError)
 /* harmony export */ });
 /* unused harmony export graphql */
-/* harmony import */ var _octokit_request__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2053);
+/* harmony import */ var _octokit_request__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7561);
 /* harmony import */ var universal_user_agent__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(6396);
 // pkg/dist-src/index.js
 
@@ -38210,7 +38023,7 @@ class RequestError extends Error {
 
 /***/ }),
 
-/***/ 2053:
+/***/ 7561:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -38567,8 +38380,179 @@ function withDefaults(oldDefaults, newDefaults) {
 var endpoint = withDefaults(null, DEFAULTS);
 
 
-// EXTERNAL MODULE: ./node_modules/content-type/dist/index.js
-var dist = __nccwpck_require__(4649);
+;// CONCATENATED MODULE: ./node_modules/content-type/dist/index.js
+/*!
+ * content-type
+ * Copyright(c) 2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+const TEXT_REGEXP = /^[\u0009\u0020-\u007e\u0080-\u00ff]*$/;
+const TOKEN_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+/**
+ * RegExp to match chars that must be quoted-pair in RFC 9110 sec 5.6.4
+ */
+const QUOTE_REGEXP = /[\\"]/g;
+/**
+ * RegExp to match type in RFC 9110 sec 8.3.1
+ *
+ * media-type = type "/" subtype
+ * type       = token
+ * subtype    = token
+ */
+const TYPE_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+/**
+ * Null object perf optimization. Faster than `Object.create(null)` and `{ __proto__: null }`.
+ */
+const NullObject = /* @__PURE__ */ (() => {
+    const C = function () { };
+    C.prototype = Object.create(null);
+    return C;
+})();
+/**
+ * Format an object into a `Content-Type` header.
+ */
+function format(obj) {
+    const { type, parameters } = obj;
+    if (!type || !TYPE_REGEXP.test(type)) {
+        throw new TypeError(`Invalid type: ${type}`);
+    }
+    let result = type;
+    if (parameters) {
+        for (const param of Object.keys(parameters)) {
+            if (!TOKEN_REGEXP.test(param)) {
+                throw new TypeError(`Invalid parameter name: ${param}`);
+            }
+            result += `; ${param}=${qstring(parameters[param])}`;
+        }
+    }
+    return result;
+}
+/**
+ * Parse a `Content-Type` header.
+ */
+function dist_parse(header, options) {
+    const stopChar = options?.comma === true ? COMMA : 65_536; // Sentinel for "no stop char".
+    const len = header.length;
+    let index = skipOWS(header, options?.start ?? 0, len);
+    const valueStart = index;
+    index = skipValue(header, index, len, stopChar);
+    const valueEnd = trailingOWS(header, valueStart, index);
+    const type = header.slice(valueStart, valueEnd).toLowerCase();
+    if (options?.parameters === false) {
+        return { type, index, parameters: new NullObject() };
+    }
+    return parseParameters(header, type, index, len, stopChar);
+}
+const SP = 32; // " "
+const HTAB = 9; // "\t"
+const SEMI = 59; // ";"
+const EQ = 61; // "="
+const DQUOTE = 34; // '"'
+const BSLASH = 92; // "\\"
+const COMMA = 44; // ","
+/**
+ * Parses the parameters of a `Content-Type` header starting at the given index.
+ */
+function parseParameters(header, type, index, len, stopChar) {
+    const parameters = new NullObject();
+    parameter: while (index < len) {
+        if (header.charCodeAt(index) === stopChar)
+            break;
+        index = skipOWS(header, index + 1 /* Skip over ; */, len);
+        const keyStart = index;
+        while (index < len) {
+            const code = header.charCodeAt(index);
+            if (code === stopChar)
+                break parameter;
+            if (code === SEMI)
+                continue parameter;
+            if (code === EQ) {
+                const keyEnd = trailingOWS(header, keyStart, index);
+                const key = header.slice(keyStart, keyEnd).toLowerCase();
+                index = skipOWS(header, index + 1, len);
+                if (index < len && header.charCodeAt(index) === DQUOTE) {
+                    index++;
+                    let value = "";
+                    while (index < len) {
+                        const code = header.charCodeAt(index++);
+                        if (code === DQUOTE) {
+                            index = skipValue(header, index, len, stopChar);
+                            if (parameters[key] === undefined)
+                                parameters[key] = value;
+                            break;
+                        }
+                        if (code === BSLASH && index < len) {
+                            value += header[index++];
+                            continue;
+                        }
+                        value += String.fromCharCode(code);
+                    }
+                    continue parameter;
+                }
+                const valueStart = index;
+                index = skipValue(header, index, len, stopChar);
+                if (parameters[key] === undefined) {
+                    const valueEnd = trailingOWS(header, valueStart, index);
+                    parameters[key] = header.slice(valueStart, valueEnd);
+                }
+                continue parameter;
+            }
+            index++;
+        }
+    }
+    return { type, index, parameters };
+}
+/**
+ * Skip over characters until a semicolon or other exit character.
+ */
+function skipValue(str, index, len, stopChar) {
+    while (index < len) {
+        const code = str.charCodeAt(index);
+        if (code === SEMI || code === stopChar)
+            break;
+        index++;
+    }
+    return index;
+}
+/**
+ * Skip optional whitespace (OWS) in an HTTP header value.
+ *
+ * OWS is defined in RFC 9110 sec 5.6.3 as SP (" ") or HTAB ("\t").
+ */
+function skipOWS(header, index, len) {
+    while (index < len) {
+        const char = header.charCodeAt(index);
+        if (char !== SP && char !== HTAB)
+            break;
+        index++;
+    }
+    return index;
+}
+/**
+ * Trim optional whitespace (OWS) from the end of a substring.
+ *
+ * OWS is defined in RFC 9110 sec 5.6.3 as SP (" ") or HTAB ("\t").
+ */
+function trailingOWS(header, start, end) {
+    while (end > start) {
+        const char = header.charCodeAt(end - 1);
+        if (char !== SP && char !== HTAB)
+            break;
+        end--;
+    }
+    return end;
+}
+/**
+ * Serialize a parameter value.
+ */
+function qstring(str) {
+    if (TOKEN_REGEXP.test(str))
+        return str;
+    if (TEXT_REGEXP.test(str))
+        return `"${str.replace(QUOTE_REGEXP, "\\$&")}"`;
+    throw new TypeError(`Invalid parameter value: ${str}`);
+}
+//# sourceMappingURL=index.js.map
 ;// CONCATENATED MODULE: ./node_modules/json-with-bigint/json-with-bigint.js
 const intRegex = /^-?\d+$/;
 const noiseValue = /^-?\d+n+$/; // Noise - strings that match the custom format before being converted to it
@@ -38576,14 +38560,269 @@ const originalStringify = JSON.stringify;
 const originalParse = JSON.parse;
 const customFormat = /^-?\d+n$/;
 
-const bigIntsStringify = /([\[:])?"(-?\d+)n"($|([\\n]|\s)*(\s|[\\n])*[,\}\]])/g;
-const noiseStringify =
-  /([\[:])?("-?\d+n+)n("$|"([\\n]|\s)*(\s|[\\n])*[,\}\]])/g;
+const bigIntsStringify = /([\[:])?"(-?\d+)n"($|\s*[,\}\]])/g;
+const noiseStringify = /([\[:])?("-?\d+n+)n("$|"\s*[,\}\]])/g;
 
 /**
  * @typedef {(this: any, key: string | number | undefined, value: any) => any} Replacer
  * @typedef {(key: string | number | undefined, value: any, context?: { source: string }) => any} Reviver
  */
+
+/**
+ * Checks if a value is unstringifiable according to native JSON.stringify rules.
+ *
+ * @param {any} val The value to check.
+ * @returns {boolean} True if the value is undefined, a function, or a symbol.
+ */
+const isUnstringifiable = (val) =>
+  val === undefined || typeof val === "function" || typeof val === "symbol";
+
+/**
+ * Checks if a value is a native JSON.rawJSON object (Node.js 22+).
+ *
+ * @param {any} val The value to check.
+ * @returns {boolean} True if the value is a RawJSON instance.
+ */
+const isRawJSON = (val) =>
+  val !== null &&
+  typeof val === "object" &&
+  val.constructor &&
+  val.constructor.name === "RawJSON";
+
+/**
+ * Iteratively converts a JS value to a JSON string.
+ * Used as a fallback when the native JSON.stringify hits the Maximum Call Stack size.
+ * Fully compliant with JSON formatting (space), replacers, and toJSON behaviors.
+ *
+ * @param {any} rootValue The value to stringify.
+ * @param {Replacer | Array<string | number> | null} [replacer] User's custom replacer function.
+ * @param {string | number} [spaceParam] Indentation for pretty-printing.
+ * @returns {string | undefined} The generated JSON string.
+ */
+const stringifyIteratively = (rootValue, replacer, spaceParam) => {
+  let space = "";
+
+  if (typeof spaceParam === "number") {
+    space = " ".repeat(Math.min(10, Math.max(0, Math.floor(spaceParam))));
+  } else if (typeof spaceParam === "string") {
+    space = spaceParam.slice(0, 10);
+  }
+
+  const isFunctionReplacer = typeof replacer === "function";
+  const propertyList = Array.isArray(replacer)
+    ? new Set(replacer.map(String))
+    : null;
+
+  /**
+   * Prepares a value for stringification by resolving toJSON, handling BigInts,
+   * applying custom replacers, and unwrapping primitive objects.
+   *
+   * @param {object|Array} parent The parent object or array holding the value.
+   * @param {string} key The key associated with the value.
+   * @param {any} val The raw value to process.
+   * @returns {any} The processed value ready for stringification.
+   */
+  const prepareVal = (parent, key, val) => {
+    const isObject = val !== null && typeof val === "object";
+    const hasToJSON = isObject && typeof val.toJSON === "function";
+
+    if (hasToJSON) {
+      val = val.toJSON(key);
+    }
+
+    const isNoise = typeof val === "string" && noiseValue.test(val);
+
+    if (isNoise) return val + "n";
+
+    const isBigInt = typeof val === "bigint";
+
+    if (isBigInt) {
+      const supportsRawJSON = "rawJSON" in JSON;
+
+      if (supportsRawJSON) return JSON.rawJSON(val.toString());
+
+      return val.toString() + "n";
+    }
+
+    if (isFunctionReplacer) {
+      val = replacer.call(parent, key, val);
+    }
+
+    const isPostReplacerObject = val !== null && typeof val === "object";
+
+    if (isPostReplacerObject) {
+      const isPrimitiveWrapper =
+        val instanceof Number ||
+        val instanceof String ||
+        val instanceof Boolean;
+
+      if (isPrimitiveWrapper) {
+        val = val.valueOf();
+      }
+    }
+
+    return val;
+  };
+
+  const rootProcessed = prepareVal({ "": rootValue }, "", rootValue);
+
+  if (isUnstringifiable(rootProcessed)) {
+    return undefined;
+  }
+
+  const isRootPrimitive =
+    rootProcessed === null || typeof rootProcessed !== "object";
+  const isRootNativeRawJSON = isRawJSON(rootProcessed);
+
+  if (isRootPrimitive || isRootNativeRawJSON) {
+    return originalStringify(rootProcessed);
+  }
+
+  const chunks = [];
+  let level = 0;
+
+  const stack = [
+    {
+      parent: { "": rootProcessed },
+      key: "",
+      val: rootProcessed,
+      isArray: Array.isArray(rootProcessed),
+      keys: Array.isArray(rootProcessed) ? null : Object.keys(rootProcessed),
+      index: 0,
+      first: true,
+    },
+  ];
+
+  const visited = new WeakSet([rootProcessed]);
+
+  while (stack.length > 0) {
+    const node = stack[stack.length - 1];
+
+    if (node.index === 0) {
+      chunks.push(node.isArray ? "[" : "{");
+      level++;
+    }
+
+    let isDone = false;
+
+    if (node.isArray) {
+      if (node.index < node.val.length) {
+        if (!node.first) chunks.push(",");
+
+        if (space) chunks.push("\n" + space.repeat(level));
+
+        const childRaw = node.val[node.index];
+        const childVal = prepareVal(node.val, String(node.index), childRaw);
+
+        if (isUnstringifiable(childVal)) {
+          chunks.push("null");
+          node.first = false;
+          node.index++;
+        } else {
+          const isComplexObject =
+            childVal !== null && typeof childVal === "object";
+          const isNativeRaw = isRawJSON(childVal);
+
+          if (isComplexObject && !isNativeRaw) {
+            if (visited.has(childVal)) {
+              throw new TypeError("Converting circular structure to JSON");
+            }
+
+            visited.add(childVal);
+
+            stack.push({
+              parent: node.val,
+              key: String(node.index),
+              val: childVal,
+              isArray: Array.isArray(childVal),
+              keys: Array.isArray(childVal) ? null : Object.keys(childVal),
+              index: 0,
+              first: true,
+            });
+
+            node.first = false;
+            node.index++;
+          } else {
+            chunks.push(originalStringify(childVal));
+            node.first = false;
+            node.index++;
+          }
+        }
+      } else {
+        isDone = true;
+      }
+    } else {
+      while (node.index < node.keys.length) {
+        const k = node.keys[node.index++];
+
+        const isFilteredOutByArray = propertyList && !propertyList.has(k);
+
+        if (isFilteredOutByArray) continue;
+
+        const childRaw = node.val[k];
+        const childVal = prepareVal(node.val, k, childRaw);
+
+        if (isUnstringifiable(childVal)) continue;
+
+        if (!node.first) chunks.push(",");
+
+        if (space) {
+          chunks.push("\n" + space.repeat(level) + originalStringify(k) + ": ");
+        } else {
+          chunks.push(originalStringify(k) + ":");
+        }
+
+        const isComplexObject =
+          childVal !== null && typeof childVal === "object";
+        const isNativeRaw = isRawJSON(childVal);
+
+        if (isComplexObject && !isNativeRaw) {
+          if (visited.has(childVal)) {
+            throw new TypeError("Converting circular structure to JSON");
+          }
+
+          visited.add(childVal);
+
+          stack.push({
+            parent: node.val,
+            key: k,
+            val: childVal,
+            isArray: Array.isArray(childVal),
+            keys: Array.isArray(childVal) ? null : Object.keys(childVal),
+            index: 0,
+            first: true,
+          });
+
+          node.first = false;
+
+          break; // Stop current loop level to process the newly pushed stack node
+        } else {
+          chunks.push(originalStringify(childVal));
+          node.first = false;
+        }
+      }
+
+      const isNodeFullyProcessed =
+        node.index >= node.keys.length && stack[stack.length - 1] === node;
+
+      if (isNodeFullyProcessed) {
+        isDone = true;
+      }
+    }
+
+    if (isDone) {
+      level--;
+
+      if (!node.first && space) chunks.push("\n" + space.repeat(level));
+
+      chunks.push(node.isArray ? "]" : "}");
+      visited.delete(node.val);
+      stack.pop();
+    }
+  }
+
+  return chunks.join("");
+};
 
 /**
  * Converts a JavaScript value to a JSON string.
@@ -38596,55 +38835,87 @@ const noiseStringify =
  *
  * @param {*} value The value to convert to a JSON string.
  * @param {Replacer | Array<string | number> | null} [replacer]
- *   A function that alters the behavior of the stringification process,
- *   or an array of strings/numbers to indicate properties to exclude.
+ * A function that alters the behavior of the stringification process,
+ * or an array of strings/numbers to indicate properties to exclude.
  * @param {string | number} [space]
- *   A string or number to specify indentation or pretty-printing.
+ * A string or number to specify indentation or pretty-printing.
  * @returns {string} The JSON string representation.
  */
 const JSONStringify = (value, replacer, space) => {
-  if ("rawJSON" in JSON) {
-    return originalStringify(
+  try {
+    const supportsRawJSON = "rawJSON" in JSON;
+
+    if (supportsRawJSON) {
+      return originalStringify(
+        value,
+        (key, val) => {
+          if (typeof val === "bigint") return JSON.rawJSON(val.toString());
+
+          const hasFunctionReplacer = typeof replacer === "function";
+
+          if (hasFunctionReplacer) return replacer(key, val);
+
+          const isKeyInArrayReplacer =
+            Array.isArray(replacer) && replacer.includes(key);
+
+          if (isKeyInArrayReplacer) return val;
+
+          return val;
+        },
+        space,
+      );
+    }
+
+    if (!value) return originalStringify(value, replacer, space);
+
+    const convertedToCustomJSON = originalStringify(
       value,
-      (key, value) => {
-        if (typeof value === "bigint") return JSON.rawJSON(value.toString());
+      (key, val) => {
+        const isNoise = typeof val === "string" && noiseValue.test(val);
 
-        if (typeof replacer === "function") return replacer(key, value);
+        if (isNoise) return val.toString() + "n"; // Mark noise values with additional "n" to offset the deletion of one "n" during the processing
 
-        if (Array.isArray(replacer) && replacer.includes(key)) return value;
+        if (typeof val === "bigint") return val.toString() + "n";
 
-        return value;
+        const hasFunctionReplacer = typeof replacer === "function";
+
+        if (hasFunctionReplacer) return replacer(key, val);
+
+        const isKeyInArrayReplacer =
+          Array.isArray(replacer) && replacer.includes(key);
+
+        if (isKeyInArrayReplacer) return val;
+
+        return val;
       },
       space,
     );
+
+    const processedJSON = convertedToCustomJSON.replace(
+      bigIntsStringify,
+      "$1$2$3",
+    ); // Delete one "n" off the end of every BigInt value
+
+    const denoisedJSON = processedJSON.replace(noiseStringify, "$1$2$3"); // Remove one "n" off the end of every noisy string
+
+    return denoisedJSON;
+  } catch (error) {
+    if (error instanceof RangeError) {
+      const convertedJSON = stringifyIteratively(value, replacer, space);
+
+      if (convertedJSON === undefined) return undefined;
+
+      const supportsRawJSON = "rawJSON" in JSON;
+
+      if (supportsRawJSON) return convertedJSON;
+
+      const processedJSON = convertedJSON.replace(bigIntsStringify, "$1$2$3");
+
+      return processedJSON.replace(noiseStringify, "$1$2$3");
+    }
+
+    throw error;
   }
-
-  if (!value) return originalStringify(value, replacer, space);
-
-  const convertedToCustomJSON = originalStringify(
-    value,
-    (key, value) => {
-      const isNoise = typeof value === "string" && noiseValue.test(value);
-
-      if (isNoise) return value.toString() + "n"; // Mark noise values with additional "n" to offset the deletion of one "n" during the processing
-
-      if (typeof value === "bigint") return value.toString() + "n";
-
-      if (typeof replacer === "function") return replacer(key, value);
-
-      if (Array.isArray(replacer) && replacer.includes(key)) return value;
-
-      return value;
-    },
-    space,
-  );
-  const processedJSON = convertedToCustomJSON.replace(
-    bigIntsStringify,
-    "$1$2$3",
-  ); // Delete one "n" off the end of every BigInt value
-  const denoisedJSON = processedJSON.replace(noiseStringify, "$1$2$3"); // Remove one "n" off the end of every noisy string
-
-  return denoisedJSON;
 };
 
 const featureCache = new Map();
@@ -38692,12 +38963,15 @@ const isContextSourceSupported = () => {
 const convertMarkedBigIntsReviver = (key, value, context, userReviver) => {
   const isCustomFormatBigInt =
     typeof value === "string" && customFormat.test(value);
+
   if (isCustomFormatBigInt) return BigInt(value.slice(0, -1));
 
   const isNoiseValue = typeof value === "string" && noiseValue.test(value);
   if (isNoiseValue) return value.slice(0, -1);
 
-  if (typeof userReviver !== "function") return value;
+  const hasUserReviver = typeof userReviver === "function";
+
+  if (!hasUserReviver) return value;
 
   return userReviver(key, value, context);
 };
@@ -38715,15 +38989,18 @@ const convertMarkedBigIntsReviver = (key, value, context, userReviver) => {
  */
 const JSONParseV2 = (text, reviver) => {
   return JSON.parse(text, (key, value, context) => {
-    const isBigNumber =
-      typeof value === "number" &&
-      (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER);
+    const isNumber = typeof value === "number";
+    const isOutOfBounds =
+      value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER;
+    const isBigNumber = isNumber && isOutOfBounds;
     const isInt = context && intRegex.test(context.source);
     const isBigInt = isBigNumber && isInt;
 
     if (isBigInt) return BigInt(context.source);
 
-    if (typeof reviver !== "function") return value;
+    const hasCustomReviver = typeof reviver === "function";
+
+    if (!hasCustomReviver) return value;
 
     return reviver(key, value, context);
   });
@@ -38732,8 +39009,107 @@ const JSONParseV2 = (text, reviver) => {
 const MAX_INT = Number.MAX_SAFE_INTEGER.toString();
 const MAX_DIGITS = MAX_INT.length;
 const stringsOrLargeNumbers =
-  /"(?:\\.|[^"])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?/g;
+  /"(?:[^"\\]|\\.)*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?/g;
 const noiseValueWithQuotes = /^"-?\d+n+"$/; // Noise - strings that match the custom format before being converted to it
+
+/**
+ * Iteratively traverses the parsed object bottom-up (post-order),
+ * emulating the native JSON.parse reviver behavior.
+ * This avoids Call Stack overflows (RangeError) on deeply nested structures.
+ *
+ * @param {any} parsed The natively parsed JSON object.
+ * @param {Reviver} [userReviver] User's custom reviver function.
+ * @returns {any} The fully processed object.
+ */
+const applyReviverIteratively = (parsed, userReviver) => {
+  const rootHolder = { "": parsed };
+  const stack = [{ parent: rootHolder, key: "", visited: false }];
+
+  while (stack.length > 0) {
+    const node = stack[stack.length - 1];
+
+    if (!node.visited) {
+      node.visited = true;
+
+      const value = node.parent[node.key];
+      const isComplexObject = value !== null && typeof value === "object";
+
+      if (isComplexObject) {
+        const keys = Object.keys(value);
+
+        for (let i = keys.length - 1; i >= 0; i--) {
+          stack.push({ parent: value, key: keys[i], visited: false });
+        }
+      }
+    } else {
+      const { parent, key } = node;
+      let value = parent[key];
+
+      if (typeof value === "string") {
+        const isCustomFormatBigInt = customFormat.test(value);
+
+        if (isCustomFormatBigInt) {
+          value = BigInt(value.slice(0, -1));
+        } else {
+          const isNoise = noiseValue.test(value);
+
+          if (isNoise) value = value.slice(0, -1);
+        }
+      }
+
+      const hasUserReviver = typeof userReviver === "function";
+
+      if (hasUserReviver) {
+        value = userReviver.call(parent, key, value);
+      }
+
+      const isDeleted = value === undefined;
+
+      if (isDeleted) {
+        delete parent[key];
+      } else {
+        parent[key] = value;
+      }
+
+      stack.pop();
+    }
+  }
+
+  return rootHolder[""];
+};
+
+/**
+ * Pre-processes the JSON string to mark large numbers with an 'n' suffix.
+ *
+ * @param {string} text The raw JSON string.
+ * @returns {string} The serialized string with marked BigInts.
+ */
+const serializeBigInts = (text) => {
+  return text.replace(
+    stringsOrLargeNumbers,
+    (match, digits, fractional, exponential) => {
+      const isString = match[0] === '"';
+      const isNoise = isString && noiseValueWithQuotes.test(match);
+
+      if (isNoise) return match.substring(0, match.length - 1) + 'n"'; // Mark noise values with additional "n" to offset the deletion of one "n" during the processing
+
+      const hasFractionalOrExponential = fractional || exponential;
+
+      // With a fixed number of digits, we can correctly use lexicographical comparison to do a numeric comparison
+      const isLessThanMaxSafeInt =
+        digits &&
+        (digits.length < MAX_DIGITS ||
+          (digits.length === MAX_DIGITS && digits <= MAX_INT));
+
+      const isStandardValue =
+        isString || hasFractionalOrExponential || isLessThanMaxSafeInt;
+
+      if (isStandardValue) return match;
+
+      return '"' + match + 'n"';
+    },
+  );
+};
 
 /**
  * Converts a JSON string into a JavaScript value.
@@ -38746,42 +39122,34 @@ const noiseValueWithQuotes = /^"-?\d+n+"$/; // Noise - strings that match the cu
  *
  * @param {string} text A valid JSON string.
  * @param {Reviver} [reviver]
- *   A function that transforms the results. This function is called for each member
- *   of the object. If a member contains nested objects, the nested objects are
- *   transformed before the parent object is.
+ * A function that transforms the results. This function is called for each member
+ * of the object. If a member contains nested objects, the nested objects are
+ * transformed before the parent object is.
  * @returns {any} The parsed JavaScript value.
  * @throws {SyntaxError} If text is not valid JSON.
  */
 const JSONParse = (text, reviver) => {
   if (!text) return originalParse(text, reviver);
 
-  if (isContextSourceSupported()) return JSONParseV2(text, reviver); // Shortcut to a faster (2x) and simpler version
+  try {
+    if (isContextSourceSupported()) return JSONParseV2(text, reviver); // Shortcut to a faster (2x) and simpler version
 
-  // Find and mark big numbers with "n"
-  const serializedData = text.replace(
-    stringsOrLargeNumbers,
-    (text, digits, fractional, exponential) => {
-      const isString = text[0] === '"';
-      const isNoise = isString && noiseValueWithQuotes.test(text);
+    // Find and mark big numbers with "n"
+    const serializedData = serializeBigInts(text);
 
-      if (isNoise) return text.substring(0, text.length - 1) + 'n"'; // Mark noise values with additional "n" to offset the deletion of one "n" during the processing
+    return originalParse(serializedData, (key, value, context) =>
+      convertMarkedBigIntsReviver(key, value, context, reviver),
+    );
+  } catch (error) {
+    if (error instanceof RangeError) {
+      const serializedData = serializeBigInts(text);
+      const parsed = originalParse(serializedData);
 
-      const isFractionalOrExponential = fractional || exponential;
-      const isLessThanMaxSafeInt =
-        digits &&
-        (digits.length < MAX_DIGITS ||
-          (digits.length === MAX_DIGITS && digits <= MAX_INT)); // With a fixed number of digits, we can correctly use lexicographical comparison to do a numeric comparison
+      return applyReviverIteratively(parsed, reviver);
+    }
 
-      if (isString || isFractionalOrExponential || isLessThanMaxSafeInt)
-        return text;
-
-      return '"' + text + 'n"';
-    },
-  );
-
-  return originalParse(serializedData, (key, value, context) =>
-    convertMarkedBigIntsReviver(key, value, context, reviver),
-  );
+    throw error;
+  }
 };
 
 
@@ -38796,7 +39164,7 @@ var dist_src = __nccwpck_require__(1015);
 
 
 // pkg/dist-src/version.js
-var dist_bundle_VERSION = "10.0.13";
+var dist_bundle_VERSION = "10.0.16";
 
 // pkg/dist-src/defaults.js
 var defaults_default = {
@@ -38925,7 +39293,7 @@ async function getResponseData(response) {
   if (!contentType) {
     return response.text().catch(noop);
   }
-  const mimetype = (0,dist/* parse */.qg)(contentType);
+  const mimetype = dist_parse(contentType);
   if (isJSONResponse(mimetype)) {
     let text = "";
     try {
