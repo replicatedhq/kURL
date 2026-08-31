@@ -12,12 +12,21 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install Helm
+      env:
+        HELM_VERSION: 3.21.4
+        HELM_SHA256: 61f88ab166748cb19604d7884cb100ae9ccb13804ddeb98e08af167eacbb6a14
+      run: |
+        curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" -o helm.tar.gz
+        echo "${HELM_SHA256}  helm.tar.gz" | sha256sum -c
+        tar -xzf helm.tar.gz
+        sudo mv linux-amd64/helm /usr/local/bin/helm
+        rm -rf helm.tar.gz linux-amd64
+
     - name: Create Goldpinger Update
       id: update
       working-directory: ./addons/goldpinger/template
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-        ./generate.sh
+      run: ./generate.sh
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v8.1.1
