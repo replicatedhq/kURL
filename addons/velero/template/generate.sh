@@ -17,10 +17,15 @@ function get_latest_release_version() {
 function get_latest_tag_version() {
     VAR_NAME=$1
     local url=$2
+    local response
     local version
 
-    version=$(curl -fsSL "$url" | \
-        grep -m1 '"name": "v' | \
+    # Fetch the full response before grepping.  Under set -o pipefail, piping
+    # curl directly to grep -m1 can fail with exit code 23 when grep exits
+    # after the first match and closes the pipe.  Using a here-string avoids
+    # the broken-pipe issue entirely.
+    response=$(curl -fsSL "$url")
+    version=$(grep -m1 '"name": "v' <<< "$response" | \
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 
     export "$VAR_NAME=$version"
