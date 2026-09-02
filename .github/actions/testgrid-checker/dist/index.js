@@ -34529,7 +34529,7 @@ async function sendRequestWithRetries(state, request, options, createdAt, retrie
 }
 
 // pkg/dist-src/version.js
-var dist_node_VERSION = "8.3.0";
+var dist_node_VERSION = "8.3.1";
 
 // pkg/dist-src/index.js
 
@@ -34804,7 +34804,7 @@ var createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/version.js
-const VERSION = "7.0.7";
+const VERSION = "7.0.8";
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/index.js
