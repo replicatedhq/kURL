@@ -43,7 +43,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.36.4
-	k8s.io/apimachinery v0.36.4
+	k8s.io/apimachinery v0.37.0
 	k8s.io/cli-runtime v0.36.4
 	k8s.io/client-go v0.36.4
 	k8s.io/code-generator v0.36.4
@@ -315,7 +315,7 @@ require (
 	k8s.io/kubectl v0.36.3 // indirect
 	k8s.io/kubelet v0.36.3 // indirect
 	k8s.io/metrics v0.36.3 // indirect
-	k8s.io/streaming v0.36.4 // indirect
+	k8s.io/streaming v0.37.0 // indirect
 	oras.land/oras-go/v2 v2.6.2 // indirect
 	periph.io/x/host/v3 v3.8.5 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
