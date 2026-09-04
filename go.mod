@@ -3,7 +3,7 @@ module github.com/replicatedhq/kurl
 go 1.26.5
 
 require (
-	code.cloudfoundry.org/bytefmt v0.86.0
+	code.cloudfoundry.org/bytefmt v0.87.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.1
 	github.com/briandowns/spinner v1.23.2
@@ -25,8 +25,8 @@ require (
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.12.3
 	github.com/replicatedhq/troubleshoot v0.133.0
-	github.com/rook/rook v1.16.6
-	github.com/rook/rook/pkg/apis v0.0.0-20241216163035-3170ac6a0c58
+	github.com/rook/rook v1.20.6
+	github.com/rook/rook/pkg/apis v0.0.0-20260820210534-4e1b7a626891
 	github.com/sirupsen/logrus v1.10.1
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
