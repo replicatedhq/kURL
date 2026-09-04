@@ -27,7 +27,7 @@ require (
 	github.com/replicatedhq/troubleshoot v0.133.0
 	github.com/rook/rook v1.20.6
 	github.com/rook/rook/pkg/apis v0.0.0-20260820210534-4e1b7a626891
-	github.com/sirupsen/logrus v1.10.1
+	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
