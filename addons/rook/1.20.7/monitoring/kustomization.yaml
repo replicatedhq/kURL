@@ -1,0 +1,3 @@
+resources:
+- ceph-cluster-dashboard.yaml
+- rook-ceph-servicemonitor.yaml
