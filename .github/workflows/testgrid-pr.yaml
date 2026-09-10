@@ -130,7 +130,7 @@ jobs:
       prev_version: ${{ steps.set-tag.outputs.prev_version }}
       kurl_util_image: ${{ steps.set-tag.outputs.kurl_util_image }}
       testgrid_ref: ${{ steps.set-tag.outputs.testgrid_ref }}
-      testgrid_os_spec: ${{ steps.set-tag.outputs.testgrid_os_spec }}
+      testgrid_os_spec: ${{ steps.os-spec.outputs.testgrid_os_spec }}
     steps:
       - uses: actions/checkout@v7
         with:
