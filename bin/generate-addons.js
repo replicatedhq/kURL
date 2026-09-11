@@ -9,6 +9,11 @@ const SECRET = process.env.AWS_SECRET_ACCESS_KEY;
 const BUCKET_NAME = process.env.S3_BUCKET;
 const FOLDER = process.env.DIST_FOLDER;
 const VERSION_TAG = process.env.VERSION_TAG;
+// When VERSIONED_ONLY is set, only write the versioned copy
+// (<folder>/<version>/<file>) and skip the shared unversioned copy
+// (<folder>/<file>). Used by testgrid-pr.yaml so a pre-merge RC build never
+// touches the metadata that live staging installs consume.
+const VERSIONED_ONLY = process.env.VERSIONED_ONLY === "1";
 
 const s3Client = new S3Client({
   region: 'us-east-1',
@@ -26,6 +31,11 @@ const uploadFile = async (file) => {
   };
   await s3Client.send(new PutObjectCommand(params));
   console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + params.Key);
+
+  if (VERSIONED_ONLY) {
+    console.log("\x1b[33m%s\x1b[0m", "VERSIONED_ONLY set; skipping unversioned upload of " + fileName);
+    return;
+  }
 
   params = {
     Bucket: BUCKET_NAME,

@@ -20,6 +20,14 @@ require STAGING_RELEASE "${STAGING_RELEASE}"
 
 STAGING_PREFIX="${STAGING_PREFIX:-staging}"
 
+# Completeness note: `aws s3api list-objects-v2` auto-paginates in the AWS CLI —
+# it makes as many API calls as needed and aggregates all pages before `--query`
+# (a client-side JMESPath filter) is applied, so this returns every object in the
+# release even when there are more than 1000 (the per-call MaxKeys limit). Callers
+# (deploy-prod.yaml, testgrid-pr.yaml core-only copy) depend on this being the
+# complete set; if AWS CLI auto-paging is ever disabled, add an explicit
+# continuation-token loop like bin/cleanup-staging-s3.sh.
+#
 # Get list of packages associated with a staging release from s3:
 # Exclude common and kurl-bin-utils packages => grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*"
 # Get raw strings NOT JSON encoded strings => jq -rc '.[]'
