@@ -1,4 +1,9 @@
 # shellcheck disable=SC2148
+# kotsadm versions earlier than this re-configure Velero onto the Local Volume Provider
+# even when an object store is present, so they must be upgraded before the
+# Local Volume Provider -> object store migration can run.
+VELERO_MIN_KOTSADM_VERSION="1.131.6"
+
 function velero_pre_init() {
     if [ -z "$VELERO_NAMESPACE" ]; then
         VELERO_NAMESPACE=velero
@@ -16,10 +21,11 @@ function velero_pre_init() {
         bail "Rook 1.0.4 does not support RWX volumes used for Internal snapshot storage. Please upgrade to Rook 1.4.3 or higher."
     fi
 
-    # If someone uses OpenEBS as their primary CSI provider, bail because it doesn't support RWX volumes
-    if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
-        bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
-    fi
+    # The PVC-based Internal Storage destination requires an RWX storage class, but the
+    # Local Volume Provider also supports Host Path and NFS destinations which are
+    # configured by KOTS after the installer completes, so a missing Rook/Longhorn is not
+    # an error. When no RWX storage class is available the install falls back to
+    # --no-default-backup-location (see velero_install).
 
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt 25 ]; then
         semverCompare "${VELERO_VERSION//v/}" "1.16.2"
@@ -29,20 +35,38 @@ function velero_pre_init() {
     fi
 
     if velero_version_ge "1.17.0"; then
-        local bsl_provider
-        bsl_provider=$(velero_bsl_provider) || true
-        if [ -n "$bsl_provider" ] && velero_bsl_is_local_volume_provider "$bsl_provider"; then
-            bail "Velero $VELERO_VERSION cannot be used with the Local Volume Provider (provider: $bsl_provider). Velero 1.17+ uses Kopia, which does not support the Local Volume Provider. Migrate the default BackupStorageLocation to an object store (S3-compatible, Rook, or Minio) before upgrading."
-        fi
-        if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
-            bail "Velero $VELERO_VERSION does not support disabling S3 / Local Volume Provider snapshot storage. Use an object store (Rook or Minio) or pin Velero to a version earlier than 1.17."
-        fi
-        if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots; then
-            bail "Velero $VELERO_VERSION cannot be used with an existing Local Volume Provider snapshot PVC. Migrate to an object store before upgrading."
-        fi
+        velero_pre_init_117_gate
     fi
 
     velero_host_init
+}
+
+# Velero 1.17+ uses Kopia and no longer supports the Local Volume Provider snapshot
+# destinations offered in the Admin Console (Network File System (NFS), Host Path and
+# Internal Storage). If the cluster is using one, either migrate it to the in-cluster
+# object store during this upgrade (when possible) or block with an actionable message.
+function velero_pre_init_117_gate() {
+    if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        bail "Velero $VELERO_VERSION does not support the NFS, Host Path or Internal Storage snapshot destinations selected with kotsadm.disableS3. Velero 1.17+ uses Kopia, which requires an S3-compatible object store. Add Minio or Rook to the installer, configure an external S3-compatible object store, or pin Velero to a version earlier than 1.17. See https://community.replicated.com/t/upgrade-guide-velero-1-16-to-1-17-on-kurl-kots-with-lvp-snapshots/1647 for more information."
+    fi
+
+    if ! velero_using_local_volume_provider; then
+        return 0
+    fi
+
+    local lvp_destination
+    lvp_destination=$(velero_lvp_destination_name)
+
+    if velero_should_migrate_lvp_to_object_store; then
+        log "Velero is using the $lvp_destination snapshot destination, which is not supported by Velero 1.17+. It will be migrated to the in-cluster object store during this upgrade."
+        return 0
+    fi
+
+    if ! velero_object_store_available_for_migration; then
+        bail "Velero $VELERO_VERSION cannot be used with the $lvp_destination snapshot destination because Velero 1.17+ uses Kopia, which does not support it. Snapshots taken with the $lvp_destination destination will not be restorable after the upgrade. To upgrade, add Minio or Rook to the installer, configure an external S3-compatible object store, or pin Velero to a version earlier than 1.17. Manual migration steps: https://community.replicated.com/t/upgrade-guide-velero-1-16-to-1-17-on-kurl-kots-with-lvp-snapshots/1647"
+    fi
+
+    bail "Velero $VELERO_VERSION cannot be upgraded from the $lvp_destination snapshot destination until kotsadm is upgraded to $VELERO_MIN_KOTSADM_VERSION or later, because older versions of kotsadm re-configure Velero back onto the $lvp_destination destination even when an object store is present. Re-run the installer with kotsadm $VELERO_MIN_KOTSADM_VERSION or later, or pin Velero to a version earlier than 1.17."
 }
 
 # runs on first install, and on version upgrades only
@@ -54,6 +78,13 @@ function velero() {
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
 
     velero_binary
+
+    # If the cluster is on the Local Volume Provider and an object store is available,
+    # migrate before the install so that a new object store BackupStorageLocation is
+    # created (gated in velero_pre_init)
+    if velero_should_migrate_lvp_to_object_store; then
+        velero_migrate_lvp_to_object_store
+    fi
 
     determine_velero_pvc_size
 
@@ -160,6 +191,174 @@ function velero_bsl_is_local_volume_provider() {
     esac
 }
 
+# Returns the name of the Local Volume Provider snapshot destination as it appears in the
+# Admin Console, for use in messages. If no provider is given, the default
+# BackupStorageLocation provider is used.
+function velero_lvp_destination_name() {
+    local provider="${1:-}"
+    if [ -z "$provider" ]; then
+        provider=$(velero_bsl_provider) || true
+    fi
+    case "$provider" in
+        replicated.com/hostpath)
+            echo "Host Path"
+            ;;
+        replicated.com/nfs)
+            echo "Network File System (NFS)"
+            ;;
+        *)
+            # replicated.com/pvc and an existing velero-internal-snapshots PVC are the
+            # Internal Storage destination
+            echo "Internal Storage"
+            ;;
+    esac
+}
+
+# Returns 0 if Velero in this cluster is currently using the Local Volume Provider for
+# snapshots: the default BackupStorageLocation uses an LVP provider, or the
+# velero-internal-snapshots PVC exists.
+function velero_using_local_volume_provider() {
+    local bsl_provider
+    bsl_provider=$(velero_bsl_provider) || true
+    if [ -n "$bsl_provider" ] && velero_bsl_is_local_volume_provider "$bsl_provider"; then
+        return 0
+    fi
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots; then
+        return 0
+    fi
+    return 1
+}
+
+# Returns 0 if an in-cluster S3-compatible object store (Minio or a healthy Rook Ceph RGW)
+# is running and can be used as the new Velero BackupStorageLocation. This checks live
+# cluster state so that it works during pre_init, before the object store add-ons have
+# exported their environment variables.
+function velero_object_store_available_for_migration() {
+    local minio_namespace="${MINIO_NAMESPACE:-minio}"
+    if kubernetes_resource_exists "$minio_namespace" deployment minio || \
+        kubernetes_resource_exists "$minio_namespace" statefulset ha-minio; then
+        return 0
+    fi
+    if kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a && \
+        rook_rgw_check_if_is_healthy; then
+        return 0
+    fi
+    return 1
+}
+
+# Returns 0 if the kotsadm version in the installer spec will not re-configure Velero back
+# onto the Local Volume Provider after the migration.
+function velero_kotsadm_version_ok() {
+    if [ -z "$KOTSADM_VERSION" ]; then
+        # kotsadm is not in the installer spec; nothing will re-configure velero
+        return 0
+    fi
+    case "$KOTSADM_VERSION" in
+        latest|alpha|nightly)
+            # these resolve to recent builds
+            return 0
+            ;;
+    esac
+    if ! [[ "$KOTSADM_VERSION" =~ ^[0-9] ]]; then
+        # unknown format; assume it is not an old release
+        return 0
+    fi
+    semverCompare "${KOTSADM_VERSION//v/}" "$VELERO_MIN_KOTSADM_VERSION"
+    if [ "$SEMVER_COMPARE_RESULT" != "-1" ]; then
+        return 0
+    fi
+    return 1
+}
+
+# Returns 0 if the Local Volume Provider -> object store migration should run during this
+# upgrade: the target Velero version is 1.17+, the cluster is using the Local Volume
+# Provider, S3 snapshots are not disabled, an in-cluster object store is available, and
+# the kotsadm version in the spec will not re-configure Velero back onto the LVP.
+function velero_should_migrate_lvp_to_object_store() {
+    if ! velero_version_ge "1.17.0"; then
+        return 1
+    fi
+    if [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        return 1
+    fi
+    if ! velero_using_local_volume_provider; then
+        return 1
+    fi
+    if ! velero_object_store_available_for_migration; then
+        return 1
+    fi
+    if ! velero_kotsadm_version_ok; then
+        return 1
+    fi
+    return 0
+}
+
+# Migrate Velero from the Local Volume Provider to the in-cluster object store so that it
+# can be upgraded to 1.17+. This is a config cut-over, not a data migration: Velero 1.17+
+# uses Kopia, which cannot read the restic repositories used by the LVP, so pre-upgrade
+# snapshots are not restorable either way. The old snapshot data is retained on disk.
+# Every step is idempotent so a failed run can simply be re-run.
+function velero_migrate_lvp_to_object_store() {
+    local bsl_provider
+    bsl_provider=$(velero_bsl_provider) || true
+    local lvp_destination
+    lvp_destination=$(velero_lvp_destination_name "$bsl_provider")
+
+    printf "\n"
+    printf "Velero is using the ${lvp_destination} snapshot destination, which is not supported by Velero 1.17 and later.\n"
+    printf "This upgrade will re-configure Velero to use the in-cluster object store instead.\n"
+    printf "\n"
+    printf "Snapshots taken before this upgrade WILL NOT BE RESTORABLE afterwards: Velero 1.17+ uses Kopia,\n"
+    printf "which cannot read the existing restic repositories, regardless of this migration.\n"
+    printf "The existing snapshot data will be retained on disk in case manual recovery is needed.\n"
+    printf "\n"
+    printf "Continue?"
+    if ! confirmN; then
+        bail "Local Volume Provider migration declined. Re-run the installer and accept the prompt to migrate, run with the 'yes' flag to accept automatically, or pin Velero to a version earlier than 1.17. Manual migration steps: https://community.replicated.com/t/upgrade-guide-velero-1-16-to-1-17-on-kurl-kots-with-lvp-snapshots/1647"
+    fi
+
+    local backup_dir="$DIR/kustomize/velero/lvp-migration-backup"
+    mkdir -p "$backup_dir"
+
+    # save the current resources for manual recovery and auditing
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default; then
+        kubectl -n "$VELERO_NAMESPACE" get backupstoragelocation default -o yaml > "$backup_dir/backupstoragelocation-default.yaml"
+        if [ "$bsl_provider" != "replicated.com/pvc" ]; then
+            # hostpath and nfs destinations keep their data outside the cluster; the path
+            # is recorded in the saved BackupStorageLocation
+            logWarn "Existing snapshot data for the ${lvp_destination} destination is retained at its configured location; see $backup_dir/backupstoragelocation-default.yaml"
+        fi
+    fi
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots; then
+        kubectl -n "$VELERO_NAMESPACE" get pvc velero-internal-snapshots -o yaml > "$backup_dir/pvc-velero-internal-snapshots.yaml"
+    fi
+
+    # delete the velero workloads and storage location so that they are cleanly re-created
+    # by the install below; this also avoids the node-agent failing on stale repository data
+    kubectl delete deployment -n "$VELERO_NAMESPACE" velero --ignore-not-found
+    kubectl delete daemonset -n "$VELERO_NAMESPACE" node-agent --ignore-not-found
+    kubectl delete backupstoragelocation -n "$VELERO_NAMESPACE" default --ignore-not-found
+    kubectl -n "$VELERO_NAMESPACE" delete backuprepository --all --ignore-not-found
+    kubectl -n "$VELERO_NAMESPACE" delete resticrepository --all --ignore-not-found
+
+    # retain the old snapshot data on disk and remove the PVC; finalizers may need to be
+    # removed if the LVP provisioner is no longer running
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots; then
+        local velero_pv_name
+        velero_pv_name=$(kubectl -n "$VELERO_NAMESPACE" get pvc velero-internal-snapshots -ojsonpath='{.spec.volumeName}')
+        if [ -n "$velero_pv_name" ]; then
+            echo "Patching internal snapshot volume $velero_pv_name Reclaim Policy to Retain"
+            kubectl patch pv "$velero_pv_name" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+            kubectl get pv "$velero_pv_name" -o yaml > "$backup_dir/pv-${velero_pv_name}.yaml"
+            logSuccess "Old snapshot data retained in volume $velero_pv_name"
+        fi
+        kubectl -n "$VELERO_NAMESPACE" patch pvc velero-internal-snapshots -p '{"metadata":{"finalizers":null}}' 2>/dev/null || true
+        kubectl -n "$VELERO_NAMESPACE" delete pvc velero-internal-snapshots --ignore-not-found --timeout=2m || true
+    fi
+
+    logSuccess "Local Volume Provider migration complete; Velero will be re-configured to use the in-cluster object store"
+}
+
 function velero_install() {
     local src="$1"
     local dst="$2"
@@ -225,6 +424,24 @@ function velero_install() {
 function velero_already_applied() {
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
+
+    # If the Local Volume Provider needs to be migrated to the object store, the install
+    # must be fully reconstructed because the migration deletes the velero deployment and
+    # BackupStorageLocation
+    if velero_should_migrate_lvp_to_object_store; then
+        velero_migrate_lvp_to_object_store
+
+        render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
+
+        determine_velero_pvc_size
+
+        velero_binary
+        velero_install "$src" "$dst"
+        velero_patch_node_agent_privilege "$src" "$dst"
+        velero_patch_args "$src" "$dst"
+        velero_kotsadm_restore_config "$src" "$dst"
+        velero_patch_http_proxy "$src" "$dst"
+    fi
 
     # If we need to migrate, we're going to need to basically reconstruct the original install
     # underneath the migration

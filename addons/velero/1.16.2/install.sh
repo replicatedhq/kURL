@@ -16,10 +16,11 @@ function velero_pre_init() {
         bail "Rook 1.0.4 does not support RWX volumes used for Internal snapshot storage. Please upgrade to Rook 1.4.3 or higher."
     fi
 
-    # If someone uses OpenEBS as their primary CSI provider, bail because it doesn't support RWX volumes
-    if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
-        bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
-    fi
+    # The PVC-based Internal Storage destination requires an RWX storage class, but the
+    # Local Volume Provider also supports Host Path and NFS destinations which are
+    # configured by KOTS after the installer completes, so a missing Rook/Longhorn is not
+    # an error. When no RWX storage class is available the install falls back to
+    # --no-default-backup-location (see velero_install).
 
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt 25 ]; then
         semverCompare "${VELERO_VERSION//v/}" "1.16.2"
