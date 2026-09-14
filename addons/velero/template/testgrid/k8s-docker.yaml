@@ -193,7 +193,11 @@
     # BackupStorageLocation on its own, so configure a host path destination explicitly.
     # The buggy minio detection in 1.131.5 (kurlsh/minio images are not recognized)
     # forces KOTS onto the Local Volume Provider instead of Minio.
+    # The directory must be writable by uid 1001 (the user the velero node-agent and the
+    # kots check pod run as) or the store validation fails.
     mkdir -p /var/lib/kots-snapshots
+    chown 1001:1001 /var/lib/kots-snapshots
+    chmod 0770 /var/lib/kots-snapshots
     timeout 5m kubectl kots velero configure-hostpath --hostpath /var/lib/kots-snapshots --namespace default
     # assert the repro took: the default BackupStorageLocation must now be on the Local
     # Volume Provider despite Minio being present, otherwise this scenario is not
