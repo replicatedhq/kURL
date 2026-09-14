@@ -152,6 +152,10 @@
       version: "1.7.x"
     minio:
       version: "2025-10-15T17-29-55Z"
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
     kotsadm:
       version: "1.131.5"
     velero:
@@ -165,6 +169,10 @@
       version: "1.7.x"
     minio:
       version: "2025-10-15T17-29-55Z"
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
     kotsadm:
       version: latest
     velero:
@@ -192,17 +200,24 @@
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     kubectl get pods -n velero
-    # the migration must have re-pointed the default BackupStorageLocation at Minio
-    velero_bsl_provider=$(kubectl get backupstoragelocation -n velero default -ojsonpath='{.spec.provider}')
-    echo "velero bsl provider after upgrade: ${velero_bsl_provider}"
-    if [ "$velero_bsl_provider" != "aws" ]; then
-      echo "expected the aws (object store) provider after the upgrade, got ${velero_bsl_provider}"
-      exit 1
-    fi
-    # the Local Volume Provider PVC must be gone
-    if kubectl get pvc -n velero velero-internal-snapshots; then
-      echo "velero-internal-snapshots PVC still exists after the upgrade"
-      exit 1
+    # the migration asserts only apply when the upgrade target is Velero 1.17+; when this
+    # scenario runs with a pre-1.17 __testver__ no migration can happen and the Local Volume
+    # Provider remains in place
+    velero_minor=$(kubectl get deployment -n velero velero -ojsonpath='{.spec.template.spec.containers[0].image}' | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | cut -d. -f2)
+    echo "velero minor version after upgrade: ${velero_minor:-unknown}"
+    if [ "${velero_minor:-0}" -ge 17 ]; then
+      # the migration must have re-pointed the default BackupStorageLocation at Minio
+      velero_bsl_provider=$(kubectl get backupstoragelocation -n velero default -ojsonpath='{.spec.provider}')
+      echo "velero bsl provider after upgrade: ${velero_bsl_provider}"
+      if [ "$velero_bsl_provider" != "aws" ]; then
+        echo "expected the aws (object store) provider after the upgrade, got ${velero_bsl_provider}"
+        exit 1
+      fi
+      # the Local Volume Provider PVC must be gone
+      if kubectl get pvc -n velero velero-internal-snapshots; then
+        echo "velero-internal-snapshots PVC still exists after the upgrade"
+        exit 1
+      fi
     fi
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
