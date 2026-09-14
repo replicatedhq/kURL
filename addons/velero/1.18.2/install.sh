@@ -341,8 +341,14 @@ function velero_migrate_lvp_to_object_store() {
     kubectl delete deployment -n "$VELERO_NAMESPACE" velero --ignore-not-found
     kubectl delete daemonset -n "$VELERO_NAMESPACE" node-agent --ignore-not-found
     kubectl delete backupstoragelocation -n "$VELERO_NAMESPACE" default --ignore-not-found
-    kubectl -n "$VELERO_NAMESPACE" delete backuprepository --all --ignore-not-found
-    kubectl -n "$VELERO_NAMESPACE" delete resticrepository --all --ignore-not-found
+    # only delete the repository custom resources when their CRD exists: kubectl fails with
+    # "the server doesn't have a resource type" for missing kinds even with --ignore-not-found
+    if kubectl get crd backuprepositories.velero.io &>/dev/null; then
+        kubectl -n "$VELERO_NAMESPACE" delete backuprepository --all --ignore-not-found
+    fi
+    if kubectl get crd resticrepositories.velero.io &>/dev/null; then
+        kubectl -n "$VELERO_NAMESPACE" delete resticrepository --all --ignore-not-found
+    fi
 
     # retain the old snapshot data on disk and remove the PVC; finalizers may need to be
     # removed if the LVP provisioner is no longer running
