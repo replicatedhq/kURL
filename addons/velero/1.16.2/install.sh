@@ -16,10 +16,11 @@ function velero_pre_init() {
         bail "Rook 1.0.4 does not support RWX volumes used for Internal snapshot storage. Please upgrade to Rook 1.4.3 or higher."
     fi
 
-    # If someone uses OpenEBS as their primary CSI provider, bail because it doesn't support RWX volumes
-    if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
-        bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
-    fi
+    # The PVC-based Internal Storage destination requires an RWX storage class, but the
+    # Local Volume Provider also supports Host Path and NFS destinations which are
+    # configured by KOTS after the installer completes, so a missing Rook/Longhorn is not
+    # an error. When no RWX storage class is available the install falls back to
+    # --no-default-backup-location (see velero_install).
 
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt 25 ]; then
         semverCompare "${VELERO_VERSION//v/}" "1.16.2"
@@ -60,8 +61,11 @@ function velero() {
     kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
     kubectl delete crd resticrepositories.velero.io --ignore-not-found
 
-    # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; then
+    # If we already migrated, or we on a new install that has the disableS3 flag set and an
+    # RWX storage class is available, we need a PVC attached. When no RWX storage class is
+    # available the install uses --no-default-backup-location so that KOTS can configure
+    # Host Path or NFS snapshots after the installer completes.
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || { [ "$KOTSADM_DISABLE_S3" == "1" ] && velero_rwx_storage_class_exists; }; then
         velero_patch_internal_pvc_snapshots "$src" "$dst"
     fi
 
@@ -129,7 +133,7 @@ function velero_install() {
 
         # Only use the PVC backup location for new installs where disableS3 is set to TRUE and
         # there is a RWX storage class available (rook-cephfs or longhorn)
-        if [ "$KOTSADM_DISABLE_S3" == 1 ] && { kubectl get storageclass | grep "longhorn" || kubectl get storageclass | grep "rook-cephfs" ; } ; then
+        if [ "$KOTSADM_DISABLE_S3" == 1 ] && velero_rwx_storage_class_exists ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
         elif object_store_exists; then
             local ip=$($DIR/bin/kurl netutil format-ip-address $OBJECT_STORE_CLUSTER_IP)
@@ -419,6 +423,12 @@ function velero_migrate_from_object_store() {
     # update the BackupstorageLocation
     render_yaml_file "$src/tmpl-s3-migration-bsl.yaml" > "$dst/s3-migration-bsl.yaml"
     insert_resources "$dst/kustomization.yaml" s3-migration-bsl.yaml
+}
+
+# Returns 0 if a storage class that supports RWX volumes (rook-cephfs or longhorn), which
+# is required by the PVC-based Internal Storage destination, is present in the cluster.
+function velero_rwx_storage_class_exists() {
+    kubectl get storageclass 2>/dev/null | grep -q "longhorn" || kubectl get storageclass 2>/dev/null | grep -q "rook-cephfs"
 }
 
 # add patches for the velero and node-agent to the current kustomization file that setup the PVC setup like the
