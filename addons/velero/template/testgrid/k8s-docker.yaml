@@ -134,3 +134,117 @@
       echo "Restic pods still running after upgrade"
       exit 1
     fi
+
+# Reproduces the kotsadm <= 1.131.5 bug where configuring a file system snapshot
+# destination deploys the Local Volume Provider even when Minio is present (the buggy
+# minio detection does not recognize kurlsh/minio images), then upgrades to a Velero
+# version that no longer supports the LVP. The upgrade must migrate the default
+# BackupStorageLocation to the in-cluster object store instead of blocking.
+- name: "Velero LVP Upgrade"
+  cpu: 8
+  # auto-accept the Local Volume Provider migration confirmation prompt
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.33.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "1.7.x"
+    minio:
+      version: "2025-10-15T17-29-55Z"
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    kotsadm:
+      version: "1.131.5"
+    velero:
+      version: "1.16.2"
+  upgradeSpec:
+    kubernetes:
+      version: "1.33.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "1.7.x"
+    minio:
+      version: "2025-10-15T17-29-55Z"
+    openebs:
+      version: "4.4.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: "local"
+    kotsadm:
+      version: latest
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
+    ubuntu_2404_install_host_packages nfs-common lvm2
+    ubuntu_2604_install_host_packages nfs-common lvm2
+    # END GENERATED os-matrix: ubuntu-host-packages
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    install_and_customize_kurl_integration_test_application
+    # reproduce the kotsadm <= 1.131.5 bug: KOTS does not re-configure the
+    # BackupStorageLocation on its own, so configure a host path destination explicitly.
+    # The buggy minio detection in 1.131.5 (kurlsh/minio images are not recognized)
+    # forces KOTS onto the Local Volume Provider instead of Minio.
+    # The directory must be writable by uid 1001 (the user the velero node-agent and the
+    # kots check pod run as) or the store validation fails.
+    mkdir -p /var/lib/kots-snapshots
+    chown 1001:1001 /var/lib/kots-snapshots
+    chmod 0770 /var/lib/kots-snapshots
+    timeout 5m kubectl kots velero configure-hostpath --hostpath /var/lib/kots-snapshots --namespace default
+    # assert the repro took: the default BackupStorageLocation must now be on the Local
+    # Volume Provider despite Minio being present, otherwise this scenario is not
+    # exercising the migration path
+    velero_bsl_provider=$(kubectl get backupstoragelocation -n velero default -ojsonpath='{.spec.provider}')
+    echo "velero bsl provider after install: ${velero_bsl_provider}"
+    if ! echo "$velero_bsl_provider" | grep -q "replicated.com"; then
+      echo "expected the Local Volume Provider after configuring a host path destination with kotsadm 1.131.5, got ${velero_bsl_provider}"
+      exit 1
+    fi
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    kubectl get pods -n velero
+    # the migration asserts only apply when the upgrade target is Velero 1.17+; when this
+    # scenario runs with a pre-1.17 __testver__ no migration can happen and the Local Volume
+    # Provider remains in place
+    velero_minor=$(kubectl get deployment -n velero velero -ojsonpath='{.spec.template.spec.containers[0].image}' | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | cut -d. -f2)
+    echo "velero minor version after upgrade: ${velero_minor:-unknown}"
+    if [ "${velero_minor:-0}" -ge 17 ]; then
+      # the migration must have re-pointed the default BackupStorageLocation at Minio
+      velero_bsl_provider=$(kubectl get backupstoragelocation -n velero default -ojsonpath='{.spec.provider}')
+      echo "velero bsl provider after upgrade: ${velero_bsl_provider}"
+      if [ "$velero_bsl_provider" != "aws" ]; then
+        echo "expected the aws (object store) provider after the upgrade, got ${velero_bsl_provider}"
+        exit 1
+      fi
+      # the Local Volume Provider PVC must be gone
+      if kubectl get pvc -n velero velero-internal-snapshots; then
+        echo "velero-internal-snapshots PVC still exists after the upgrade"
+        exit 1
+      fi
+    fi
+    # the upgrade re-applies the velero deployment and node-agent daemonset (and the LVP
+    # plugin re-injects its volume mounts), so wait for both rollouts to settle before
+    # creating a backup or the pod volume backup races the node-agent restart
+    kubectl rollout status deployment/velero -n velero --timeout=300s
+    kubectl rollout status daemonset/node-agent -n velero --timeout=300s
+    timeout 5m kubectl kots backup
+    timeout 5m kubectl kots backup ls
+    # if restic pods are still running, fail the test
+    if kubectl get pods -n velero | grep restic; then
+      echo "Restic pods still running after upgrade"
+      exit 1
+    fi
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - ol-8x
+    - amzn-20
+    - ubuntu-1804
