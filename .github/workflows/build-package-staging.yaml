@@ -47,8 +47,12 @@ jobs:
           export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
           
           echo "purging s3-staging.kurl.sh/staging/${VERSION_TAG}/$PKG and s3-staging.kurl.sh/staging/$PKG"
+          payload=$(jq -cn \
+            --arg versioned "s3-staging.kurl.sh/staging/${VERSION_TAG}/$PKG" \
+            --arg latest "s3-staging.kurl.sh/staging/$PKG" \
+            '{prefixes: [$versioned, $latest]}')
           curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
              -H "X-Auth-Email: $CF_EMAIL" \
              -H "Authorization: Bearer $CF_API_KEY" \
              -H "Content-Type: application/json" \
-             --data '{"prefixes":["s3-staging.kurl.sh/staging/${VERSION_TAG}/$PKG", "s3-staging.kurl.sh/staging/$PKG"]}'
+             --data "$payload"
