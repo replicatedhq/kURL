@@ -32,7 +32,7 @@ spec:
                 topologyKey: "kubernetes.io/hostname"
       containers:
         - name: minio
-          image: proxy.replicated.com/library/minio:RELEASE.2025-10-15T17-29-55Z
+          image: kurlsh/minio:RELEASE.2025-10-15T17-29-55Z
           volumeMounts:
             - name: minio-data
               mountPath: /data

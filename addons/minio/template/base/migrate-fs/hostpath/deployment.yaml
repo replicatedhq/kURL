@@ -19,7 +19,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: "/data"
-        image: proxy.replicated.com/library/minio:__MINIO_VERSION__
+        image: kurlsh/minio:__MINIO_VERSION__
         args:
         - --quiet
         - server
