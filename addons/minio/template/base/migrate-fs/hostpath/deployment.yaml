@@ -19,7 +19,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: "/data"
-        image: kurlsh/minio:__MINIO_VERSION__
+        image: kotsadm/minio:__MINIO_VERSION__
         args:
         - --quiet
         - server

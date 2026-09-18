@@ -1,1 +1,1 @@
-image minio kurlsh/minio:__MINIO_VERSION__
+image minio kotsadm/minio:__MINIO_VERSION__

@@ -1,0 +1,231 @@
+# Test-branch coverage: released MinIO -> SecureBuild at the same upstream version.
+# All other add-on versions remain fixed. The existing workflow discovers this file.
+- name: MinIO same-version SecureBuild replacement (PVC)
+  flags: 'yes'
+  installerSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    openebs:
+      version: 3.10.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: 2025-10-15T17-29-55Z
+  upgradeSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    openebs:
+      version: 3.10.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: __testver__
+      s3Override: __testdist__
+  postInstallScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    test "$(kubectl get deployment/minio -n minio -o jsonpath='{.spec.template.spec.containers[?(@.name=="minio")].image}')" = kurlsh/minio:RELEASE.2025-10-15T17-29-55Z
+    minio_object_store_info
+    validate_read_write_object_store rwtest before-securebuild.txt
+  postUpgradeScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    kubectl rollout status deployment/minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_read_write_object_store rwtest after-securebuild.txt
+    kubectl rollout restart deployment/minio -n minio
+    kubectl rollout status deployment/minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_testfile rwtest after-securebuild.txt
+- name: MinIO same-version SecureBuild replacement (hostpath)
+  flags: 'yes'
+  installerSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    minio:
+      version: 2025-10-15T17-29-55Z
+      hostPath: /opt/minio
+  upgradeSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    minio:
+      version: __testver__
+      hostPath: /opt/minio
+      s3Override: __testdist__
+  postInstallScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    test "$(kubectl get deployment/minio -n minio -o jsonpath='{.spec.template.spec.containers[?(@.name=="minio")].image}')" = kurlsh/minio:RELEASE.2025-10-15T17-29-55Z
+    minio_object_store_info
+    validate_read_write_object_store rwtest before-securebuild.txt
+  postUpgradeScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    kubectl rollout status deployment/minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_read_write_object_store rwtest after-securebuild.txt
+    kubectl rollout restart deployment/minio -n minio
+    kubectl rollout status deployment/minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_testfile rwtest after-securebuild.txt
+- name: MinIO same-version SecureBuild replacement (HA)
+  flags: 'yes'
+  installerSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    openebs:
+      version: 3.10.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: 2025-10-15T17-29-55Z
+    ekco:
+      version: 0.28.15
+  upgradeSpec:
+    kubernetes:
+      version: 1.32.13
+    containerd:
+      version: 1.7.29
+    flannel:
+      version: 0.28.9
+    openebs:
+      version: 3.10.0
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: __testver__
+      s3Override: __testdist__
+    ekco:
+      version: 0.28.15
+  postInstallScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    for attempt in $(seq 1 180); do
+      ready=$(kubectl get statefulset ha-minio -n minio -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
+      [ "$ready" = 6 ] && break
+      sleep 5
+    done
+    test "$ready" = 6
+    kubectl rollout status statefulset/ha-minio -n minio --timeout=600s
+    test "$(kubectl get statefulset/ha-minio -n minio -o jsonpath='{.spec.template.spec.containers[?(@.name=="minio")].image}')" = kurlsh/minio:RELEASE.2025-10-15T17-29-55Z
+    minio_object_store_info
+    validate_read_write_object_store rwtest before-securebuild.txt
+  postUpgradeScript: |
+    set -e
+    source /opt/kurl-testgrid/testhelpers.sh
+    for attempt in $(seq 1 180); do
+      ready=$(kubectl get statefulset ha-minio -n minio -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
+      [ "$ready" = 6 ] && break
+      sleep 5
+    done
+    test "$ready" = 6
+    kubectl rollout status statefulset/ha-minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_read_write_object_store rwtest after-securebuild.txt
+    old_uid=$(kubectl get pod ha-minio-0 -n minio -o jsonpath='{.metadata.uid}')
+    kubectl delete pod ha-minio-0 -n minio --wait=true
+    for attempt in $(seq 1 120); do
+      new_uid=$(kubectl get pod ha-minio-0 -n minio -o jsonpath='{.metadata.uid}' 2>/dev/null || true)
+      [ -n "$new_uid" ] && [ "$new_uid" != "$old_uid" ] && break
+      sleep 5
+    done
+    test -n "$new_uid"
+    test "$new_uid" != "$old_uid"
+    kubectl wait --for=condition=Ready pod/ha-minio-0 -n minio --timeout=600s
+    for attempt in $(seq 1 180); do
+      ready=$(kubectl get statefulset ha-minio -n minio -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
+      [ "$ready" = 6 ] && break
+      sleep 5
+    done
+    test "$ready" = 6
+    kubectl rollout status statefulset/ha-minio -n minio --timeout=600s
+    pods=$(kubectl get pods -n minio -l 'app in (minio,ha-minio)' -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}pod/{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+    test -n "$pods"
+    for pod in $pods; do
+      image=$(kubectl get "$pod" -n minio -o jsonpath='{.spec.containers[?(@.name=="minio")].image}')
+      test "$image" = kotsadm/minio:RELEASE.2025-10-15T17-29-55Z
+      kubectl exec -n minio "$pod" -c minio -- sh -c '
+        sed -n "/^P:minio-0.20251015$/,/^$/p" /lib/apk/db/installed | grep -qx "V:0.20251015.172955-r8"
+      '
+      kubectl get "$pod" -n minio -o jsonpath='{.metadata.name}{" "}{.status.containerStatuses[?(@.name=="minio")].imageID}{"\n"}'
+    done
+    minio_object_store_info
+    validate_testfile rwtest before-securebuild.txt
+    validate_testfile rwtest after-securebuild.txt
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
