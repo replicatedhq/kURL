@@ -1,1 +1,1 @@
-image minio kurlsh/minio:__MINIO_VERSION__
+image minio proxy.replicated.com/library/minio:__MINIO_VERSION__
