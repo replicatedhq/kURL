@@ -3,7 +3,7 @@ module github.com/replicatedhq/kurl
 go 1.26.5
 
 require (
-	code.cloudfoundry.org/bytefmt v0.90.0
+	code.cloudfoundry.org/bytefmt v0.91.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.1
 	github.com/briandowns/spinner v1.23.2
@@ -34,7 +34,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/vishvananda/netlink v1.3.1
-	github.com/vmware-tanzu/velero v1.18.2
+	github.com/vmware-tanzu/velero v1.18.3
 	golang.org/x/crypto v0.57.0
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/sync v0.23.0
