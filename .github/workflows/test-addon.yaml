@@ -2,12 +2,16 @@ name: test-addon.yaml
 on:
   workflow_dispatch: {}
 jobs:
-  focused-registry-tests:
+  registry-pvc-upgrade-smoke:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-      - name: Queue focused Registry 3.1.2 tests from PR 6152 artifact
-        env:
-          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+      - name: Prepare smoke test dependencies
         run: |
-          docker run --rm -e TESTGRID_API_TOKEN -v "$PWD:/wrk:ro" -w /wrk replicated/tgrun:latest queue --staging --ref "pr-6152-9904919e3ed9-focused-$(date --utc +%FT%TZ)" --spec /wrk/testgrid/specs/registry-6152-focused.json --os-spec /wrk/testgrid/specs/registry-6152-os.yaml --priority 0
+          command -v htpasswd || (sudo apt-get update && sudo apt-get install -y apache2-utils)
+          python3 -m venv "$RUNNER_TEMP/registry-smoke-venv"
+          "$RUNNER_TEMP/registry-smoke-venv/bin/pip" install PyYAML==6.0.3
+          docker pull registry:3.1.1
+          docker pull registry:3.1.2
+      - name: Test actual add-on config, TLS, authentication, storage and upgrade persistence
+        run: '"$RUNNER_TEMP/registry-smoke-venv/bin/python" testgrid/registry-smoke.py'
