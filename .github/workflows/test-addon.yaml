@@ -2,8 +2,10 @@ name: test-addon.yaml
 on:
   workflow_dispatch: {}
 jobs:
-  registry-pvc-upgrade-smoke:
+  registry-s3-upgrade-smoke:
     runs-on: ubuntu-24.04
+    env:
+      BACKEND: s3
     steps:
       - uses: actions/checkout@v7
       - name: Prepare smoke test dependencies
@@ -13,5 +15,6 @@ jobs:
           "$RUNNER_TEMP/registry-smoke-venv/bin/pip" install PyYAML==6.0.3
           docker pull registry:3.1.1
           docker pull registry:3.1.2
+          docker pull minio/minio:RELEASE.2025-09-07T16-13-09Z
       - name: Test actual add-on config, TLS, authentication, storage and upgrade persistence
         run: '"$RUNNER_TEMP/registry-smoke-venv/bin/python" testgrid/registry-smoke.py'

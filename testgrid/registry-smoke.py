@@ -1,5 +1,6 @@
 import base64,gzip,hashlib,io,json,os,pathlib,ssl,subprocess,tarfile,time,urllib.error,urllib.parse,urllib.request
 import yaml
+BACKEND=os.environ.get('BACKEND','pvc')
 ROOT=pathlib.Path(os.environ['RUNNER_TEMP'])/'registry-smoke'
 ROOT.mkdir(exist_ok=True)
 for d in ['pki','auth','config','data']: (ROOT/d).mkdir(exist_ok=True)
@@ -20,7 +21,8 @@ def request(path,method='GET',data=None,headers=None,auth=True,expected=200):
  return r.headers,body
 
 def start(version):
- docs=list(yaml.safe_load_all(pathlib.Path(f'addons/registry/{version}/deployment-pvc.yaml').read_text()))
+ filename='tmpl-deployment-objectstore.yaml' if BACKEND=='s3' else 'deployment-pvc.yaml'
+ docs=list(yaml.safe_load_all(pathlib.Path(f'addons/registry/{version}/{filename}').read_text().replace('$objectStoreIP','minio-smoke:9000')))
  config=next(d['data']['config.yml'] for d in docs if d['kind']=='ConfigMap')
  (ROOT/'config/config.yml').write_text(config)
  deployment=next(d for d in docs if d['kind']=='Deployment')
@@ -28,6 +30,7 @@ def start(version):
  assert container['image']==f'registry:{version}'
  args=['docker','run','-d','--name','registry-smoke','-p','127.0.0.1:5443:443','-e','REGISTRY_HTTP_SECRET=ephemeral-test-secret','-e','OTEL_TRACES_EXPORTER=none']
  for a,b in [('pki','/etc/pki'),('auth','/auth'),('config','/etc/docker/registry'),('data','/var/lib/registry')]:args+=['-v',f'{ROOT/a}:{b}']
+ if BACKEND=='s3':args+=['--network','registry-smoke','-e','AWS_ACCESS_KEY_ID=smokeuser','-e','AWS_SECRET_ACCESS_KEY=smokepassword']
  args+=['--entrypoint',container['command'][0],container['image']]+container['command'][1:]
  subprocess.run(args,check=True,stdout=subprocess.DEVNULL)
  for i in range(60):
@@ -35,7 +38,7 @@ def start(version):
   except (OSError,AssertionError):time.sleep(1)
  else:raise RuntimeError('registry did not become ready')
  request('/v2/',auth=False,expected=401)
- print(f'PASS {version}: starts with actual add-on PVC config; TLS verified; unauthenticated access rejected',flush=True)
+ print(f'PASS {version}: starts with actual add-on {BACKEND} config; TLS verified; unauthenticated access rejected',flush=True)
 
 def stop():subprocess.run(['docker','rm','-f','registry-smoke'],check=True,stdout=subprocess.DEVNULL)
 def digest(data):return 'sha256:'+hashlib.sha256(data).hexdigest()
@@ -65,6 +68,15 @@ def verify(tag,fixture):
  for dg,data in blobs.items():
   _,actual=request('/v2/smoke/blobs/'+dg);assert actual==data
  print('PASS manifest and every blob retrieved byte-for-byte:',tag,flush=True)
+if BACKEND=='s3':
+ subprocess.run(['docker','network','create','registry-smoke'],check=True,stdout=subprocess.DEVNULL)
+ subprocess.run(['docker','run','-d','--name','minio-smoke','--network','registry-smoke','-p','127.0.0.1:9000:9000','-e','MINIO_ROOT_USER=smokeuser','-e','MINIO_ROOT_PASSWORD=smokepassword','minio/minio:RELEASE.2025-09-07T16-13-09Z','server','/data'],check=True,stdout=subprocess.DEVNULL)
+ for i in range(60):
+  r=subprocess.run(['curl','--fail','--silent','http://127.0.0.1:9000/minio/health/live'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+  if r.returncode==0:break
+  time.sleep(1)
+ else:raise RuntimeError('MinIO did not become ready')
+ subprocess.run(['curl','--fail','--silent','--show-error','--aws-sigv4','aws:amz:us-east-1:s3','--user','smokeuser:smokepassword','-X','PUT','http://127.0.0.1:9000/docker-registry'],check=True)
 try:
  start('3.1.1');old=push('before-upgrade');verify('before-upgrade',old);stop()
  start('3.1.2');verify('before-upgrade',old);new=push('after-upgrade');verify('after-upgrade',new)
@@ -72,7 +84,11 @@ try:
  request('/v2/smoke/manifests/after-upgrade',headers={'Accept':'application/vnd.oci.image.manifest.v1+json'},expected=404)
  print('PASS Registry 3.1.2 manifest deletion',flush=True)
  stop();start('3.1.2');verify('before-upgrade',old)
- print('PASS all remote registry PVC smoke checks including 3.1.1-to-3.1.2 upgrade and restart persistence',flush=True)
+ print(f'PASS all remote registry {BACKEND} smoke checks including 3.1.1-to-3.1.2 upgrade and restart persistence',flush=True)
 finally:
  subprocess.run(['docker','logs','registry-smoke'],check=False)
  subprocess.run(['docker','rm','-f','registry-smoke'],check=False,stdout=subprocess.DEVNULL)
+
+ if BACKEND=='s3':
+  subprocess.run(['docker','rm','-f','minio-smoke'],check=False,stdout=subprocess.DEVNULL)
+  subprocess.run(['docker','network','rm','registry-smoke'],check=False,stdout=subprocess.DEVNULL)
