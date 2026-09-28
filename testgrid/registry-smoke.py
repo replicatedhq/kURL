@@ -70,7 +70,7 @@ def verify(tag,fixture):
  print('PASS manifest and every blob retrieved byte-for-byte:',tag,flush=True)
 if BACKEND=='s3':
  subprocess.run(['docker','network','create','registry-smoke'],check=True,stdout=subprocess.DEVNULL)
- subprocess.run(['docker','run','-d','--name','minio-smoke','--network','registry-smoke','-p','127.0.0.1:9000:9000','-e','MINIO_ROOT_USER=smokeuser','-e','MINIO_ROOT_PASSWORD=smokepassword','minio/minio:RELEASE.2025-09-07T16-13-09Z','server','/data'],check=True,stdout=subprocess.DEVNULL)
+ subprocess.run(['docker','run','-d','--name','minio-smoke','--network','registry-smoke','-p','127.0.0.1:9000:9000','-e','MINIO_ROOT_USER=smokeuser','-e','MINIO_ROOT_PASSWORD=smokepassword','kurlsh/minio:RELEASE.2025-10-15T17-29-55Z','server','/data'],check=True,stdout=subprocess.DEVNULL)
  for i in range(60):
   r=subprocess.run(['curl','--fail','--silent','http://127.0.0.1:9000/minio/health/live'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
   if r.returncode==0:break

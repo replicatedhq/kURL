@@ -15,6 +15,6 @@ jobs:
           "$RUNNER_TEMP/registry-smoke-venv/bin/pip" install PyYAML==6.0.3
           docker pull registry:3.1.1
           docker pull registry:3.1.2
-          docker pull minio/minio:RELEASE.2025-09-07T16-13-09Z
+          docker pull kurlsh/minio:RELEASE.2025-10-15T17-29-55Z
       - name: Test actual add-on config, TLS, authentication, storage and upgrade persistence
         run: '"$RUNNER_TEMP/registry-smoke-venv/bin/python" testgrid/registry-smoke.py'
