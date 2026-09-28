@@ -19,7 +19,12 @@
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
-    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    REGISTRY_IMAGE=$(kubectl -n kurl get deployment registry -o jsonpath='{.spec.template.spec.containers[?(@.name=="registry")].image}')
+    case "$REGISTRY_IMAGE" in
+      registry:*) REGISTRY_IMAGE="docker.io/library/$REGISTRY_IMAGE" ;;
+      kurlsh/*) REGISTRY_IMAGE="docker.io/$REGISTRY_IMAGE" ;;
+    esac
+    ctr -n k8s.io images tag "$REGISTRY_IMAGE" $DOCKER_REGISTRY_IP/registry:testtag
     ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
@@ -58,7 +63,12 @@
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
-    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    REGISTRY_IMAGE=$(kubectl -n kurl get deployment registry -o jsonpath='{.spec.template.spec.containers[?(@.name=="registry")].image}')
+    case "$REGISTRY_IMAGE" in
+      registry:*) REGISTRY_IMAGE="docker.io/library/$REGISTRY_IMAGE" ;;
+      kurlsh/*) REGISTRY_IMAGE="docker.io/$REGISTRY_IMAGE" ;;
+    esac
+    ctr -n k8s.io images tag "$REGISTRY_IMAGE" $DOCKER_REGISTRY_IP/registry:testtag
     ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
@@ -280,7 +290,12 @@
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
-    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    REGISTRY_IMAGE=$(kubectl -n kurl get deployment registry -o jsonpath='{.spec.template.spec.containers[?(@.name=="registry")].image}')
+    case "$REGISTRY_IMAGE" in
+      registry:*) REGISTRY_IMAGE="docker.io/library/$REGISTRY_IMAGE" ;;
+      kurlsh/*) REGISTRY_IMAGE="docker.io/$REGISTRY_IMAGE" ;;
+    esac
+    ctr -n k8s.io images tag "$REGISTRY_IMAGE" $DOCKER_REGISTRY_IP/registry:testtag
     ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
