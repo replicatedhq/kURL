@@ -1,0 +1,148 @@
+[
+  {
+    "name": "registry_312_focused_pvc",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.31.14"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "1.7.29"
+      },
+      "registry": {
+        "version": "3.1.2",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6152-9904919e3ed9-registry-3.1.2.tar.gz"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "ekco": {
+        "version": "0.28.15"
+      },
+      "openebs": {
+        "version": "3.3.0",
+        "isLocalPVEnabled": true,
+        "localPVStorageClassName": "default"
+      }
+    },
+    "postInstallScript": "set -euo pipefail\nkubectl -n kurl rollout status deployment/registry --timeout=300s\nREGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{.spec.clusterIP}')\nREGISTRY_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\\.dockerconfigjson}' | base64 --decode | sed 's|.*\"auth\":\"\\([^\"]*\\)\".*|\\1|' | base64 -d)\nEXPECTED_IMAGE=\"registry:3.1.2\"\nACTUAL_IMAGE=$(kubectl -n kurl get deployment registry -o=jsonpath='{.spec.template.spec.containers[?(@.name==\"registry\")].image}')\ntest \"$ACTUAL_IMAGE\" = \"$EXPECTED_IMAGE\"\nCODE=$(curl --silent --cacert /etc/kubernetes/pki/ca.crt -o /dev/null -w '%{http_code}' \"https://$REGISTRY_IP/v2/\")\ntest \"$CODE\" = 401\ncurl --fail --silent --show-error --cacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"https://$REGISTRY_IP/v2/\"\n\nctr -n k8s.io images tag docker.io/library/registry:3.1.2 \"$REGISTRY_IP/registry:pr6152\"\nctr -n k8s.io images push --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\nIMAGE_DIGEST=$(ctr -n k8s.io images ls | awk -v ref=\"$REGISTRY_IP/registry:pr6152\" '$1 == ref {print $3}')\ntest -n \"$IMAGE_DIGEST\"\nctr -n k8s.io images ls | awk -v digest=\"$IMAGE_DIGEST\" '$3 == digest {print $1}' | xargs ctr -n k8s.io images delete --sync\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\necho 'PASS: expected registry image, TLS, authentication, and amd64 push/pull'\n"
+  },
+  {
+    "name": "registry_312_focused_rook",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.31.14"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "1.7.29"
+      },
+      "registry": {
+        "version": "3.1.2",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6152-9904919e3ed9-registry-3.1.2.tar.gz"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "ekco": {
+        "version": "0.28.15"
+      },
+      "rook": {
+        "version": "1.12.8"
+      }
+    },
+    "postInstallScript": "set -euo pipefail\nkubectl -n kurl rollout status deployment/registry --timeout=300s\nREGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{.spec.clusterIP}')\nREGISTRY_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\\.dockerconfigjson}' | base64 --decode | sed 's|.*\"auth\":\"\\([^\"]*\\)\".*|\\1|' | base64 -d)\nEXPECTED_IMAGE=\"registry:3.1.2\"\nACTUAL_IMAGE=$(kubectl -n kurl get deployment registry -o=jsonpath='{.spec.template.spec.containers[?(@.name==\"registry\")].image}')\ntest \"$ACTUAL_IMAGE\" = \"$EXPECTED_IMAGE\"\nCODE=$(curl --silent --cacert /etc/kubernetes/pki/ca.crt -o /dev/null -w '%{http_code}' \"https://$REGISTRY_IP/v2/\")\ntest \"$CODE\" = 401\ncurl --fail --silent --show-error --cacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"https://$REGISTRY_IP/v2/\"\n\nctr -n k8s.io images tag docker.io/library/registry:3.1.2 \"$REGISTRY_IP/registry:pr6152\"\nctr -n k8s.io images push --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\nIMAGE_DIGEST=$(ctr -n k8s.io images ls | awk -v ref=\"$REGISTRY_IP/registry:pr6152\" '$1 == ref {print $3}')\ntest -n \"$IMAGE_DIGEST\"\nctr -n k8s.io images ls | awk -v digest=\"$IMAGE_DIGEST\" '$3 == digest {print $1}' | xargs ctr -n k8s.io images delete --sync\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\necho 'PASS: expected registry image, TLS, authentication, and amd64 push/pull'\n"
+  },
+  {
+    "name": "registry_311_to_312_pvc",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.31.14"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "1.7.29"
+      },
+      "registry": {
+        "version": "3.1.1"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "ekco": {
+        "version": "0.28.15"
+      },
+      "openebs": {
+        "version": "3.3.0",
+        "isLocalPVEnabled": true,
+        "localPVStorageClassName": "default"
+      }
+    },
+    "upgradeSpec": {
+      "kubernetes": {
+        "version": "1.31.14"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "1.7.29"
+      },
+      "registry": {
+        "version": "3.1.2",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6152-9904919e3ed9-registry-3.1.2.tar.gz"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "ekco": {
+        "version": "0.28.15"
+      },
+      "openebs": {
+        "version": "3.3.0",
+        "isLocalPVEnabled": true,
+        "localPVStorageClassName": "default"
+      }
+    },
+    "postInstallScript": "set -euo pipefail\nkubectl -n kurl rollout status deployment/registry --timeout=300s\nREGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{.spec.clusterIP}')\nREGISTRY_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\\.dockerconfigjson}' | base64 --decode | sed 's|.*\"auth\":\"\\([^\"]*\\)\".*|\\1|' | base64 -d)\nEXPECTED_IMAGE=\"registry:3.1.1\"\nACTUAL_IMAGE=$(kubectl -n kurl get deployment registry -o=jsonpath='{.spec.template.spec.containers[?(@.name==\"registry\")].image}')\ntest \"$ACTUAL_IMAGE\" = \"$EXPECTED_IMAGE\"\nCODE=$(curl --silent --cacert /etc/kubernetes/pki/ca.crt -o /dev/null -w '%{http_code}' \"https://$REGISTRY_IP/v2/\")\ntest \"$CODE\" = 401\ncurl --fail --silent --show-error --cacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"https://$REGISTRY_IP/v2/\"\n\nctr -n k8s.io images tag docker.io/library/registry:3.1.1 \"$REGISTRY_IP/registry:pr6152\"\nctr -n k8s.io images push --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\nIMAGE_DIGEST=$(ctr -n k8s.io images ls | awk -v ref=\"$REGISTRY_IP/registry:pr6152\" '$1 == ref {print $3}')\ntest -n \"$IMAGE_DIGEST\"\nctr -n k8s.io images ls | awk -v digest=\"$IMAGE_DIGEST\" '$3 == digest {print $1}' | xargs ctr -n k8s.io images delete --sync\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\necho 'PASS: expected registry image, TLS, authentication, and amd64 push/pull'\n",
+    "postUpgradeScript": "set -euo pipefail\nkubectl -n kurl rollout status deployment/registry --timeout=300s\nREGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{.spec.clusterIP}')\nREGISTRY_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\\.dockerconfigjson}' | base64 --decode | sed 's|.*\"auth\":\"\\([^\"]*\\)\".*|\\1|' | base64 -d)\nEXPECTED_IMAGE=\"registry:3.1.2\"\nACTUAL_IMAGE=$(kubectl -n kurl get deployment registry -o=jsonpath='{.spec.template.spec.containers[?(@.name==\"registry\")].image}')\ntest \"$ACTUAL_IMAGE\" = \"$EXPECTED_IMAGE\"\nCODE=$(curl --silent --cacert /etc/kubernetes/pki/ca.crt -o /dev/null -w '%{http_code}' \"https://$REGISTRY_IP/v2/\")\ntest \"$CODE\" = 401\ncurl --fail --silent --show-error --cacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"https://$REGISTRY_IP/v2/\"\n\nctr -n k8s.io images delete --sync \"$REGISTRY_IP/registry:pr6152\"\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\necho 'PASS: image pushed on Registry 3.1.1 survived upgrade to 3.1.2'\n\nctr -n k8s.io images tag docker.io/library/registry:3.1.2 \"$REGISTRY_IP/registry:postupgrade\"\nctr -n k8s.io images push --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:postupgrade\"\nIMAGE_DIGEST=$(ctr -n k8s.io images ls | awk -v ref=\"$REGISTRY_IP/registry:postupgrade\" '$1 == ref {print $3}')\ntest -n \"$IMAGE_DIGEST\"\nctr -n k8s.io images ls | awk -v digest=\"$IMAGE_DIGEST\" '$3 == digest {print $1}' | xargs ctr -n k8s.io images delete --sync\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:postupgrade\"\necho 'PASS: expected registry image, TLS, authentication, and amd64 push/pull'\n"
+  },
+  {
+    "name": "registry_312_focused_airgap",
+    "airgap": true,
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.31.14"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "1.7.29"
+      },
+      "registry": {
+        "version": "3.1.2",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6152-9904919e3ed9-registry-3.1.2.tar.gz"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "ekco": {
+        "version": "0.28.15"
+      },
+      "openebs": {
+        "version": "3.3.0",
+        "isLocalPVEnabled": true,
+        "localPVStorageClassName": "default"
+      }
+    },
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\n",
+    "postInstallScript": "set -euo pipefail\nkubectl -n kurl rollout status deployment/registry --timeout=300s\nREGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{.spec.clusterIP}')\nREGISTRY_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\\.dockerconfigjson}' | base64 --decode | sed 's|.*\"auth\":\"\\([^\"]*\\)\".*|\\1|' | base64 -d)\nEXPECTED_IMAGE=\"registry:3.1.2\"\nACTUAL_IMAGE=$(kubectl -n kurl get deployment registry -o=jsonpath='{.spec.template.spec.containers[?(@.name==\"registry\")].image}')\ntest \"$ACTUAL_IMAGE\" = \"$EXPECTED_IMAGE\"\nCODE=$(curl --silent --cacert /etc/kubernetes/pki/ca.crt -o /dev/null -w '%{http_code}' \"https://$REGISTRY_IP/v2/\")\ntest \"$CODE\" = 401\ncurl --fail --silent --show-error --cacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"https://$REGISTRY_IP/v2/\"\n\nctr -n k8s.io images tag docker.io/library/registry:3.1.2 \"$REGISTRY_IP/registry:pr6152\"\nctr -n k8s.io images push --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\nIMAGE_DIGEST=$(ctr -n k8s.io images ls | awk -v ref=\"$REGISTRY_IP/registry:pr6152\" '$1 == ref {print $3}')\ntest -n \"$IMAGE_DIGEST\"\nctr -n k8s.io images ls | awk -v digest=\"$IMAGE_DIGEST\" '$3 == digest {print $1}' | xargs ctr -n k8s.io images delete --sync\nctr -n k8s.io images pull --platform linux/amd64 --tlscacert /etc/kubernetes/pki/ca.crt --user \"$REGISTRY_AUTH\" \"$REGISTRY_IP/registry:pr6152\"\necho 'PASS: expected registry image, TLS, authentication, and amd64 push/pull'\n"
+  }
+]
