@@ -1,0 +1,14 @@
+addons/cert-manager/template/testgrid/k8s-docker.yaml
+  h_9c4428928069f1 27-28,110-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fda1b6456cd9f797317d74c50caf34ea05352609",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
