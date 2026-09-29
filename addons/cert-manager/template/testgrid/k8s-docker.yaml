@@ -24,19 +24,22 @@
     
     cmctl check api
 
-- name: upgrade from earliest
+# cert-manager 1.21 supports Kubernetes 1.33-1.36. The historical 1.0.3
+# migration on Kubernetes 1.19 -> 1.25 is outside that support matrix;
+# exercise a supported previous-minor upgrade here instead.
+- name: upgrade from 1.20.3
   installerSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
       version: "latest"
     certManager:
-      version: "1.0.3"
+      version: "1.20.3"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -53,8 +56,6 @@
     # todo validate that cert-manager is actually working (TBD how)
     kubectl get pods -n cert-manager
     kubectl get issuers letsencrypt-staging
-  unsupportedOSIDs:
-  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
 
 - name: upgrade from 1.21.1
   installerSpec:
