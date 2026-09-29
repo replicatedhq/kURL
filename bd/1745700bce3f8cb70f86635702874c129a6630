@@ -1,0 +1,19 @@
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  s_94059ffb00258c::t_2ccdd748fa9fe1 119-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd1745700bce3f8cb70f86635702874c129a6630",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
