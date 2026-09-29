@@ -1,0 +1,14 @@
+.github/workflows/test-addon.yaml
+  h_9c4428928069f1 52,55-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02e80b068b4de65ff8ab84e18c08178d61e2f456",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
