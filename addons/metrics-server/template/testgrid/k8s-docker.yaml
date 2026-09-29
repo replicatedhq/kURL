@@ -15,6 +15,12 @@
     sleep 30
     kubectl top pods -A
     kubectl top nodes
+  # Focus on modern OSs with the published containerd 2.3 baseline.
+  unsupportedOSIDs:
+  - amzn-20
+  - centos-79
+  - ol-79
+  - ubuntu-1804
 - name: "upgrade from 0.8.1"
   installerSpec:
     kubernetes:
@@ -43,3 +49,9 @@
     sleep 30
     kubectl top pods -A
     kubectl top nodes
+  # Focus on modern OSs with the published containerd 2.3 baseline.
+  unsupportedOSIDs:
+  - amzn-20
+  - centos-79
+  - ol-79
+  - ubuntu-1804
