@@ -1,0 +1,19 @@
+addons/metrics-server/template/testgrid/k8s-docker.yaml
+  s_94059ffb00258c::t_934c592838f8a6 16,19,25,28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b839424f47ca975c47f6375d58a6dfd31846370f",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
