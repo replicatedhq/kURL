@@ -116,3 +116,29 @@
     if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
       containerd --version | grep "__testver__"
     fi
+
+- name: Fresh containerd __testver__ with pinned Kubernetes and Flannel
+  installerSpec:
+    sonobuoy:
+      version: "0.57.3"
+    kubernetes:
+      version: "1.32.13"
+    flannel:
+      version: "0.28.9"
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    systemctl is-active --quiet containerd
+    containerd --version
+    if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
+      containerd --version | grep "__testver__"
+    fi
+    kubectl wait --for=condition=Ready nodes --all --timeout=120s
+  unsupportedOSIDs:
+    - amzn-20 # Upstream containerd 2.x is not the supported runtime on legacy hosts.
+    - centos-79
+    - ol-79
+    - ubuntu-1804
+    - ubuntu-2004
