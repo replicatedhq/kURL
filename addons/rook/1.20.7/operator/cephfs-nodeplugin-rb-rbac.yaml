@@ -1,0 +1,14 @@
+# Source: ceph-csi-drivers/templates/cephfs-nodeplugin-rb-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rook-ceph-cephfs-csi-ceph-com-nodeplugin-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-ceph-cephfs-csi-ceph-com-nodeplugin-r
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-cephfs-csi-ceph-com-nodeplugin-sa
+  namespace: rook-ceph
+---

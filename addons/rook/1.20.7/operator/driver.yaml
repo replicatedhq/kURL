@@ -1,0 +1,89 @@
+# Source: ceph-csi-drivers/templates/driver.yaml
+apiVersion: csi.ceph.io/v1
+kind: Driver
+metadata:
+  name: rook-ceph.rbd.csi.ceph.com
+  namespace: rook-ceph
+spec:
+  log:
+    verbosity: 0
+    rotation:
+      maxFiles: 7
+      maxLogSize: 10G
+      periodicity: daily
+  enableFencing: false
+  grpcTimeout: 30
+  snapshotPolicy: none
+  generateOMapInfo: false
+  fsGroupPolicy: File
+  attachRequired: true
+  deployCsiAddons: false
+  cephFsClientType: kernel
+  kernelMountOptions:
+    {}  # Empty map if not defined
+  fuseMountOptions:
+    {}  # Empty map if not defined
+  # Node Plugin Configuration
+  nodePlugin:
+    serviceAccountName: rook-ceph-rbd-csi-ceph-com-nodeplugin-sa
+    tolerations:
+        []
+    imagePullPolicy: IfNotPresent
+    volumes:
+      []  # Empty list if no volumes are defined
+  # Controller Plugin Configuration
+  controllerPlugin:
+    serviceAccountName: rook-ceph-rbd-csi-ceph-com-ctrlplugin-sa
+    hostNetwork: false
+    replicas: 1
+    privileged: false
+    tolerations:
+        []
+    volumes:
+      []
+---
+---
+# Source: ceph-csi-drivers/templates/driver.yaml
+apiVersion: csi.ceph.io/v1
+kind: Driver
+metadata:
+  name: rook-ceph.cephfs.csi.ceph.com
+  namespace: rook-ceph
+spec:
+  log:
+    verbosity: 0
+    rotation:
+      maxFiles: 7
+      maxLogSize: 10G
+      periodicity: daily
+  enableFencing: false
+  grpcTimeout: 30
+  snapshotPolicy: volumeSnapshot
+  generateOMapInfo: false
+  fsGroupPolicy: File
+  attachRequired: true
+  deployCsiAddons: false
+  cephFsClientType: kernel
+  kernelMountOptions:
+    {}  # Empty map if not defined
+  fuseMountOptions:
+    {}  # Empty map if not defined
+  # Node Plugin Configuration
+  nodePlugin:
+    serviceAccountName: rook-ceph-cephfs-csi-ceph-com-nodeplugin-sa
+    tolerations:
+        []
+    imagePullPolicy: IfNotPresent
+    volumes:
+      []  # Empty list if no volumes are defined
+  # Controller Plugin Configuration
+  controllerPlugin:
+    serviceAccountName: rook-ceph-cephfs-csi-ceph-com-ctrlplugin-sa
+    hostNetwork: false
+    replicas: 1
+    privileged: false
+    tolerations:
+        []
+    volumes:
+      []
+---

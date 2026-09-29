@@ -1,0 +1,49 @@
+# Source: ceph-csi-drivers/templates/operatorConfig.yaml
+apiVersion: csi.ceph.io/v1
+kind: OperatorConfig
+metadata:
+  name: ceph-csi-operator-config
+  namespace: rook-ceph
+spec:
+
+  driverSpecDefaults:
+    log:
+      verbosity: 0
+      rotation:
+        maxFiles: 7
+        maxLogSize: 10G
+        periodicity: daily
+    imageSet:
+        name: rook-csi-operator-image-set-configmap
+    enableFencing: false
+    grpcTimeout: 30
+    snapshotPolicy: none
+    generateOMapInfo: false
+    fsGroupPolicy: File
+    attachRequired: true
+    deployCsiAddons: false
+    cephFsClientType: kernel
+    kernelMountOptions:
+      {}  # Empty map if not defined
+    fuseMountOptions:
+      {}  # Empty map if not defined
+    # Node Plugin Configuration
+    nodePlugin:
+      kubeletDirPath: /var/lib/kubelet
+      priorityClassName: system-node-critical
+      tolerations:
+        []
+      imagePullPolicy: IfNotPresent
+      volumes:
+        []  # Empty list if no volumes are defined
+    # Controller Plugin Configuration
+    controllerPlugin:
+      hostNetwork: false
+      replicas: 1
+      privileged: false
+      priorityClassName: system-cluster-critical
+      tolerations:
+        []
+      volumes:
+        []
+      imagePullPolicy: IfNotPresent
