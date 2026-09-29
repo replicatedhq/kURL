@@ -1,11 +1,13 @@
 - name: "fresh install"
   installerSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.35.8"
     flannel:
-      version: "latest"
+      version: "0.28.9"
     containerd:
-      version: "latest"
+      version: "2.3.3"
+    sonobuoy:
+      version: "0.57.3"
     metricsServer:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -16,20 +18,24 @@
 - name: "upgrade from 0.8.1"
   installerSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.35.8"
     flannel:
-      version: "latest"
+      version: "0.28.9"
     containerd:
-      version: "latest"
+      version: "2.3.3"
+    sonobuoy:
+      version: "0.57.3"
     metricsServer:
       version: "0.8.1"
   upgradeSpec:
     kubernetes:
-      version: "1.35.x"
+      version: "1.35.8"
     flannel:
-      version: "latest"
+      version: "0.28.9"
     containerd:
-      version: "latest"
+      version: "2.3.3"
+    sonobuoy:
+      version: "0.57.3"
     metricsServer:
       version: "__testver__"
       s3Override: "__testdist__"
