@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: velero-internal-snapshots
+  namespace: ${VELERO_NAMESPACE}
+  labels:
+    velero.io/exclude-from-backup: \"true\"
+spec:
+  storageClassName: ${VELERO_PVC_STORAGE_CLASS}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: ${VELERO_PVC_SIZE}
