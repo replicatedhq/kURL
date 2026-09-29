@@ -13,9 +13,8 @@
     kubectl get crds
     kubectl get all -n cert-manager
     kubectl create -f https://raw.githubusercontent.com/cert-manager/cert-manager/v__testver__/test/fixtures/cert-manager-resources.yaml
-    sleep 10s
+    kubectl wait --for=condition=Ready certificate/test1 certificate/test2 --timeout=120s
     kubectl describe certificates
-    kubectl describe certificates | grep "The certificate has been successfully issued"
     
     # setup cmctl
     curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_linux_amd64
@@ -53,9 +52,10 @@
     kubectl create -f https://raw.githubusercontent.com/cert-manager/website/80e45cea5374c15fe784b2544e2e5d14b22b5416/content/docs/tutorials/acme/example/staging-issuer.yaml
     kubectl get issuers letsencrypt-staging
   postUpgradeScript: |
-    # todo validate that cert-manager is actually working (TBD how)
     kubectl get pods -n cert-manager
     kubectl get issuers letsencrypt-staging
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/cert-manager/v__testver__/test/fixtures/cert-manager-resources.yaml
+    kubectl wait --for=condition=Ready certificate/test1 certificate/test2 --timeout=120s
 
 - name: upgrade from 1.21.1
   installerSpec:
@@ -83,9 +83,10 @@
     kubectl create -f https://raw.githubusercontent.com/cert-manager/website/80e45cea5374c15fe784b2544e2e5d14b22b5416/content/docs/tutorials/acme/example/staging-issuer.yaml
     kubectl get issuers letsencrypt-staging
   postUpgradeScript: |
-    # todo validate that cert-manager is actually working (TBD how)
     kubectl get pods -n cert-manager
     kubectl get issuers letsencrypt-staging
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/cert-manager/v__testver__/test/fixtures/cert-manager-resources.yaml
+    kubectl wait --for=condition=Ready certificate/test1 certificate/test2 --timeout=120s
 
 - name: airgap install
   airgap: true
