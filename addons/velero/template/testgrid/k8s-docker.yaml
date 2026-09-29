@@ -54,7 +54,9 @@
     rook:
       version: 1.12.x
     containerd:
-      version: "1.7.x"
+      # Use the schema-aware installer when OS packages provide containerd 2.x.
+      # It pins the sandbox image to the pause image included in the airgap bundle.
+      version: "2.2.6"
     kotsadm:
       version: latest
     registry:
