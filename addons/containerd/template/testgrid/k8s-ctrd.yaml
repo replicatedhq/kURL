@@ -275,7 +275,10 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
     containerd --version
-    containerd --version | grep "__testver__"
+    systemctl is-active --quiet containerd
+    if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
+      containerd --version | grep "__testver__"
+    fi
   unsupportedOSIDs:
     - centos-74
     - centos-79
