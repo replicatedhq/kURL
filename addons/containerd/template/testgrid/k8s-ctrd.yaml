@@ -288,7 +288,8 @@
     flannel:
       version: latest
     containerd:
-      version: latest
+      # Keep the baseline published when staging metadata includes the candidate.
+      version: "2.3.3"
     openebs:
       version: latest
       isLocalPVEnabled: true
