@@ -1,0 +1,44 @@
+[
+  {
+    "id": "amazon-2023",
+    "name": "Amazon Linux",
+    "version": "2023",
+    "vmimageuri": "https://cdn.amazonlinux.com/al2023/os-images/2023.11.20260406.2/kvm/al2023-kvm-2023.11.20260406.2-kernel-6.1-x86_64.xfs.gpt.qcow2",
+    "preinit": "yum install -y --nobest policycoreutils-python-utils nfs-utils fio container-selinux ebtables-legacy lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl containerd\n"
+  },
+  {
+    "id": "rocky-10",
+    "name": "Rocky Linux",
+    "version": "10.2",
+    "vmimageuri": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2",
+    "preinit": "yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils rrdtool\nsystemctl disable --now cockpit.socket\n# Try to install the kernel-modules-extra version matching the running kernel.\n# If the repos no longer have it, install the latest kernel+modules and reboot.\nif ! yum install -y kernel-modules-extra-\"$(uname -r)\"; then\n    yum install -y kernel kernel-modules-extra\n    reboot\nfi\n"
+  },
+  {
+    "id": "rocky-9",
+    "name": "Rocky Linux",
+    "version": "9.8",
+    "vmimageuri": "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2",
+    "preinit": "yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl\n"
+  },
+  {
+    "id": "ubuntu-2204",
+    "name": "Ubuntu",
+    "version": "22.04",
+    "vmimageuri": "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img",
+    "preinit": ""
+  },
+  {
+    "id": "ubuntu-2404",
+    "name": "Ubuntu",
+    "version": "24.04",
+    "vmimageuri": "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img",
+    "preinit": "apt-get update && apt-get install -y socat ebtables conntrack fio containerd"
+  },
+  {
+    "id": "ubuntu-2604",
+    "name": "Ubuntu",
+    "version": "26.04",
+    "vmimageuri": "https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img",
+    "preinit": "apt-get update && apt-get install -y socat ebtables conntrack fio containerd"
+  }
+]

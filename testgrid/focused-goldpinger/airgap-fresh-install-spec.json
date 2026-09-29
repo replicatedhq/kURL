@@ -1,0 +1,33 @@
+[
+  {
+    "name": "airgap fresh install",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.35.x"
+      },
+      "flannel": {
+        "version": "latest"
+      },
+      "containerd": {
+        "version": "latest"
+      },
+      "sonobuoy": {
+        "version": "latest"
+      },
+      "goldpinger": {
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6145-53d56aa-goldpinger-3.11.3-1.1.3.tar.gz",
+        "version": "3.11.3-1.1.3"
+      },
+      "kurl": {
+        "installerVersion": "v2026.09.20-0"
+      }
+    },
+    "numPrimaryNodes": 0,
+    "numSecondaryNodes": 0,
+    "memory": "16Gi",
+    "cpu": "4",
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\n",
+    "postInstallScript": "# find the goldpinger endpoint\nexport GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')\n\n# print goldpinger output (and fail if unable to connect to the service)\ncurl $GP_ENDPOINT/check_all\ncurl $GP_ENDPOINT/metrics\n\n# Check if the support bundle spec was installed\necho \"test whether the goldpinger support bundle spec was installed\"\nsupportBundle=$(kubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -ojsonpath='{.data.support-bundle-spec}')\necho \"$supportBundle\"\necho \"test if the content of the secret is a support bundle spec\"\necho $supportBundle | base64 -d | grep 'kind: SupportBundle'\necho \"test if the support bundle has 'troubleshoot.io/kind: support-bundle' label\"\nkubectl get secrets -n kurl kurl-goldpinger-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'\n",
+    "airgap": true
+  }
+]
