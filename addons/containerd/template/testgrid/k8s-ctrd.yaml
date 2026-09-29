@@ -173,7 +173,7 @@
     sonobuoy:
       version: "0.57.3"
     kubernetes:
-      version: "1.25.16"
+      version: "1.25.14"
     weave: # flannel has errors with dns and docker
       version: "2.8.1"
     openebs:
