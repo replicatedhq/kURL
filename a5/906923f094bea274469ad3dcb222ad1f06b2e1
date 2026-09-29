@@ -1,0 +1,37 @@
+.github/workflows/test-addon.yaml
+  s_94059ffb00258c::t_d26a0bee14ed1c 1,3-5,7,11,13,15-27
+testgrid/cve-cert-failed/manifest.json
+  s_94059ffb00258c::t_8c125b0f66b12b 1-58
+testgrid/cve-cert-failed/os-1.yaml
+  s_94059ffb00258c::t_cb93182413c1b5 1-29
+testgrid/cve-cert-failed/os-2.yaml
+  s_94059ffb00258c::t_ad6359a79f82da 1-19
+testgrid/cve-cert-failed/os-3.yaml
+  s_94059ffb00258c::t_e5a83bd803af71 1-18
+testgrid/cve-cert-failed/os-4.yaml
+  s_94059ffb00258c::t_d4a9badb5f39f6 1-6
+testgrid/cve-cert-failed/spec-1.yaml
+  s_94059ffb00258c::t_edc789e2c9644c 1-35
+testgrid/cve-cert-failed/spec-2.yaml
+  s_94059ffb00258c::t_3e77121a6e6c15 1-27
+testgrid/cve-cert-failed/spec-3.yaml
+  s_94059ffb00258c::t_395ea8d99575b9 1-35
+testgrid/cve-cert-failed/spec-4.yaml
+  s_94059ffb00258c::t_6e8ce08d427873 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a5906923f094bea274469ad3dcb222ad1f06b2e1",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
