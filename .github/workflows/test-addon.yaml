@@ -6,6 +6,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Wait for repaired package build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run watch 36646725102 --repo replicatedhq/kURL --exit-status --interval 30
       - name: Verify exact candidate source
         run: |
           git fetch origin 49563ec309cfe68c8f3076ec90facf1246bf970e
