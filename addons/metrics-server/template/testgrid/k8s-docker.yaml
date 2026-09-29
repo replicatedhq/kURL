@@ -1,7 +1,7 @@
 - name: "fresh install"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -16,7 +16,7 @@
 - name: "upgrade from 0.8.1"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -25,7 +25,7 @@
       version: "0.8.1"
   upgradeSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
