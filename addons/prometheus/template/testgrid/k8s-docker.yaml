@@ -13,6 +13,12 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    kubectl -n monitoring rollout status deployment/prometheus-operator --timeout=180s
+    kubectl -n monitoring wait --for=create statefulset/prometheus-k8s --timeout=180s
+    kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
+    kubectl -n monitoring rollout status deployment/grafana --timeout=180s
+    kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
 - name: "prometheus upgrade from 0.33.0"
   cpu: 5
   unsupportedOSIDs:
@@ -116,6 +122,12 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  postUpgradeScript: |
+    kubectl -n monitoring rollout status deployment/prometheus-operator --timeout=180s
+    kubectl -n monitoring wait --for=create statefulset/prometheus-k8s --timeout=180s
+    kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
+    kubectl -n monitoring rollout status deployment/grafana --timeout=180s
+    kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
 - name: "prometheus with longhorn and containerd"
   installerSpec:
     kubernetes:
