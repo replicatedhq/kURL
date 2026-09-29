@@ -1,0 +1,14 @@
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  h_9c4428928069f1 176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a60d30770b32445daad3fd5522956674254353a",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
