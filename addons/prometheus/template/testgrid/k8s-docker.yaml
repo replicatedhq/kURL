@@ -87,7 +87,7 @@
   - ubuntu-2404 # Pinned installer version v2024.07.02-0 does not support ubuntu 24.04.
   - ubuntu-2604 # Pinned installer version v2024.07.02-0 does not support ubuntu 26.04.
   - centos-9 # Pinned installer version v2024.07.02-0 does not support centos 9.
-- name: "prometheus upgrade from latest"
+- name: "prometheus upgrade from 0.92.1-87.15.1"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
@@ -101,7 +101,7 @@
     containerd:
       version: "latest"
     prometheus:
-      version: "latest"
+      version: "0.92.1-87.15.1"
   upgradeSpec:
     kubernetes:
       version: "1.31.x"
