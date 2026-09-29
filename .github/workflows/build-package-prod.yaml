@@ -52,8 +52,12 @@ jobs:
           tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           
           echo "purging s3.kurl.sh/dist/${tag}/$PKG and s3.kurl.sh/dist/$PKG"
+          payload=$(jq -cn \
+            --arg versioned "s3.kurl.sh/dist/${tag}/$PKG" \
+            --arg latest "s3.kurl.sh/dist/$PKG" \
+            '{prefixes: [$versioned, $latest]}')
           curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
              -H "X-Auth-Email: $CF_EMAIL" \
              -H "Authorization: Bearer $CF_API_KEY" \
              -H "Content-Type: application/json" \
-             --data '{"prefixes":["s3.kurl.sh/dist/${tag}/$PKG", "s3.kurl.sh/dist/$PKG"]}'
+             --data "$payload"
