@@ -1,0 +1,23 @@
+.github/workflows/test-addon.yaml
+  s_94059ffb00258c::t_0c52be6476406f 1,6-7,12-17,20,24-26,28,31,33-37
+hack/staging-cache-recovery/restore.py
+  s_94059ffb00258c::t_ce4fb29b2110d6 1-89
+hack/staging-cache-recovery/staging-cache-audit.json
+  s_94059ffb00258c::t_87a1857cb6070c 1-1458
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c8c14e836c0d9204a49b88f30c1fed9249cb91c9",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
