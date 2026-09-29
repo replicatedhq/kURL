@@ -2,21 +2,18 @@ name: test-addon.yaml
 on:
   workflow_dispatch:
 jobs:
-  queue-focused-goldpinger:
+  queue-velero-data-restore:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-      - name: Queue only blocked Goldpinger cases against published installer
+      - name: Queue online and airgap data restore tests
         env:
           TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
         run: |
           set -euo pipefail
-          for spec in testgrid/focused-goldpinger/*-spec.json; do
-            scenario="$(basename "$spec" -spec.json)"
-            ref="pr-6145-53d56aa-published-${scenario}-$(date --utc +%FT%TZ)"
-            docker run --rm -e TESTGRID_API_TOKEN -v "$PWD:/wrk" -w /wrk replicated/tgrun:latest queue \
-              --ref "$ref" --spec "/wrk/$spec" \
-              --os-spec "/wrk/testgrid/focused-goldpinger/${scenario}-os.json" \
-              --kurl-version v2026.09.20-0 --priority 0
-            echo "https://testgrid.kurl.sh/run/$ref" >> "$GITHUB_STEP_SUMMARY"
-          done
+          ref="pr-6151-453587d-restore-roundtrip-$(date --utc +%FT%TZ)"
+          docker run --rm -e TESTGRID_API_TOKEN -v "$PWD:/wrk" -w /wrk replicated/tgrun:latest queue \
+            --ref "$ref" --spec /wrk/testgrid/velero-roundtrip/roundtrip-spec.json \
+            --os-spec /wrk/testgrid/velero-roundtrip/ubuntu22-os.json \
+            --kurl-version v2026.09.20-0 --priority 0
+          echo "https://testgrid.kurl.sh/run/$ref" >> "$GITHUB_STEP_SUMMARY"

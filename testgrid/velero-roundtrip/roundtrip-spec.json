@@ -1,0 +1,83 @@
+[
+  {
+    "name": "Velero Minimal data restore roundtrip",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.33.x"
+      },
+      "flannel": {
+        "version": "latest"
+      },
+      "kotsadm": {
+        "version": "latest"
+      },
+      "velero": {
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6151-d6af38a-velero-1.18.4.tar.gz",
+        "version": "1.18.4"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "openebs": {
+        "isLocalPVEnabled": true,
+        "localPVStorageClassName": "local",
+        "version": "4.4.x"
+      },
+      "containerd": {
+        "version": "2.2.x"
+      },
+      "sonobuoy": {
+        "version": "latest"
+      },
+      "kurl": {
+        "installerVersion": "v2026.09.20-0"
+      }
+    },
+    "numPrimaryNodes": 0,
+    "numSecondaryNodes": 0,
+    "memory": "16Gi",
+    "cpu": "6",
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\n# BEGIN GENERATED os-matrix: ubuntu-host-packages \u2014 edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages nfs-common\nubuntu_2604_install_host_packages nfs-common\n# END GENERATED os-matrix: ubuntu-host-packages\n",
+    "postInstallScript": "#!/bin/bash\nset -Eeuo pipefail\nnamespace=\"velero-roundtrip-$(date +%s)-${RANDOM}\"\nbackup=\"${namespace}-backup\"\nrestore=\"${namespace}-restore\"\n# The workload only sleeps. No command in its manifest can regenerate the payload.\nfunction diagnostics() {\n    local rc=$?\n    trap - ERR\n    set +e\n    echo \"ROUNDTRIP FAILED: namespace=$namespace backup=$backup restore=$restore status=$rc\"\n    kubectl get pods,pvc -n \"$namespace\" -o wide\n    kubectl describe pod/data -n \"$namespace\"\n    kubectl get events -n \"$namespace\" --sort-by=.lastTimestamp\n    kubectl get backup \"$backup\" -n velero -o yaml\n    kubectl get restore \"$restore\" -n velero -o yaml\n    kubectl get podvolumebackups -n velero -l \"velero.io/backup-name=$backup\" -o yaml\n    kubectl get podvolumerestores -n velero -l \"velero.io/restore-name=$restore\" -o yaml\n    velero backup logs \"$backup\"\n    velero restore logs \"$restore\"\n    kubectl logs -n velero deployment/velero --tail=200\n    exit \"$rc\"\n}\ntrap diagnostics ERR\n# kURL installs this binary from the candidate's bundled assets, including airgap.\nvelero version --client-only | grep 'Version: v1.18.4'\nserver_image=$(kubectl get deployment velero -n velero -ojsonpath='{.spec.template.spec.containers[0].image}')\n[[ \"$server_image\" == *'/velero:v1.18.4' ]]\ninit_images=$(kubectl get deployment velero -n velero -ojsonpath='{range .spec.template.spec.initContainers[*]}{.image}{\"\\n\"}{end}')\nfor plugin in aws gcp microsoft-azure; do\n    echo \"$init_images\" | grep -E \"/velero-plugin-for-${plugin}:v1[.]14[.]4$\"\ndone\n# kurl-util is Ubuntu-based with /bin/sh, cat, sleep and sync. Reuse the exact\n# already-loaded plugin image; Never makes missing airgap packaging fail visibly.\nworkload_image=$(echo \"$init_images\" | grep '/kurl-util:' | head -1)\n[[ -n \"$workload_image\" ]]\nkubectl wait -n velero --for=jsonpath='{.status.phase}'=Available backupstoragelocation/default --timeout=300s\nkubectl create namespace \"$namespace\"\nkubectl label namespace \"$namespace\" kurl.sh/velero-roundtrip=true\nkubectl apply -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data\n  namespace: $namespace\nspec:\n  accessModes: [ReadWriteOnce]\n  resources:\n    requests:\n      storage: 1Gi\n---\napiVersion: v1\nkind: Pod\nmetadata:\n  name: data\n  namespace: $namespace\n  annotations:\n    backup.velero.io/backup-volumes: data\nspec:\n  terminationGracePeriodSeconds: 1\n  containers:\n  - name: data\n    image: \"$workload_image\"\n    imagePullPolicy: Never\n    command: [/bin/sh, -c, \"while true; do sleep 3600; done\"]\n    volumeMounts:\n    - name: data\n      mountPath: /data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: data\nEOF\nkubectl wait -n \"$namespace\" --for=condition=Ready pod/data --timeout=300s\nold_pvc_uid=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.metadata.uid}')\nold_pv=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.spec.volumeName}')\nold_pv_uid=$(kubectl get pv \"$old_pv\" -ojsonpath='{.metadata.uid}')\n[[ -n \"$old_pvc_uid\" && -n \"$old_pv\" && -n \"$old_pv_uid\" ]]\n[[ \"$(kubectl get pv \"$old_pv\" -ojsonpath='{.spec.persistentVolumeReclaimPolicy}')\" == Delete ]]\npayload=$(mktemp)\ndd if=/dev/urandom of=\"$payload\" bs=1048576 count=1 status=none\nexpected_hash=$(sha256sum \"$payload\" | awk '{print $1}')\nkubectl exec -i -n \"$namespace\" data -- /bin/sh -c 'cat > /data/payload; sync' < \"$payload\"\noriginal_hash=$(kubectl exec -n \"$namespace\" data -- cat /data/payload | sha256sum | awk '{print $1}')\n[[ \"$original_hash\" == \"$expected_hash\" ]]\necho \"ROUNDTRIP ORIGINAL pvcUID=$old_pvc_uid pv=$old_pv pvUID=$old_pv_uid sha256=$expected_hash\"\ntimeout 12m velero backup create \"$backup\" --include-namespaces \"$namespace\" --include-cluster-resources=false --default-volumes-to-fs-backup --snapshot-volumes=false --wait\n[[ \"$(kubectl get backup \"$backup\" -n velero -ojsonpath='{.status.phase}')\" == Completed ]]\nbackup_errors=$(kubectl get backup \"$backup\" -n velero -ojsonpath='{.status.errors}')\n[[ \"${backup_errors:-0}\" == 0 ]]\n# Require exactly this pod's data-volume backup, not any other successful backup.\npvb_rows=$(kubectl get podvolumebackups -n velero -l \"velero.io/backup-name=$backup\" -ojsonpath='{range .items[*]}{.spec.pod.namespace}{\" \"}{.spec.pod.name}{\" \"}{.spec.volume}{\" \"}{.status.phase}{\"\\n\"}{end}')\n[[ \"$pvb_rows\" == \"$namespace data data Completed\" ]]\necho \"ROUNDTRIP PODVOLUMEBACKUP $pvb_rows\"\n# Only delete the newly created, uniquely named test namespace. PV deletion is\n# performed by its provisioner; do not force finalizers or directly delete PVs.\n[[ \"$namespace\" == velero-roundtrip-* ]]\n[[ \"$(kubectl get namespace \"$namespace\" -ojsonpath='{.metadata.labels.kurl\\.sh/velero-roundtrip}')\" == true ]]\nkubectl delete namespace \"$namespace\" --wait=true --timeout=300s\n[[ -z \"$(kubectl get namespace \"$namespace\" --ignore-not-found -o name)\" ]]\nif [[ -n \"$(kubectl get pv \"$old_pv\" --ignore-not-found -o name)\" ]]; then\n    kubectl wait --for=delete pv/\"$old_pv\" --timeout=300s\nfi\n[[ -z \"$(kubectl get pvc/data -n \"$namespace\" --ignore-not-found -o name)\" ]]\n[[ -z \"$(kubectl get pv \"$old_pv\" --ignore-not-found -o name)\" ]]\necho \"ROUNDTRIP ORIGINAL PVC AND PV DELETED\"\ntimeout 12m velero restore create \"$restore\" --from-backup \"$backup\" --include-namespaces \"$namespace\" --wait\n[[ \"$(kubectl get restore \"$restore\" -n velero -ojsonpath='{.status.phase}')\" == Completed ]]\nrestore_errors=$(kubectl get restore \"$restore\" -n velero -ojsonpath='{.status.errors}')\n[[ \"${restore_errors:-0}\" == 0 ]]\nkubectl wait -n \"$namespace\" --for=condition=Ready pod/data --timeout=300s\npvr_rows=$(kubectl get podvolumerestores -n velero -l \"velero.io/restore-name=$restore\" -ojsonpath='{range .items[*]}{.spec.pod.namespace}{\" \"}{.spec.pod.name}{\" \"}{.spec.volume}{\" \"}{.status.phase}{\"\\n\"}{end}')\n[[ \"$pvr_rows\" == \"$namespace data data Completed\" ]]\nnew_pvc_uid=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.metadata.uid}')\nnew_pv=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.spec.volumeName}')\nnew_pv_uid=$(kubectl get pv \"$new_pv\" -ojsonpath='{.metadata.uid}')\n[[ -n \"$new_pvc_uid\" && \"$new_pvc_uid\" != \"$old_pvc_uid\" ]]\n[[ -n \"$new_pv_uid\" && \"$new_pv_uid\" != \"$old_pv_uid\" && \"$new_pv\" != \"$old_pv\" ]]\n# First post-restore access is read-only; no workload command can rewrite data.\nactual_hash=$(kubectl exec -n \"$namespace\" data -- cat /data/payload | sha256sum | awk '{print $1}')\n[[ \"$actual_hash\" == \"$expected_hash\" ]]\necho \"ROUNDTRIP PODVOLUMERESTORE $pvr_rows\"\necho \"ROUNDTRIP RESTORED pvcUID=$new_pvc_uid pv=$new_pv pvUID=$new_pv_uid sha256=$actual_hash\"\necho \"VELERO 1.18.4 DATA RESTORE VERIFIED\"\nrm -f \"$payload\"\n"
+  },
+  {
+    "name": "Velero Minimal Airgap data restore roundtrip",
+    "installerSpec": {
+      "kubernetes": {
+        "version": "1.31.x"
+      },
+      "flannel": {
+        "version": "latest"
+      },
+      "rook": {
+        "version": "1.12.x"
+      },
+      "registry": {
+        "version": "latest"
+      },
+      "kotsadm": {
+        "version": "latest"
+      },
+      "velero": {
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/pr-6151-d6af38a-velero-1.18.4.tar.gz",
+        "version": "1.18.4"
+      },
+      "containerd": {
+        "version": "2.2.6"
+      },
+      "sonobuoy": {
+        "version": "latest"
+      },
+      "kurl": {
+        "installerVersion": "v2026.09.20-0"
+      }
+    },
+    "numPrimaryNodes": 0,
+    "numSecondaryNodes": 0,
+    "memory": "16Gi",
+    "cpu": "6",
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\n# BEGIN GENERATED os-matrix: ubuntu-host-packages \u2014 edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages nfs-common containerd socat ebtables conntrack lvm2\nubuntu_2604_install_host_packages nfs-common containerd socat ebtables conntrack lvm2\n# END GENERATED os-matrix: ubuntu-host-packages\n",
+    "postInstallScript": "#!/bin/bash\nset -Eeuo pipefail\nnamespace=\"velero-roundtrip-$(date +%s)-${RANDOM}\"\nbackup=\"${namespace}-backup\"\nrestore=\"${namespace}-restore\"\n# The workload only sleeps. No command in its manifest can regenerate the payload.\nfunction diagnostics() {\n    local rc=$?\n    trap - ERR\n    set +e\n    echo \"ROUNDTRIP FAILED: namespace=$namespace backup=$backup restore=$restore status=$rc\"\n    kubectl get pods,pvc -n \"$namespace\" -o wide\n    kubectl describe pod/data -n \"$namespace\"\n    kubectl get events -n \"$namespace\" --sort-by=.lastTimestamp\n    kubectl get backup \"$backup\" -n velero -o yaml\n    kubectl get restore \"$restore\" -n velero -o yaml\n    kubectl get podvolumebackups -n velero -l \"velero.io/backup-name=$backup\" -o yaml\n    kubectl get podvolumerestores -n velero -l \"velero.io/restore-name=$restore\" -o yaml\n    velero backup logs \"$backup\"\n    velero restore logs \"$restore\"\n    kubectl logs -n velero deployment/velero --tail=200\n    exit \"$rc\"\n}\ntrap diagnostics ERR\n# kURL installs this binary from the candidate's bundled assets, including airgap.\nvelero version --client-only | grep 'Version: v1.18.4'\nserver_image=$(kubectl get deployment velero -n velero -ojsonpath='{.spec.template.spec.containers[0].image}')\n[[ \"$server_image\" == *'/velero:v1.18.4' ]]\ninit_images=$(kubectl get deployment velero -n velero -ojsonpath='{range .spec.template.spec.initContainers[*]}{.image}{\"\\n\"}{end}')\nfor plugin in aws gcp microsoft-azure; do\n    echo \"$init_images\" | grep -E \"/velero-plugin-for-${plugin}:v1[.]14[.]4$\"\ndone\n# kurl-util is Ubuntu-based with /bin/sh, cat, sleep and sync. Reuse the exact\n# already-loaded plugin image; Never makes missing airgap packaging fail visibly.\nworkload_image=$(echo \"$init_images\" | grep '/kurl-util:' | head -1)\n[[ -n \"$workload_image\" ]]\nkubectl wait -n velero --for=jsonpath='{.status.phase}'=Available backupstoragelocation/default --timeout=300s\nkubectl create namespace \"$namespace\"\nkubectl label namespace \"$namespace\" kurl.sh/velero-roundtrip=true\nkubectl apply -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data\n  namespace: $namespace\nspec:\n  accessModes: [ReadWriteOnce]\n  resources:\n    requests:\n      storage: 1Gi\n---\napiVersion: v1\nkind: Pod\nmetadata:\n  name: data\n  namespace: $namespace\n  annotations:\n    backup.velero.io/backup-volumes: data\nspec:\n  terminationGracePeriodSeconds: 1\n  containers:\n  - name: data\n    image: \"$workload_image\"\n    imagePullPolicy: Never\n    command: [/bin/sh, -c, \"while true; do sleep 3600; done\"]\n    volumeMounts:\n    - name: data\n      mountPath: /data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: data\nEOF\nkubectl wait -n \"$namespace\" --for=condition=Ready pod/data --timeout=300s\nold_pvc_uid=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.metadata.uid}')\nold_pv=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.spec.volumeName}')\nold_pv_uid=$(kubectl get pv \"$old_pv\" -ojsonpath='{.metadata.uid}')\n[[ -n \"$old_pvc_uid\" && -n \"$old_pv\" && -n \"$old_pv_uid\" ]]\n[[ \"$(kubectl get pv \"$old_pv\" -ojsonpath='{.spec.persistentVolumeReclaimPolicy}')\" == Delete ]]\npayload=$(mktemp)\ndd if=/dev/urandom of=\"$payload\" bs=1048576 count=1 status=none\nexpected_hash=$(sha256sum \"$payload\" | awk '{print $1}')\nkubectl exec -i -n \"$namespace\" data -- /bin/sh -c 'cat > /data/payload; sync' < \"$payload\"\noriginal_hash=$(kubectl exec -n \"$namespace\" data -- cat /data/payload | sha256sum | awk '{print $1}')\n[[ \"$original_hash\" == \"$expected_hash\" ]]\necho \"ROUNDTRIP ORIGINAL pvcUID=$old_pvc_uid pv=$old_pv pvUID=$old_pv_uid sha256=$expected_hash\"\ntimeout 12m velero backup create \"$backup\" --include-namespaces \"$namespace\" --include-cluster-resources=false --default-volumes-to-fs-backup --snapshot-volumes=false --wait\n[[ \"$(kubectl get backup \"$backup\" -n velero -ojsonpath='{.status.phase}')\" == Completed ]]\nbackup_errors=$(kubectl get backup \"$backup\" -n velero -ojsonpath='{.status.errors}')\n[[ \"${backup_errors:-0}\" == 0 ]]\n# Require exactly this pod's data-volume backup, not any other successful backup.\npvb_rows=$(kubectl get podvolumebackups -n velero -l \"velero.io/backup-name=$backup\" -ojsonpath='{range .items[*]}{.spec.pod.namespace}{\" \"}{.spec.pod.name}{\" \"}{.spec.volume}{\" \"}{.status.phase}{\"\\n\"}{end}')\n[[ \"$pvb_rows\" == \"$namespace data data Completed\" ]]\necho \"ROUNDTRIP PODVOLUMEBACKUP $pvb_rows\"\n# Only delete the newly created, uniquely named test namespace. PV deletion is\n# performed by its provisioner; do not force finalizers or directly delete PVs.\n[[ \"$namespace\" == velero-roundtrip-* ]]\n[[ \"$(kubectl get namespace \"$namespace\" -ojsonpath='{.metadata.labels.kurl\\.sh/velero-roundtrip}')\" == true ]]\nkubectl delete namespace \"$namespace\" --wait=true --timeout=300s\n[[ -z \"$(kubectl get namespace \"$namespace\" --ignore-not-found -o name)\" ]]\nif [[ -n \"$(kubectl get pv \"$old_pv\" --ignore-not-found -o name)\" ]]; then\n    kubectl wait --for=delete pv/\"$old_pv\" --timeout=300s\nfi\n[[ -z \"$(kubectl get pvc/data -n \"$namespace\" --ignore-not-found -o name)\" ]]\n[[ -z \"$(kubectl get pv \"$old_pv\" --ignore-not-found -o name)\" ]]\necho \"ROUNDTRIP ORIGINAL PVC AND PV DELETED\"\ntimeout 12m velero restore create \"$restore\" --from-backup \"$backup\" --include-namespaces \"$namespace\" --wait\n[[ \"$(kubectl get restore \"$restore\" -n velero -ojsonpath='{.status.phase}')\" == Completed ]]\nrestore_errors=$(kubectl get restore \"$restore\" -n velero -ojsonpath='{.status.errors}')\n[[ \"${restore_errors:-0}\" == 0 ]]\nkubectl wait -n \"$namespace\" --for=condition=Ready pod/data --timeout=300s\npvr_rows=$(kubectl get podvolumerestores -n velero -l \"velero.io/restore-name=$restore\" -ojsonpath='{range .items[*]}{.spec.pod.namespace}{\" \"}{.spec.pod.name}{\" \"}{.spec.volume}{\" \"}{.status.phase}{\"\\n\"}{end}')\n[[ \"$pvr_rows\" == \"$namespace data data Completed\" ]]\nnew_pvc_uid=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.metadata.uid}')\nnew_pv=$(kubectl get pvc/data -n \"$namespace\" -ojsonpath='{.spec.volumeName}')\nnew_pv_uid=$(kubectl get pv \"$new_pv\" -ojsonpath='{.metadata.uid}')\n[[ -n \"$new_pvc_uid\" && \"$new_pvc_uid\" != \"$old_pvc_uid\" ]]\n[[ -n \"$new_pv_uid\" && \"$new_pv_uid\" != \"$old_pv_uid\" && \"$new_pv\" != \"$old_pv\" ]]\n# First post-restore access is read-only; no workload command can rewrite data.\nactual_hash=$(kubectl exec -n \"$namespace\" data -- cat /data/payload | sha256sum | awk '{print $1}')\n[[ \"$actual_hash\" == \"$expected_hash\" ]]\necho \"ROUNDTRIP PODVOLUMERESTORE $pvr_rows\"\necho \"ROUNDTRIP RESTORED pvcUID=$new_pvc_uid pv=$new_pv pvUID=$new_pv_uid sha256=$actual_hash\"\necho \"VELERO 1.18.4 DATA RESTORE VERIFIED\"\nrm -f \"$payload\"\n",
+    "airgap": true
+  }
+]
