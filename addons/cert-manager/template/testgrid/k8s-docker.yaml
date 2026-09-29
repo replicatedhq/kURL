@@ -24,8 +24,8 @@
     cmctl check api
 
 # cert-manager 1.21 supports Kubernetes 1.33-1.36. The historical 1.0.3
-# migration on Kubernetes 1.19 -> 1.25 is outside that support matrix;
-# exercise a supported previous-minor upgrade here instead.
+# migration on Kubernetes 1.19 -> 1.25 is outside that support matrix and
+# retained separately below. Exercise a supported previous-minor upgrade here.
 - name: upgrade from 1.20.3
   installerSpec:
     kubernetes:
@@ -107,3 +107,38 @@
     kubectl get crds
     kubectl get all -n cert-manager
     # todo validate that cert-manager is actually working (TBD how)
+
+# Preserve historical migration coverage. Kubernetes 1.25 is outside the
+# cert-manager 1.21 upstream support matrix; the focused CVE qualification
+# validates the supported previous-minor migration above instead.
+- name: legacy upgrade from 1.0.3 on Kubernetes 1.25
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    flannel:
+      version: "latest"
+    containerd:
+      version: "latest"
+    certManager:
+      version: "1.0.3"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: "latest"
+    containerd:
+      version: "latest"
+    certManager:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    kubectl get crds
+    kubectl get all -n cert-manager
+    kubectl create -f https://raw.githubusercontent.com/cert-manager/website/80e45cea5374c15fe784b2544e2e5d14b22b5416/content/docs/tutorials/acme/example/staging-issuer.yaml
+    kubectl get issuers letsencrypt-staging
+  postUpgradeScript: |
+    # todo validate that cert-manager is actually working (TBD how)
+    kubectl get pods -n cert-manager
+    kubectl get issuers letsencrypt-staging
+  unsupportedOSIDs:
+  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
