@@ -215,7 +215,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
