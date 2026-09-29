@@ -1,0 +1,19 @@
+addons/rook/template/testgrid/k8s-docker.yaml
+  s_94059ffb00258c::t_044d70d04456e1 3-4,6,8,10,12,14,16,78-79,81,83,85,87,89,91,153-154,156,158,160,162,164,166,168,170-171,173,175,177,179,181,183,261-262,264,266,268,270,272,274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d3d917856d65551ace868b4c4ce597138a141ac8",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
