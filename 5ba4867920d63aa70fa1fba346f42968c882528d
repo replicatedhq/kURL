@@ -1,0 +1,19 @@
+.github/workflows/testgrid-pr.yaml
+  s_94059ffb00258c::t_7f8526e0257ba1 298-299
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ba4867920d63aa70fa1fba346f42968c882528d",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
