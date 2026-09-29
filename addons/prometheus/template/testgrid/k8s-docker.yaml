@@ -13,6 +13,12 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    kubectl -n monitoring rollout status deployment/prometheus-operator --timeout=180s
+    kubectl -n monitoring wait --for=create statefulset/prometheus-k8s --timeout=180s
+    kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
+    kubectl -n monitoring rollout status deployment/grafana --timeout=180s
+    kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
 - name: "prometheus upgrade from 0.33.0"
   cpu: 5
   unsupportedOSIDs:
@@ -87,7 +93,7 @@
   - ubuntu-2404 # Pinned installer version v2024.07.02-0 does not support ubuntu 24.04.
   - ubuntu-2604 # Pinned installer version v2024.07.02-0 does not support ubuntu 26.04.
   - centos-9 # Pinned installer version v2024.07.02-0 does not support centos 9.
-- name: "prometheus upgrade from latest"
+- name: "prometheus upgrade from 0.92.1-87.15.1"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
@@ -101,7 +107,7 @@
     containerd:
       version: "latest"
     prometheus:
-      version: "latest"
+      version: "0.92.1-87.15.1"
   upgradeSpec:
     kubernetes:
       version: "1.31.x"
@@ -116,6 +122,12 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+  postUpgradeScript: |
+    kubectl -n monitoring rollout status deployment/prometheus-operator --timeout=180s
+    kubectl -n monitoring wait --for=create statefulset/prometheus-k8s --timeout=180s
+    kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
+    kubectl -n monitoring rollout status deployment/grafana --timeout=180s
+    kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
 - name: "prometheus with longhorn and containerd"
   installerSpec:
     kubernetes:
