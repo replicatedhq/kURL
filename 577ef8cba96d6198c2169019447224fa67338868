@@ -1,0 +1,14 @@
+addons/prometheus/template/testgrid/k8s-docker.yaml
+  h_9c4428928069f1 1-3,27,29-32,72-77,98-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "577ef8cba96d6198c2169019447224fa67338868",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}

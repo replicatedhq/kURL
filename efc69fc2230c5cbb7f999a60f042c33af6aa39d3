@@ -1,0 +1,14 @@
+addons/metrics-server/template/testgrid/k8s-docker.yaml
+  h_9c4428928069f1 18-23,52-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "efc69fc2230c5cbb7f999a60f042c33af6aa39d3",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
