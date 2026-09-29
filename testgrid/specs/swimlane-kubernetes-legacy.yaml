@@ -1,0 +1,116 @@
+- name: "Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd"
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    rook:
+      version: 1.12.x
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kurl:
+      installerVersion: "v2026.09.20-0-rc-automation-update-kubernetes-5ba486792"
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.7.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - rocky-10 # Pinned 2024 installer does not support Rocky10
+    - rocky-9 # docker is not supported on rhel 9 variants
+    - centos-9 # docker is not supported on rhel 9 variants
+    # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
+    - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2404 # docker is not supported on Ubuntu 24.04
+    - ubuntu-2604 # docker is not supported on Ubuntu 26.04
+    # END GENERATED os-matrix: unsupported-capability
+
+- name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
+  flags: "yes"
+  cpu: 6
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.3
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+    minio:
+      version: latest
+  upgradeSpec:
+    kurl:
+      installerVersion: "v2026.09.20-0-rc-automation-update-kubernetes-5ba486792"
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.3"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
+    test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
+    if kubectl get namespace/longhorn-system ; then
+      echo Longhorn namespace found after the upgrade.
+      exit 1
+    fi
+  unsupportedOSIDs:
+    - centos-9 # centos 9 was not supported on kurl v2024.07.02-0
+    - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
+    - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
+    - ubuntu-2604 # Ubuntu 26.04 isn't supported on installer version v2024.07.02-0.
+    - rocky-98 # Not supported on pinned kurl version v2024.07.02-0
+    - rocky-9 # Not supported on pinned kurl version v2024.07.02-0
+    - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
