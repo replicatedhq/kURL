@@ -142,3 +142,97 @@
     - ol-79
     - ubuntu-1804
     - ubuntu-2004
+
+- name: "AL2 diagnostic Docker to Containerd __testver__"
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    sonobuoy:
+      version: "0.57.3"
+    kurl:
+      installerVersion: "v2024.07.02-0"
+    kubernetes:
+      version: "1.23.17"
+    weave: # flannel has errors with dns and docker
+      version: "2.8.1"
+    openebs:
+      version: "4.6.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "2025-10-15T17-29-55Z"
+    ekco:
+      version: "0.28.15"
+    registry:
+      version: "3.1.1"
+    kotsadm:
+      version: "1.132.0"
+    docker:
+      version: "20.10.17"
+  upgradeSpec:
+    sonobuoy:
+      version: "0.57.3"
+    kubernetes:
+      version: "1.25.16"
+    weave: # flannel has errors with dns and docker
+      version: "2.8.1"
+    openebs:
+      version: "4.6.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "2025-10-15T17-29-55Z"
+    ekco:
+      version: "0.28.15"
+    registry:
+      version: "3.1.1"
+    kotsadm:
+      version: "1.132.0"
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+    echo "Starting bounded AL2 runtime diagnostics"
+    uname -a
+    systemctl --version | head -1
+    nohup timeout 1800 journalctl --no-pager -fu containerd >> /var/log/cloud-init-output.log 2>&1 </dev/null &
+    cat >/tmp/testgrid-runtime-versions.sh <<'DIAGNOSTICS'
+    #!/bin/bash
+    previous=
+    for iteration in $(seq 1 120); do
+      fingerprint=$(sha256sum "$(command -v runc)" 2>/dev/null || true)
+      if [ "$fingerprint" != "$previous" ]; then
+        echo "Runtime diagnostic at $(date -u): $fingerprint"
+        runc --version 2>&1 || true
+        containerd --version 2>&1 || true
+        grep -E '(^version|SystemdCgroup|systemd_cgroup|sandbox_image|pinned_images|sandbox =|config_path|imports)' /etc/containerd/config.toml /etc/containerd/conf.d/*.toml 2>/dev/null || true
+        previous="$fingerprint"
+      fi
+      sleep 15
+    done
+    DIAGNOSTICS
+    nohup bash /tmp/testgrid-runtime-versions.sh >> /var/log/cloud-init-output.log 2>&1 </dev/null &
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+    - centos-79
+    - ol-79
+    - rocky-9
+    - rocky-10
+    - centos-9
+    - ubuntu-1804
+    - ubuntu-2004
+    - ubuntu-2204
+    - ubuntu-2404
+    - ubuntu-2604
+    - amazon-2023
