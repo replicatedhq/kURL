@@ -1,0 +1,14 @@
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  h_9c4428928069f1 4-5,7,9,13,17,19,21,23-24,26,28,33,37,39,41,67-68,70,72,77,81,83,85,87-88,90,92,97,101,103,105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "022e73ab864d0e7a944ec69ab8d9de7c3eb01c88",
+  "prompts": {},
+  "humans": {
+    "h_9c4428928069f1": {
+      "author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
