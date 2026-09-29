@@ -1,0 +1,19 @@
+addons/prometheus/template/testgrid/k8s-docker.yaml
+  s_94059ffb00258c::t_d24361a0092d88 4,6,8,12-14,38,40,42,45-47,52,54,56,59-61,71,73,75,79-81,86,88,90,94-96,110,112,114,118-120,125,127,129,133-135,148,150,152,154-156,163,165,167,170-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "00a06c26ea2561710a552180efe6a074ae2a3663",
+  "prompts": {},
+  "sessions": {
+    "s_94059ffb00258c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0eeb0-82f8-7500-953c-6332cc4f9c24",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
