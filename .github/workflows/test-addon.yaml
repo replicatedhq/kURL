@@ -1,97 +1,27 @@
-name: test-addon.yaml
-
+name: Cert Manager failed-case qualification on published release
 on:
-  workflow_call:
-    inputs:
-      addon:
-        description: Add-on directory name
-        required: true
-        type: string
-      version:
-        description: Add-on version directory name
-        required: true
-        type: string
-      prefix:
-        description: Prefix for s3 asset and ref. For identification.
-        type: string
-      update-supported-versions:
-        description: 'Update supported-versions-gen.json on staging before running tests.'
-        type: boolean
-        default: false
-  workflow_dispatch:
-    inputs:
-      addon:
-        description: Add-on directory name
-        required: true
-        type: string
-      version:
-        description: Add-on version directory name
-        required: true
-        type: string
-      prefix:
-        description: Prefix for s3 asset and ref. For identification.
-        type: string
-      update-supported-versions:
-        description: 'Update supported-versions-gen.json on staging before running tests.'
-        type: boolean
-        default: false
-
-env:
-  addon: ${{ inputs.addon }}
-  version: ${{ inputs.version }}
-  prefix: ${{ inputs.prefix }}
-  update_supported_versions: ${{ inputs.update-supported-versions }}
-
+  workflow_dispatch: {}
+permissions:
+  contents: read
 jobs:
-  test-addon:
+  queue-failed-cases:
     runs-on: ubuntu-24.04
-
     steps:
       - uses: actions/checkout@v7
-
-      - name: add-on build
-        id: build
+      - name: Queue exactly ten previously failed cases
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          S3_BUCKET: "kurl-sh"
+          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
         run: |
-          ./bin/build-addon-package.sh "${{ env.addon }}" "${{ env.version }}" \
-            "addons/${{ env.addon }}/${{ env.version }}" \
-            "${{ env.prefix }}"
-
-      - name: update supported versions
-        if: env.update_supported_versions == 'true'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          S3_BUCKET: "kurl-sh"
-          DIST_FOLDER: "staging"
-        run: |
-          npm install
-          export VERSION_TAG=$(curl -s https://kurl-sh.s3.amazonaws.com/staging/VERSION)
-          make generate-addons
-          echo "Waiting 60s for kURL-api cache to expire..."
-          sleep 60
-
-      - name: tgrun queue
-        id: queue
-        uses: ./.github/actions/addon-testgrid-tester
-        with:
-          addon: "${{ env.addon }}"
-          version: "${{ env.version }}"
-          package-url: "${{ steps.build.outputs.addon_package_url }}"
-          testgrid-spec-path: "addons/${{ env.addon }}/template/testgrid"
-          testgrid-run-prefix: "${{ env.prefix }}"
-          testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
-          staging: true
-
-      - name: Post TG URL
-        uses: mshick/add-pr-comment@v3
-        with:
-          message: ${{ steps.queue.outputs.message }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          message-id: addon-${{ env.addon }}-${{ env.version }}-${{ github.sha }}
-          allow-repeats: false
+          set -euo pipefail
+          docker pull replicated/tgrun:latest
+          for group in 1 2 3 4; do
+            ref="cve-cert-6139-failed-prod-${group}-$(date --utc +%FT%TZ)"
+            docker run --rm -e TESTGRID_API_TOKEN -v "$(pwd):/wrk" -w /wrk \
+              replicated/tgrun:latest queue \
+              --kurl-version v2026.09.20-0 \
+              --ref "$ref" \
+              --spec "testgrid/cve-cert-failed/spec-${group}.yaml" \
+              --os-spec "testgrid/cve-cert-failed/os-${group}.yaml" \
+              --priority 0
+            echo "::notice ::https://testgrid.kurl.sh/run/${ref}"
+          done
