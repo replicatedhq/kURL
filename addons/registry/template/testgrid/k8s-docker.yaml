@@ -1,26 +1,37 @@
 - name: registry_latest_rook
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.31.x"
+      version: "1.31.14"
     flannel:
-      version: latest
+      version: "0.28.9"
     rook:
-      version: 1.12.x
+      version: 1.12.8
     containerd:
-      version: "latest"
+      version: "2.3.3"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
+
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
     ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
-    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
     IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
@@ -29,7 +40,7 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # Check if the support bundle spec was installed
     echo "test whether the registry support bundle spec was installed"
@@ -40,18 +51,29 @@
 
 - name: registry_latest_longhorn
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.24.x"
+      version: "1.24.17"
     flannel:
-      version: latest
+      version: "0.28.9"
     longhorn:
-      version: "latest"
+      version: "1.3.1"
     containerd:
-      version: "latest"
+      version: "2.3.3"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
+
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
 
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
@@ -59,7 +81,7 @@
 
     # tag and push this to the registry
     ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
-    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
     IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
@@ -68,35 +90,45 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
 - name: registry_latest_upgrade
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.25.x"
+      version: "1.31.14"
     flannel:
-      version: latest
+      version: "0.28.9"
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
-      version: "latest"
+      version: "2.2.6"
     registry:
-      version: "latest"
+      version: "3.1.1" # Published baseline; staging latest may include the PR version.
     goldpinger:
       version: "3.5.1-5.2.0" # this provides an image to use for push/pull tests
   upgradeSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.25.x"
+      version: "1.31.14"
     flannel:
-      version: latest
+      version: "0.28.9"
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
-      version: "latest"
+      version: "2.2.6"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -105,6 +137,12 @@
     # wait for the pod to be ready
     sleep 60s
     kubectl get pods -n kurl
+
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
 
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
@@ -112,7 +150,7 @@
 
     # tag and push this to the registry
     ctr -n k8s.io images tag docker.io/bloomberg/goldpinger:v3.5.1 $DOCKER_REGISTRY_IP/registry:testtag
-    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
     IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
@@ -121,8 +159,14 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
   postUpgradeScript: |
+
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
 
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
@@ -135,29 +179,39 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
 - name: registry_oldest_upgrade
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.19.x"
+      version: "1.24.17"
     flannel:
-      version: latest
+      version: "0.28.9"
     longhorn:
-      version: "latest"
+      version: "1.3.1"
     containerd:
-      version: "latest"
+      version: "2.2.6"
     registry:
       version: "2.7.1"
   upgradeSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.19.x"
+      version: "1.24.17"
     flannel:
-      version: latest
+      version: "0.28.9"
     longhorn:
-      version: "latest"
+      version: "1.3.1"
     containerd:
-      version: "latest"
+      version: "2.2.6"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -167,13 +221,19 @@
     sleep 60s
     kubectl get pods -n kurl
 
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
+
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
     ctr -n k8s.io images tag docker.io/library/registry:2.7.1 $DOCKER_REGISTRY_IP/registry:testtag
-    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
     IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
@@ -182,8 +242,14 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
   postUpgradeScript: |
+
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
 
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
@@ -196,22 +262,25 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
-  unsupportedOSIDs:
-  - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
 - name: registry_publish_port
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.25.x"
+      version: "1.25.14"
     flannel:
-      version: latest
+      version: "0.28.9"
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     containerd:
-      version: "latest"
+      version: "2.3.3"
     registry:
       publishPort: 8443
       version: "__testver__"
@@ -219,50 +288,65 @@
 - name: registry_remove_all_object_storage
   cpu: 5
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: 1.24.x
+      version: 1.24.17
     flannel:
-      version: latest
+      version: "0.28.9"
     rook:
-      version: 1.9.x
+      version: 1.9.12
     registry:
-      version: latest
+      version: "3.1.1" # Published baseline; staging latest may include the PR version.
     kotsadm:
-      version: latest
+      version: "1.132.0"
     containerd:
-      version: latest
+      version: "2.3.3"
   upgradeSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: 1.24.x
+      version: 1.24.17
     flannel:
-      version: latest
+      version: "0.28.9"
     longhorn:
-      version: latest
+      version: "1.3.1"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
     kotsadm:
-      version: latest
+      version: "1.132.0"
       disableS3: true
     containerd:
-      version: latest
+      version: "2.3.3"
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: registry_airgap_openebs
   airgap: true
   installerSpec:
+    # Freeze dependencies so other add-on tests cannot change this installer.
+    ekco:
+      version: "0.28.15"
+    sonobuoy:
+      version: "0.57.3"
     kubernetes:
-      version: "1.25.x"
+      version: "1.25.14"
     flannel:
-      version: latest
+      version: "0.28.9"
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
       localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: "2025-10-15T17-29-55Z"
     containerd:
-      version: "latest"
+      version: "2.3.3"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -275,13 +359,19 @@
     sleep 60s
     kubectl get pods -n kurl
 
+    # Use the local transfer client when supported so --tlscacert works with ctr 2.x.
+    CTR_LOCAL=""
+    if ctr images push --help | grep -- '--local' >/dev/null; then
+      CTR_LOCAL="--local"
+    fi
+
     # get the registry address and credentials
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
 
     # tag and push this to the registry
     ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
-    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
 
     # remove this image from the local filesystem, so that the pull is real
     IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
@@ -290,4 +380,4 @@
     fi
 
     # pull it from the registry
-    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images pull ${CTR_LOCAL} --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
