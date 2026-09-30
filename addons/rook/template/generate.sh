@@ -34,6 +34,22 @@ function generate() {
 
     local github_content_url="https://raw.githubusercontent.com/rook/rook/v${VERSION}"
 
+    # Rook 1.20 delegates CSI driver installation to a separate chart. Match the
+    # driver chart to the bundled CSI operator and use Rook's versioned values
+    # so the driver names and image set match our storage classes and images.
+    if printf '%s\n' 1.20.0 "$VERSION" | sort -V -C; then
+        local csi_version=
+        csi_version="$(sed -nE 's|.*image:.*cephcsi/ceph-csi-operator:v([0-9.]+).*|\1|p' "${dir}/operator/deployment.yaml")"
+        test -n "$csi_version"
+        curl -fsSL -o "${dir}/operator/csi-values.yaml" "${github_content_url}/deploy/charts/ceph-csi-drivers/values.yaml"
+        helm repo add ceph-csi-operator https://ceph.github.io/ceph-csi-operator
+        helm template ceph-csi-drivers ceph-csi-operator/ceph-csi-drivers --version "$csi_version" \
+            --values "${dir}/operator/csi-values.yaml" -n rook-ceph > "${dir}/operator/csi-combined.yaml"
+        sed -i 's/[[:blank:]]*$//' "${dir}/operator/csi-combined.yaml"
+        split_resources "${dir}/operator/csi-combined.yaml" "${dir}/operator" "${dir}/operator/kustomization.yaml"
+        rm "${dir}/operator/csi-values.yaml" "${dir}/operator/csi-combined.yaml"
+    fi
+
     # download additional operator resources
     curl -fsSL -o "${dir}/operator/toolbox.yaml" "${github_content_url}/deploy/examples/toolbox.yaml"
     insert_resources "${dir}/operator/kustomization.yaml" "toolbox.yaml"

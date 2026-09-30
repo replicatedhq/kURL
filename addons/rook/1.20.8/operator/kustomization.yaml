@@ -1,5 +1,23 @@
 resources:
 - toolbox.yaml
+- cephfs-ctrlplugin-cr-rbac.yaml
+- cephfs-nodeplugin-cr-rbac.yaml
+- rbd-ctrlplugin-cr-rbac.yaml
+- rbd-nodeplugin-cr-rbac.yaml
+- cephfs-ctrlplugin-crb-rbac.yaml
+- cephfs-nodeplugin-crb-rbac.yaml
+- rbd-ctrlplugin-crb-rbac.yaml
+- rbd-nodeplugin-crb-rbac.yaml
+- cephfs-ctrlplugin-r-rbac.yaml
+- cephfs-nodeplugin-r-rbac.yaml
+- rbd-ctrlplugin-r-rbac.yaml
+- rbd-nodeplugin-r-rbac.yaml
+- cephfs-ctrlplugin-rb-rbac.yaml
+- cephfs-nodeplugin-rb-rbac.yaml
+- rbd-ctrlplugin-rb-rbac.yaml
+- rbd-nodeplugin-rb-rbac.yaml
+- driver.yaml
+- operatorConfig.yaml
 - serviceaccount.yaml
 - configmap.yaml
 - cephconnection-crd.yaml
