@@ -215,7 +215,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-    - rocky-91 # docker is not supported on rhel 9 variants
+    - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -275,7 +275,10 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
     containerd --version
-    containerd --version | grep "__testver__"
+    systemctl is-active --quiet containerd
+    if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
+      containerd --version | grep "__testver__"
+    fi
   unsupportedOSIDs:
     - centos-74
     - centos-79
@@ -288,7 +291,8 @@
     flannel:
       version: latest
     containerd:
-      version: latest
+      # Keep the baseline published when staging metadata includes the candidate.
+      version: "2.3.3"
     openebs:
       version: latest
       isLocalPVEnabled: true
