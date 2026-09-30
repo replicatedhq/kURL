@@ -1,2 +1,2 @@
-image registry kurlsh/registry:__registry_version__
+image registry registry:__registry_version__
 image s3cmd kurlsh/s3cmd:__S3CMD_TAG__

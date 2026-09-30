@@ -61,12 +61,8 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: registry
-        image: kurlsh/registry:__registry_version__
+        image: registry:__registry_version__
         imagePullPolicy: IfNotPresent
-        securityContext:
-          # Preserve access to existing root-owned data and privileged port 443.
-          runAsUser: 0
-          runAsGroup: 0
         command:
         - /bin/registry
         - serve
