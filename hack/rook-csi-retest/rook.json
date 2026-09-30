@@ -1,0 +1,204 @@
+[
+  {
+    "name": "Rook minimal airgap",
+    "installerSpec": {
+      "kurl": {
+        "installerVersion": "v2026.09.20-0-825e448f5"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "kubernetes": {
+        "version": "1.34.11"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "2.3.3"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "kotsadm": {
+        "version": "1.132.0"
+      },
+      "ekco": {
+        "version": "0.28.16"
+      },
+      "rook": {
+        "version": "1.20.8",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/swimlane-6134-2734876-rook-1.20.8.tar.gz"
+      }
+    },
+    "airgap": true,
+    "unsupportedOSIDs": [
+      "centos-79",
+      "ol-79",
+      "ol-8x",
+      "amzn-20",
+      "ubuntu-1804"
+    ],
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\nrhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git\n# BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages containerd socat ebtables conntrack lvm2\nubuntu_2604_install_host_packages containerd socat ebtables conntrack lvm2\n# END GENERATED os-matrix: ubuntu-host-packages\n",
+    "postInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrook_ceph_object_store_info\nvalidate_read_write_object_store rwtest testfile.txt\n\nminio_object_store_info\nvalidate_read_write_object_store rwtest minio.txt\n\n# validate data pools\ncat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: cephfs-pvc\nspec:\n  accessModes:\n  - ReadWriteMany\n  resources:\n    requests:\n      storage: 1Gi\n  storageClassName: rook-cephfs\n---\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: default-pvc\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nEOF\nkubectl -n default get pvc\nsleep 30\necho \"after sleeping\"\nkubectl -n default get pvc\nkubectl -n default get pvc default-pvc | grep Bound\nkubectl -n default get pvc cephfs-pvc | grep Bound\nkubectl -n default delete pvc cephfs-pvc default-pvc\n"
+  },
+  {
+    "name": "Rook minimal",
+    "installerSpec": {
+      "kurl": {
+        "installerVersion": "v2026.09.20-0-825e448f5"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "kubernetes": {
+        "version": "1.34.11"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "2.3.3"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "kotsadm": {
+        "version": "1.132.0"
+      },
+      "ekco": {
+        "version": "0.28.16"
+      },
+      "rook": {
+        "version": "1.20.8",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/swimlane-6134-2734876-rook-1.20.8.tar.gz"
+      }
+    },
+    "unsupportedOSIDs": [
+      "centos-79",
+      "ol-79",
+      "ol-8x",
+      "amzn-20",
+      "ubuntu-1804"
+    ],
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\n# BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages lvm2\nubuntu_2604_install_host_packages lvm2\n# END GENERATED os-matrix: ubuntu-host-packages\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\nrhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git\n",
+    "postInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrook_ceph_object_store_info\nvalidate_read_write_object_store rwtest testfile.txt\n\nminio_object_store_info\nvalidate_read_write_object_store rwtest minio.txt\n\n# validate data pools\ncat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: cephfs-pvc\nspec:\n  accessModes:\n  - ReadWriteMany\n  resources:\n    requests:\n      storage: 1Gi\n  storageClassName: rook-cephfs\n---\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: default-pvc\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nEOF\nkubectl -n default get pvc\nsleep 30\necho \"after sleeping\"\nkubectl -n default get pvc\nkubectl -n default get pvc default-pvc | grep Bound\nkubectl -n default get pvc cephfs-pvc | grep Bound\nkubectl -n default delete pvc cephfs-pvc default-pvc\n"
+  },
+  {
+    "name": "Upgrade from 1.18.x",
+    "flags": "yes",
+    "installerSpec": {
+      "kurl": {
+        "installerVersion": "v2026.09.20-0-825e448f5"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "kubernetes": {
+        "version": "1.34.11"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "2.3.3"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "kotsadm": {
+        "version": "1.132.0"
+      },
+      "ekco": {
+        "version": "0.28.16"
+      },
+      "rook": {
+        "version": "1.18.11"
+      }
+    },
+    "upgradeSpec": {
+      "kurl": {
+        "installerVersion": "v2026.09.20-0-rc-rook-27348763f"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "kubernetes": {
+        "version": "1.34.11"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "2.3.3"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "kotsadm": {
+        "version": "1.132.0"
+      },
+      "ekco": {
+        "version": "0.28.16"
+      },
+      "rook": {
+        "version": "1.20.8",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/swimlane-6134-2734876-rook-1.20.8.tar.gz",
+        "bypassUpgradeWarning": true
+      }
+    },
+    "unsupportedOSIDs": [
+      "centos-79",
+      "ol-79",
+      "ol-8x",
+      "amzn-20",
+      "ubuntu-1804"
+    ],
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\n# BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages lvm2\nubuntu_2604_install_host_packages lvm2\n# END GENERATED os-matrix: ubuntu-host-packages\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\nrhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git\n",
+    "postInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrook_ceph_object_store_info\nvalidate_read_write_object_store rwtest testfile.txt\n\nminio_object_store_info\nvalidate_read_write_object_store rwtest minio.txt\n",
+    "postUpgradeScript": "source /opt/kurl-testgrid/testhelpers.sh\n\n# the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule\nwait_for_minio_ready\n\noperatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')\necho $operatorVersion | grep 1.20.8\n\nrook_ceph_object_store_info\nvalidate_testfile rwtest testfile.txt\nvalidate_read_write_object_store postupgrade upgradefile.txt\n\nminio_object_store_info\nvalidate_testfile rwtest minio.txt\nvalidate_read_write_object_store postupgrade minioupgrade.txt\n\n# validate data pools\ncat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: cephfs-pvc\nspec:\n  accessModes:\n  - ReadWriteMany\n  resources:\n    requests:\n      storage: 1Gi\n  storageClassName: rook-cephfs\n---\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: default-pvc\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nEOF\nkubectl -n default get pvc\nsleep 30\necho \"after sleeping\"\nkubectl -n default get pvc\nkubectl -n default get pvc default-pvc | grep Bound\nkubectl -n default get pvc cephfs-pvc | grep Bound\nkubectl -n default delete pvc cephfs-pvc default-pvc\n"
+  },
+  {
+    "name": "Disable shared filesystem",
+    "installerSpec": {
+      "kurl": {
+        "installerVersion": "v2026.09.20-0-825e448f5"
+      },
+      "sonobuoy": {
+        "version": "0.57.3"
+      },
+      "kubernetes": {
+        "version": "1.34.11"
+      },
+      "flannel": {
+        "version": "0.28.9"
+      },
+      "containerd": {
+        "version": "2.3.3"
+      },
+      "minio": {
+        "version": "2025-10-15T17-29-55Z"
+      },
+      "kotsadm": {
+        "version": "1.132.0"
+      },
+      "ekco": {
+        "version": "0.28.16"
+      },
+      "rook": {
+        "version": "1.20.8",
+        "s3Override": "https://kurl-sh.s3.amazonaws.com/pr/swimlane-6134-2734876-rook-1.20.8.tar.gz",
+        "isSharedFilesystemDisabled": true
+      }
+    },
+    "unsupportedOSIDs": [
+      "centos-79",
+      "ol-79",
+      "ol-8x",
+      "amzn-20",
+      "ubuntu-1804"
+    ],
+    "preInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\n# BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'\nubuntu_2404_install_host_packages lvm2\nubuntu_2604_install_host_packages lvm2\n# END GENERATED os-matrix: ubuntu-host-packages\nrhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git\nrhel_10_install_host_packages lvm2 conntrack-tools socat container-selinux git\n",
+    "postInstallScript": "source /opt/kurl-testgrid/testhelpers.sh\nrook_ceph_object_store_info\nvalidate_read_write_object_store rwtest testfile.txt\n\nminio_object_store_info\nvalidate_read_write_object_store rwtest minio.txt\n\n# validate data pools\ncat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: default-pvc\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nEOF\nkubectl -n default get pvc\nsleep 30\necho \"after sleeping\"\nkubectl -n default get pvc\nkubectl -n default get pvc default-pvc | grep Bound\nkubectl -n default delete pvc default-pvc\n\n# Ensure Cephfs storage class is not applied\n! kubectl get sc | grep rook-cephfs\n"
+  }
+]

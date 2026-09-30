@@ -1,0 +1,6 @@
+{
+  "base": "v2026.09.20-0-825e448f5",
+  "isolated": "v2026.09.20-0-rc-rook-27348763f",
+  "candidate": "https://kurl-sh.s3.amazonaws.com/pr/swimlane-6134-2734876-rook-1.20.8.tar.gz",
+  "product_sha": "27348763fb2284dea60e06326183a30b70136de6"
+}
