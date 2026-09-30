@@ -48,7 +48,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x" # k8s 1.21 speaks CRI v1alpha2, which containerd 2.x removed
     contour:
       version: "1.20.1"
   upgradeSpec:
@@ -57,7 +57,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x" # k8s 1.21 speaks CRI v1alpha2, which containerd 2.x removed
     contour:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -83,6 +83,8 @@
     curl -v "http://$private_address:80"
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu-2404 # no kubernetes 1.21 host packages for this release
+  - ubuntu-2604 # no kubernetes 1.21 host packages, and containerd 1.7.x builds none either
 
 - name: "k8s 1.31"
   installerSpec:
@@ -114,7 +116,7 @@
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: "1.7.x" # k8s 1.21 speaks CRI v1alpha2, which containerd 2.x removed
     contour:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -131,3 +133,5 @@
     curl -v "http://$private_address:80"
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu-2404 # no kubernetes 1.21 host packages for this release
+  - ubuntu-2604 # no kubernetes 1.21 host packages, and containerd 1.7.x builds none either
