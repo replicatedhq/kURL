@@ -1,0 +1,25 @@
+addons/cert-manager/template/testgrid/k8s-docker.yaml
+  s_468cf4a20588f5::t_d4908856387433 34,43
+  h_38cb974bb08fad 62,71,93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "79e28570a31d8f55a2890db222718705587d9821",
+  "prompts": {},
+  "humans": {
+    "h_38cb974bb08fad": {
+      "author": "Xav Paice <xav@replicated.com>"
+    }
+  },
+  "sessions": {
+    "s_468cf4a20588f5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f0fc6a7b6ffeVzLizRLwIBviCq",
+        "model": "auto"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
