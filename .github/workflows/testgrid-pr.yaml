@@ -295,7 +295,8 @@ jobs:
             exit 1
           fi
           echo "copying packages from previous staging release ${STAGING_RELEASE}"
-          LIST_FROM_STAGE_S3=1 ./bin/list-all-packages-actions-matrix.sh
+          MATRIX=$(LIST_FROM_STAGE_S3=1 ./bin/list-all-packages-actions-matrix.sh)
+          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
 
   copy-packages:
     runs-on: ubuntu-24.04
