@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-alertmanager
+  namespace: monitoring
+spec:
+  ports:
+  - name: web
+    port: 9093
+    protocol: TCP
+    nodePort: 30903
+  type: "NodePort"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-k8s
+  namespace: monitoring
+spec:
+  ports:
+  - name: web
+    port: 9090
+    nodePort: 30900
+  type: "NodePort"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  type: "NodePort"
+  ports:
+  - name: service
+    port: 80
+    protocol: TCP
+    nodePort: 30902

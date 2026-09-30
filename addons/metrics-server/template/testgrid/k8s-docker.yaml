@@ -1,7 +1,7 @@
 - name: "fresh install"
   installerSpec:
     kubernetes:
-      version: "1.31.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
@@ -13,19 +13,19 @@
     sleep 30
     kubectl top pods -A
     kubectl top nodes
-- name: "upgrade from latest"
+- name: "upgrade from 0.8.1"
   installerSpec:
     kubernetes:
-      version: "1.28.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
       version: "latest"
     metricsServer:
-      version: "latest"
+      version: "0.8.1"
   upgradeSpec:
     kubernetes:
-      version: "1.28.x"
+      version: "1.35.x"
     flannel:
       version: "latest"
     containerd:
