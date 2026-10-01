@@ -247,6 +247,7 @@ dist/kubernetes-%.tar.gz:
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh "kubernetes-images-$*" packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
+	if [ -f packages/kubernetes/$*/image-overrides ]; then cp packages/kubernetes/$*/image-overrides build/packages/kubernetes/$*/; fi
 
 dist/kubernetes-conformance-%.tar.gz:
 	${MAKE} build/packages/kubernetes-conformance/$*/images

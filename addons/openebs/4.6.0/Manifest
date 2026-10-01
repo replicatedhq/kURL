@@ -1,2 +1,2 @@
-image linux-utils docker.io/openebs/linux-utils:4.6.0
-image provisioner-localpv docker.io/openebs/provisioner-localpv:4.6.0
+image openebs-provisioner-localpv docker.io/kurlsh/openebs-provisioner-localpv:4.6.0
+image openebs-linux-utils docker.io/kurlsh/openebs-linux-utils:4.6.0

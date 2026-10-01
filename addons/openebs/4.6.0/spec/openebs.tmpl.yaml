@@ -117,7 +117,7 @@ spec:
         {}
       containers:
       - name: openebs-localpv-provisioner
-        image: "docker.io/openebs/provisioner-localpv:4.6.0"
+        image: "docker.io/kurlsh/openebs-provisioner-localpv:4.6.0"
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -171,7 +171,7 @@ spec:
         - name: OPENEBS_IO_IMAGE_PULL_POLICY
           value: "IfNotPresent"
         - name: OPENEBS_IO_HELPER_IMAGE
-          value: "docker.io/openebs/linux-utils:4.6.0"
+          value: "docker.io/kurlsh/openebs-linux-utils:4.6.0"
         - name: OPENEBS_IO_HELPER_POD_HOST_NETWORK
           value: "false"
         - name: OPENEBS_IO_INSTALLER_TYPE

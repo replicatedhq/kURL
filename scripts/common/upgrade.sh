@@ -437,6 +437,7 @@ function upgrade_kubernetes_local_master() {
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
     ( set -x; kubeadm upgrade apply "v$targetK8sVersion" --yes --force --ignore-preflight-errors=all )
+    kubernetes_apply_image_overrides "$targetK8sVersion"
     upgrade_etcd_image_18 "$targetK8sVersion"
 
     # kubelet command line argument, '--container-runtime', was removed in Kubernetes 1.27

@@ -46,6 +46,12 @@ function sed_i() {
     fi
 }
 
+# A rebuilt tag must invalidate the cached addon package as well.
+function record_s3cmd_image_build() {
+    [ "$S3CMD_TAG" = "20260825-a9ea1c6" ] || return 0
+    echo "# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5" >> "../$VELERO_VERSION/Manifest"
+}
+
 function generate() {
     mkdir -p "../${VELERO_VERSION}"
     cp -r ./base/* "../${VELERO_VERSION}"
@@ -65,6 +71,7 @@ function generate() {
     mv "../$VELERO_VERSION/install.tmpl.sh" "../$VELERO_VERSION/install.sh"
 
     sed_i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VELERO_VERSION/tmpl-s3-migration-deployment-patch.yaml"
+    record_s3cmd_image_build
 }
 
 function add_as_latest() {
@@ -109,4 +116,6 @@ function main() {
     echo "velero_version=$VELERO_VERSION" >> "$GITHUB_OUTPUT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

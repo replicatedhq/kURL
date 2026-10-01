@@ -8,3 +8,4 @@ asset velero.tar.gz https://github.com/velero-io/velero/releases/download/v1.18.
 
 yum nfs-utils
 apt nfs-common
+# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5

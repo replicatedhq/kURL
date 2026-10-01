@@ -37,11 +37,36 @@ function kubernetes_load_images() {
     fi
 
     load_images "$DIR/packages/kubernetes/$version/images"
+    # kubeadm uses upstream references until the workload image overrides are applied.
+    # Provide local aliases so air-gapped installs do not need those upstream images.
+    local overrides="$DIR/packages/kubernetes/$version/image-overrides"
+    local workload= container= source_image= target_image=
+    if [ -f "$overrides" ]; then
+        while read -r workload container source_image target_image; do
+            if [ -n "$DOCKER_VERSION" ]; then
+                docker tag "$source_image" "$target_image"
+            else
+                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image"
+            fi
+        done < "$overrides"
+    fi
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$version/images"
     fi
 
     declare -g "$varname"=1
+}
+
+# kubeadm manages these workloads, so reapply the verified images after init/upgrade.
+function kubernetes_apply_image_overrides() {
+    local version="$1"
+    local overrides="$DIR/packages/kubernetes/$version/image-overrides"
+    [ -f "$overrides" ] || return 0
+
+    local workload= container= image= upstream_image=
+    while read -r workload container image upstream_image; do
+        kubectl --kubeconfig /etc/kubernetes/admin.conf -n kube-system set image "$workload" "$container=$image"
+    done < "$overrides"
 }
 
 function kubernetes_get_packages() {

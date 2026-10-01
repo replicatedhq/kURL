@@ -30,6 +30,11 @@ function get_latest_bloomberg_version() {
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 }
 
+function use_securebuild_images() {
+    [ "$VERSION" = "3.11.3" ] || return 0
+    sed_i 's|bloomberg/goldpinger:3.11.3|kurlsh/goldpinger:3.11.3|g' "../$VERSION-$CHARTVERSION/goldpinger.yaml"
+}
+
 function generate_bloomberg_dynamic() {
     # Make the base set of files
     mkdir -p "../${VERSION}-${CHARTVERSION}"
@@ -41,7 +46,9 @@ function generate_bloomberg_dynamic() {
     # Update version placeholders in install.sh (always use canonical template)
     sed_i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
     
-    # Generate manifest with Bloomberg image
+    use_securebuild_images
+
+    # Generate manifest from the rendered image
     grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "../$VERSION-$CHARTVERSION/Manifest"
     
     echo "Generated Bloomberg goldpinger version: $VERSION-$CHARTVERSION"
@@ -104,4 +111,6 @@ function main() {
     fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

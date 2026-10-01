@@ -246,6 +246,8 @@ function init() {
         | tee /tmp/kubeadm-init
     set +o pipefail
 
+    kubernetes_apply_image_overrides "$KUBERNETES_VERSION"
+
     # Node would be cordoned if migrated from docker to containerd
     kubectl uncordon "$(get_local_node_name)"
 
