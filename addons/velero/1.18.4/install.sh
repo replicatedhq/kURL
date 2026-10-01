@@ -409,7 +409,7 @@ function velero_install() {
         secretArgs="--secret-file velero-credentials"
     fi
 
-    local plugins="velero/velero-plugin-for-aws:v1.14.4,velero/velero-plugin-for-gcp:v1.14.4,velero/velero-plugin-for-microsoft-azure:v1.14.4,${KURL_UTIL_IMAGE}"
+    local plugins="kurlsh/velero-plugin-for-aws:v1.14.4,kurlsh/velero-plugin-for-gcp:v1.14.4,kurlsh/velero-plugin-for-microsoft-azure:v1.14.4,${KURL_UTIL_IMAGE}"
     if ! velero_version_ge "1.17.0"; then
         plugins="$plugins,replicated/local-volume-provider:0.6.16"
     fi
@@ -419,6 +419,7 @@ function velero_install() {
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
+        --image kurlsh/velero:v${VELERO_VERSION} \
         --plugins "$plugins" \
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml"
