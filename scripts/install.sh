@@ -186,6 +186,7 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             "$patch_basename"
     done
+    kubernetes_configure_kubeadm_images "$kustomize_kubeadm_init" InitConfiguration
     mkdir -p "$KUBEADM_CONF_DIR"
 
     # Generate kubeadm config

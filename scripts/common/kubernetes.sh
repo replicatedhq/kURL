@@ -50,6 +50,17 @@ function kubernetes_load_images() {
             fi
         done < "$overrides"
     fi
+    overrides="$DIR/packages/kubernetes/$version/kubeadm-image-overrides"
+    local component=
+    if [ -f "$overrides" ]; then
+        while read -r component source_image target_image; do
+            if [ -n "$DOCKER_VERSION" ]; then
+                docker tag "$source_image" "$target_image"
+            else
+                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image"
+            fi
+        done < "$overrides"
+    fi
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$version/images"
     fi
@@ -67,6 +78,66 @@ function kubernetes_apply_image_overrides() {
     while read -r workload container image upstream_image; do
         kubectl --kubeconfig /etc/kubernetes/admin.conf -n kube-system set image "$workload" "$container=$image"
     done < "$overrides"
+}
+
+# Static pods need kubeadm patches rather than kubectl workload image overrides.
+function kubernetes_configure_kubeadm_images() {
+    local dir="$1"
+    local kind="$2"
+    local overrides="$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides"
+    [ -f "$overrides" ] || return 0
+
+    local config_name=
+    case "$kind" in
+        InitConfiguration) config_name=kubeadm-init-configuration ;;
+        JoinConfiguration) config_name=kubeadm-join-configuration ;;
+        *) return 1 ;;
+    esac
+
+    local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
+    mkdir -p "$patch_dir"
+    local component= image= upstream_image= etcd_image=
+    while read -r component image upstream_image; do
+        cat > "$patch_dir/$component+strategic.yaml" <<EOF
+spec:
+  containers:
+  - name: $component
+    image: $image
+EOF
+        if [ "$component" = "etcd" ]; then
+            etcd_image="$image"
+        fi
+    done < "$overrides"
+
+    cat > "$dir/kurl-image-patches.yaml" <<EOF
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: $kind
+metadata:
+  name: $config_name
+patches:
+  directory: $patch_dir
+EOF
+    kubeadm_customize_config "$dir/kurl-image-patches.yaml"
+    if ! grep -Fq kurl-image-patches.yaml "$dir/kustomization.yaml"; then
+        insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-image-patches.yaml
+    fi
+
+    if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ]; then
+        cat > "$dir/kurl-etcd-image.yaml" <<EOF
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+etcd:
+  local:
+    imageRepository: ${etcd_image%/*}
+    imageTag: ${etcd_image##*:}
+EOF
+        kubeadm_customize_config "$dir/kurl-etcd-image.yaml"
+        if ! grep -Fq kurl-etcd-image.yaml "$dir/kustomization.yaml"; then
+            insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-etcd-image.yaml
+        fi
+    fi
 }
 
 function kubernetes_get_packages() {
