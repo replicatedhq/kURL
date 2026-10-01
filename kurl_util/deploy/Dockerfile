@@ -23,12 +23,16 @@ WORKDIR /src
 
 # The upstream release still includes vulnerable x/mod. Rebuild both tools with
 # the fixed dependency rather than copying its precompiled release binaries.
+# x/mod v0.40.0 requires x/tools v0.49.0, so go get also bumps x/tools from
+# v0.48.0. Flags mirror upstream hack/release.sh (CGO_ENABLED=0, -trimpath,
+# Version ldflag with the "v" prefix). -mod=mod is required because the vendor
+# directory no longer matches the modified go.mod.
 RUN go get golang.org/x/mod@v0.40.0 \
-  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod \
-    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION#v}" \
+  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod -trimpath \
+    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION}" \
     -o /crictl ./cmd/crictl \
-  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -mod=mod -c \
-    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION#v}" \
+  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -mod=mod -trimpath -c \
+    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION}" \
     -o /critest ./cmd/critest
 
 FROM ubuntu:24.04
