@@ -85,19 +85,10 @@ bin/vendorflights:
 bin/pvmigrate: cmd/pvmigrate/main.go
 	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/pvmigrate cmd/pvmigrate/main.go
 
-GH_AVAILABLE ?= $(shell which gh >/dev/null 2>&1 && echo 1 || echo 0)
-
 .PHONY: kurl-util-image
-# Check if gh is available and set CRITOOLS_VERSION accordingly
-ifeq ($(GH_AVAILABLE),1)
-kurl-util-image: CRITOOLS_VERSION := $(shell gh api repos/kubernetes-sigs/cri-tools/releases/latest --jq .tag_name)
-else
-kurl-util-image: CRITOOLS_VERSION := $(shell curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-endif
 kurl-util-image:
 	docker build --pull -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile \
 		--build-arg COMMIT="${GIT_SHA}" \
-		--build-arg CRITOOLS_VERSION="${CRITOOLS_VERSION}" \
 		../
 
 .PHONY: push-kurl-util-image

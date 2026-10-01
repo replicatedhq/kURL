@@ -11,6 +11,30 @@ COPY Makefile Makefile
 
 RUN make build/bin
 
+FROM golang:1.27.1 AS cri-tools-build
+
+ARG CRITOOLS_VERSION=v1.37.0
+ARG CRITOOLS_COMMIT=13496db06e3f6636a0855977dd86344698dfc501
+
+RUN git clone --depth 1 --branch "$CRITOOLS_VERSION" https://github.com/kubernetes-sigs/cri-tools.git /src \
+  && test "$(git -C /src rev-parse HEAD)" = "$CRITOOLS_COMMIT"
+
+WORKDIR /src
+
+# The upstream release still includes vulnerable x/mod. Rebuild both tools with
+# the fixed dependency rather than copying its precompiled release binaries.
+# x/mod v0.40.0 requires x/tools v0.49.0, so go get also bumps x/tools from
+# v0.48.0. Flags mirror upstream hack/release.sh (CGO_ENABLED=0, -trimpath,
+# Version ldflag with the "v" prefix). -mod=mod is required because the vendor
+# directory no longer matches the modified go.mod.
+RUN go get golang.org/x/mod@v0.40.0 \
+  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod -trimpath \
+    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION}" \
+    -o /crictl ./cmd/crictl \
+  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -mod=mod -trimpath -c \
+    -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION}" \
+    -o /critest ./cmd/critest
+
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -32,16 +56,7 @@ RUN . /etc/os-release; apt-get update -qq \
     telnet \
   && rm -rf /var/lib/apt/lists/*
 
-ARG CRITOOLS_VERSION=v1.34.0
-
-# Install crictl and critest with latest version discovery
-RUN curl -sSL -o crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/$CRITOOLS_VERSION/crictl-$CRITOOLS_VERSION-linux-amd64.tar.gz \
-  && tar zxvf crictl-linux-amd64.tar.gz -C /usr/local/bin \
-  && rm -f crictl-linux-amd64.tar.gz
-
-RUN curl -sSL -o critest-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/$CRITOOLS_VERSION/critest-$CRITOOLS_VERSION-linux-amd64.tar.gz \
-  && tar zxvf critest-linux-amd64.tar.gz -C /usr/local/bin \
-  && rm -f critest-linux-amd64.tar.gz
+COPY --from=cri-tools-build /crictl /critest /usr/local/bin/
 
 COPY --from=build /go/src/github.com/replicatedhq/kurl/build/bin/* /usr/local/bin/
 
