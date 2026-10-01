@@ -113,7 +113,7 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
-    - ubuntu-2604 # fails 3/3 recent release runs, see #6168
+    - ubuntu-2604 # fails 11/11 release runs since 2026-09-15, see #6168
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
@@ -181,8 +181,8 @@
     - rocky-98 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-9 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
-    - ubuntu-2204 # fails 3/3 recent release runs, see #6168
-    - ol-79 # fails 3/3 recent release runs, see #6168
+    - ubuntu-2204 # fails 11/11 release runs since 2026-09-15, see #6168
+    - ol-79 # fails 11/11 release runs since 2026-09-15, see #6168
 - name: "Upgrade from k8s 1.31 to 1.36 - Airgap"
   airgap: true
   installerSpec:
@@ -243,7 +243,6 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
-    - ubuntu-2604 # fails 3/3 recent release runs, see #6168
 - name: k8s136x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
