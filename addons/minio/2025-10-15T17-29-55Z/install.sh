@@ -90,6 +90,7 @@ function minio() {
 
     minio_migrate_from_rgw
 
+    minio_refresh_image_build
     minio_wait_for_health
 }
 
@@ -101,6 +102,21 @@ function minio_already_applied() {
     minio_object_store_output
 
     minio_migrate_from_rgw
+    minio_refresh_image_build
+}
+
+# Rebuilt tags need a pod-template change even when the addon version is unchanged.
+function minio_refresh_image_build() {
+    local image_build="sha256:7d81751f04a90d2c8cbd1742b64d50b0471da9a23ca9343c2c10756764fe75f4"
+    [ -n "$image_build" ] || return 0
+
+    local workload=
+    for workload in deployment/minio statefulset/ha-minio; do
+        if kubectl -n "$MINIO_NAMESPACE" get "$workload" >/dev/null 2>&1; then
+            kubectl -n "$MINIO_NAMESPACE" patch "$workload" --type merge --patch \
+                "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"kurl.sh/minio-image-build\":\"$image_build\"}}}}}"
+        fi
+    done
 }
 
 function minio_creds() {

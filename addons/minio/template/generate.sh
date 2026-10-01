@@ -27,6 +27,13 @@ function generate() {
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/tmpl-ha-statefulset.yaml"
 
     sed -i "s/__MINIO_DIR_NAME__/$DIR_NAME/g" "$dir/install.sh"
+
+    local image_build=
+    if [ "$VERSION" = "RELEASE.2025-10-15T17-29-55Z" ]; then
+        image_build="sha256:7d81751f04a90d2c8cbd1742b64d50b0471da9a23ca9343c2c10756764fe75f4"
+        echo "# SecureBuild MinIO image build: $image_build" >> "$dir/Manifest"
+    fi
+    sed -i "s/__MINIO_IMAGE_BUILD__/$image_build/g" "$dir/install.sh"
 }
 
 function parse_flags() {
@@ -78,4 +85,6 @@ function main() {
     echo "minio_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

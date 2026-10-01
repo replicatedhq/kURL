@@ -1,10 +1,11 @@
-image velero velero/velero:v1.18.4
-image velero-aws velero/velero-plugin-for-aws:v1.14.4
-image velero-gcp velero/velero-plugin-for-gcp:v1.14.4
-image velero-azure velero/velero-plugin-for-microsoft-azure:v1.14.4
+image velero kurlsh/velero:v1.18.4
+image velero-aws kurlsh/velero-plugin-for-aws:v1.14.4
+image velero-gcp kurlsh/velero-plugin-for-gcp:v1.14.4
+image velero-azure kurlsh/velero-plugin-for-microsoft-azure:v1.14.4
 image s3cmd kurlsh/s3cmd:20260825-a9ea1c6
 
 asset velero.tar.gz https://github.com/velero-io/velero/releases/download/v1.18.4/velero-v1.18.4-linux-amd64.tar.gz
 
 yum nfs-utils
 apt nfs-common
+# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5

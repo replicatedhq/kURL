@@ -36,6 +36,17 @@ function find_available_versions() {
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
 }
 
+function use_securebuild_images() {
+    local version="$1"
+    [ "$version" = "1.36.5" ] || return 0
+    local name= image= upstream_image=
+    while read -r name image upstream_image; do
+        sed -i "s|$upstream_image|$image|" "../$version/Manifest"
+    done < ./securebuild-1.36.5/kubeadm-image-overrides
+    sed -i 's|registry.k8s.io/kube-proxy:v1.36.5|docker.io/kurlsh/kube-proxy:v1.36.5|; s|registry.k8s.io/coredns/coredns:v1.14.2|docker.io/kurlsh/coredns:1.14.7|' "../$version/Manifest"
+    cp -r ./securebuild-1.36.5/* "../$version/"
+}
+
 function generate_version_directory() {
     local version="$1"
 
@@ -73,6 +84,7 @@ function generate_version_directory() {
 
     echo "" >> "../$version/Manifest"
     echo "asset kustomize-v5.4.3.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" >> "../$version/Manifest"
+    use_securebuild_images "$version"
 }
 
 function generate_conformance_package() {
@@ -194,4 +206,6 @@ function main() {
     generate_step_versions
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

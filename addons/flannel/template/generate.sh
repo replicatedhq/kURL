@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+# Use only published SecureBuild versions; future upstream versions retain their images.
+function use_securebuild_images() {
+    [ "$version" = "0.28.9" ] || return 0
+    sed -i 's|ghcr.io/flannel-io/flannel:v0.28.9|docker.io/kurlsh/flannel:v0.28.9|g; s|ghcr.io/flannel-io/flannel-cni-plugin:v1.9.1-flannel3|docker.io/kurlsh/flannel-cni-plugin:v1.9.1-flannel3|g' "$dir/yaml/kube-flannel.yml"
+}
+
 function generate() {
     local dir="../$version"
 
@@ -11,6 +17,7 @@ function generate() {
 
     download_yaml
     replace_flannel_image_with_version
+    use_securebuild_images
     find_images_in_yaml
 }
 
@@ -88,4 +95,6 @@ function main() {
     echo "flannel_version=$version" >> "$GITHUB_OUTPUT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

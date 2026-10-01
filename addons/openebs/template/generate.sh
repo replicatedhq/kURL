@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+# Keep the helper image and provisioner on the same verified SecureBuild release.
+function use_securebuild_images() {
+    [ "$app_version" = "4.6.0" ] || return 0
+    sed -i 's|docker.io/openebs/provisioner-localpv:4.6.0|docker.io/kurlsh/openebs-provisioner-localpv:4.6.0|g; s|docker.io/openebs/linux-utils:4.6.0|docker.io/kurlsh/openebs-linux-utils:4.6.0|g' "$dir/spec/openebs.tmpl.yaml"
+}
+
 function generate() {
     local dir="../$version"
 
@@ -32,6 +38,8 @@ function generate() {
     mv "$tmpdir/AllResources.yaml" "$dir/spec/openebs.tmpl.yaml"
 #    mv "$tmpdir/CustomResourceDefinitions.yaml" "$dir/spec/crds/crds.yaml"
     rm -rf "$tmpdir"
+
+    use_securebuild_images
 
     # get images in files
     mkdir -p "$tmpdir"
@@ -124,4 +132,6 @@ function main() {
     echo "openebs_version=$version" >> "$GITHUB_OUTPUT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

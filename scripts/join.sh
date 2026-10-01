@@ -84,6 +84,9 @@ function join() {
             $kustomize_kubeadm_join/kustomization.yaml \
             "$patch_basename"
     done
+    if [ "$MASTER" = "1" ]; then
+        kubernetes_configure_kubeadm_images "$kustomize_kubeadm_join" JoinConfiguration
+    fi
     mkdir -p "$KUBEADM_CONF_DIR"
 
     # Generate kubeadm config
