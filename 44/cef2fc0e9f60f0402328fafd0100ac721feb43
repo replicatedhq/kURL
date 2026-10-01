@@ -1,0 +1,35 @@
+scripts/common/kubernetes.sh
+  s_f22df7b173be42::t_008a97cf85dbe9 53-63,83-120,124-136,140
+  s_f22df7b173be42::t_af1a57dec6f0ca 121-123,137-139
+  s_f22df7b173be42::t_a32529e0530c43 141-142
+packages/kubernetes/1.36.5/Manifest
+  s_f22df7b173be42::t_5f63af64d17983 1-3,7
+scripts/join.sh
+  s_f22df7b173be42::t_008a97cf85dbe9 87-89
+Makefile
+  s_f22df7b173be42::t_008a97cf85dbe9 251
+packages/kubernetes/template/securebuild-1.36.5/kubeadm-image-overrides
+  s_f22df7b173be42::t_008a97cf85dbe9 1-4
+scripts/install.sh
+  s_f22df7b173be42::t_008a97cf85dbe9 189
+packages/kubernetes/template/script.sh
+  s_f22df7b173be42::t_008a97cf85dbe9 42-45
+packages/kubernetes/1.36.5/kubeadm-image-overrides
+  s_f22df7b173be42::t_5f63af64d17983 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "44cef2fc0e9f60f0402328fafd0100ac721feb43",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
