@@ -1,0 +1,25 @@
+addons/velero/template/generate.sh
+  s_f22df7b173be42::t_40f412ed951421 55-73,93
+addons/velero/1.18.4/install.sh
+  s_f22df7b173be42::t_9435ed0fee2147 412,422
+addons/velero/template/base/install.tmpl.sh
+  s_f22df7b173be42::t_40f412ed951421 422
+addons/velero/1.18.4/Manifest
+  s_f22df7b173be42::t_9435ed0fee2147 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12d94f75749954c71148091090a1ddc854a11b75",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
