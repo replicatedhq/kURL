@@ -1,0 +1,129 @@
+addons/flannel/template/generate.sh
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 5-10,20,98-100
+addons/ekco/0.28.17/Manifest
+  s_f22df7b173be42::t_a4374dd2c75161 1
+addons/ekco/0.28.17/service.tmpl.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-12
+addons/ekco/0.28.17/reboot/ekco-reboot.service
+  s_f22df7b173be42::t_a4374dd2c75161 1-12
+addons/ekco/0.28.17/rotate-certs-rbac.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-33
+addons/ekco/0.28.17/rbac-rook.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-43
+addons/goldpinger/3.11.3-1.1.3/goldpinger.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 114
+packages/kubernetes/1.36.5/Manifest
+  s_f22df7b173be42::t_a4374dd2c75161 4-5
+addons/ekco/0.28.17/reboot/shutdown.sh
+  s_f22df7b173be42::t_a4374dd2c75161 1-83
+addons/registry/3.1.2/tmpl-deployment-objectstore.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 84,86,89
+  s_f22df7b173be42::t_e3788dd0798e0a 87
+addons/goldpinger/template/generate.sh
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 33-37,49-51,114-116
+addons/registry/template/generate.sh
+  s_f22df7b173be42::t_e3788dd0798e0a 24
+  s_f22df7b173be42::t_c19f0581d06bc6 29-34,49
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 16-23,25-28,48,82-84
+addons/ekco/0.28.17/configmap.tmpl.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-53
+packages/kubernetes/1.36.5/image-overrides
+  s_f22df7b173be42::t_48d209eb645dc2 1-2
+addons/minio/template/base/install.sh
+  s_f22df7b173be42::t_c19f0581d06bc6 93,105-119
+scripts/common/kubernetes.sh
+  s_f22df7b173be42::t_48d209eb645dc2 40,42-45,51,60-69
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 41,46-50,52
+  s_f22df7b173be42::t_4329d79977bb35 70-71
+addons/openebs/4.6.0/spec/openebs.tmpl.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 120,174
+addons/velero/template/generate.sh
+  s_f22df7b173be42::t_c19f0581d06bc6 49-54,74,119-121
+addons/ekco/0.28.17/rolebinding-rook.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-14
+addons/minio/2025-10-15T17-29-55Z/install.sh
+  s_f22df7b173be42::t_c19f0581d06bc6 93,105-119
+addons/openebs/template/generate.sh
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 5-10,42-43,135-137
+addons/velero/1.18.4/Manifest
+  s_f22df7b173be42::t_c19f0581d06bc6 11
+addons/ekco/0.28.17/deployment.tmpl.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-77
+addons/minio/template/generate.sh
+  s_f22df7b173be42::t_c19f0581d06bc6 30-36,88-90
+addons/ekco/0.28.17/install.sh
+  s_f22df7b173be42::t_a4374dd2c75161 1-2,4-535
+addons/flannel/0.28.9/yaml/kube-flannel.yml
+  s_f22df7b173be42::t_a4374dd2c75161 136,147,160
+addons/ekco/0.28.17/rbac-minio.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-43
+addons/ekco/0.28.17/storageclass-scaling.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-15
+addons/flannel/0.28.9/Manifest
+  s_f22df7b173be42::t_a4374dd2c75161 1-2
+addons/ekco/0.28.17/reboot/startup.sh
+  s_f22df7b173be42::t_a4374dd2c75161 1-54
+addons/minio/2025-10-15T17-29-55Z/Manifest
+  s_f22df7b173be42::t_c19f0581d06bc6 2
+addons/ekco/0.28.17/rolebinding.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-55
+addons/ekco/0.28.17/rolebinding-minio.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-14
+addons/ekco/0.28.17/rbac-kotsadm.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-16
+addons/registry/3.1.2/Manifest
+  s_f22df7b173be42::t_c19f0581d06bc6 3
+  s_f22df7b173be42::t_a4374dd2c75161 1
+packages/kubernetes/template/securebuild-1.36.5/image-overrides
+  s_f22df7b173be42::t_48d209eb645dc2 1-2
+addons/ekco/0.28.17/reboot/ekco-reboot-containerd.service
+  s_f22df7b173be42::t_a4374dd2c75161 1-12
+addons/ekco/0.28.17/kustomization.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-9
+addons/openebs/4.6.0/Manifest
+  s_f22df7b173be42::t_a4374dd2c75161 1-2
+addons/ekco/0.28.17/README.md
+  s_f22df7b173be42::t_a4374dd2c75161 1-4
+scripts/install.sh
+  s_f22df7b173be42::t_48d209eb645dc2 249
+  s_f22df7b173be42::t_834f3b74e15588 250
+addons/ekco/0.28.17/namespace.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-4
+addons/ekco/0.28.17/rbac.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-195
+scripts/common/upgrade.sh
+  s_f22df7b173be42::t_48d209eb645dc2 440
+addons/ekco/0.28.17/rolebinding-kotsadm.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-14
+addons/registry/3.1.2/deployment-pvc.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 64,66,69
+  s_f22df7b173be42::t_e3788dd0798e0a 67
+addons/ekco/0.28.17/ekco-purge-node.sh
+  s_f22df7b173be42::t_a4374dd2c75161 1-16
+addons/goldpinger/3.11.3-1.1.3/Manifest
+  s_f22df7b173be42::t_a4374dd2c75161 1
+addons/ekco/0.28.17/regen-cert-pod.yaml
+  s_f22df7b173be42::t_a4374dd2c75161 1-23
+web/src/installers/versions.js
+  s_f22df7b173be42::t_a4374dd2c75161 751
+packages/kubernetes/template/script.sh
+  s_f22df7b173be42::t_e3b8d8e2be5cc7 39-45,83,205-207
+Makefile
+  s_f22df7b173be42::t_48d209eb645dc2 250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a28ccd2d213c3f83559cb705a6199bd043964b30",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
