@@ -38,6 +38,7 @@
     - rocky-91 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
@@ -113,6 +114,11 @@
     - centos-79 # Kubernetes 1.35 does not support cgroup v1
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
+    # kURL uses the OS-provided containerd (2.x) on these distros regardless of the requested version,
+    # and Kubernetes 1.25 with Rook 1.12 does not come up on containerd 2.x
+    - amazon-2023 # OS containerd 2.x is incompatible with Kubernetes 1.25
+    - ubuntu-2404 # OS containerd 2.x is incompatible with Kubernetes 1.25
+    - ubuntu-2604 # OS containerd 2.x is incompatible with Kubernetes 1.25
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
