@@ -1,0 +1,14 @@
+# Source: ceph-csi-drivers/templates/rbd-ctrlplugin-rb-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rook-ceph-rbd-csi-ceph-com-ctrlplugin-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-ceph-rbd-csi-ceph-com-ctrlplugin-r
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-rbd-csi-ceph-com-ctrlplugin-sa
+  namespace: rook-ceph
+---
