@@ -85,10 +85,21 @@ function kubernetes_apply_image_overrides() {
 # such as Rook -> OpenEBS) must not re-apply the etcd image/version override: kubeadm upgrade apply
 # already handles that transition safely, and re-applying it against a non-empty etcd data dir
 # restart-loops etcd and the apiserver.
+#
+# The manifest alone isn't a reliable "already succeeded here" signal: kubeadm writes it very
+# early in its init sequence, well before the control plane is actually healthy, so a prior
+# attempt that died partway through init (slow disks, air-gapped image pulls, network issues)
+# would otherwise be mistaken for a completed first init and silently skip the override. Only
+# treat a node as having already completed its first init when the etcd manifest exists AND the
+# API server is currently healthy - a kURL-owned, live signal that this node has a genuinely
+# working control plane rather than just a partially-written kubeadm artifact.
 ETCD_STATIC_MANIFEST="${ETCD_STATIC_MANIFEST:-/etc/kubernetes/manifests/etcd.yaml}"
 
 function kubernetes_is_first_kubeadm_init() {
-    [ ! -f "$ETCD_STATIC_MANIFEST" ]
+    if [ ! -f "$ETCD_STATIC_MANIFEST" ]; then
+        return 0
+    fi
+    ! kubernetes_api_is_healthy
 }
 
 # Static pods need kubeadm patches rather than kubectl workload image overrides.
@@ -114,6 +125,7 @@ function kubernetes_configure_kubeadm_images() {
                 # This kubeadm patch is applied to the etcd static pod manifest exactly like the
                 # ClusterConfiguration override below, so it must be gated the same way: a
                 # kubeadm init re-run against an already-live node must not touch etcd.
+                log "skipping etcd image override: control plane already initialized"
                 rm -f "$patch_dir/$component+strategic.yaml"
                 continue
             fi
@@ -140,8 +152,9 @@ EOF
         insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-image-patches.yaml
     fi
 
-    if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ] && kubernetes_is_first_kubeadm_init; then
-        cat > "$dir/kurl-etcd-image.yaml" <<EOF
+    if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ]; then
+        if kubernetes_is_first_kubeadm_init; then
+            cat > "$dir/kurl-etcd-image.yaml" <<EOF
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 metadata:
@@ -151,9 +164,12 @@ etcd:
     imageRepository: ${etcd_image%/*}
     imageTag: ${etcd_image##*:}
 EOF
-        kubeadm_customize_config "$dir/kurl-etcd-image.yaml"
-        if ! grep -Fq kurl-etcd-image.yaml "$dir/kustomization.yaml"; then
-            insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-etcd-image.yaml
+            kubeadm_customize_config "$dir/kurl-etcd-image.yaml"
+            if ! grep -Fq kurl-etcd-image.yaml "$dir/kustomization.yaml"; then
+                insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-etcd-image.yaml
+            fi
+        else
+            log "skipping etcd image override: control plane already initialized"
         fi
     fi
 }

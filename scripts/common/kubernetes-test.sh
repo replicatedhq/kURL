@@ -52,6 +52,13 @@ function test_kubernetes_configure_kubeadm_images_etcd_override_first_init_only(
         #shellcheck disable=SC2317
         true # noop
     }
+    # Default to "control plane healthy" so a plain pre-existing etcd manifest reads as a
+    # genuinely completed first init, unless a case below overrides this to simulate a
+    # partial/failed prior attempt.
+    function kubernetes_api_is_healthy() {
+        #shellcheck disable=SC2317
+        true
+    }
 
     local tmpdir=
     tmpdir=$(mktemp -d)
@@ -90,8 +97,28 @@ EOF
     assertEquals "etcd override should NOT be written on a re-init" "1" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
     assertEquals "etcd kubeadm patch should NOT be written on a re-init" "1" "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
 
+    # Given a node whose etcd static pod manifest exists but whose control plane never
+    # actually became healthy (a previous kubeadm init died partway through), this must still
+    # be treated as a first init: the etcd manifest alone is not proof the node has a working
+    # control plane, and silently skipping the override here would fall back to an unreachable
+    # upstream etcd image in an air-gapped install.
+    function kubernetes_api_is_healthy() {
+        #shellcheck disable=SC2317
+        false
+    }
+    export kubernetes_api_is_healthy
+    rm -rf "$kustomize_dir"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+
+    assertEquals "etcd override should be written when a prior init never became healthy" "0" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+    assertEquals "etcd kubeadm patch should be written when a prior init never became healthy" "0" "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
+
     unset ETCD_STATIC_MANIFEST
     rm -rf "$tmpdir"
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy
 }
 
 function test_kubernetes_version_minor() {
