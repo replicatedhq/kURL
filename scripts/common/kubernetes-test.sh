@@ -121,6 +121,17 @@ EOF
     unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy
 }
 
+function test_kubeadm_api_is_healthy_has_bounded_timeout() {
+    # kubernetes_is_first_kubeadm_init() now calls kubernetes_api_is_healthy() unbounded on the
+    # re-init path (a new, previously network-free call site). Guard against that curl call
+    # regressing back to no timeout, which would hang install/join indefinitely on a
+    # black-holed network path instead of failing fast.
+    assertEquals "kubeadm_api_is_healthy curl must set --connect-timeout" "0" \
+        "$(grep -q -- '--connect-timeout' scripts/distro/kubeadm/distro.sh; echo $?)"
+    assertEquals "kubeadm_api_is_healthy curl must set --max-time" "0" \
+        "$(grep -q -- '--max-time' scripts/distro/kubeadm/distro.sh; echo $?)"
+}
+
 function test_kubernetes_version_minor() {
     assertEquals "v1.20.0" "20" "$(kubernetes_version_minor "v1.20.0")"
     assertEquals "v1.20.0" "20" "$(kubernetes_version_minor "1.20.0")"

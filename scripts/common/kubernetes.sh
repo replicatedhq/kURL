@@ -99,6 +99,7 @@ function kubernetes_is_first_kubeadm_init() {
     if [ ! -f "$ETCD_STATIC_MANIFEST" ]; then
         return 0
     fi
+    log "checking control plane health to determine if this is a first kubeadm init"
     ! kubernetes_api_is_healthy
 }
 

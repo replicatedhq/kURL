@@ -200,7 +200,7 @@ EOF
 }
 
 function kubeadm_api_is_healthy() {
-    curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" > /tmp/k8s-healthz.out || true
+    curl --globoff --noproxy "*" --fail --silent --insecure --connect-timeout 5 --max-time 10 "https://$(kubernetes_api_address)/healthz" > /tmp/k8s-healthz.out || true
     if grep -q "ok" /tmp/k8s-healthz.out; then
         rm /tmp/k8s-healthz.out
         return 0
