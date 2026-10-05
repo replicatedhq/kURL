@@ -80,6 +80,17 @@ function kubernetes_apply_image_overrides() {
     done < "$overrides"
 }
 
+# The etcd static pod manifest only exists once kubeadm has brought up a control plane on this
+# node. A later re-run of kubeadm init against an already-live node (e.g. a storage-migration step
+# such as Rook -> OpenEBS) must not re-apply the etcd image/version override: kubeadm upgrade apply
+# already handles that transition safely, and re-applying it against a non-empty etcd data dir
+# restart-loops etcd and the apiserver.
+ETCD_STATIC_MANIFEST="${ETCD_STATIC_MANIFEST:-/etc/kubernetes/manifests/etcd.yaml}"
+
+function kubernetes_is_first_kubeadm_init() {
+    [ ! -f "$ETCD_STATIC_MANIFEST" ]
+}
+
 # Static pods need kubeadm patches rather than kubectl workload image overrides.
 function kubernetes_configure_kubeadm_images() {
     local dir="$1"
@@ -122,7 +133,7 @@ EOF
         insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-image-patches.yaml
     fi
 
-    if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ]; then
+    if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ] && kubernetes_is_first_kubeadm_init; then
         cat > "$dir/kurl-etcd-image.yaml" <<EOF
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
