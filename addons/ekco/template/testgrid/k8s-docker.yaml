@@ -34,6 +34,11 @@
       version: "__testver__"
       s3Override: "__testdist__"
       minReadyMasterNodeCount: 1
+      enableInternalLoadBalancer: true
+  # The first primary only writes a controlPlaneEndpoint when HA_CLUSTER is set, and is_ha()
+  # cannot infer it on a fresh cluster (one master, no endpoint yet). Without the ha flag the
+  # other two primaries have nothing to join and the run ends in cluster_not_ready.
+  flags: "ha"
   numPrimaryNodes: 3
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
@@ -90,6 +95,9 @@
     fi
 
     echo "Pod image override success: $pod_image"
+  unsupportedOSIDs:
+    - ubuntu-1804 # EOL; kurl_install fails here consistently
+
 - name: HAProxy Config File Permission Set to 640
   installerSpec:
     kubernetes:
@@ -108,7 +116,11 @@
       enableInternalLoadBalancer: true
   preInstallScript: |
     umask 0027
-  
+  unsupportedOSIDs:
+    - amazon-2023 # containerd 1.6.x falls back to the distro package (yum2023) here
+    - ubuntu-2404 # containerd 1.6.x falls back to the distro package (apt24) here
+    - ubuntu-2604 # containerd 1.6.x builds no ubuntu 26.04 package
+
 - name: Upgrade HA add ekco
   installerSpec:
     kubernetes:
@@ -122,8 +134,6 @@
       version: "latest"
       isLocalPVEnabled: true
       localPVStorageClassName: default
-    ekco:
-      version: "0.10.1"
   upgradeSpec:
     kubernetes:
       version: "1.34.x"
@@ -163,6 +173,9 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - ubuntu-1804 # EOL; kurl_install fails here consistently
+
 - name: Upgrade k8s with the PR version of ekco
   installerSpec:
     kubernetes:
