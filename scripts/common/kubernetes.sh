@@ -100,7 +100,13 @@ function kubernetes_is_first_kubeadm_init() {
         return 0
     fi
     log "checking control plane health to determine if this is a first kubeadm init"
-    ! kubernetes_api_is_healthy
+    # A single unretried probe would mistake a transient blip (apiserver GC pause, HA
+    # load-balancer failover, host I/O pressure during a concurrent migration step) for a
+    # dead control plane and re-apply the etcd override against a live, already-populated
+    # etcd data dir - exactly the restart-loop this gate exists to prevent. Every other
+    # direct caller of kubernetes_api_is_healthy in this file retries via spinner_until
+    # rather than trusting one sample.
+    ! spinner_until 15 kubernetes_api_is_healthy
 }
 
 # Static pods need kubeadm patches rather than kubectl workload image overrides.
@@ -117,12 +123,21 @@ function kubernetes_configure_kubeadm_images() {
         *) return 1 ;;
     esac
 
+    # Computed once per invocation and reused at both etcd gates below: calling
+    # kubernetes_is_first_kubeadm_init independently at each gate lets two live health
+    # probes disagree, applying the per-component strategic patch without the matching
+    # ClusterConfiguration override (or vice versa).
+    local is_first_kubeadm_init=0
+    if [ "$kind" = "InitConfiguration" ] && kubernetes_is_first_kubeadm_init; then
+        is_first_kubeadm_init=1
+    fi
+
     local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
     mkdir -p "$patch_dir"
     local component= image= upstream_image= etcd_image=
     while read -r component image upstream_image; do
         if [ "$component" = "etcd" ]; then
-            if [ "$kind" = "InitConfiguration" ] && ! kubernetes_is_first_kubeadm_init; then
+            if [ "$kind" = "InitConfiguration" ] && [ "$is_first_kubeadm_init" != "1" ]; then
                 # This kubeadm patch is applied to the etcd static pod manifest exactly like the
                 # ClusterConfiguration override below, so it must be gated the same way: a
                 # kubeadm init re-run against an already-live node must not touch etcd.
@@ -154,7 +169,7 @@ EOF
     fi
 
     if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ]; then
-        if kubernetes_is_first_kubeadm_init; then
+        if [ "$is_first_kubeadm_init" = "1" ]; then
             cat > "$dir/kurl-etcd-image.yaml" <<EOF
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration

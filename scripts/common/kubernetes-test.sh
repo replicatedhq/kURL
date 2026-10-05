@@ -52,6 +52,13 @@ function test_kubernetes_configure_kubeadm_images_etcd_override_first_init_only(
         #shellcheck disable=SC2317
         true # noop
     }
+    # kubernetes_is_first_kubeadm_init now retries the health probe via spinner_until
+    # before giving up; stub sleep to a noop so a stubbed-unhealthy case below doesn't burn
+    # real wall-clock time waiting out the retry budget.
+    function sleep() {
+        #shellcheck disable=SC2317
+        true
+    }
     # Default to "control plane healthy" so a plain pre-existing etcd manifest reads as a
     # genuinely completed first init, unless a case below overrides this to simulate a
     # partial/failed prior attempt.
@@ -118,7 +125,59 @@ EOF
 
     unset ETCD_STATIC_MANIFEST
     rm -rf "$tmpdir"
-    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep
+}
+
+function test_kubernetes_configure_kubeadm_images_etcd_gate_memoized() {
+    function kubeadm_customize_config() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    function insert_patches_strategic_merge() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+
+    # Simulate a flaky probe that disagrees with itself between calls: a plain
+    # kubernetes_api_is_healthy stub that always returns the same thing can't tell a
+    # memoized single evaluation apart from two independent ones. Override
+    # kubernetes_is_first_kubeadm_init directly with a call-counter that flips its answer on
+    # the 2nd call, so any second evaluation inside a single
+    # kubernetes_configure_kubeadm_images invocation would be caught either by the call
+    # count assertion below or by the strategic patch and ClusterConfiguration override
+    # ending up in different states.
+    KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS=0
+    function kubernetes_is_first_kubeadm_init() {
+        #shellcheck disable=SC2317
+        KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS=$((KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS + 1))
+        #shellcheck disable=SC2317
+        [ "$KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS" -eq 1 ]
+    }
+
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    KUBERNETES_VERSION="1.36.5"
+    KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
+    mkdir -p "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION"
+    cat > "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
+etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+EOF
+
+    local kustomize_dir="$tmpdir/kustomize"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+
+    assertEquals "kubernetes_is_first_kubeadm_init must be evaluated exactly once per invocation" \
+        "1" "$KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS"
+    assertEquals "etcd strategic patch and ClusterConfiguration override must move together" "0" \
+        "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ] && [ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
+
+    rm -rf "$tmpdir"
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_is_first_kubeadm_init
+    unset KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS
 }
 
 function test_kubeadm_api_is_healthy_has_bounded_timeout() {
