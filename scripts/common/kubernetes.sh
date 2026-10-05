@@ -109,15 +109,22 @@ function kubernetes_configure_kubeadm_images() {
     mkdir -p "$patch_dir"
     local component= image= upstream_image= etcd_image=
     while read -r component image upstream_image; do
+        if [ "$component" = "etcd" ]; then
+            if [ "$kind" = "InitConfiguration" ] && ! kubernetes_is_first_kubeadm_init; then
+                # This kubeadm patch is applied to the etcd static pod manifest exactly like the
+                # ClusterConfiguration override below, so it must be gated the same way: a
+                # kubeadm init re-run against an already-live node must not touch etcd.
+                rm -f "$patch_dir/$component+strategic.yaml"
+                continue
+            fi
+            etcd_image="$image"
+        fi
         cat > "$patch_dir/$component+strategic.yaml" <<EOF
 spec:
   containers:
   - name: $component
     image: $image
 EOF
-        if [ "$component" = "etcd" ]; then
-            etcd_image="$image"
-        fi
     done < "$overrides"
 
     cat > "$dir/kurl-image-patches.yaml" <<EOF

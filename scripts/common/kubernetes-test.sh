@@ -88,6 +88,7 @@ EOF
     kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
 
     assertEquals "etcd override should NOT be written on a re-init" "1" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+    assertEquals "etcd kubeadm patch should NOT be written on a re-init" "1" "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
 
     unset ETCD_STATIC_MANIFEST
     rm -rf "$tmpdir"
