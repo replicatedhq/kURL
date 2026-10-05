@@ -1,0 +1,26 @@
+addons/prometheus/template/testgrid/k8s-docker.yaml
+  h_38cb974bb08fad 36,49,103
+os-matrix.yaml
+  h_38cb974bb08fad 209,225
+testgrid/specs/os-customer-common.yaml
+  h_38cb974bb08fad 16
+testgrid/specs/os-firstlast.yaml
+  h_38cb974bb08fad 63,74
+testgrid/specs/os-full.yaml
+  h_38cb974bb08fad 77,88
+testgrid/specs/os-latest.yaml
+  h_38cb974bb08fad 58,69
+testgrid/specs/os-ubuntu-2604.yaml
+  h_38cb974bb08fad 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "310bdb9f5ba9c5c044d1f876f9fe0606bfe1a8f8",
+  "prompts": {},
+  "humans": {
+    "h_38cb974bb08fad": {
+      "author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
