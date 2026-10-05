@@ -83,12 +83,18 @@ EOF
 
     # Given a fresh node with no existing etcd static pod manifest, the first kubeadm init
     # should still apply the securebuild etcd image/version override.
-    ETCD_STATIC_MANIFEST="$tmpdir/manifests/etcd.yaml"
+    local etcd_manifest="$tmpdir/manifests/etcd.yaml"
+    function kubernetes_etcd_static_manifest_path() {
+        #shellcheck disable=SC2317
+        echo "$etcd_manifest"
+    }
 
     kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
 
     assertEquals "etcd override should be written on first init" "0" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
     assertEquals "etcd image should be the securebuild etcd" "0" "$(grep -q 'proxy.replicated.com/anonymous/registry.k8s.io' "$kustomize_dir/kurl-etcd-image.yaml"; echo $?)"
+    assertEquals "etcd per-component strategic patch should be written on first init" "0" \
+        "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
 
     # Given a node whose control plane was already initialized (an etcd static pod manifest
     # already exists), a re-run of kubeadm init (e.g. a later storage-migration step) must NOT
@@ -96,8 +102,8 @@ EOF
     rm -rf "$kustomize_dir"
     mkdir -p "$kustomize_dir"
     touch "$kustomize_dir/kustomization.yaml"
-    mkdir -p "$(dirname "$ETCD_STATIC_MANIFEST")"
-    touch "$ETCD_STATIC_MANIFEST"
+    mkdir -p "$(dirname "$etcd_manifest")"
+    touch "$etcd_manifest"
 
     kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
 
@@ -113,7 +119,6 @@ EOF
         #shellcheck disable=SC2317
         false
     }
-    export kubernetes_api_is_healthy
     rm -rf "$kustomize_dir"
     mkdir -p "$kustomize_dir"
     touch "$kustomize_dir/kustomization.yaml"
@@ -123,9 +128,8 @@ EOF
     assertEquals "etcd override should be written when a prior init never became healthy" "0" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
     assertEquals "etcd kubeadm patch should be written when a prior init never became healthy" "0" "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
 
-    unset ETCD_STATIC_MANIFEST
     rm -rf "$tmpdir"
-    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep kubernetes_etcd_static_manifest_path
 }
 
 function test_kubernetes_configure_kubeadm_images_etcd_gate_memoized() {
@@ -180,15 +184,65 @@ EOF
     unset KUBERNETES_IS_FIRST_KUBEADM_INIT_CALLS
 }
 
+function test_kubernetes_configure_kubeadm_images_join_configuration_ignores_reinit_gate() {
+    function kubeadm_customize_config() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    function insert_patches_strategic_merge() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    # The re-init gate only applies to InitConfiguration (see scripts/join.sh:88, which only
+    # calls kubernetes_configure_kubeadm_images for JoinConfiguration on an existing control
+    # plane). If kubernetes_is_first_kubeadm_init were ever called for a join, this stub would
+    # make the test fail loudly instead of silently passing.
+    function kubernetes_is_first_kubeadm_init() {
+        #shellcheck disable=SC2317
+        fail "kubernetes_is_first_kubeadm_init must not be called for JoinConfiguration"
+    }
+
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    KUBERNETES_VERSION="1.36.5"
+    KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
+    mkdir -p "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION"
+    cat > "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
+etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+EOF
+
+    local kustomize_dir="$tmpdir/kustomize"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" JoinConfiguration
+
+    assertEquals "etcd per-component strategic patch should be written for a join" "0" \
+        "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
+    assertEquals "etcd ClusterConfiguration override is InitConfiguration-only and must NOT be written for a join" "1" \
+        "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+
+    rm -rf "$tmpdir"
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_is_first_kubeadm_init
+}
+
 function test_kubeadm_api_is_healthy_has_bounded_timeout() {
     # kubernetes_is_first_kubeadm_init() now calls kubernetes_api_is_healthy() unbounded on the
     # re-init path (a new, previously network-free call site). Guard against that curl call
     # regressing back to no timeout, which would hang install/join indefinitely on a
     # black-holed network path instead of failing fast.
+    #
+    # Scoped to the kubeadm_api_is_healthy function body rather than a whole-file grep so this
+    # doesn't pass spuriously because some unrelated curl call elsewhere in the file happens to
+    # set these flags.
+    local fn_body=
+    fn_body="$(sed -n '/^function kubeadm_api_is_healthy(/,/^}/p' scripts/distro/kubeadm/distro.sh)"
+
     assertEquals "kubeadm_api_is_healthy curl must set --connect-timeout" "0" \
-        "$(grep -q -- '--connect-timeout' scripts/distro/kubeadm/distro.sh; echo $?)"
+        "$(echo "$fn_body" | grep -q -- '--connect-timeout'; echo $?)"
     assertEquals "kubeadm_api_is_healthy curl must set --max-time" "0" \
-        "$(grep -q -- '--max-time' scripts/distro/kubeadm/distro.sh; echo $?)"
+        "$(echo "$fn_body" | grep -q -- '--max-time'; echo $?)"
 }
 
 function test_kubernetes_version_minor() {
