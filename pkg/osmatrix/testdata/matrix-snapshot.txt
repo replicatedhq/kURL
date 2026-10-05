@@ -8,7 +8,7 @@ customer-migration-specs.yaml	6	Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b
 customer-migration-specs.yaml	7	Cust sha1:450f2b6c9eb9fcb88f047d735ca217d4a0c21d37: docker -> containerd, weave -> flannel, longhorn -> openebs	amazon-2023,ol-8x,rocky-9,rocky-91
 deploy.yaml	0	Upgrade to 1.23 to 1.25, disable s3, weave to flannel, docker to containerd	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
 deploy.yaml	1	Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio	amazon-2023,amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804,ubuntu-2404,ubuntu-2604
-deploy.yaml	2	Migrate from Longhorn + Minio to OpenEBS + Minio	amazon-2023,centos-9,rocky-10,rocky-9,rocky-98,ubuntu-2404,ubuntu-2604
+deploy.yaml	2	Migrate from Longhorn + Minio to OpenEBS + Minio	amazon-2023,centos-9,ol-79,rocky-10,rocky-9,rocky-98,ubuntu-2204,ubuntu-2404,ubuntu-2604
 deploy.yaml	3	Upgrade from k8s 1.31 to 1.36 - Airgap	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
 deploy.yaml	4	k8s136x_cis_benchmarks_checks	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
 deploy.yaml	5	k8s_136x with kurl in-cluster support bundle spec	amzn-20,centos-74,centos-78,centos-79,ol-79,ubuntu-1804
