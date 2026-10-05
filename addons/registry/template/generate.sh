@@ -13,6 +13,25 @@ function get_s3cmd_tag() {
     S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
 }
 
+function use_securebuild_images() {
+    [ "$VERSION" = "3.1.2" ] || return 0
+    sed -i 's|image registry registry:3.1.2|image registry docker.io/kurlsh/registry:3.1.2|' "../$VERSION/Manifest"
+    local file=
+    for file in deployment-pvc.yaml tmpl-deployment-objectstore.yaml; do
+        sed -i 's|image: registry:3.1.2|image: docker.io/kurlsh/registry:3.1.2|; s|/bin/registry|/usr/bin/registry|' "../$VERSION/$file"
+        # Preserve access to existing root-owned PVCs and the HTTPS listener.
+        sed -i '/        imagePullPolicy: IfNotPresent/a\
+        securityContext:\
+          runAsUser: 0' "../$VERSION/$file"
+    done
+}
+
+# A rebuilt tag must invalidate the cached addon package as well.
+function record_s3cmd_image_build() {
+    [ "$S3CMD_TAG" = "20260825-a9ea1c6" ] || return 0
+    echo "# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5" >> "../$VERSION/Manifest"
+}
+
 function generate() {
     # make the base set of files
     mkdir -p "../${VERSION}"
@@ -26,6 +45,8 @@ function generate() {
     sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/Manifest"
     sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-migrate-s3.yaml"
     sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-velero.yaml"
+    use_securebuild_images
+    record_s3cmd_image_build
 }
 
 function add_as_latest() {
@@ -58,4 +79,6 @@ function main() {
     echo "registry_version=$VERSION" >> "$GITHUB_OUTPUT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

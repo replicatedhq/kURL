@@ -186,6 +186,7 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             "$patch_basename"
     done
+    kubernetes_configure_kubeadm_images "$kustomize_kubeadm_init" InitConfiguration
     mkdir -p "$KUBEADM_CONF_DIR"
 
     # Generate kubeadm config
@@ -245,6 +246,8 @@ function init() {
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
     set +o pipefail
+
+    kubernetes_apply_image_overrides "$KUBERNETES_VERSION"
 
     # Node would be cordoned if migrated from docker to containerd
     kubectl uncordon "$(get_local_node_name)"

@@ -1,0 +1,2 @@
+daemonset/kube-proxy kube-proxy docker.io/kurlsh/kube-proxy:v1.36.5 registry.k8s.io/kube-proxy:v1.36.5
+deployment/coredns coredns docker.io/kurlsh/coredns:1.14.7 registry.k8s.io/coredns/coredns:v1.14.2

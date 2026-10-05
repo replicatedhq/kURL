@@ -81,10 +81,12 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: registry
-        image: registry:3.1.2
+        image: docker.io/kurlsh/registry:3.1.2
         imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
         command:
-        - /bin/registry
+        - /usr/bin/registry
         - serve
         - /etc/docker/registry/config.yml
         ports:

@@ -111,7 +111,7 @@ spec:
       serviceAccountName: goldpinger
       containers:
         - name: goldpinger-daemon
-          image: "bloomberg/goldpinger:3.11.3"
+          image: "kurlsh/goldpinger:3.11.3"
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: zap

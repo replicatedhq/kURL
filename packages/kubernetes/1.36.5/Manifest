@@ -1,10 +1,10 @@
-image kube-apiserver registry.k8s.io/kube-apiserver:v1.36.5
-image kube-controller-manager registry.k8s.io/kube-controller-manager:v1.36.5
-image kube-scheduler registry.k8s.io/kube-scheduler:v1.36.5
-image kube-proxy registry.k8s.io/kube-proxy:v1.36.5
-image coredns registry.k8s.io/coredns/coredns:v1.14.2
+image kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5
+image kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5
+image kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5
+image kube-proxy docker.io/kurlsh/kube-proxy:v1.36.5
+image coredns docker.io/kurlsh/coredns:1.14.7
 image pause registry.k8s.io/pause:3.10.2
-image etcd registry.k8s.io/etcd:3.6.8-0
+image etcd docker.io/kurlsh/etcd:v3.6.15
 
 asset kubeadm https://dl.k8s.io/v1.36.5/bin/linux/amd64/kubeadm
 asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.36.0/crictl-v1.36.0-linux-amd64.tar.gz

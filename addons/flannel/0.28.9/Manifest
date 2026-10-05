@@ -1,2 +1,2 @@
-image flannel-io-flannel ghcr.io/flannel-io/flannel:v0.28.9
-image flannel-io-flannel-cni-plugin ghcr.io/flannel-io/flannel-cni-plugin:v1.9.1-flannel3
+image kurlsh-flannel docker.io/kurlsh/flannel:v0.28.9
+image kurlsh-flannel-cni-plugin docker.io/kurlsh/flannel-cni-plugin:v1.9.1-flannel3

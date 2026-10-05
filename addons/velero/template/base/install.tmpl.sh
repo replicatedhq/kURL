@@ -419,6 +419,7 @@ function velero_install() {
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
+        --image velero/velero:v${VELERO_VERSION} \
         --plugins "$plugins" \
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml"
