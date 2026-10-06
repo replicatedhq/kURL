@@ -43,7 +43,7 @@ function use_securebuild_images() {
     while read -r name image upstream_image; do
         sed -i "s|$upstream_image|$image|" "../$version/Manifest"
     done < ./securebuild-1.36.5/kubeadm-image-overrides
-    sed -i 's|registry.k8s.io/kube-proxy:v1.36.5|docker.io/kurlsh/kube-proxy:v1.36.5|; s|registry.k8s.io/coredns/coredns:v1.14.2|docker.io/kurlsh/coredns:1.14.7|' "../$version/Manifest"
+    sed -i 's|registry.k8s.io/kube-proxy:v1.36.5|docker.io/kurlsh/kube-proxy:v1.36.5|; s|registry.k8s.io/coredns/coredns:v1.14.2|docker.io/kurlsh/coredns:1.14.2|' "../$version/Manifest"
     cp -r ./securebuild-1.36.5/* "../$version/"
 }
 
