@@ -10,11 +10,49 @@
 # phase 404s for these runs (kURL#6171's first testgrid-pr.yaml run: 10/10
 # cluster_not_ready, confirmed via
 # `curl https://kurl.sh/version/<rc-tag>/<hash>` -> 404, while the same
-# artifact 200s under https://s3.kurl.sh/staging/<rc-tag>/...). An entry with
+# artifact 200s under https://s3.kurl.sh/staging/<rc-tag>/... -- the raw
+# object-storage host for the tarball, a different real host from
+# https://staging.kurl.sh, the install-time API endpoint
+# testgrid_pr_patch_spec rewrites installerApiEndpoint to below). An entry with
 # a real, already-released installerVersion pin (no empty placeholder) must
 # be left completely untouched, including its own installerApiEndpoint --
 # that entry is not part of this RC build and was never republished under a
 # staging prefix.
+
+testScriptRefusesToSourceUnderNonBashShell() {
+    # Under zsh, arrays are 1-indexed, so block[0]/rewritten[0] silently
+    # resolve to the wrong element instead of erroring -- this corrupts the
+    # rewritten spec instead of failing loudly (kURL#6172 review LOW-6). The
+    # script must refuse to run at all outside bash.
+    if ! command -v zsh >/dev/null 2>&1; then
+        startSkipping
+        return
+    fi
+
+    local spec
+    spec="$(mktemp)"
+    cat > "${spec}" <<'EOF'
+- name: "example"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: ""
+EOF
+    local before
+    before="$(cat "${spec}")"
+
+    local out rc
+    out="$(zsh -c "source ./bin/testgrid-pr-spec.sh && testgrid_pr_patch_spec '${spec}' 'v2026.10.01-0-rc-pr6171-a25c664'" 2>&1)"
+    rc=$?
+
+    assertEquals "1" "${rc}"
+    assertTrue "expected a 'requires bash' error, got: ${out}" \
+        "printf '%s' \"${out}\" | grep -q 'requires bash'"
+    assertEquals "spec file must be left untouched when the guard fires" \
+        "${before}" "$(cat "${spec}")"
+
+    rm -f "${spec}"
+}
 
 # shellcheck source=testgrid-pr-spec.sh
 . ./bin/testgrid-pr-spec.sh
@@ -100,6 +138,43 @@ EOF
     rm -f "${spec}"
 }
 
+testPatchSpecSecondPassIsIdempotent() {
+    # Running testgrid_pr_patch_spec a second time on its own output (e.g. a
+    # retried workflow step against the same checkout) must be a true no-op:
+    # not only the staging-host count, but the installerVersion pin count and
+    # every other line in the file must be unperturbed by the second pass
+    # (review ku-fxzd LOW-3 -- the prior version of this test only asserted
+    # the staging-host count stayed at 1).
+    local spec
+    spec="$(mktemp)"
+    cat > "${spec}" <<'EOF'
+- name: "historical pin"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2024.07.02-0"
+- name: "rc placeholder"
+  installerSpec:
+    kurl:
+      installerVersion: ""
+EOF
+
+    testgrid_pr_patch_spec "${spec}" "v2026.10.01-0-rc-pr6171-a25c664"
+    local first_pass
+    first_pass="$(cat "${spec}")"
+
+    testgrid_pr_patch_spec "${spec}" "v2026.10.01-0-rc-pr6171-a25c664"
+
+    assertEquals "second pass must leave every line exactly as the first pass produced it" \
+        "${first_pass}" "$(cat "${spec}")"
+    assertEquals "1" "$(grep -c '^  installerApiEndpoint: https://staging.kurl.sh$' "${spec}")"
+    assertEquals "1" "$(grep -c 'installerVersion: "v2026.10.01-0-rc-pr6171-a25c664"' "${spec}")"
+    assertEquals "1" "$(grep -c '^  installerApiEndpoint: https://kurl\.sh$' "${spec}")"
+    assertEquals "1" "$(grep -c 'installerVersion: "v2024.07.02-0"' "${spec}")"
+
+    rm -f "${spec}"
+}
+
 testPatchSpecInsertsMissingApiEndpoint() {
     # An entry with the empty-version RC placeholder but no
     # installerApiEndpoint field at all (e.g. the real deploy.yaml airgap
@@ -179,6 +254,104 @@ EOF
     assertEquals "1" "$(grep -c 'installerVersion: "v2024.07.02-0"' "${spec}")"
     assertEquals "1" "$(grep -c '^  installerApiEndpoint: https://staging.kurl.sh$' "${spec}")"
     assertEquals "1" "$(grep -c 'installerVersion: "v2026.10.01-0-rc-pr6171-a25c664"' "${spec}")"
+
+    rm -f "${spec}"
+}
+
+testPatchSpecDetectsAndRewritesFourSpaceIndentedEndpoint() {
+    # installerApiEndpoint detection/insertion must be scoped to the entry's
+    # own field indent level, not hardcoded to 2 spaces (review ku-fxzd
+    # LOW-9). A spec whose top-level fields sit at 4 spaces must still have
+    # its existing installerApiEndpoint found and rewritten at that same
+    # indent -- not duplicated with a second, 2-space-indented field.
+    local spec
+    spec="$(mktemp)"
+    cat > "${spec}" <<'EOF'
+- name: "example"
+    installerApiEndpoint: https://kurl.sh
+    installerSpec:
+        kurl:
+            installerVersion: ""
+EOF
+
+    testgrid_pr_patch_spec "${spec}" "v2026.10.01-0-rc-pr6171-a25c664"
+
+    assertEquals "1" "$(grep -c '^    installerApiEndpoint: https://staging.kurl.sh$' "${spec}")"
+    assertEquals "0" "$(grep -cE '^\s*installerApiEndpoint: https://kurl\.sh$' "${spec}")"
+    assertEquals "1" "$(grep -c 'installerApiEndpoint:' "${spec}")"
+
+    rm -f "${spec}"
+}
+
+testPatchSpecAgainstRealDeploySpecOnlyTouchesIntendedEntries() {
+    # Run against a copy of the actual committed testgrid/specs/deploy.yaml,
+    # not just synthetic fixtures (review ku-fxzd LOW-7). As of this writing
+    # that file has 7 entries: 2 historical pins (real installerVersion,
+    # explicit https://kurl.sh installerApiEndpoint, no installerApiEndpoint
+    # field at all) and 1 airgap entry with two RC placeholders (installerSpec
+    # and upgradeSpec) sharing one "- name:" block and no installerApiEndpoint
+    # field (review ku-fxzd LOW-5's real two-shape fixture).
+    if [ ! -f testgrid/specs/deploy.yaml ]; then
+        startSkipping
+        return
+    fi
+
+    local spec
+    spec="$(mktemp)"
+    cp testgrid/specs/deploy.yaml "${spec}"
+
+    local before_entries before_lines before_endpoints
+    before_entries="$(grep -c '^- name:' "${spec}")"
+    before_lines="$(wc -l < "${spec}" | tr -d '[:space:]')"
+    before_endpoints="$(grep -c 'installerApiEndpoint:' "${spec}")"
+
+    testgrid_pr_patch_spec "${spec}" "v2026.10.01-0-rc-pr6171-a25c664"
+
+    assertEquals "patching must not add or remove entries" \
+        "${before_entries}" "$(grep -c '^- name:' "${spec}")"
+
+    # Only the airgap entry's two placeholders were rewritten, and it gained
+    # exactly one inserted installerApiEndpoint (not one per placeholder).
+    assertEquals "2" "$(grep -c 'installerVersion: "v2026.10.01-0-rc-pr6171-a25c664"' "${spec}")"
+    assertEquals "0" "$(grep -c 'installerVersion: ""' "${spec}")"
+    assertEquals "1" "$(grep -c '^  installerApiEndpoint: https://staging.kurl.sh$' "${spec}")"
+
+    # The 2 historical-pin entries are completely untouched.
+    assertEquals "2" "$(grep -c '^  installerApiEndpoint: https://kurl\.sh$' "${spec}")"
+    assertEquals "2" "$(grep -c 'installerVersion: "v2024.07.02-0"' "${spec}")"
+
+    # Structural sanity without a YAML parser (the docker-test-shell
+    # containers this suite runs in -- rhel-7/8/9, ubuntu-20.04/22.04 -- have
+    # no interpreter installed in common, so there's nothing to parse with):
+    # exactly one line was added (the single inserted installerApiEndpoint),
+    # and the total installerApiEndpoint count grew by exactly that one --
+    # proving no duplicate key or stray/lost line, which is the corruption
+    # shape a miscomputed array index (review LOW-6) or a hardcoded indent
+    # match (review LOW-9) could actually produce against this file.
+    assertEquals "patching must add exactly one line" \
+        "$((before_lines + 1))" "$(wc -l < "${spec}" | tr -d '[:space:]')"
+    assertEquals "installerApiEndpoint count must grow by exactly one" \
+        "$((before_endpoints + 1))" "$(grep -c 'installerApiEndpoint:' "${spec}")"
+
+    rm -f "${spec}"
+}
+
+testPatchSpecInsertsFourSpaceIndentedEndpointAtEntryLevel() {
+    # Same as above, but for the insert path: an entry with no
+    # installerApiEndpoint field at all, at a non-default 4-space entry
+    # indent, must get the field inserted at that same indent.
+    local spec
+    spec="$(mktemp)"
+    cat > "${spec}" <<'EOF'
+- name: "example"
+    installerSpec:
+        kurl:
+            installerVersion: ""
+EOF
+
+    testgrid_pr_patch_spec "${spec}" "v2026.10.01-0-rc-pr6171-a25c664"
+
+    assertEquals "1" "$(grep -c '^    installerApiEndpoint: https://staging.kurl.sh$' "${spec}")"
 
     rm -f "${spec}"
 }
