@@ -80,6 +80,52 @@ function kubernetes_apply_image_overrides() {
     done < "$overrides"
 }
 
+# The etcd static pod manifest only exists once kubeadm has brought up a control plane on this
+# node. A later re-run of kubeadm init against an already-live node (e.g. a storage-migration step
+# such as Rook -> OpenEBS) must not re-apply the etcd image/version override: kubeadm upgrade apply
+# already handles that transition safely, and re-applying it against a non-empty etcd data dir
+# restart-loops etcd and the apiserver.
+#
+# The manifest alone isn't a reliable "already succeeded here" signal: kubeadm writes it very
+# early in its init sequence, well before the control plane is actually healthy, so a prior
+# attempt that died partway through init (slow disks, air-gapped image pulls, network issues)
+# would otherwise be mistaken for a completed first init and silently skip the override. Only
+# treat a node as having already completed its first init when the etcd manifest exists AND the
+# API server is currently healthy - a kURL-owned, live signal that this node has a genuinely
+# working control plane rather than just a partially-written kubeadm artifact.
+function kubernetes_etcd_static_manifest_path() {
+    echo "/etc/kubernetes/manifests/etcd.yaml"
+}
+
+function kubernetes_is_first_kubeadm_init() {
+    if [ ! -f "$(kubernetes_etcd_static_manifest_path)" ]; then
+        return 0
+    fi
+    log "checking control plane health to determine if this is a first kubeadm init"
+    # A single unretried probe would mistake a transient blip (apiserver GC pause, HA
+    # load-balancer failover, host I/O pressure during a concurrent migration step) for a
+    # dead control plane and re-apply the etcd override against a live, already-populated
+    # etcd data dir - exactly the restart-loop this gate exists to prevent. Every other
+    # direct caller of kubernetes_api_is_healthy in this file retries via spinner_until
+    # rather than trusting one sample.
+    #
+    # spinner_until's budget is an iteration count, not a wall-clock bound: each iteration
+    # runs the probe (kubeadm_api_is_healthy, which itself caps at --max-time 10) and then
+    # sleeps 1s before the next one. A timeout of 1 here allows exactly one retry after the
+    # initial probe (2 attempts total), for a true worst case of ~2 * (10 + 1) = 22s.
+    if spinner_until 1 kubernetes_api_is_healthy; then
+        return 1
+    fi
+    # The etcd manifest exists but the control plane never answered healthy within the probe
+    # budget above. This is ambiguous between a genuinely dead/partial prior init and a real
+    # re-init whose health check is merely slow or flaky, so it is treated as a first init
+    # (the override is (re)applied) rather than silently leaving a possibly-broken etcd alone.
+    # Surface that choice: an operator debugging a slow re-init needs to see that this gate
+    # could not confirm a healthy prior init and is about to re-apply the etcd image override.
+    log "WARNING: could not confirm a healthy prior kubeadm init within the probe budget; treating as a first init and applying the etcd image override"
+    return 0
+}
+
 # Static pods need kubeadm patches rather than kubectl workload image overrides.
 function kubernetes_configure_kubeadm_images() {
     local dir="$1"
@@ -97,16 +143,43 @@ function kubernetes_configure_kubeadm_images() {
     local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
     mkdir -p "$patch_dir"
     local component= image= upstream_image= etcd_image=
+    local is_first_kubeadm_init=0
+    local is_first_kubeadm_init_computed=0
     while read -r component image upstream_image; do
+        if [ "$component" = "etcd" ]; then
+            # Computed at most once per invocation, and only once there is an etcd line
+            # to gate: calling kubernetes_is_first_kubeadm_init runs the bounded control-
+            # plane-health probe, so an overrides file with no etcd component must never
+            # trigger it. Reused below at the ClusterConfiguration override gate too -
+            # calling it independently at each gate lets two live health probes disagree,
+            # applying the per-component strategic patch without the matching
+            # ClusterConfiguration override (or vice versa).
+            if [ "$kind" = "InitConfiguration" ] && [ "$is_first_kubeadm_init_computed" != "1" ]; then
+                is_first_kubeadm_init_computed=1
+                if kubernetes_is_first_kubeadm_init; then
+                    is_first_kubeadm_init=1
+                else
+                    # Logged exactly once per re-init, rather than per-component below, so
+                    # a re-init with multiple kubeadm-image-overrides components doesn't
+                    # repeat the message.
+                    log "skipping etcd image override: control plane already initialized"
+                fi
+            fi
+            if [ "$kind" = "InitConfiguration" ] && [ "$is_first_kubeadm_init" != "1" ]; then
+                # This kubeadm patch is applied to the etcd static pod manifest exactly like the
+                # ClusterConfiguration override below, so it must be gated the same way: a
+                # kubeadm init re-run against an already-live node must not touch etcd.
+                rm -f "$patch_dir/$component+strategic.yaml"
+                continue
+            fi
+            etcd_image="$image"
+        fi
         cat > "$patch_dir/$component+strategic.yaml" <<EOF
 spec:
   containers:
   - name: $component
     image: $image
 EOF
-        if [ "$component" = "etcd" ]; then
-            etcd_image="$image"
-        fi
     done < "$overrides"
 
     cat > "$dir/kurl-image-patches.yaml" <<EOF
@@ -122,6 +195,8 @@ EOF
         insert_patches_strategic_merge "$dir/kustomization.yaml" kurl-image-patches.yaml
     fi
 
+    # The outer [ -n "$etcd_image" ] gate already carries the first-init invariant:
+    # etcd_image is only populated above when is_first_kubeadm_init = 1.
     if [ "$kind" = "InitConfiguration" ] && [ -n "$etcd_image" ]; then
         cat > "$dir/kurl-etcd-image.yaml" <<EOF
 apiVersion: kubeadm.k8s.io/v1beta3
