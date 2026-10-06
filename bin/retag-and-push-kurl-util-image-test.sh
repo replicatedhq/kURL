@@ -30,16 +30,23 @@ setUp() {
     : > "${DOCKER_CALLS_FILE}"
     DOCKER_PULL_FAILURES_REMAINING=0
     DOCKER_PULL_EXIT_CODE=1
+    DOCKER_PUSH_FAILURES_REMAINING=0
+    DOCKER_PUSH_EXIT_CODE=1
 }
 
 # docker stub: records every invocation, and lets a test script a fixed
-# number of "docker pull" failures before succeeding.
+# number of "docker pull"/"docker push" failures before succeeding.
 docker() {
     echo "$*" >> "${DOCKER_CALLS_FILE}"
 
     if [ "$1" = "pull" ] && [ "${DOCKER_PULL_FAILURES_REMAINING}" -gt 0 ]; then
         DOCKER_PULL_FAILURES_REMAINING=$((DOCKER_PULL_FAILURES_REMAINING - 1))
         return "${DOCKER_PULL_EXIT_CODE}"
+    fi
+
+    if [ "$1" = "push" ] && [ "${DOCKER_PUSH_FAILURES_REMAINING}" -gt 0 ]; then
+        DOCKER_PUSH_FAILURES_REMAINING=$((DOCKER_PUSH_FAILURES_REMAINING - 1))
+        return "${DOCKER_PUSH_EXIT_CODE}"
     fi
 
     return 0
@@ -96,6 +103,29 @@ testRetagAndPushRetriesPullOnTransientFailure() {
     local pull_calls
     pull_calls="$(grep -c "^pull " "${DOCKER_CALLS_FILE}")"
     assertEquals "3" "${pull_calls}"
+}
+
+testRetagAndPushRetriesPushOnTransientFailure() {
+    DOCKER_PUSH_FAILURES_REMAINING=2
+
+    retag_and_push_kurl_util_image "replicated/kurl-util:alpha" "replicated/kurl-util:v1.2.3-rc"
+    assertEquals "0" "$?"
+
+    local push_calls
+    push_calls="$(grep -c "^push " "${DOCKER_CALLS_FILE}")"
+    assertEquals "3" "${push_calls}"
+}
+
+testRetagAndPushExhaustsPushRetriesAndReturnsStubExitCode() {
+    DOCKER_PUSH_FAILURES_REMAINING=5
+    DOCKER_PUSH_EXIT_CODE=17
+
+    retag_and_push_kurl_util_image "replicated/kurl-util:alpha" "replicated/kurl-util:v1.2.3-rc"
+    assertEquals "17" "$?"
+
+    local push_calls
+    push_calls="$(grep -c "^push " "${DOCKER_CALLS_FILE}")"
+    assertEquals "5" "${push_calls}"
 }
 
 testRetagAndPushRequiresSourceAndDestImages() {
