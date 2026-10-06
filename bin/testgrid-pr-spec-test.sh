@@ -24,11 +24,18 @@ testScriptRefusesToSourceUnderNonBashShell() {
     # resolve to the wrong element instead of erroring -- this corrupts the
     # rewritten spec instead of failing loudly (kURL#6172 review LOW-6). The
     # script must refuse to run at all outside bash.
-    if ! command -v zsh >/dev/null 2>&1; then
-        startSkipping
-        return
-    fi
-
+    #
+    # None of the five docker-test-shell images carry zsh, and "exercise it
+    # with a non-bash shell that's already there" doesn't work either: the
+    # RHEL/oraclelinux images symlink /bin/sh straight to bash, so BASH_VERSION
+    # is still set when invoked as "sh" (only the Ubuntu images' dash lacks
+    # it), which would make this test's assertions diverge by image instead of
+    # running the same way everywhere. So exercise the guard's actual
+    # condition directly -- unset BASH_VERSION inside a bash subshell before
+    # sourcing -- which reproduces exactly what the guard checks
+    # (`[ -z "${BASH_VERSION:-}" ]`) deterministically on every CI image,
+    # without an optional interpreter that can make the test silently skip
+    # (review ku-uiz0 LOW-4).
     local spec
     spec="$(mktemp)"
     cat > "${spec}" <<'EOF'
@@ -42,7 +49,7 @@ EOF
     before="$(cat "${spec}")"
 
     local out rc
-    out="$(zsh -c "source ./bin/testgrid-pr-spec.sh && testgrid_pr_patch_spec '${spec}' 'v2026.10.01-0-rc-pr6171-a25c664'" 2>&1)"
+    out="$(bash -c 'unset BASH_VERSION; source ./bin/testgrid-pr-spec.sh && testgrid_pr_patch_spec "$1" "$2"' _ "${spec}" "v2026.10.01-0-rc-pr6171-a25c664" 2>&1)"
     rc=$?
 
     assertEquals "1" "${rc}"
@@ -334,6 +341,51 @@ testPatchSpecAgainstRealDeploySpecOnlyTouchesIntendedEntries() {
         "$((before_endpoints + 1))" "$(grep -c 'installerApiEndpoint:' "${spec}")"
 
     rm -f "${spec}"
+}
+
+testFlushBlockSafetyNetCatchesMissingEndpointInsertion() {
+    # _testgrid_pr_flush_block's invariant check (bin/testgrid-pr-spec.sh:77-86)
+    # is the last line of defense against a rewrite bug that silently drops
+    # the installerApiEndpoint insertion it just claimed to make. Force that
+    # branch by sourcing a copy of the script with the insertion step (the
+    # "has_placeholder && !has_endpoint" branch that synthesizes the missing
+    # line) stubbed out to a no-op, so a placeholder entry with no
+    # installerApiEndpoint field reaches the invariant check still missing
+    # one -- proving the safety net actually fires and the spec file is left
+    # untouched, instead of silently writing a corrupted spec.
+    #
+    # TDD: deleting the invariant check (the "if [ "$has_placeholder" -eq 1 ]"
+    # block that sets failed=1) from bin/testgrid-pr-spec.sh makes this test
+    # fail -- the stubbed insertion step would then return 0 and the caller
+    # would never know the installerApiEndpoint was never added.
+    local broken_script
+    broken_script="$(mktemp)"
+    sed 's/if \[ "\$has_placeholder" -eq 1 \] && \[ "\$has_endpoint" -eq 0 \] && \[ "\${#rewritten\[@\]}" -gt 0 \]; then/if false; then/' \
+        ./bin/testgrid-pr-spec.sh > "${broken_script}"
+
+    local spec
+    spec="$(mktemp)"
+    cat > "${spec}" <<'EOF'
+- name: "airgap upgrade"
+  installerSpec:
+    kurl:
+      installerVersion: ""
+EOF
+    local before
+    before="$(cat "${spec}")"
+
+    local out rc
+    out="$(bash -c 'source "$1" && testgrid_pr_patch_spec "$2" "$3"' \
+        _ "${broken_script}" "${spec}" "v2026.10.01-0-rc-pr6171-a25c664" 2>&1)"
+    rc=$?
+
+    assertEquals "1" "${rc}"
+    assertTrue "expected the invariant-failure log line, got: ${out}" \
+        "printf '%s' \"${out}\" | grep -q 'failed to ensure installerApiEndpoint'"
+    assertEquals "spec file must be left untouched when the safety net fires" \
+        "${before}" "$(cat "${spec}")"
+
+    rm -f "${broken_script}" "${spec}"
 }
 
 testPatchSpecInsertsFourSpaceIndentedEndpointAtEntryLevel() {
