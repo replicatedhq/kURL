@@ -241,29 +241,8 @@ jobs:
           KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
         run: |
           set -euo pipefail
-
-          # Exponential-backoff retry for flaky DockerHub calls (mirrors the S3 retry below).
-          retry() {
-            local retries="$1"; shift
-            local count=0 exit wait
-            until "$@"; do
-              exit=$?
-              wait=$((2 ** count))
-              count=$((count + 1))
-              if [ "${count}" -lt "${retries}" ]; then
-                echo "Retry ${count}/${retries} exited ${exit}, retrying in ${wait}s..."
-                sleep "${wait}"
-              else
-                echo "Retry ${count}/${retries} exited ${exit}, no more retries left."
-                return "${exit}"
-              fi
-            done
-            return 0
-          }
-
-          retry 5 docker pull replicated/kurl-util:alpha
-          docker tag replicated/kurl-util:alpha "${KURL_UTIL_IMAGE}"
-          retry 5 docker push "${KURL_UTIL_IMAGE}"
+          . ./bin/retag-and-push-kurl-util-image.sh
+          retag_and_push_kurl_util_image replicated/kurl-util:alpha "${KURL_UTIL_IMAGE}"
 
   build-matrix:
     runs-on: ubuntu-24.04
