@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Tests for resolve_kurl_util_image_tag() in resolve-kurl-util-image-tag.sh --
-# the single source testgrid-pr.yaml and the release workflows use to decide
-# which replicated/kurl-util tag a built installer references.
+# the single source testgrid-pr.yaml uses to decide which replicated/kurl-util
+# tag a built installer references. The release workflows (deploy-staging.yaml
+# etc.) inline their own equivalent logic rather than calling this function.
 #
 # Guards replicatedhq/kURL#6171 bug 2: testgrid-pr.yaml's label-triggered path
 # (build-kurl-util-image=false) used to leave the templated installer
