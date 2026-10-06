@@ -89,6 +89,18 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 		// note that it is required to upgrade from 1.0.4-14.2.21 to 1.4.9
 		delete(status.Health.Checks, "AUTH_INSECURE_GLOBAL_ID_RECLAIM_ALLOWED")
 
+		// ignore "pool(s) do not have an application enabled", but only when every named pool is an RGW
+		// (object store) pool. Rook's CephObjectStore creates several RGW metadata/bucket pools (named
+		// "<store>.rgw.*", e.g. "rook-ceph-store.rgw.buckets.non-ec") that the RGW daemon tags with its
+		// application on its own, lazily, on first startup housekeeping write - not synchronously when
+		// Rook creates the pool. That tagging race can outlast this package's retry budget even though
+		// the cluster is otherwise healthy (all PGs active+clean). A real "app not enabled" warning on a
+		// user-facing block/filesystem pool is not caused by this race and should still block, so this
+		// only ignores the check when every pool named in the check detail looks like an RGW pool.
+		if check, ok := status.Health.Checks["POOL_APP_NOT_ENABLED"]; ok && allPoolsAreRGW(check.Detail) {
+			delete(status.Health.Checks, "POOL_APP_NOT_ENABLED")
+		}
+
 		// By default, the following warning will be raised when more than 70% of the mon
 		// space be in usage. (df -h /var/lib/ceph/mon) This is not an error we need to stop upgrades for
 		// https://docs.ceph.com/en/quincy/rados/operations/health-checks/#mon-disk-low
@@ -127,6 +139,32 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 	}
 
 	return true, ""
+}
+
+var poolAppNotEnabledPoolNameRegex = regexp.MustCompile(`application not enabled on pool '([^']+)'`)
+
+// allPoolsAreRGW returns true only if every pool named in a POOL_APP_NOT_ENABLED check's detail
+// messages looks like a Rook CephObjectStore (RGW) pool, i.e. its name contains ".rgw.". If no pool
+// names can be parsed out of the detail, this conservatively returns false so an unrecognized
+// warning is never silently ignored.
+func allPoolsAreRGW(detail []struct {
+	Message string `json:"message"`
+}) bool {
+	if len(detail) == 0 {
+		return false
+	}
+
+	for _, d := range detail {
+		match := poolAppNotEnabledPoolNameRegex.FindStringSubmatch(d.Message)
+		if len(match) != 2 {
+			return false
+		}
+		if !strings.Contains(match[1], ".rgw.") {
+			return false
+		}
+	}
+
+	return true
 }
 
 func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.CephStatus, error) {

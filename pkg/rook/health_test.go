@@ -100,6 +100,24 @@ func Test_isStatusHealthy(t *testing.T) {
 			message:      "",
 			ignoreChecks: []string{"HYPOTHETICAL_CHECK"},
 		},
+		{
+			name:    "POOL_APP_NOT_ENABLED on an rgw pool is not unhealthy",
+			status:  testfiles.PoolAppNotEnabledRGWCephStatus,
+			health:  true,
+			message: "",
+		},
+		{
+			name:    "POOL_APP_NOT_ENABLED on a non-rgw pool is still unhealthy",
+			status:  testfiles.PoolAppNotEnabledNonRGWCephStatus,
+			health:  false,
+			message: "health is HEALTH_WARN because \"1 pool(s) do not have an application enabled\"",
+		},
+		{
+			name:    "POOL_APP_NOT_ENABLED on a mix of rgw and non-rgw pools is still unhealthy",
+			status:  testfiles.PoolAppNotEnabledMixedCephStatus,
+			health:  false,
+			message: "health is HEALTH_WARN because \"2 pool(s) do not have an application enabled\"",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

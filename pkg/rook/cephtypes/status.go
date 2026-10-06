@@ -10,6 +10,9 @@ type CephStatus struct {
 			Summary  struct {
 				Message string `json:"message"`
 			} `json:"summary"`
+			Detail []struct {
+				Message string `json:"message"`
+			} `json:"detail"`
 		} `json:"checks"`
 		Status string `json:"status"`
 	} `json:"health"`
