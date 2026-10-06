@@ -30,18 +30,26 @@ setUp() {
     : > "${DOCKER_CALLS_FILE}"
     DOCKER_PULL_FAILURES_REMAINING=0
     DOCKER_PULL_EXIT_CODE=1
+    DOCKER_TAG_FAILURES_REMAINING=0
+    DOCKER_TAG_EXIT_CODE=1
     DOCKER_PUSH_FAILURES_REMAINING=0
     DOCKER_PUSH_EXIT_CODE=1
 }
 
 # docker stub: records every invocation, and lets a test script a fixed
-# number of "docker pull"/"docker push" failures before succeeding.
+# number of "docker pull"/"docker tag"/"docker push" failures before
+# succeeding.
 docker() {
     echo "$*" >> "${DOCKER_CALLS_FILE}"
 
     if [ "$1" = "pull" ] && [ "${DOCKER_PULL_FAILURES_REMAINING}" -gt 0 ]; then
         DOCKER_PULL_FAILURES_REMAINING=$((DOCKER_PULL_FAILURES_REMAINING - 1))
         return "${DOCKER_PULL_EXIT_CODE}"
+    fi
+
+    if [ "$1" = "tag" ] && [ "${DOCKER_TAG_FAILURES_REMAINING}" -gt 0 ]; then
+        DOCKER_TAG_FAILURES_REMAINING=$((DOCKER_TAG_FAILURES_REMAINING - 1))
+        return "${DOCKER_TAG_EXIT_CODE}"
     fi
 
     if [ "$1" = "push" ] && [ "${DOCKER_PUSH_FAILURES_REMAINING}" -gt 0 ]; then
@@ -126,6 +134,18 @@ testRetagAndPushExhaustsPushRetriesAndReturnsStubExitCode() {
     local push_calls
     push_calls="$(grep -c "^push " "${DOCKER_CALLS_FILE}")"
     assertEquals "5" "${push_calls}"
+}
+
+testRetagAndPushShortCircuitsOnTagFailureAndDoesNotPush() {
+    DOCKER_TAG_FAILURES_REMAINING=1
+    DOCKER_TAG_EXIT_CODE=9
+
+    retag_and_push_kurl_util_image "replicated/kurl-util:alpha" "replicated/kurl-util:v1.2.3-rc"
+    assertEquals "9" "$?"
+
+    local push_calls
+    push_calls="$(grep -c "^push " "${DOCKER_CALLS_FILE}")"
+    assertEquals "0" "${push_calls}"
 }
 
 testRetagAndPushRequiresSourceAndDestImages() {
