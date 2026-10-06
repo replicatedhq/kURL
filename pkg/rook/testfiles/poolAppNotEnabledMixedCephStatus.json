@@ -15,6 +15,9 @@
           },
           {
             "message": "application not enabled on pool 'replicapool'"
+          },
+          {
+            "message": "use 'ceph osd pool application enable <pool-name> <app-name>', where <app-name> is 'cephfs', 'rbd', 'rgw', or freeform for custom applications."
           }
         ],
         "muted": false

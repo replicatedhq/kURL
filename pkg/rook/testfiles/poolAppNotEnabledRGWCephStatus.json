@@ -12,6 +12,9 @@
         "detail": [
           {
             "message": "application not enabled on pool 'rook-ceph-store.rgw.buckets.non-ec'"
+          },
+          {
+            "message": "use 'ceph osd pool application enable <pool-name> <app-name>', where <app-name> is 'cephfs', 'rbd', 'rgw', or freeform for custom applications."
           }
         ],
         "muted": false

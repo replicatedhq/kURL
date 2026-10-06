@@ -144,27 +144,28 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 var poolAppNotEnabledPoolNameRegex = regexp.MustCompile(`application not enabled on pool '([^']+)'`)
 
 // allPoolsAreRGW returns true only if every pool named in a POOL_APP_NOT_ENABLED check's detail
-// messages looks like a Rook CephObjectStore (RGW) pool, i.e. its name contains ".rgw.". If no pool
-// names can be parsed out of the detail, this conservatively returns false so an unrecognized
-// warning is never silently ignored.
+// messages looks like a Rook CephObjectStore (RGW) pool, i.e. its name contains ".rgw.". Ceph's
+// detail list also includes a generic, non-pool-specific hint line ("use 'ceph osd pool
+// application enable ...'"), which is ignored rather than treated as an unrecognized pool. If no
+// pool names can be parsed out of the detail at all, this conservatively returns false so an
+// unrecognized warning is never silently ignored.
 func allPoolsAreRGW(detail []struct {
 	Message string `json:"message"`
 }) bool {
-	if len(detail) == 0 {
-		return false
-	}
+	foundPool := false
 
 	for _, d := range detail {
 		match := poolAppNotEnabledPoolNameRegex.FindStringSubmatch(d.Message)
 		if len(match) != 2 {
-			return false
+			continue
 		}
+		foundPool = true
 		if !strings.Contains(match[1], ".rgw.") {
 			return false
 		}
 	}
 
-	return true
+	return foundPool
 }
 
 func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.CephStatus, error) {
@@ -183,7 +184,42 @@ func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.
 	if err != nil {
 		return cephtypes.CephStatus{}, fmt.Errorf("failed to decode 'ceph status --format json-pretty': %w", err)
 	}
+
+	// 'ceph status' does not include the per-check "detail" messages (e.g. which pool is
+	// untagged for POOL_APP_NOT_ENABLED) that isStatusHealthy needs to scope some ignored
+	// checks narrowly. Fetch them separately and merge them in; if this fails or is
+	// unavailable, proceed without detail so health determination still succeeds (checks that
+	// rely on detail just fall back to their conservative, non-ignoring default).
+	mergeHealthDetail(ctx, client, &cephStatus)
+
 	return cephStatus, nil
+}
+
+// mergeHealthDetail fetches 'ceph health detail' and copies each check's Detail messages into
+// the matching check already parsed from 'ceph status'.
+func mergeHealthDetail(ctx context.Context, client kubernetes.Interface, cephStatus *cephtypes.CephStatus) {
+	detailJSON, _, err := runToolboxCommand(ctx, client, []string{"ceph", "health", "detail", "--format", "json-pretty"})
+	if err != nil {
+		return
+	}
+
+	var healthDetail struct {
+		Checks map[string]struct {
+			Detail []struct {
+				Message string `json:"message"`
+			} `json:"detail"`
+		} `json:"checks"`
+	}
+	if err := json.Unmarshal([]byte(detailJSON), &healthDetail); err != nil {
+		return
+	}
+
+	for name, detail := range healthDetail.Checks {
+		if check, ok := cephStatus.Health.Checks[name]; ok {
+			check.Detail = detail.Detail
+			cephStatus.Health.Checks[name] = check
+		}
+	}
 }
 
 func progressEventsString(status cephtypes.CephStatus) string {
