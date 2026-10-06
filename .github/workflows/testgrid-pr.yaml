@@ -146,7 +146,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           DISPATCH_BRANCH: ${{ inputs.branch }}
-          BUILD_UTIL_IMAGE: ${{ inputs.build-kurl-util-image }}
         run: |
           set -euo pipefail
           git fetch --tags -f
@@ -163,11 +162,12 @@ jobs:
           fi
 
           # The generated installer/kurlnet manifests always end up pinned to
-          # this tag (see deploy-staging.yaml), regardless of whether the
-          # image under it is freshly built or a retag of :alpha -- see
-          # bin/resolve-kurl-util-image-tag.sh.
+          # this tag (see deploy-staging.yaml), regardless of whether
+          # build-kurl-util-image freshly builds the image under it or the
+          # kurl-util-image job below retags+pushes the already-built :alpha
+          # image instead -- see bin/resolve-kurl-util-image-tag.sh.
           . ./bin/resolve-kurl-util-image-tag.sh
-          KURL_UTIL_IMAGE="$(resolve_kurl_util_image_tag "${BUILD_UTIL_IMAGE}" "${VERSION_TAG}")"
+          KURL_UTIL_IMAGE="$(resolve_kurl_util_image_tag "${VERSION_TAG}")"
 
           REF="PR-${VERSION_TAG}-$(date --utc +%FT%TZ)"
 
