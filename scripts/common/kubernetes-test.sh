@@ -4,6 +4,7 @@ set -e
 
 . ./scripts/common/common.sh
 . ./scripts/common/kubernetes.sh
+. ./scripts/distro/kubeadm/distro.sh
 
 function test_kubernetes_node_has_image() {
     function kubernetes_node_images() {
@@ -43,6 +44,100 @@ quay.io/org/image-6"
     assertEquals "quay.io/org/image-5:2.0" "1" "$(kubernetes_node_has_image "node-1" "quay.io/org/image-5:2.0"; echo $?)"
 }
 
+# write_kubeadm_image_overrides_fixture writes a kubeadm-image-overrides file for
+# $KUBERNETES_VERSION under $DIR. With no args it writes the etcd-only line used by most
+# tests; "multi" writes the real four-component shape shipped in
+# packages/kubernetes/1.36.5/kubeadm-image-overrides (apiserver/controller-manager/
+# scheduler/etcd), so re-init gating is exercised against the actual overrides shape.
+function write_kubeadm_image_overrides_fixture() {
+    local shape="${1:-etcd-only}"
+    mkdir -p "$DIR/packages/kubernetes/$KUBERNETES_VERSION"
+    if [ "$shape" = "multi" ]; then
+        cat > "$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
+kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5 registry.k8s.io/kube-apiserver:v1.36.5
+kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5 registry.k8s.io/kube-controller-manager:v1.36.5
+kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5 registry.k8s.io/kube-scheduler:v1.36.5
+etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+EOF
+    else
+        cat > "$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
+etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+EOF
+    fi
+}
+
+function test_kubernetes_configure_kubeadm_images_etcd_override_multi_component_overrides() {
+    function kubeadm_customize_config() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    function insert_patches_strategic_merge() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    function sleep() {
+        #shellcheck disable=SC2317
+        true
+    }
+    function kubernetes_api_is_healthy() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    KUBERNETES_VERSION="1.36.5"
+    KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
+    write_kubeadm_image_overrides_fixture multi
+
+    local kustomize_dir="$tmpdir/kustomize"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+    local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
+
+    # Given a fresh node (no etcd static pod manifest), a first kubeadm init against the
+    # real four-component overrides file must still write a strategic patch for every
+    # component, plus the etcd ClusterConfiguration override.
+    local etcd_manifest="$tmpdir/manifests/etcd.yaml"
+    function kubernetes_etcd_static_manifest_path() {
+        #shellcheck disable=SC2317
+        echo "$etcd_manifest"
+    }
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+
+    for component in kube-apiserver kube-controller-manager kube-scheduler etcd; do
+        assertEquals "$component strategic patch should be written on first init" "0" \
+            "$([ -f "$patch_dir/$component+strategic.yaml" ]; echo $?)"
+    done
+    assertEquals "etcd ClusterConfiguration override should be written on first init" "0" \
+        "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+
+    # Given a node whose control plane was already initialized, a re-run of kubeadm init
+    # against the same four-component overrides file must still patch every non-etcd
+    # component, and must NOT touch the running etcd.
+    rm -rf "$kustomize_dir" "$patch_dir"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+    mkdir -p "$(dirname "$etcd_manifest")"
+    touch "$etcd_manifest"
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+
+    for component in kube-apiserver kube-controller-manager kube-scheduler; do
+        assertEquals "$component strategic patch should still be written on a re-init" "0" \
+            "$([ -f "$patch_dir/$component+strategic.yaml" ]; echo $?)"
+    done
+    assertEquals "etcd strategic patch should NOT be written on a re-init" "1" \
+        "$([ -f "$patch_dir/etcd+strategic.yaml" ]; echo $?)"
+    assertEquals "etcd ClusterConfiguration override should NOT be written on a re-init" "1" \
+        "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+
+    rm -rf "$tmpdir"
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep kubernetes_etcd_static_manifest_path
+}
+
 function test_kubernetes_configure_kubeadm_images_etcd_override_first_init_only() {
     function kubeadm_customize_config() {
         #shellcheck disable=SC2317
@@ -72,10 +167,7 @@ function test_kubernetes_configure_kubeadm_images_etcd_override_first_init_only(
     DIR="$tmpdir"
     KUBERNETES_VERSION="1.36.5"
     KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
-    mkdir -p "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION"
-    cat > "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
-etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
-EOF
+    write_kubeadm_image_overrides_fixture
 
     local kustomize_dir="$tmpdir/kustomize"
     mkdir -p "$kustomize_dir"
@@ -123,10 +215,13 @@ EOF
     mkdir -p "$kustomize_dir"
     touch "$kustomize_dir/kustomization.yaml"
 
-    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+    local output=
+    output="$(kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration 2>&1)"
 
     assertEquals "etcd override should be written when a prior init never became healthy" "0" "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
     assertEquals "etcd kubeadm patch should be written when a prior init never became healthy" "0" "$([ -f "$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION/etcd+strategic.yaml" ]; echo $?)"
+    assertEquals "a WARNING must be logged when falling back to first-init on an unconfirmed-healthy prior init" "0" \
+        "$(echo "$output" | grep -q 'WARNING.*first init'; echo $?)"
 
     rm -rf "$tmpdir"
     unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep kubernetes_etcd_static_manifest_path
@@ -163,10 +258,7 @@ function test_kubernetes_configure_kubeadm_images_etcd_gate_memoized() {
     DIR="$tmpdir"
     KUBERNETES_VERSION="1.36.5"
     KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
-    mkdir -p "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION"
-    cat > "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
-etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
-EOF
+    write_kubeadm_image_overrides_fixture
 
     local kustomize_dir="$tmpdir/kustomize"
     mkdir -p "$kustomize_dir"
@@ -207,10 +299,7 @@ function test_kubernetes_configure_kubeadm_images_join_configuration_ignores_rei
     DIR="$tmpdir"
     KUBERNETES_VERSION="1.36.5"
     KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
-    mkdir -p "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION"
-    cat > "$tmpdir/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
-etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
-EOF
+    write_kubeadm_image_overrides_fixture
 
     local kustomize_dir="$tmpdir/kustomize"
     mkdir -p "$kustomize_dir"
@@ -243,6 +332,77 @@ function test_kubeadm_api_is_healthy_has_bounded_timeout() {
         "$(echo "$fn_body" | grep -q -- '--connect-timeout'; echo $?)"
     assertEquals "kubeadm_api_is_healthy curl must set --max-time" "0" \
         "$(echo "$fn_body" | grep -q -- '--max-time'; echo $?)"
+}
+
+# _kubeadm_api_is_healthy_assert_no_fixed_tmpfile runs kubeadm_api_is_healthy with the given
+# curl stub already defined, asserts its return code, and asserts no fixed-path intermediate
+# file was left on disk. rm is stubbed as a noop for the call so a regression to the old
+# write-then-rm approach leaves the file behind for the assertion to catch, instead of being
+# silently cleaned away before the test can observe it.
+function _kubeadm_api_is_healthy_assert_no_fixed_tmpfile() {
+    local expected_rc="$1"
+    local message="$2"
+
+    command rm -f /tmp/k8s-healthz.out
+    function rm() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    assertEquals "$message" "$expected_rc" "$(kubeadm_api_is_healthy; echo $?)"
+    assertEquals "kubeadm_api_is_healthy must not write a fixed /tmp healthz file" "1" \
+        "$([ -f /tmp/k8s-healthz.out ]; echo $?)"
+
+    unset -f rm
+    command rm -f /tmp/k8s-healthz.out
+}
+
+function test_kubeadm_api_is_healthy_ok_body() {
+    function kubernetes_api_address() {
+        #shellcheck disable=SC2317
+        echo "127.0.0.1:6443"
+    }
+    function curl() {
+        #shellcheck disable=SC2317
+        echo "ok"
+    }
+
+    _kubeadm_api_is_healthy_assert_no_fixed_tmpfile "0" \
+        "kubeadm_api_is_healthy should return 0 when the healthz body contains 'ok'"
+
+    unset -f kubernetes_api_address curl
+}
+
+function test_kubeadm_api_is_healthy_non_ok_body() {
+    function kubernetes_api_address() {
+        #shellcheck disable=SC2317
+        echo "127.0.0.1:6443"
+    }
+    function curl() {
+        #shellcheck disable=SC2317
+        echo "not ready"
+    }
+
+    _kubeadm_api_is_healthy_assert_no_fixed_tmpfile "1" \
+        "kubeadm_api_is_healthy should return 1 when the healthz body does not contain 'ok'"
+
+    unset -f kubernetes_api_address curl
+}
+
+function test_kubeadm_api_is_healthy_curl_failure() {
+    function kubernetes_api_address() {
+        #shellcheck disable=SC2317
+        echo "127.0.0.1:6443"
+    }
+    function curl() {
+        #shellcheck disable=SC2317
+        return 7
+    }
+
+    _kubeadm_api_is_healthy_assert_no_fixed_tmpfile "1" \
+        "kubeadm_api_is_healthy should return 1 when curl fails outright"
+
+    unset -f kubernetes_api_address curl
 }
 
 function test_kubernetes_version_minor() {

@@ -113,7 +113,17 @@ function kubernetes_is_first_kubeadm_init() {
     # runs the probe (kubeadm_api_is_healthy, which itself caps at --max-time 10) and then
     # sleeps 1s before the next one. A timeout of 1 here allows exactly one retry after the
     # initial probe (2 attempts total), for a true worst case of ~2 * (10 + 1) = 22s.
-    ! spinner_until 1 kubernetes_api_is_healthy
+    if spinner_until 1 kubernetes_api_is_healthy; then
+        return 1
+    fi
+    # The etcd manifest exists but the control plane never answered healthy within the probe
+    # budget above. This is ambiguous between a genuinely dead/partial prior init and a real
+    # re-init whose health check is merely slow or flaky, so it is treated as a first init
+    # (the override is (re)applied) rather than silently leaving a possibly-broken etcd alone.
+    # Surface that choice: an operator debugging a slow re-init needs to see that this gate
+    # could not confirm a healthy prior init and is about to re-apply the etcd image override.
+    log "WARNING: could not confirm a healthy prior kubeadm init within the probe budget; treating as a first init and applying the etcd image override"
+    return 0
 }
 
 # Static pods need kubeadm patches rather than kubectl workload image overrides.
