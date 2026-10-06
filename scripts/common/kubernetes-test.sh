@@ -48,7 +48,9 @@ quay.io/org/image-6"
 # $KUBERNETES_VERSION under $DIR. With no args it writes the etcd-only line used by most
 # tests; "multi" writes the real four-component shape shipped in
 # packages/kubernetes/1.36.5/kubeadm-image-overrides (apiserver/controller-manager/
-# scheduler/etcd), so re-init gating is exercised against the actual overrides shape.
+# scheduler/etcd), so re-init gating is exercised against the actual overrides shape;
+# "no-etcd" writes the same three non-etcd components with no etcd line at all, so the
+# etcd re-init gate's laziness can be exercised when there is nothing for it to gate.
 function write_kubeadm_image_overrides_fixture() {
     local shape="${1:-etcd-only}"
     mkdir -p "$DIR/packages/kubernetes/$KUBERNETES_VERSION"
@@ -58,6 +60,12 @@ kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5 registry.k8s.io/kube-apis
 kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5 registry.k8s.io/kube-controller-manager:v1.36.5
 kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5 registry.k8s.io/kube-scheduler:v1.36.5
 etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+EOF
+    elif [ "$shape" = "no-etcd" ]; then
+        cat > "$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
+kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5 registry.k8s.io/kube-apiserver:v1.36.5
+kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5 registry.k8s.io/kube-controller-manager:v1.36.5
+kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5 registry.k8s.io/kube-scheduler:v1.36.5
 EOF
     else
         cat > "$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
@@ -225,6 +233,61 @@ function test_kubernetes_configure_kubeadm_images_etcd_override_first_init_only(
 
     rm -rf "$tmpdir"
     unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_api_is_healthy sleep kubernetes_etcd_static_manifest_path
+}
+
+function test_kubernetes_configure_kubeadm_images_no_etcd_line_skips_first_init_probe() {
+    function kubeadm_customize_config() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    function insert_patches_strategic_merge() {
+        #shellcheck disable=SC2317
+        true # noop
+    }
+    # When kubeadm-image-overrides has no "etcd" line, there is nothing for the re-init
+    # gate to decide: kubernetes_is_first_kubeadm_init (and the control-plane-health probe
+    # it runs) must not be called at all, even when an etcd static pod manifest already
+    # exists on disk from a prior init. Stub it to fail loudly instead of silently passing
+    # if it's ever invoked here.
+    function kubernetes_is_first_kubeadm_init() {
+        #shellcheck disable=SC2317
+        fail "kubernetes_is_first_kubeadm_init must not be called when overrides has no etcd line"
+    }
+
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    KUBERNETES_VERSION="1.36.5"
+    KUBEADM_CONF_DIR="$tmpdir/kubeadm-conf"
+    write_kubeadm_image_overrides_fixture no-etcd
+
+    local kustomize_dir="$tmpdir/kustomize"
+    mkdir -p "$kustomize_dir"
+    touch "$kustomize_dir/kustomization.yaml"
+
+    # A pre-existing etcd static pod manifest simulates a re-init against an already-live
+    # control plane. With no etcd override to gate, this must have no bearing on the
+    # outcome.
+    local etcd_manifest="$tmpdir/manifests/etcd.yaml"
+    mkdir -p "$(dirname "$etcd_manifest")"
+    touch "$etcd_manifest"
+    function kubernetes_etcd_static_manifest_path() {
+        #shellcheck disable=SC2317
+        echo "$etcd_manifest"
+    }
+
+    kubernetes_configure_kubeadm_images "$kustomize_dir" InitConfiguration
+
+    local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
+    for component in kube-apiserver kube-controller-manager kube-scheduler; do
+        assertEquals "$component strategic patch should be written" "0" \
+            "$([ -f "$patch_dir/$component+strategic.yaml" ]; echo $?)"
+    done
+    assertEquals "no etcd ClusterConfiguration override should be written" "1" \
+        "$([ -f "$kustomize_dir/kurl-etcd-image.yaml" ]; echo $?)"
+
+    rm -rf "$tmpdir"
+    unset -f kubeadm_customize_config insert_patches_strategic_merge kubernetes_is_first_kubeadm_init kubernetes_etcd_static_manifest_path
 }
 
 function test_kubernetes_configure_kubeadm_images_etcd_gate_memoized() {

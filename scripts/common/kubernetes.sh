@@ -140,24 +140,31 @@ function kubernetes_configure_kubeadm_images() {
         *) return 1 ;;
     esac
 
-    # Computed once per invocation and reused at both etcd gates below: calling
-    # kubernetes_is_first_kubeadm_init independently at each gate lets two live health
-    # probes disagree, applying the per-component strategic patch without the matching
-    # ClusterConfiguration override (or vice versa).
-    local is_first_kubeadm_init=0
-    if [ "$kind" = "InitConfiguration" ] && kubernetes_is_first_kubeadm_init; then
-        is_first_kubeadm_init=1
-    elif [ "$kind" = "InitConfiguration" ]; then
-        # Logged exactly once per re-init, rather than per-component below, so a re-init
-        # with multiple kubeadm-image-overrides components doesn't repeat the message.
-        log "skipping etcd image override: control plane already initialized"
-    fi
-
     local patch_dir="$KUBEADM_CONF_DIR/kurl-image-patches/$KUBERNETES_VERSION"
     mkdir -p "$patch_dir"
     local component= image= upstream_image= etcd_image=
+    local is_first_kubeadm_init=0
+    local is_first_kubeadm_init_computed=0
     while read -r component image upstream_image; do
         if [ "$component" = "etcd" ]; then
+            # Computed at most once per invocation, and only once there is an etcd line
+            # to gate: calling kubernetes_is_first_kubeadm_init runs the bounded control-
+            # plane-health probe, so an overrides file with no etcd component must never
+            # trigger it. Reused below at the ClusterConfiguration override gate too -
+            # calling it independently at each gate lets two live health probes disagree,
+            # applying the per-component strategic patch without the matching
+            # ClusterConfiguration override (or vice versa).
+            if [ "$kind" = "InitConfiguration" ] && [ "$is_first_kubeadm_init_computed" != "1" ]; then
+                is_first_kubeadm_init_computed=1
+                if kubernetes_is_first_kubeadm_init; then
+                    is_first_kubeadm_init=1
+                else
+                    # Logged exactly once per re-init, rather than per-component below, so
+                    # a re-init with multiple kubeadm-image-overrides components doesn't
+                    # repeat the message.
+                    log "skipping etcd image override: control plane already initialized"
+                fi
+            fi
             if [ "$kind" = "InitConfiguration" ] && [ "$is_first_kubeadm_init" != "1" ]; then
                 # This kubeadm patch is applied to the etcd static pod manifest exactly like the
                 # ClusterConfiguration override below, so it must be gated the same way: a
