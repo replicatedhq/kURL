@@ -133,6 +133,72 @@ func Test_isStatusHealthy(t *testing.T) {
 	}
 }
 
+func Test_mergeHealthDetail(t *testing.T) {
+	tests := []struct {
+		name            string
+		detailResponses execResponses
+		wantHealthy     bool
+		wantMessage     string
+	}{
+		{
+			// 'ceph status' alone never carries a check's "detail" messages, so without a
+			// successful merge, isStatusHealthy's allPoolsAreRGW has nothing to parse and
+			// conservatively treats POOL_APP_NOT_ENABLED as unrecognized (not ignored). A
+			// successful 'ceph health detail' merge supplies the RGW pool name and flips the
+			// verdict to healthy.
+			name: "ceph health detail succeeds and merges RGW pool detail, flipping the verdict to healthy",
+			detailResponses: map[string]struct {
+				errcode        int
+				stdout, stderr string
+				err            error
+			}{
+				`ceph - health - detail - --format - json-pretty - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+					stdout: `{"checks":{"POOL_APP_NOT_ENABLED":{"detail":[{"message":"application not enabled on pool 'rook-ceph-store.rgw.buckets.non-ec'"}]}}}`,
+				},
+			},
+			wantHealthy: true,
+			wantMessage: "",
+		},
+		{
+			// if 'ceph health detail' fails (or is unavailable), mergeHealthDetail must leave the
+			// check without detail rather than erroring out, so isStatusHealthy keeps its safe
+			// default of NOT ignoring the check.
+			name: "ceph health detail fails, leaving the check unmerged and still unhealthy",
+			detailResponses: map[string]struct {
+				errcode        int
+				stdout, stderr string
+				err            error
+			}{},
+			wantHealthy: false,
+			wantMessage: "health is HEALTH_WARN because \"1 pool(s) do not have an application enabled\"",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			// start from a status as 'ceph status' alone actually returns: the check is present,
+			// but its detail is empty, since only 'ceph health detail' carries per-check detail.
+			cephStatus := cephtypes.CephStatus{}
+			err := json.Unmarshal(testfiles.PoolAppNotEnabledRGWCephStatus, &cephStatus)
+			req.NoError(err)
+			check := cephStatus.Health.Checks["POOL_APP_NOT_ENABLED"]
+			check.Detail = nil
+			cephStatus.Health.Checks["POOL_APP_NOT_ENABLED"] = check
+
+			clientset := fake.NewClientset(runtimeFromPodlistJSON(testfiles.SixBlockDevicePods)...)
+			setToolboxExecFunc(tt.detailResponses)
+			conf = &restclient.Config{} // set the rest client so that runToolboxCommand does not attempt to fetch it
+
+			mergeHealthDetail(context.TODO(), clientset, &cephStatus)
+
+			gotHealthy, gotMessage := isStatusHealthy(cephStatus, nil)
+			req.Equal(tt.wantHealthy, gotHealthy)
+			req.Equal(tt.wantMessage, gotMessage)
+		})
+	}
+}
+
 func Test_parseSafeToRemoveOSD(t *testing.T) {
 	tests := []struct {
 		name    string
