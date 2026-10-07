@@ -1,0 +1,9 @@
+---
+kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/v1beta4
+metadata:
+  name: kubeadm-join-configuration
+nodeRegistration:
+  kubeletExtraArgs:
+  - name: cloud-provider
+    value: aws

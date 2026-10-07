@@ -1,0 +1,15 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+apiServer:
+  extraArgs:
+  - name: cloud-provider
+    value: aws
+  - name: enable-admission-plugins
+    value: DefaultStorageClass
+controllerManager:
+  extraArgs:
+  - name: cloud-provider
+    value: aws
