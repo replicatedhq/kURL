@@ -702,6 +702,8 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
+	./scripts/distro/kubeadm/distro-test.sh
+	./addons/containerd/template/base/install-test.sh
 	./scripts/common/proxy-test.sh
 	./scripts/common/yaml-test.sh
 	./scripts/common/rook-upgrade-test.sh

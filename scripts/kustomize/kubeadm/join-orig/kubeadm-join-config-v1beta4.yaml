@@ -1,0 +1,18 @@
+---
+kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
+metadata:
+  name: kubeadm-join-configuration
+nodeRegistration:
+  taints: []
+  kubeletExtraArgs:
+  - name: node-ip
+    value: $PRIVATE_ADDRESS
+  - name: node-labels
+    value: "kurl.sh/cluster=true,$NODE_LABELS"
+discovery:
+  bootstrapToken:
+    token: $KUBEADM_TOKEN
+    apiServerEndpoint: $API_SERVICE_ADDRESS
+    caCertHashes:
+    - $KUBEADM_TOKEN_CA_HASH

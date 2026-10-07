@@ -131,10 +131,13 @@ function setup_kubeadm_kustomize() {
     local kubeadm_conf_api=
     local kubeadm_cluster_config_v1beta2_file="kubeadm-cluster-config-v1beta2.yml"
     local kubeadm_cluster_config_v1beta3_file="kubeadm-cluster-config-v1beta3.yml"
+    local kubeadm_cluster_config_v1beta4_file="kubeadm-cluster-config-v1beta4.yml"
     local kubeadm_init_config_v1beta2_file="kubeadm-init-config-v1beta2.yml"
     local kubeadm_init_config_v1beta3_file="kubeadm-init-config-v1beta3.yml"
+    local kubeadm_init_config_v1beta4_file="kubeadm-init-config-v1beta4.yml"
     local kubeadm_join_config_v1beta2_file="kubeadm-join-config-v1beta2.yaml"
     local kubeadm_join_config_v1beta3_file="kubeadm-join-config-v1beta3.yaml"
+    local kubeadm_join_config_v1beta4_file="kubeadm-join-config-v1beta4.yaml"
     local kubeadm_init_src="$DIR/kustomize/kubeadm/init-orig"
     local kubeadm_join_src="$DIR/kustomize/kubeadm/join-orig"
     local kubeadm_init_dst="$DIR/kustomize/kubeadm/init"
@@ -148,13 +151,16 @@ function setup_kubeadm_kustomize() {
     rm -rf "$DIR/kustomize/kubeadm/init-patches"
     rm -rf "$DIR/kustomize/kubeadm/join-patches"
 
-    # Kubernete 1.26+ will use kubeadm/v1beta3 API
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "26" ]; then
+    # Kubernetes 1.37+ will use kubeadm/v1beta4 API, 1.26+ will use kubeadm/v1beta3 API
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "37" ]; then
+        # only include kubeadm/v1beta4 resources
+        kubeadm_exclude=("$kubeadm_cluster_config_v1beta2_file" "$kubeadm_init_config_v1beta2_file" "$kubeadm_join_config_v1beta2_file" "$kubeadm_cluster_config_v1beta3_file" "$kubeadm_init_config_v1beta3_file" "$kubeadm_join_config_v1beta3_file")
+    elif [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "26" ]; then
         # only include kubeadm/v1beta3 resources
-        kubeadm_exclude=("$kubeadm_cluster_config_v1beta2_file" "$kubeadm_init_config_v1beta2_file" "$kubeadm_join_config_v1beta2_file")
+        kubeadm_exclude=("$kubeadm_cluster_config_v1beta2_file" "$kubeadm_init_config_v1beta2_file" "$kubeadm_join_config_v1beta2_file" "$kubeadm_cluster_config_v1beta4_file" "$kubeadm_init_config_v1beta4_file" "$kubeadm_join_config_v1beta4_file")
     else
         # only include kubeadm/v1beta2 resources
-        kubeadm_exclude=("$kubeadm_cluster_config_v1beta3_file" "$kubeadm_init_config_v1beta3_file" "$kubeadm_join_config_v1beta3_file")
+        kubeadm_exclude=("$kubeadm_cluster_config_v1beta3_file" "$kubeadm_init_config_v1beta3_file" "$kubeadm_join_config_v1beta3_file" "$kubeadm_cluster_config_v1beta4_file" "$kubeadm_init_config_v1beta4_file" "$kubeadm_join_config_v1beta4_file")
     fi
 
     # copy kubeadm kustomize resources

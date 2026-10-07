@@ -206,17 +206,22 @@ function kubeadm_api_is_healthy() {
 }
 
 function kubeadm_conf_api_version() {
-    
+
     # Get kubeadm api version from the runtime
     # Enforce the use of kubeadm.k8s.io/v1beta3 api version beginning with Kubernetes 1.26+
+    # kubeadm removed v1beta3 in 1.37, so kubeadm.k8s.io/v1beta4 is required beginning with Kubernetes 1.37+
     local kubeadm_v1beta3_min_version=
     kubeadm_v1beta3_min_version="26"
+    local kubeadm_v1beta4_min_version=
+    kubeadm_v1beta4_min_version="37"
     if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
-        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "$kubeadm_v1beta3_min_version" ]; then
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "$kubeadm_v1beta4_min_version" ]; then
+            echo "v1beta4"
+        elif [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "$kubeadm_v1beta3_min_version" ]; then
             echo "v1beta3"
         else
             echo "v1beta2"
-        fi 
+        fi
     else
         # ################################ NOTE ########################################## #
         # get the version from an existing cluster when the installer is not run           #
@@ -225,7 +230,9 @@ function kubeadm_conf_api_version() {
         semverParse "$(kubeadm version --output=short | sed 's/v//')"
         # shellcheck disable=SC2154
         local kube_current_version_minor="$minor"
-        if [ "$kube_current_version_minor" -ge "$kubeadm_v1beta3_min_version" ]; then
+        if [ "$kube_current_version_minor" -ge "$kubeadm_v1beta4_min_version" ]; then
+            echo "v1beta4"
+        elif [ "$kube_current_version_minor" -ge "$kubeadm_v1beta3_min_version" ]; then
             echo "v1beta3"
         else
             echo "v1beta2"

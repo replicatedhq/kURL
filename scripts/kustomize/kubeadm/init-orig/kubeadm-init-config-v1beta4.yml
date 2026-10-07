@@ -1,0 +1,22 @@
+---
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
+kind: InitConfiguration
+metadata:
+  name: kubeadm-init-configuration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: $BOOTSTRAP_TOKEN
+  ttl: $BOOTSTRAP_TOKEN_TTL
+  usages:
+  - signing
+  - authentication
+localAPIEndpoint:
+  advertiseAddress: $PRIVATE_ADDRESS
+nodeRegistration:
+  taints: [] # prevent the default master taint
+  kubeletExtraArgs:
+  - name: node-labels
+    value: "kurl.sh/cluster=true,$NODE_LABELS"
+  - name: node-ip
+    value: $PRIVATE_ADDRESS
