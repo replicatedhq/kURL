@@ -127,9 +127,16 @@
       version: latest
     kotsadm:
       version: latest
+    # Pinned to latest (not __testver__/__testdist__): this scenario keeps weave
+    # across the upgrade, and weave is not compatible with containerd 1.6.0 -
+    # 1.6.4 (see pkg/preflight/assets/host-preflights.yaml, "Containerd and
+    # Weave Compatibility"). Retesting this migration against whatever
+    # containerd version happens to be under test would deterministically fail
+    # for any version in that range. The migration mechanism itself is what
+    # this scenario validates, not per-version containerd compatibility, so it
+    # always targets a known-good release instead.
     containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
+      version: latest
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -193,9 +200,10 @@
       version: latest
     kotsadm:
       version: latest
+    # Pinned to latest (not __testver__/__testdist__): see the non-airgap
+    # "Migrate from Docker to Containerd..." scenario above for why.
     containerd:
-      version: "__testver__"
-      s3Override: "__testdist__"
+      version: latest
   airgap: true
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
