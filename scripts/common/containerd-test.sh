@@ -352,6 +352,26 @@ function test_migration_steps_1_7_to_2x() {
     assertEquals "migration steps 1.7->2.0" "2.0.5" "$steps"
 }
 
+function test_kubernetes_137_blocked_on_sub_2x_containerd() {
+    kubeadm_conf_api_version() { echo "v1beta4"; }
+    local result
+    result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29") 2>&1 || true)"
+    echo "$result" | grep -q "containerd 2.x"
+    assertEquals "Kubernetes 1.37+ blocked on containerd 1.7.29" "0" "$?"
+}
+
+function test_kubernetes_137_allowed_on_2x_containerd() {
+    kubeadm_conf_api_version() { echo "v1beta4"; }
+    (containerd_verify_kubernetes_1_37_compatibility "2.0.5")
+    assertEquals "Kubernetes 1.37+ allowed on containerd 2.0.5" "0" "$?"
+}
+
+function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
+    kubeadm_conf_api_version() { echo "v1beta3"; }
+    (containerd_verify_kubernetes_1_37_compatibility "1.7.29")
+    assertEquals "Kubernetes <1.37 allowed on containerd 1.7.29" "0" "$?"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -380,6 +400,9 @@ test_upgrade_k8s_too_old_blocked
 test_downgrade_2x_to_1x_blocked
 test_same_major_minor_span_blocked
 test_migration_steps_1_7_to_2x
+test_kubernetes_137_blocked_on_sub_2x_containerd
+test_kubernetes_137_allowed_on_2x_containerd
+test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."
