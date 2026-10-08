@@ -111,5 +111,40 @@ function test_no_sub_2_0_0_version_has_v1beta4_siblings() {
     assertEquals 0 "${#failures[@]}"
 }
 
+# every containerd version that defines containerd_pre_init/containerd_join must call
+# containerd_verify_kubernetes_1_37_compatibility from both, or the Kubernetes 1.37+ +
+# sub-2.0.0-containerd install-time guard (scripts/common/containerd.sh) silently has no
+# effect for that version - it only guards whatever's defined in
+# addons/containerd/template/base/install.sh, not the per-version install.sh files that
+# are stamped out from it and can drift independently.
+function test_every_pre_init_and_join_calls_the_kubernetes_137_guard() {
+    local failures=()
+    local dir version install_sh
+
+    for dir in addons/containerd/*/; do
+        version="$(basename "$dir")"
+        [ "$version" = "template" ] && continue
+        install_sh="${dir}install.sh"
+        [ -f "$install_sh" ] || continue
+
+        if grep -q '^function containerd_pre_init' "$install_sh"; then
+            if ! awk '/^function containerd_pre_init/,/^}/' "$install_sh" | grep -q 'containerd_verify_kubernetes_1_37_compatibility'; then
+                failures+=("$version: containerd_pre_init does not call containerd_verify_kubernetes_1_37_compatibility")
+            fi
+        fi
+
+        if grep -q '^function containerd_join' "$install_sh"; then
+            if ! awk '/^function containerd_join/,/^}/' "$install_sh" | grep -q 'containerd_verify_kubernetes_1_37_compatibility'; then
+                failures+=("$version: containerd_join does not call containerd_verify_kubernetes_1_37_compatibility")
+            fi
+        fi
+    done
+
+    if [ "${#failures[@]}" -ne 0 ]; then
+        printf '%s\n' "${failures[@]}"
+    fi
+    assertEquals 0 "${#failures[@]}"
+}
+
 # shellcheck disable=SC1091
 . shunit2

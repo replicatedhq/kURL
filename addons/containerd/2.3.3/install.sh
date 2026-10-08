@@ -6,6 +6,8 @@ CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 function containerd_pre_init() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
     # map to a list of {name, value} pairs, so it needs its own patch shape.
@@ -22,6 +24,8 @@ function containerd_pre_init() {
 
 function containerd_join() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
+
+    containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
