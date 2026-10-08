@@ -38,13 +38,20 @@ function find_available_versions() {
 
 function use_securebuild_images() {
     local version="$1"
-    [ "$version" = "1.36.5" ] || return 0
+    local securebuild_dir="./securebuild-${version}"
+    [ -d "$securebuild_dir" ] || return 0
+
     local name= image= upstream_image=
     while read -r name image upstream_image; do
         sed -i "s|$upstream_image|$image|" "../$version/Manifest"
-    done < ./securebuild-1.36.5/kubeadm-image-overrides
-    sed -i 's|registry.k8s.io/kube-proxy:v1.36.5|docker.io/kurlsh/kube-proxy:v1.36.5|; s|registry.k8s.io/coredns/coredns:v1.14.2|docker.io/kurlsh/coredns:1.14.2|' "../$version/Manifest"
-    cp -r ./securebuild-1.36.5/* "../$version/"
+    done < "$securebuild_dir/kubeadm-image-overrides"
+
+    local workload= container=
+    while read -r workload container image upstream_image; do
+        sed -i "s|$upstream_image|$image|" "../$version/Manifest"
+    done < "$securebuild_dir/image-overrides"
+
+    cp -r "$securebuild_dir"/* "../$version/"
 }
 
 function generate_version_directory() {
