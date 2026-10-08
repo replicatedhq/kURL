@@ -111,12 +111,35 @@ function test_no_sub_2_0_0_version_has_v1beta4_siblings() {
     assertEquals 0 "${#failures[@]}"
 }
 
-# every containerd version that defines containerd_pre_init/containerd_join must call
-# containerd_verify_kubernetes_1_37_compatibility from both, or the Kubernetes 1.37+ +
-# sub-2.0.0-containerd install-time guard (scripts/common/containerd.sh) silently has no
-# effect for that version - it only guards whatever's defined in
-# addons/containerd/template/base/install.sh, not the per-version install.sh files that
-# are stamped out from it and can drift independently.
+# containerd_version_lt_1_6_0 reports whether $1 is a containerd version older than
+# 1.6.0. The kurl.sh API already rejects any pairing of containerd <1.6.0 with
+# Kubernetes 1.26+ ("Containerd versions less than 1.6.0 are not compatible with
+# Kubernetes 1.26+"), so a version below 1.6.0 can never reach Kubernetes 1.37+
+# regardless of the containerd_verify_kubernetes_1_37_compatibility guard - adding
+# the guard call to those install.sh files is unnecessary scope that only adds
+# addons/** diff noise, which test-addon-pr.yaml reads as "this version changed"
+# and queues a redundant Testgrid run for every one of them.
+function containerd_version_lt_1_6_0() {
+    local major="${1%%.*}"
+    local rest="${1#*.}"
+    local minor="${rest%%.*}"
+
+    if [ "$major" -lt 1 ]; then
+        return 0
+    fi
+    if [ "$major" -eq 1 ] && [ "$minor" -lt 6 ]; then
+        return 0
+    fi
+    return 1
+}
+
+# every containerd version that defines containerd_pre_init/containerd_join (and can
+# actually be paired with Kubernetes 1.26+, i.e. not <1.6.0, see
+# containerd_version_lt_1_6_0 above) must call containerd_verify_kubernetes_1_37_compatibility
+# from both, or the Kubernetes 1.37+ + sub-2.0.0-containerd install-time guard
+# (scripts/common/containerd.sh) silently has no effect for that version - it only
+# guards whatever's defined in addons/containerd/template/base/install.sh, not the
+# per-version install.sh files that are stamped out from it and can drift independently.
 function test_every_pre_init_and_join_calls_the_kubernetes_137_guard() {
     local failures=()
     local dir version install_sh
@@ -124,6 +147,7 @@ function test_every_pre_init_and_join_calls_the_kubernetes_137_guard() {
     for dir in addons/containerd/*/; do
         version="$(basename "$dir")"
         [ "$version" = "template" ] && continue
+        containerd_version_lt_1_6_0 "$version" && continue # can never pair with Kubernetes 1.26+/1.37+
         install_sh="${dir}install.sh"
         [ -f "$install_sh" ] || continue
 
@@ -137,6 +161,33 @@ function test_every_pre_init_and_join_calls_the_kubernetes_137_guard() {
             if ! awk '/^function containerd_join/,/^}/' "$install_sh" | grep -q 'containerd_verify_kubernetes_1_37_compatibility'; then
                 failures+=("$version: containerd_join does not call containerd_verify_kubernetes_1_37_compatibility")
             fi
+        fi
+    done
+
+    if [ "${#failures[@]}" -ne 0 ]; then
+        printf '%s\n' "${failures[@]}"
+    fi
+    assertEquals 0 "${#failures[@]}"
+}
+
+# a containerd version below 1.6.0 can never pair with Kubernetes 1.26+/1.37+ (see
+# containerd_version_lt_1_6_0 above), so its install.sh must not call
+# containerd_verify_kubernetes_1_37_compatibility; this guards against the guard
+# propagation creeping back onto those versions and re-expanding test-addon-pr.yaml's
+# per-push Testgrid matrix back out to all 55 containerd versions.
+function test_no_sub_1_6_0_version_calls_the_kubernetes_137_guard() {
+    local failures=()
+    local dir version install_sh
+
+    for dir in addons/containerd/*/; do
+        version="$(basename "$dir")"
+        [ "$version" = "template" ] && continue
+        ! containerd_version_lt_1_6_0 "$version" && continue
+        install_sh="${dir}install.sh"
+        [ -f "$install_sh" ] || continue
+
+        if grep -q 'containerd_verify_kubernetes_1_37_compatibility' "$install_sh"; then
+            failures+=("$version: calls containerd_verify_kubernetes_1_37_compatibility but containerd <1.6.0 never pairs with Kubernetes 1.26+/1.37+")
         fi
     done
 
