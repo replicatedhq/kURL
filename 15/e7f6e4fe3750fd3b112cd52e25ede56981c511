@@ -1,0 +1,30 @@
+bin/addon-has-changes-matrix.sh
+  s_2b8463eec3fc13::t_111a3de389b457 4,8-11
+  s_2b8463eec3fc13::t_40a6e05e46c276 65-66,69
+  s_2b8463eec3fc13::t_e2fbb23dcff39a 37-61
+  s_2b8463eec3fc13::t_4b2856b8dea065 94-95,100-101
+  s_2b8463eec3fc13::t_281b96745be99d 12
+AGENTS.md
+  s_2b8463eec3fc13::t_ff66f327dbb24a 236
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15e7f6e4fe3750fd3b112cd52e25ede56981c511",
+  "prompts": {},
+  "humans": {
+    "h_38cb974bb08fad": {
+      "author": "Xav Paice <xav@replicated.com>"
+    }
+  },
+  "sessions": {
+    "s_2b8463eec3fc13": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eec8b1a07ffez9OccLSvoCCESt",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
