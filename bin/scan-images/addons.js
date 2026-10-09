@@ -7,11 +7,13 @@ const skipAddons = [
 
 // maintainerImages contains a list of images we maintain.
 // The scan action will only report failures for images in this list.
+// Note: deprecated add-ons (e.g. weave) stay out of this list - their images
+// are still scanned so CVEs land in the artifacts, but they must not fail the
+// workflow since the images are frozen and will never receive fixes.
 const maintainerImages = {
     ekco: ["ekco", "haproxy"],
     registry: ["s3cmd"],
     velero: ["local-volume-provider", "s3cmd"],
-    weave: ["weave-kube", "weave-npc", "weaveexec"],
 };
 
 var getImages = rootDir => {
