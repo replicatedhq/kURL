@@ -1,0 +1,10 @@
+---
+- op: replace
+  path: /spec/dataPools/0/name
+  value: data0
+- op: replace
+  path: /spec/dataPools/0/replicated/size
+  value: ${CEPH_POOL_REPLICAS}
+- op: replace
+  path: /spec/dataPools/0/replicated/requireSafeReplicaSize
+  value: false
