@@ -46,7 +46,7 @@ jobs:
 
       - name: "Scan image (OS vulnerabilities only)"
         id: scan
-        continue-on-error: ${{ ! matrix.maintainer }}
+        continue-on-error: ${{ ! matrix.alert }}
         run: |
           syft ${{ matrix.image }} -o syft-json --select-catalogers "os" > sbom.json
           grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o json > grype.json
@@ -60,7 +60,7 @@ jobs:
 
       - name: "Display results"
         if: ${{ always() && steps.scan.outcome == 'failure' }}
-        continue-on-error: ${{ ! matrix.maintainer }}
+        continue-on-error: ${{ ! matrix.alert }}
         run: grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o table
 
   collect-results:
