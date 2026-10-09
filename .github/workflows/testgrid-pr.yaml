@@ -18,9 +18,12 @@ name: testgrid-pr
 #   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
 #
 # ── What a label run builds ─────────────────────────────────────────────────
-#   * A LABEL run reuses the existing replicated/kurl-util:alpha image and
-#     rebuilds ONLY the core batch (install/join/upgrade/tasks.tmpl, common.tar.gz,
-#     kurl-bin-utils); everything else is copied from the last staging release.
+#   * A LABEL run reuses the existing replicated/kurl-util:alpha image (no
+#     rebuild) but re-pushes it under this run's own RC tag, since the
+#     generated installer/kurlnet manifests are always pinned to the RC tag
+#     (see bin/resolve-kurl-util-image-tag.sh) -- and rebuilds ONLY the core
+#     batch (install/join/upgrade/tasks.tmpl, common.tar.gz, kurl-bin-utils);
+#     everything else is copied from the last staging release.
 #   * To rebuild EXTRA packages (e.g. a specific kubernetes-<ver>.tar.gz) or to
 #     build a branch-specific kurl-util image, use workflow_dispatch and set the
 #     `extra-packages` / `build-kurl-util-image` inputs (not available on label
@@ -143,7 +146,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           DISPATCH_BRANCH: ${{ inputs.branch }}
-          BUILD_UTIL_IMAGE: ${{ inputs.build-kurl-util-image }}
         run: |
           set -euo pipefail
           git fetch --tags -f
@@ -159,11 +161,13 @@ jobs:
             VERSION_TAG="${LATEST_TAG}-rc-${SAFE_BRANCH}-${SHORT_SHA}"
           fi
 
-          if [ "${BUILD_UTIL_IMAGE}" = "true" ]; then
-            KURL_UTIL_IMAGE="replicated/kurl-util:${VERSION_TAG}"
-          else
-            KURL_UTIL_IMAGE="replicated/kurl-util:alpha"
-          fi
+          # The generated installer/kurlnet manifests always end up pinned to
+          # this tag (see deploy-staging.yaml), regardless of whether
+          # build-kurl-util-image freshly builds the image under it or the
+          # kurl-util-image job below retags+pushes the already-built :alpha
+          # image instead -- see bin/resolve-kurl-util-image-tag.sh.
+          . ./bin/resolve-kurl-util-image-tag.sh
+          KURL_UTIL_IMAGE="$(resolve_kurl_util_image_tag "${VERSION_TAG}")"
 
           REF="PR-${VERSION_TAG}-$(date --utc +%FT%TZ)"
 
@@ -213,7 +217,6 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        if: inputs.build-kurl-util-image
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -227,10 +230,19 @@ jobs:
         run: |
           make -C kurl_util build-and-push-kurl-util-image
 
-      - name: skip kurl-util image build
+      - name: retag and push the existing alpha image under the RC tag
+        # Cheap default path: the installer/kurlnet manifests are pinned to
+        # the RC tag regardless (see bin/resolve-kurl-util-image-tag.sh), so
+        # that tag must exist even when we don't rebuild kurl-util. Re-push
+        # the already-built :alpha image under it -- a tag+push, not a
+        # rebuild, so this stays fast (replicatedhq/kURL#6171 bug 2).
         if: ${{ !inputs.build-kurl-util-image }}
+        env:
+          KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
         run: |
-          echo "Using existing kurl-util image: ${{ needs.get-tag.outputs.kurl_util_image }}"
+          set -euo pipefail
+          . ./bin/retag-and-push-kurl-util-image.sh
+          retag_and_push_kurl_util_image replicated/kurl-util:alpha "${KURL_UTIL_IMAGE}"
 
   build-matrix:
     runs-on: ubuntu-24.04
