@@ -40,6 +40,15 @@ var GlobalRecoveryEventStatus []byte
 //go:embed hypotheticalCheckHealthWarnCephStatus.json
 var HypotheticalCheckHealthWarnCephStatus []byte
 
+//go:embed poolAppNotEnabledRGWCephStatus.json
+var PoolAppNotEnabledRGWCephStatus []byte
+
+//go:embed poolAppNotEnabledNonRGWCephStatus.json
+var PoolAppNotEnabledNonRGWCephStatus []byte
+
+//go:embed poolAppNotEnabledMixedCephStatus.json
+var PoolAppNotEnabledMixedCephStatus []byte
+
 // lists of pods to use in migrate unit tests
 
 //go:embed "6 blockdevice pods.json"

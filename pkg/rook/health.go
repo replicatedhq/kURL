@@ -89,6 +89,18 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 		// note that it is required to upgrade from 1.0.4-14.2.21 to 1.4.9
 		delete(status.Health.Checks, "AUTH_INSECURE_GLOBAL_ID_RECLAIM_ALLOWED")
 
+		// ignore "pool(s) do not have an application enabled", but only when every named pool is an RGW
+		// (object store) pool. Rook's CephObjectStore creates several RGW metadata/bucket pools (named
+		// "<store>.rgw.*", e.g. "rook-ceph-store.rgw.buckets.non-ec") that the RGW daemon tags with its
+		// application on its own, lazily, on first startup housekeeping write - not synchronously when
+		// Rook creates the pool. That tagging race can outlast this package's retry budget even though
+		// the cluster is otherwise healthy (all PGs active+clean). A real "app not enabled" warning on a
+		// user-facing block/filesystem pool is not caused by this race and should still block, so this
+		// only ignores the check when every pool named in the check detail looks like an RGW pool.
+		if check, ok := status.Health.Checks["POOL_APP_NOT_ENABLED"]; ok && allPoolsAreRGW(check.Detail) {
+			delete(status.Health.Checks, "POOL_APP_NOT_ENABLED")
+		}
+
 		// By default, the following warning will be raised when more than 70% of the mon
 		// space be in usage. (df -h /var/lib/ceph/mon) This is not an error we need to stop upgrades for
 		// https://docs.ceph.com/en/quincy/rados/operations/health-checks/#mon-disk-low
@@ -129,6 +141,33 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 	return true, ""
 }
 
+var poolAppNotEnabledPoolNameRegex = regexp.MustCompile(`application not enabled on pool '([^']+)'`)
+
+// allPoolsAreRGW returns true only if every pool named in a POOL_APP_NOT_ENABLED check's detail
+// messages looks like a Rook CephObjectStore (RGW) pool, i.e. its name contains ".rgw.". Ceph's
+// detail list also includes a generic, non-pool-specific hint line ("use 'ceph osd pool
+// application enable ...'"), which is ignored rather than treated as an unrecognized pool. If no
+// pool names can be parsed out of the detail at all, this conservatively returns false so an
+// unrecognized warning is never silently ignored.
+func allPoolsAreRGW(detail []struct {
+	Message string `json:"message"`
+}) bool {
+	foundPool := false
+
+	for _, d := range detail {
+		match := poolAppNotEnabledPoolNameRegex.FindStringSubmatch(d.Message)
+		if len(match) != 2 {
+			continue
+		}
+		foundPool = true
+		if !strings.Contains(match[1], ".rgw.") {
+			return false
+		}
+	}
+
+	return foundPool
+}
+
 func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.CephStatus, error) {
 	err := startToolbox(ctx, client)
 	if err != nil {
@@ -145,7 +184,42 @@ func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.
 	if err != nil {
 		return cephtypes.CephStatus{}, fmt.Errorf("failed to decode 'ceph status --format json-pretty': %w", err)
 	}
+
+	// 'ceph status' does not include the per-check "detail" messages (e.g. which pool is
+	// untagged for POOL_APP_NOT_ENABLED) that isStatusHealthy needs to scope some ignored
+	// checks narrowly. Fetch them separately and merge them in; if this fails or is
+	// unavailable, proceed without detail so health determination still succeeds (checks that
+	// rely on detail just fall back to their conservative, non-ignoring default).
+	mergeHealthDetail(ctx, client, &cephStatus)
+
 	return cephStatus, nil
+}
+
+// mergeHealthDetail fetches 'ceph health detail' and copies each check's Detail messages into
+// the matching check already parsed from 'ceph status'.
+func mergeHealthDetail(ctx context.Context, client kubernetes.Interface, cephStatus *cephtypes.CephStatus) {
+	detailJSON, _, err := runToolboxCommand(ctx, client, []string{"ceph", "health", "detail", "--format", "json-pretty"})
+	if err != nil {
+		return
+	}
+
+	var healthDetail struct {
+		Checks map[string]struct {
+			Detail []struct {
+				Message string `json:"message"`
+			} `json:"detail"`
+		} `json:"checks"`
+	}
+	if err := json.Unmarshal([]byte(detailJSON), &healthDetail); err != nil {
+		return
+	}
+
+	for name, detail := range healthDetail.Checks {
+		if check, ok := cephStatus.Health.Checks[name]; ok {
+			check.Detail = detail.Detail
+			cephStatus.Health.Checks[name] = check
+		}
+	}
 }
 
 func progressEventsString(status cephtypes.CephStatus) string {
