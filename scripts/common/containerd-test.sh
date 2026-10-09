@@ -372,6 +372,41 @@ function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
     assertEquals "Kubernetes <1.37 allowed on containerd 1.7.29" "0" "$?"
 }
 
+# test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
+# containerd_verify_kubernetes_1_37_compatibility) from staging, built from main — while the
+# add-on package under test (containerd_pre_init/containerd_join below) is built from this
+# branch. Until this PR merges, main's base does not define the guard function, so it must not
+# be a hard dependency of pre_init/join.
+function test_pre_init_tolerates_missing_137_guard() {
+    kubeadm_conf_api_version() { echo "v1beta4"; }
+    CONTAINERD_VERSION="1.7.29"
+    local result rc
+    result="$( (
+        containerd_host_init() { :; }
+        unset -f containerd_verify_kubernetes_1_37_compatibility
+        containerd_pre_init
+    ) 2>&1 )"
+    rc=$?
+    assertEquals "containerd_pre_init exits 0 when the 1.37 guard is undefined" "0" "$rc"
+    echo "$result" | grep -qi "command not found"
+    assertEquals "containerd_pre_init does not error with 'command not found'" "1" "$?"
+}
+
+function test_join_tolerates_missing_137_guard() {
+    kubeadm_conf_api_version() { echo "v1beta4"; }
+    CONTAINERD_VERSION="1.7.29"
+    local result rc
+    result="$( (
+        containerd_host_init() { :; }
+        unset -f containerd_verify_kubernetes_1_37_compatibility
+        containerd_join
+    ) 2>&1 )"
+    rc=$?
+    assertEquals "containerd_join exits 0 when the 1.37 guard is undefined" "0" "$rc"
+    echo "$result" | grep -qi "command not found"
+    assertEquals "containerd_join does not error with 'command not found'" "1" "$?"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -403,6 +438,8 @@ test_migration_steps_1_7_to_2x
 test_kubernetes_137_blocked_on_sub_2x_containerd
 test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
+test_pre_init_tolerates_missing_137_guard
+test_join_tolerates_missing_137_guard
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."

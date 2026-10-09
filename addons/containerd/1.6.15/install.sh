@@ -6,7 +6,9 @@ CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 function containerd_pre_init() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
-    containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    if commandExists containerd_verify_kubernetes_1_37_compatibility; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    fi
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
@@ -19,7 +21,9 @@ function containerd_pre_init() {
 function containerd_join() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
-    containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    if commandExists containerd_verify_kubernetes_1_37_compatibility; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    fi
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     if [ -d "$DIR/kustomize/kubeadm/join-patches" ]; then
