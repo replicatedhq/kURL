@@ -14,14 +14,26 @@ function nodeless() {
 function nodeless_pre_init() {
     replace_cri
 
-    cp "$DIR/addons/nodeless/0.0.1/kubeadm-init-config-v1beta2.yml" "$DIR/kustomize/kubeadm/init-patches/nodeless-kubeadm-init-config-v1beta2.yml"
+    # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
+    # map to a list of {name, value} pairs, so it needs its own patch shape.
+    if [ "$(kubeadm_conf_api_version)" = "v1beta4" ]; then
+        cp "$DIR/addons/nodeless/0.0.1/kubeadm-init-config-v1beta4.yml" "$DIR/kustomize/kubeadm/init-patches/nodeless-kubeadm-init-config-v1beta2.yml"
+    else
+        cp "$DIR/addons/nodeless/0.0.1/kubeadm-init-config-v1beta2.yml" "$DIR/kustomize/kubeadm/init-patches/nodeless-kubeadm-init-config-v1beta2.yml"
+    fi
     cp "$DIR/addons/nodeless/0.0.1/kubeproxy-config-v1alpha1.yml" "$DIR/kustomize/kubeadm/init-patches/nodeless-kubeproxy-config-v1alpha1.yml"
 }
 
 function nodeless_join() {
     replace_cri
 
-    cp "$DIR/addons/nodeless/0.0.1/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/nodeless-kubeadm-join-config-v1beta2.yaml"
+    # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
+    # map to a list of {name, value} pairs, so it needs its own patch shape.
+    if [ "$(kubeadm_conf_api_version)" = "v1beta4" ]; then
+        cp "$DIR/addons/nodeless/0.0.1/kubeadm-join-config-v1beta4.yaml" "$DIR/kustomize/kubeadm/join-patches/nodeless-kubeadm-join-config-v1beta2.yaml"
+    else
+        cp "$DIR/addons/nodeless/0.0.1/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/nodeless-kubeadm-join-config-v1beta2.yaml"
+    fi
 }
 
 function set_cri_socket() {

@@ -9,7 +9,13 @@ function calico() {
 }
 
 function calico_pre_init() {
-    cp "$DIR/addons/calico/3.9.1/kubeadm-cluster-config-v1beta2.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeadm-cluster-config-v1beta2.yml"
+    # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved controllerManager.extraArgs from a map to a
+    # list of {name, value} pairs, so it needs its own patch shape.
+    if [ "$(kubeadm_conf_api_version)" = "v1beta4" ]; then
+        cp "$DIR/addons/calico/3.9.1/kubeadm-cluster-config-v1beta4.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeadm-cluster-config-v1beta2.yml"
+    else
+        cp "$DIR/addons/calico/3.9.1/kubeadm-cluster-config-v1beta2.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeadm-cluster-config-v1beta2.yml"
+    fi
     cp "$DIR/addons/calico/3.9.1/kubeproxy-config-v1alpha1.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeproxy-config-v1alpha1.yml"
 
     calico_existing_pod_cidr

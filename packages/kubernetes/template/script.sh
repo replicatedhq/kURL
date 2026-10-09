@@ -2,9 +2,16 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array latest kURL-support versions (1.33, 1.34, 1.35, 1.36) available
+# Populate VERSIONS array latest kURL-support versions (1.34, 1.35, 1.36, 1.37) available
 VERSIONS=()
 function find_available_versions() {
+    docker build -t k8s137 - < Dockerfile.137
+    local versions137=($(docker run k8s137 apt list -a kubelet 2>/dev/null | grep -Eo '1\.37\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions137[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.37: ${versions137[0]}"
+        VERSIONS+=("${versions137[0]}")
+    fi
+
     docker build -t k8s136 - < Dockerfile.136
     local versions136=($(docker run k8s136 apt list -a kubelet 2>/dev/null | grep -Eo '1\.36\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions136[@]} -gt 0 ]; then
@@ -26,25 +33,25 @@ function find_available_versions() {
         VERSIONS+=("${versions134[0]}")
     fi
 
-    docker build -t k8s133 - < Dockerfile.133
-    local versions133=($(docker run k8s133 apt list -a kubelet 2>/dev/null | grep -Eo '1\.33\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions133[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.33: ${versions133[0]}"
-        VERSIONS+=("${versions133[0]}")
-    fi
-
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
 }
 
 function use_securebuild_images() {
     local version="$1"
-    [ "$version" = "1.36.5" ] || return 0
+    local securebuild_dir="./securebuild-${version}"
+    [ -d "$securebuild_dir" ] || return 0
+
     local name= image= upstream_image=
     while read -r name image upstream_image; do
         sed -i "s|$upstream_image|$image|" "../$version/Manifest"
-    done < ./securebuild-1.36.5/kubeadm-image-overrides
-    sed -i 's|registry.k8s.io/kube-proxy:v1.36.5|docker.io/kurlsh/kube-proxy:v1.36.5|; s|registry.k8s.io/coredns/coredns:v1.14.2|docker.io/kurlsh/coredns:1.14.2|' "../$version/Manifest"
-    cp -r ./securebuild-1.36.5/* "../$version/"
+    done < "$securebuild_dir/kubeadm-image-overrides"
+
+    local workload= container=
+    while read -r workload container image upstream_image; do
+        sed -i "s|$upstream_image|$image|" "../$version/Manifest"
+    done < "$securebuild_dir/image-overrides"
+
+    cp -r "$securebuild_dir"/* "../$version/"
 }
 
 function generate_version_directory() {
@@ -138,6 +145,13 @@ function get_latest_sonobuoy_release_version() {
 }
 
 function update_available_versions() {
+    local version137=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.37' ) )
+    if [ ${#version137[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-137/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version137[0]}" ; then
+            sed -i "/cron-kubernetes-update-137/a\    \"${version137[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
     local version136=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.36' ) )
     if [ ${#version136[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-136/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version136[0]}" ; then
@@ -156,13 +170,6 @@ function update_available_versions() {
     if [ ${#version134[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-134/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version134[0]}" ; then
             sed -i "/cron-kubernetes-update-134/a\    \"${version134[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version133=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.33' ) )
-    if [ ${#version133[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-133/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version133[0]}" ; then
-            sed -i "/cron-kubernetes-update-133/a\    \"${version133[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 }

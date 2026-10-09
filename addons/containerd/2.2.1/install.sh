@@ -6,9 +6,19 @@ CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 function containerd_pre_init() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    if commandExists containerd_verify_kubernetes_1_37_compatibility; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    fi
+
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
+    # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
+    # map to a list of {name, value} pairs, so it needs its own patch shape.
     if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
-        cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
+        if [ "$(kubeadm_conf_api_version)" = "v1beta4" ] && [ -f "$src/kubeadm-init-config-v1beta4.yaml" ]; then
+            cp "$src/kubeadm-init-config-v1beta4.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
+        else
+            cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
+        fi
     fi
 
     containerd_host_init
@@ -17,9 +27,19 @@ function containerd_pre_init() {
 function containerd_join() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    if commandExists containerd_verify_kubernetes_1_37_compatibility; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    fi
+
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
+    # kubeadm.k8s.io/v1beta4 (Kubernetes 1.37+) moved nodeRegistration.kubeletExtraArgs from a
+    # map to a list of {name, value} pairs, so it needs its own patch shape.
     if [ -d "$DIR/kustomize/kubeadm/join-patches" ]; then
-        cp "$src/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
+        if [ "$(kubeadm_conf_api_version)" = "v1beta4" ] && [ -f "$src/kubeadm-join-config-v1beta4.yaml" ]; then
+            cp "$src/kubeadm-join-config-v1beta4.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
+        else
+            cp "$src/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
+        fi
     fi
 
     containerd_host_init
