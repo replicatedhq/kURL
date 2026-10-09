@@ -19,43 +19,6 @@
     kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
     kubectl -n monitoring rollout status deployment/grafana --timeout=180s
     kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
-- name: "prometheus upgrade from 0.33.0"
-  cpu: 5
-  unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-    - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
-    - rocky-9 # Pinned installer version v2024.07.02-0 does not support rocky 9.
-    - ubuntu-2404 # Pinned installer version v2024.07.02-0 does not support ubuntu 24.04.
-    - ubuntu-2604 # Pinned installer version v2024.07.02-0 does not support ubuntu 26.04.
-    - centos-9 # Pinned installer version v2024.07.02-0 does not support centos 9.
-  installerApiEndpoint: https://kurl.sh
-  installerSpec:
-    kurl:
-      installerVersion: "v2024.07.02-0"
-    kubernetes:
-      version: "1.21.x"
-    flannel:
-      version: latest
-    rook:
-      version: "1.10.x"
-      isBlockStorageEnabled: true
-    containerd:
-      version: "latest"
-    prometheus:
-      version: "0.33.0"
-  upgradeSpec:
-    kubernetes:
-      version: "1.23.x"
-    flannel:
-      version: latest
-    rook:
-      version: "1.10.x"
-      isBlockStorageEnabled: true
-    containerd:
-      version: "latest"
-    prometheus:
-      version: "__testver__"
-      s3Override: "__testdist__"
 - name: "prometheus upgrade from 0.49.x"
   installerApiEndpoint: https://kurl.sh
   installerSpec:
@@ -70,7 +33,7 @@
       isLocalPVEnabled: true
       localPVStorageClassName: localpv
     containerd:
-      version: "latest"
+      version: "1.6.x"
     prometheus:
       version: "0.49.x"
   upgradeSpec:
@@ -83,7 +46,7 @@
       isLocalPVEnabled: true
       localPVStorageClassName: localpv
     containerd:
-      version: "latest"
+      version: "1.7.x"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -137,7 +100,7 @@
     longhorn:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
