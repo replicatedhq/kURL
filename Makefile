@@ -714,6 +714,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/yaml-test.sh
 	./scripts/common/rook-upgrade-test.sh
 	./addons/rook/template/test/install.sh
+	./addons/velero/template/test/install.sh
 	./scripts/common/test/common-test.sh
 	./scripts/common/test/discover-test.sh
 	./scripts/common/test/docker-version-test.sh

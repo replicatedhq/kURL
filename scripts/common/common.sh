@@ -1109,6 +1109,26 @@ function daemonset_fully_updated() {
     return 0
 }
 
+# daemonset_fully_updated_settled is like daemonset_fully_updated, but also re-checks after
+# a short settle delay before reporting success. A single instantaneous poll of
+# daemonset_fully_updated can land in the narrow window between two back-to-back rollouts
+# (e.g. a controller that patches the daemonset again right after it first settles) and
+# report "fully updated" when a second rollout is about to start. Requiring the status to
+# still read fully-updated after settleSeconds closes most of that window.
+function daemonset_fully_updated_settled() {
+    local namespace=$1
+    local daemonset=$2
+    local settleSeconds=${3:-3}
+
+    if ! daemonset_fully_updated "$namespace" "$daemonset" ; then
+        return 1
+    fi
+
+    sleep "$settleSeconds"
+
+    daemonset_fully_updated "$namespace" "$daemonset"
+}
+
 # pods_gone_by_selector returns true if there are no pods matching the given selector
 function pods_gone_by_selector() {
     local namespace=$1

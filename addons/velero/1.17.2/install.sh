@@ -149,21 +149,6 @@ function velero() {
         return 1
     fi
     logSuccess "Velero deployment updated"
-
-    # The Local Volume Provider plugin patches the node-agent daemonset at runtime to add
-    # its hostPath volume mounts. kubectl apply -k above strips those mounts because the
-    # generated spec does not include them, forcing a rollout; the plugin then re-injects
-    # them, forcing a second rollout. Waiting here for the daemonset to settle covers both
-    # rollouts so a backup run immediately after this addon returns does not race a
-    # node-agent restart (sc-139656).
-    if [ "$VELERO_DISABLE_RESTIC" != "1" ] && kubernetes_resource_exists "$VELERO_NAMESPACE" daemonset node-agent; then
-        log "Waiting for velero node-agent daemonset to be fully updated"
-        if ! spinner_until 120 daemonset_fully_updated "$VELERO_NAMESPACE" node-agent; then
-            logFail "Velero node-agent daemonset failed to update"
-            return 1
-        fi
-        logSuccess "Velero node-agent daemonset updated"
-    fi
 }
 
 function velero_join() {

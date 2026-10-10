@@ -65,7 +65,9 @@ function velero() {
     # RWX storage class is available, we need a PVC attached. When no RWX storage class is
     # available the install uses --no-default-backup-location so that KOTS can configure
     # Host Path or NFS snapshots after the installer completes.
+    local velero_using_internal_pvc_snapshots=0
     if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || { [ "$KOTSADM_DISABLE_S3" == "1" ] && velero_rwx_storage_class_exists; }; then
+        velero_using_internal_pvc_snapshots=1
         velero_patch_internal_pvc_snapshots "$src" "$dst"
     fi
 
@@ -106,19 +108,36 @@ function velero() {
     logSuccess "Velero deployment updated"
 
     # The Local Volume Provider plugin patches the node-agent daemonset at runtime to add
-    # its hostPath volume mounts. kubectl apply -k above strips those mounts because the
+    # its hostPath volume mounts when Velero is using the Internal Storage (PVC-backed)
+    # snapshot destination. kubectl apply -k above strips those mounts because the
     # generated spec does not include them, forcing a rollout; the plugin then re-injects
-    # them, forcing a second rollout. Waiting here for the daemonset to settle covers both
-    # rollouts so a backup run immediately after this addon returns does not race a
-    # node-agent restart (sc-139656).
-    if [ "$VELERO_DISABLE_RESTIC" != "1" ] && kubernetes_resource_exists "$VELERO_NAMESPACE" daemonset node-agent; then
+    # them, forcing a second rollout. Waiting here for the daemonset to settle across two
+    # consecutive polls (not just one instantaneous snapshot, which can race the plugin's
+    # own re-injection — see daemonset_fully_updated_settled) covers both rollouts so a
+    # backup run immediately after this addon returns does not race a node-agent restart
+    # (sc-139656). Scoped to the Internal Storage destination specifically: that is the
+    # only Local Volume Provider destination kurl's install-time code can detect (Host Path
+    # and NFS destinations are chosen in the Admin Console after install and are not
+    # visible here). This wait is advisory, not an install requirement: a slow or large
+    # cluster logs a warning and continues rather than aborting the entire kURL run under
+    # `set -e`.
+    if velero_should_wait_for_node_agent_daemonset "$velero_using_internal_pvc_snapshots"; then
         log "Waiting for velero node-agent daemonset to be fully updated"
-        if ! spinner_until 120 daemonset_fully_updated "$VELERO_NAMESPACE" node-agent; then
-            logFail "Velero node-agent daemonset failed to update"
-            return 1
+        if ! spinner_until 120 daemonset_fully_updated_settled "$VELERO_NAMESPACE" node-agent; then
+            logWarn "Velero node-agent daemonset did not settle within 120s; continuing"
+        else
+            logSuccess "Velero node-agent daemonset updated"
         fi
-        logSuccess "Velero node-agent daemonset updated"
     fi
+}
+
+# Returns 0 if the node-agent daemonset wait for the Local Volume Provider
+# double-rollout race (sc-139656) should run this pass: restic/node-agent is enabled,
+# Velero is using the Internal Storage (PVC-backed) snapshot destination, and the
+# node-agent daemonset actually exists.
+function velero_should_wait_for_node_agent_daemonset() {
+    local using_internal_pvc_snapshots="$1"
+    [ "$VELERO_DISABLE_RESTIC" != "1" ] && [ "$using_internal_pvc_snapshots" = "1" ] && kubernetes_resource_exists "$VELERO_NAMESPACE" daemonset node-agent
 }
 
 function velero_join() {

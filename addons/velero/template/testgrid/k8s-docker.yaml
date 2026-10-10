@@ -232,11 +232,12 @@
         exit 1
       fi
     fi
-    # the upgrade re-applies the velero deployment and node-agent daemonset (and the LVP
-    # plugin re-injects its volume mounts), so wait for both rollouts to settle before
-    # creating a backup or the pod volume backup races the node-agent restart
-    kubectl rollout status deployment/velero -n velero --timeout=300s
-    kubectl rollout status daemonset/node-agent -n velero --timeout=300s
+    # sc-139656: velero() itself now waits for the node-agent daemonset to settle after the
+    # LVP plugin re-injects its volume mounts (see install.tmpl.sh). Deliberately not
+    # re-waiting for the rollouts here with a manual kubectl rollout status (as this
+    # scenario did before this change) so that an immediate backup actually exercises the
+    # in-addon fix: a regression in that wait should show up as this backup racing a
+    # node-agent restart, not be silently absorbed by a duplicate external wait.
     timeout 5m kubectl kots backup
     timeout 5m kubectl kots backup ls
     # if restic pods are still running, fail the test
