@@ -2,21 +2,21 @@
 
 . ./scripts/common/common.sh
 
-# Guards the sc-139656 node-agent settle wait backported into the three live,
-# LVP-capable Velero versions that predate 1.11.1 (the first version to carry the fix
-# natively): 1.10.1, 1.10.2, and 1.11.0. Each ships its own hand-patched copy of
+# Guards the sc-139656 node-agent settle wait across every live, LVP-capable Velero
+# version that predates 1.17 (the first version whose install.sh consumes the shared
+# template directly). Each of these versions ships its own hand-duplicated copy of
 # velero_should_wait_for_node_agent_daemonset / velero_bsl_provider /
 # velero_bsl_is_local_volume_provider / velero_using_local_volume_provider, so this
 # exercises each version's own install.sh directly rather than the shared template
-# (which only 1.11.1+ consume) to catch a version whose backport diverges or regresses
+# (which only 1.17+ consume) to catch a version whose copy diverges or regresses
 # independently of the others.
 #
 # kubectl is mocked per test to answer by resource kind, same approach as
 # addons/velero/template/test/install.sh.
 
-PRE_1_11_1_LVP_VERSIONS="1.10.1 1.10.2 1.11.0"
+PRE_1_17_LVP_VERSIONS="1.10.1 1.10.2 1.11.0 1.11.1 1.12.0 1.12.1 1.12.2 1.12.3 1.13.1 1.13.2 1.14.0 1.15.2 1.16.2"
 
-function pre_1_11_1_lvp_wait_source_version() {
+function pre_1_17_lvp_wait_source_version() {
     local version="$1"
     # shellcheck disable=SC1090
     . "./addons/velero/${version}/install.sh"
@@ -24,8 +24,8 @@ function pre_1_11_1_lvp_wait_source_version() {
 
 function test_velero_should_wait_for_node_agent_daemonset_internal_storage() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
@@ -53,8 +53,8 @@ function test_velero_should_wait_for_node_agent_daemonset_internal_storage() {
 
 function test_velero_should_wait_for_node_agent_daemonset_host_path() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
@@ -86,8 +86,8 @@ function test_velero_should_wait_for_node_agent_daemonset_host_path() {
 
 function test_velero_should_wait_for_node_agent_daemonset_nfs() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
@@ -119,8 +119,8 @@ function test_velero_should_wait_for_node_agent_daemonset_nfs() {
 
 function test_velero_should_wait_for_node_agent_daemonset_restic_disabled() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
@@ -135,8 +135,8 @@ function test_velero_should_wait_for_node_agent_daemonset_restic_disabled() {
 
 function test_velero_should_wait_for_node_agent_daemonset_not_using_local_volume_provider() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
@@ -168,8 +168,8 @@ function test_velero_should_wait_for_node_agent_daemonset_not_using_local_volume
 
 function test_velero_should_wait_for_node_agent_daemonset_no_daemonset() {
     local version
-    for version in $PRE_1_11_1_LVP_VERSIONS; do
-        pre_1_11_1_lvp_wait_source_version "$version"
+    for version in $PRE_1_17_LVP_VERSIONS; do
+        pre_1_17_lvp_wait_source_version "$version"
 
         local VELERO_NAMESPACE="velero"
         # shellcheck disable=SC2034
