@@ -135,4 +135,77 @@ function test_common_upgrade_merge_images_list() {
     assertEquals "trims spaces and removes duplicates" "a b c d" "$(common_upgrade_merge_images_list " a   b  c d   " " b  d a c d")"
 }
 
+function test_daemonset_fully_updated() {
+    kubectl() {
+        case "$*" in
+            *desiredNumberScheduled*) echo "3" ;;
+            *currentNumberScheduled*) echo "3" ;;
+            *numberAvailable*) echo "3" ;;
+            *numberReady*) echo "3" ;;
+            *updatedNumberScheduled*) echo "3" ;;
+        esac
+    }
+    assertEquals "fully updated when all status counts match desired" "0" \
+        "$(daemonset_fully_updated ns node-agent >/dev/null; echo $?)"
+
+    kubectl() {
+        case "$*" in
+            *desiredNumberScheduled*) echo "3" ;;
+            *currentNumberScheduled*) echo "3" ;;
+            *numberAvailable*) echo "2" ;;
+            *numberReady*) echo "2" ;;
+            *updatedNumberScheduled*) echo "2" ;;
+        esac
+    }
+    assertEquals "not fully updated while a rollout is still in progress" "1" \
+        "$(daemonset_fully_updated ns node-agent >/dev/null; echo $?)"
+}
+
+function test_daemonset_fully_updated_settled_stable() {
+    kubectl() {
+        case "$*" in
+            *desiredNumberScheduled*) echo "3" ;;
+            *currentNumberScheduled*) echo "3" ;;
+            *numberAvailable*) echo "3" ;;
+            *numberReady*) echo "3" ;;
+            *updatedNumberScheduled*) echo "3" ;;
+        esac
+    }
+    assertEquals "settled when stable across both polls" "0" \
+        "$(daemonset_fully_updated_settled ns node-agent 0 >/dev/null; echo $?)"
+}
+
+function test_daemonset_fully_updated_settled_catches_second_rollout() {
+    # Simulates a controller (e.g. the Local Volume Provider plugin) that patches the
+    # daemonset again right after the first rollout settles: the first poll reports fully
+    # updated, but the re-check after the settle delay sees a second rollout has started.
+    # The poll count is tracked in a file, not a shell variable, because each kubectl
+    # invocation below runs inside its own command-substitution subshell and would
+    # otherwise lose any in-memory state as soon as that subshell exits.
+    local pollCountFile
+    pollCountFile="$(mktemp)"
+    echo 0 > "$pollCountFile"
+    kubectl() {
+        case "$*" in
+            *desiredNumberScheduled*) echo "3" ;;
+            *currentNumberScheduled*) echo "3" ;;
+            *numberAvailable*)
+                if [ "$(cat "$pollCountFile")" = "0" ]; then
+                    echo "3"
+                else
+                    echo "2"
+                fi
+                ;;
+            *numberReady*) echo "3" ;;
+            *updatedNumberScheduled*)
+                echo "$(($(cat "$pollCountFile") + 1))" > "$pollCountFile"
+                echo "3"
+                ;;
+        esac
+    }
+    assertEquals "settle re-check catches a rollout that restarted after the first poll" "1" \
+        "$(daemonset_fully_updated_settled ns node-agent 0 >/dev/null 2>&1; echo $?)"
+    rm -f "$pollCountFile"
+}
+
 . shunit2
