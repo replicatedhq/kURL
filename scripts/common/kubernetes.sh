@@ -412,9 +412,66 @@ EOF
 
     echo "Restarting Kubelet"
     systemctl daemon-reload
-    systemctl enable kubelet && systemctl restart kubelet
+    systemctl enable kubelet && kubernetes_restart_kubelet
 
     logSuccess "Kubernetes host packages installed"
+}
+
+# kubernetes_restart_kubelet restarts the kubelet service. When control plane
+# static pods are present on the host (i.e. this is an upgrade or a re-run on an
+# already-initialized node), the static pod manifests are first moved aside and
+# the kubelet is given time to tear the pods down before the restart, and the
+# manifests are restored afterwards.
+#
+# Why: when the kubelet package is upgraded (e.g. 1.36 -> 1.37), restarting the
+# kubelet recreates the static pod containers. The recreated etcd/apiserver
+# containers bind their host ports before the previous containers have released
+# them and crashloop with 'listen tcp ...: bind: address already in use'. On
+# slow or busy hosts this can outlast the kubeadm wait-control-plane budget of
+# the subsequent kubeadm step and fail the whole upgrade midway.
+function kubernetes_restart_kubelet() {
+    if ! kubernetes_control_plane_static_pods_present; then
+        systemctl restart kubelet
+        return 0
+    fi
+
+    local tmp_manifest_dir=
+    tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
+
+    log "Moving control plane static pod manifests aside before kubelet restart"
+    mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
+
+    # wait for the kubelet to tear the static pods down so their host ports are
+    # free; on timeout proceed anyway, which is no worse than not quiescing
+    if ! spinner_until 60 kubernetes_control_plane_containers_stopped; then
+        logWarn "Control plane containers did not stop within 60s, restarting kubelet anyway"
+    fi
+
+    systemctl restart kubelet
+
+    log "Restoring control plane static pod manifests"
+    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
+    rmdir "$tmp_manifest_dir"
+
+    # wait for the API server to be reachable again before continuing
+    if ! spinner_until 120 kubernetes_api_is_healthy; then
+        logWarn "Kubernetes API did not report healthy within 120s of kubelet restart"
+    fi
+}
+
+# kubernetes_control_plane_static_pods_present returns 0 when control plane
+# static pod manifests exist on this host.
+function kubernetes_control_plane_static_pods_present() {
+    [ -f /etc/kubernetes/manifests/kube-apiserver.yaml ]
+}
+
+# kubernetes_control_plane_containers_stopped returns 0 when no control plane
+# static pod container is running (used to wait for teardown after the static
+# pod manifests are moved aside).
+function kubernetes_control_plane_containers_stopped() {
+    local running=
+    running=$(crictl ps --name '^(etcd|kube-apiserver|kube-controller-manager|kube-scheduler)$' --state Running -q 2>/dev/null | wc -l)
+    [ "$running" = "0" ]
 }
 
 # kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:
