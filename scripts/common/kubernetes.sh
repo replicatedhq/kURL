@@ -438,6 +438,8 @@ function kubernetes_restart_kubelet() {
     local tmp_manifest_dir=
     tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
 
+    # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
+    # tear the static pod down, which releases the pod's host ports
     log "Moving control plane static pod manifests aside before kubelet restart"
     mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
 
@@ -449,6 +451,8 @@ function kubernetes_restart_kubelet() {
 
     systemctl restart kubelet
 
+    # kubelet watches /etc/kubernetes/manifests: restoring the manifests is
+    # sufficient for it to recreate the pods - no second restart is needed.
     log "Restoring control plane static pod manifests"
     mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
     rmdir "$tmp_manifest_dir"
