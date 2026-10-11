@@ -475,13 +475,18 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
 
-      - name: pin empty installerVersion values to RC version
+      - name: pin installer version and endpoint to this RC build
         env:
           VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
           TESTGRID_SPEC: ${{ github.event_name == 'workflow_dispatch' && inputs.testgrid-spec || 'testgrid/specs/deploy.yaml' }}
         run: |
           set -euo pipefail
-          sed -i "s/installerVersion: \"\"/installerVersion: \"${VERSION_TAG}\"/g" "${TESTGRID_SPEC}"
+          # This workflow only ever publishes to s3://kurl-sh/staging/<rc-tag>/
+          # (never dist/, never the shared staging/VERSION pointer), so the
+          # install phase must resolve against the staging host, not the
+          # spec's default prod installerApiEndpoint.
+          source ./bin/testgrid-pr-spec.sh
+          testgrid_pr_patch_spec "${TESTGRID_SPEC}" "${VERSION_TAG}"
 
       - name: pull tgrun
         run: |
