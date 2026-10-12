@@ -501,4 +501,64 @@ function test_kubernetes_configure_pause_image_upgrade() {
     rm "$KUBELET_FLAGS_FILE"
 }
 
+function test_kubernetes_restart_kubelet_without_static_pods() {
+    local calls=""
+    systemctl() {
+        #shellcheck disable=SC2317
+        calls="$calls systemctl:$*"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 1
+    }
+
+    kubernetes_restart_kubelet
+
+    assertEquals "should plainly restart kubelet when no control plane static pods exist" \
+        " systemctl:restart kubelet" "$calls"
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present
+}
+
+function test_kubernetes_restart_kubelet_with_static_pods() {
+    local calls=""
+    systemctl() {
+        #shellcheck disable=SC2317
+        calls="$calls systemctl:$*"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        calls="$calls spinner_until:$2"
+        return 0
+    }
+    mv() {
+        #shellcheck disable=SC2317
+        calls="$calls mv:$1>$2"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        true
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    kubernetes_restart_kubelet
+
+    assertEquals "should quiesce static pods, restart kubelet, restore and wait for the api" \
+        " mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/ spinner_until:kubernetes_control_plane_containers_stopped systemctl:restart kubelet mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/ spinner_until:kubernetes_api_is_healthy" \
+        "$calls"
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
+}
+
 . shunit2
