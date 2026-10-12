@@ -72,6 +72,11 @@ name: testgrid-pr
 #     into the full matrix. RC artifacts land under staging/<rc-tag>/ and are
 #     auto-expired by bin/cleanup-staging-s3.sh (staging/v20* prefix, 30 days).
 #     RC builds are NEVER promoted to prod.
+#   * KNOWN RETENTION GAP: every run also pushes a per-run versioned tag
+#     (replicated/kurl-util:<version_tag>) to the shared, externally-visible
+#     replicated/kurl-util Docker Hub repo (see kurl-util-image job). Unlike
+#     the S3 RC artifacts above, nothing currently deletes these Docker Hub
+#     tags — tracked in https://github.com/replicatedhq/kURL/issues/6190.
 
 on:
   pull_request:
