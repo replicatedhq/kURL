@@ -6,10 +6,9 @@
 # to publish the per-version RC tag the generated installer/kurlnet manifests
 # are pinned to (replicatedhq/kURL#6171 bug 2).
 #
-# Guards the con-voyage review finding that this path had zero test coverage:
-# a transient DockerHub failure must be retried, not left to fail the whole
-# get-tag -> kurl-util-image chain on the first hiccup, and the retries must
-# not run forever.
+# This path had zero test coverage before: a transient DockerHub failure must
+# be retried, not left to fail the whole get-tag -> kurl-util-image chain on
+# the first hiccup, and the retries must not run forever.
 
 # shellcheck source=retag-and-push-kurl-util-image.sh
 . ./bin/retag-and-push-kurl-util-image.sh
