@@ -700,6 +700,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	#   - add to ci
 	./bin/list-all-packages-test.sh
 	./bin/testgrid-pr-spec-test.sh
+	./bin/testgrid-pr-kurl-util-test.sh
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
