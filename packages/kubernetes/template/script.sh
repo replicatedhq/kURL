@@ -2,123 +2,237 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array latest kURL-support versions (1.34, 1.35, 1.36, 1.37) available
-VERSIONS=()
-function find_available_versions() {
-    docker build -t k8s137 - < Dockerfile.137
-    local versions137=($(docker run k8s137 apt list -a kubelet 2>/dev/null | grep -Eo '1\.37\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions137[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.37: ${versions137[0]}"
-        VERSIONS+=("${versions137[0]}")
-    fi
-
-    docker build -t k8s136 - < Dockerfile.136
-    local versions136=($(docker run k8s136 apt list -a kubelet 2>/dev/null | grep -Eo '1\.36\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions136[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.36: ${versions136[0]}"
-        VERSIONS+=("${versions136[0]}")
-    fi
-
-    docker build -t k8s135 - < Dockerfile.135
-    local versions135=($(docker run k8s135 apt list -a kubelet 2>/dev/null | grep -Eo '1\.35\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions135[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.35: ${versions135[0]}"
-        VERSIONS+=("${versions135[0]}")
-    fi
-
-    docker build -t k8s134 - < Dockerfile.134
-    local versions134=($(docker run k8s134 apt list -a kubelet 2>/dev/null | grep -Eo '1\.34\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions134[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.34: ${versions134[0]}"
-        VERSIONS+=("${versions134[0]}")
-    fi
-
-    echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
+# list_supported_minors prints the Kubernetes minors kURL tracks, newest first, one per line
+# (e.g. "37"). The set is derived from the Dockerfile.1<minor> files in the given directory
+# (default: the current directory, which is packages/kubernetes/template when run as a script),
+# so adding a minor only requires adding its Dockerfile (see add-minor.sh).
+function list_supported_minors() {
+    local dir="${1:-.}"
+    local dockerfile=
+    local minor=
+    for dockerfile in "$dir"/Dockerfile.1*; do
+        [ -f "$dockerfile" ] || continue
+        minor="${dockerfile##*/Dockerfile.1}"
+        [[ "$minor" =~ ^[1-9][0-9]*$ ]] || continue
+        echo "$minor"
+    done | sort -rn
 }
 
+# Populate VERSIONS array with the latest patch of every kURL-supported minor (one per Dockerfile.1<minor>)
+VERSIONS=()
+function find_available_versions() {
+    local minors=()
+    mapfile -t minors < <(list_supported_minors .)
+    if [ ${#minors[@]} -eq 0 ]; then
+        echo "No Dockerfile.1<minor> files found in $(pwd)" >&2
+        return 1
+    fi
+
+    local minor=
+    for minor in "${minors[@]}"; do
+        # a minor whose package repo is not live yet (e.g. scaffolded before GA) must not abort the cron
+        if ! docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"; then
+            echo "WARNING: docker build of Dockerfile.1${minor} failed, skipping Kubernetes 1.${minor}" >&2
+            continue
+        fi
+        local versions=()
+        mapfile -t versions < <(docker run "k8s1${minor}" apt list -a kubelet 2>/dev/null | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
+        if [ ${#versions[@]} -gt 0 ]; then
+            echo "Found latest version for Kubernetes 1.${minor}: ${versions[0]}"
+            VERSIONS+=("${versions[0]}")
+        fi
+    done
+
+    echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]:-}"
+}
+
+# github_curl GETs a GitHub API URL. It only sends the Authorization header when GITHUB_TOKEN is
+# set and non-empty (unauthenticated calls work, with a lower rate limit). The header is passed on
+# stdin so the token never shows up in the process list, and redirects are not followed so the
+# header is never sent anywhere else. Fails (non-zero) on HTTP errors such as rate limiting.
+# Retries once after KURL_GITHUB_RETRY_DELAY seconds (default 3). Each attempt's body goes to a temp
+# file and only a successful attempt's body is printed, so a failed attempt never leaks partial output.
+function github_curl() {
+    local rc=0
+    local attempt=
+    local body=
+    body="$(mktemp)"
+    for attempt in 1 2; do
+        rc=0
+        if [ -n "${GITHUB_TOKEN:-}" ]; then
+            printf 'Authorization: token %s\n' "$GITHUB_TOKEN" | curl -fsS --proto '=https' -H @- "$@" > "$body" || rc=$?
+        else
+            curl -fsS --proto '=https' "$@" < /dev/null > "$body" || rc=$?
+        fi
+        if [ "$rc" -eq 0 ]; then
+            cat "$body"
+            rm -f "$body"
+            return 0
+        fi
+        if [ "$attempt" -eq 1 ]; then
+            echo "WARNING: GitHub API request failed (curl exit $rc), retrying: $*" >&2
+            sleep "${KURL_GITHUB_RETRY_DELAY:-3}"
+        fi
+    done
+    rm -f "$body"
+    echo "ERROR: GitHub API request failed (curl exit $rc): $*. If this is rate limiting, set GITHUB_TOKEN or retry later." >&2
+    return "$rc"
+}
+
+# sha256_of prints the sha256 hex digest of a file
+function sha256_of() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{ print $1 }'
+    else
+        shasum -a 256 "$1" | awk '{ print $1 }'
+    fi
+}
+
+# download_kubeadm downloads the linux/amd64 kubeadm binary for a version into a directory and
+# verifies it against the published sha256 before making it executable.
+function download_kubeadm() {
+    local version="$1"
+    local dir="$2"
+    local url="https://dl.k8s.io/release/v${version}/bin/linux/amd64/kubeadm"
+
+    curl -fsSL --proto '=https' --proto-redir '=https' -o "$dir/kubeadm" "$url" || return 1
+
+    local expected=
+    expected="$(curl -fsSL --proto '=https' --proto-redir '=https' "${url}.sha256" | awk '{ print $1 }')"
+    if ! [[ "$expected" =~ ^[0-9a-f]{64}$ ]]; then
+        echo "ERROR: invalid sha256 published for kubeadm v${version}: '${expected}'" >&2
+        return 1
+    fi
+    local actual=
+    actual="$(sha256_of "$dir/kubeadm")"
+    if [ "$actual" != "$expected" ]; then
+        echo "ERROR: kubeadm v${version} sha256 mismatch: expected ${expected}, got ${actual}" >&2
+        rm -f "$dir/kubeadm"
+        return 1
+    fi
+    chmod +x "$dir/kubeadm"
+}
+
+# use_securebuild_images rewrites upstream images to SecureBuild ones in a Manifest (default
+# ../<version>/Manifest) and copies the override files into ../<version>/, when ./securebuild-<version> exists.
 function use_securebuild_images() {
     local version="$1"
+    local manifest="${2:-../$version/Manifest}"
     local securebuild_dir="./securebuild-${version}"
     [ -d "$securebuild_dir" ] || return 0
 
     local name= image= upstream_image=
     while read -r name image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "../$version/Manifest"
+        sed -i "s|$upstream_image|$image|" "$manifest"
     done < "$securebuild_dir/kubeadm-image-overrides"
 
     local workload= container=
     while read -r workload container image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "../$version/Manifest"
+        sed -i "s|$upstream_image|$image|" "$manifest"
     done < "$securebuild_dir/image-overrides"
 
     cp -r "$securebuild_dir"/* "../$version/"
 }
 
-function generate_version_directory() {
+# generate_version_directory writes ../<version>/Manifest. It runs in a subshell so the EXIT trap
+# cleans up its temp dir, and the Manifest is only moved into place once complete.
+function generate_version_directory() (
     local version="$1"
+    local workdir=
+    workdir="$(mktemp -d)"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$workdir'" EXIT
 
-    mkdir -p "../$version"
-    rm -f "../$version/Manifest"
+    download_kubeadm "$version" "$workdir" || return 1
 
-    curl -LO https://dl.k8s.io/release/v${version}/bin/linux/amd64/kubeadm
-    chmod +x kubeadm
-    mv kubeadm /tmp
+    # capture first so a kubeadm failure fails the script; never hand it our tokens
+    local images=
+    images="$(env -u GITHUB_TOKEN -u SHORTCUT_API_TOKEN "$workdir/kubeadm" config images list --kubernetes-version="${version}")" || return 1
+    if [ -z "$images" ]; then
+        echo "ERROR: kubeadm config images list returned no images for ${version}" >&2
+        return 1
+    fi
 
+    local manifest="$workdir/Manifest"
+    : > "$manifest"
+    local image=
+    local name=
     while read -r image; do
+        [ -n "$image" ] || continue
         # registry.k8s.io/kube-apiserver:v1.20.2 -> kube-apiserver
-        local name=$(echo "$image" | awk -F':' '{ print $1 }' | awk -F '/' '{ print $2 }')
-        echo "image ${name} ${image}" >> "../$version/Manifest"
-    done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
+        name="$(echo "$image" | awk -F':' '{ print $1 }' | awk -F '/' '{ print $2 }')"
+        if [ -z "$name" ]; then
+            echo "ERROR: could not derive an image name from '${image}'" >&2
+            return 1
+        fi
+        echo "image ${name} ${image}" >> "$manifest"
+    done <<< "$images"
 
-    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
-    local criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-        grep '"tag_name": ' | \
-        ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
-        head -1)
+    local minor=
+    minor="$(echo "$version" | awk -F'.' '{ print $2 }')"
+    local releases=
+    releases="$(github_curl https://api.github.com/repos/kubernetes-sigs/cri-tools/releases)" || return 1
+    local criToolsVersion=
+    criToolsVersion="$(echo "$releases" | grep '"tag_name": ' | { grep -Eo "1\.${minor}\.[0-9]+" || true; } | head -1)"
 
     # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
     # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
     if [ -z "$criToolsVersion" ]; then
-        criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-            grep '"tag_name": ' | \
-            grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
-            head -1)
+        criToolsVersion="$(echo "$releases" | grep '"tag_name": ' | { grep -Eo "1\.[2-9][0-9]\.[0-9]+" || true; } | head -1)"
+    fi
+    if ! [[ "$criToolsVersion" =~ ^1\.[0-9]+\.[0-9]+$ ]]; then
+        echo "ERROR: could not determine a cri-tools version for Kubernetes ${version}" >&2
+        return 1
     fi
 
-    echo "" >> "../$version/Manifest"
-    echo "asset kubeadm https://dl.k8s.io/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
-    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v$criToolsVersion/crictl-v$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
+    {
+        echo ""
+        echo "asset kubeadm https://dl.k8s.io/v$version/bin/linux/amd64/kubeadm"
+        echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v$criToolsVersion/crictl-v$criToolsVersion-linux-amd64.tar.gz"
+        echo ""
+        echo "asset kustomize-v5.4.3.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz"
+    } >> "$manifest"
 
-    echo "" >> "../$version/Manifest"
-    echo "asset kustomize-v5.4.3.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" >> "../$version/Manifest"
-    use_securebuild_images "$version"
-}
+    mkdir -p "../$version"
+    use_securebuild_images "$version" "$manifest"
+    mv "$manifest" "../$version/Manifest"
+)
 
+# generate_conformance_package writes ../<version>/conformance/Manifest, only once complete.
 function generate_conformance_package() {
     local version="$1"
 
-    mkdir -p "../$version/conformance"
-    rm -f "../$version/conformance/Manifest"
-
-    # add conformance image for sonobuoy to manifest
-    # TODO: in the future change this image to registry.k8s.io
-    echo "image conformance registry.k8s.io/conformance:v${version}" > "../$version/conformance/Manifest"
-
-
     # --mode quick image
-    local image="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
-    local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
-    echo "image $name $image" >> "../$version/conformance/Manifest"
+    local images=
+    images="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images)" || return 1
+    local image=
+    image="$(echo "$images" | { grep "nginx" || true; } | sort -n | head -n 1)"
+    if [ -z "$image" ]; then
+        echo "ERROR: no nginx image found in registry.k8s.io/conformance:v${version} --list-images" >&2
+        return 1
+    fi
+    local name=
+    name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
+    if [ -z "$name" ]; then
+        echo "ERROR: could not derive an image name from '${image}'" >&2
+        return 1
+    fi
 
-    # The following code will add all conformance images to manifest but it adds too much to the bundle
+    mkdir -p "../$version/conformance"
+    local tmp=
+    tmp="$(mktemp "../$version/conformance/.Manifest.XXXXXX")"
+    # add conformance image for sonobuoy to manifest
+    {
+        echo "image conformance registry.k8s.io/conformance:v${version}"
+        echo "image $name $image"
+    } > "$tmp"
+    mv "$tmp" "../$version/conformance/Manifest"
 
+    # The following code would add all conformance images to the manifest but it adds too much to the bundle:
     # sonobuoy_pull_images "$version" || true
-
-    # local image=
     # for image in $(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images) ; do
     #     if docker inspect "$image" >/dev/null 2>&1 ; then
-    #         local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
-    #         echo "image $name $image" >> "../$version/conformance/Manifest"
+    #         echo "image <name> $image" >> "../$version/conformance/Manifest"
     #     fi
     # done
 }
@@ -144,34 +258,23 @@ function get_latest_sonobuoy_release_version() {
         grep -Eo "0\.[0-9]+\.[0-9]+"
 }
 
+# update_available_versions adds the newest VERSIONS entry of every supported minor right below
+# its "// cron-kubernetes-update-1<minor>" marker in versions.js, unless already listed there.
+# KURL_VERSIONS_JS overrides the versions.js path (used by tests).
 function update_available_versions() {
-    local version137=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.37' ) )
-    if [ ${#version137[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-137/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version137[0]}" ; then
-            sed -i "/cron-kubernetes-update-137/a\    \"${version137[0]}\"\," ../../../web/src/installers/versions.js
+    local versions_js="${KURL_VERSIONS_JS:-../../../web/src/installers/versions.js}"
+    local minor=
+    local latest=
+    local listed=
+    for minor in $(list_supported_minors .); do
+        latest="$(printf '%s\n' ${VERSIONS[@]+"${VERSIONS[@]}"} | grep "^1\.${minor}\." | head -n 1 || true)"
+        [ -n "$latest" ] || continue
+        # everything after the marker up to the end of the kubernetes array
+        listed="$(sed "0,/cron-kubernetes-update-1${minor}/d" "$versions_js" | sed '/\],/,$d')"
+        if ! grep -qF "\"${latest}\"" <<< "$listed" ; then
+            sed -i "/cron-kubernetes-update-1${minor}/a\    \"${latest}\"\," "$versions_js"
         fi
-    fi
-
-    local version136=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.36' ) )
-    if [ ${#version136[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-136/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version136[0]}" ; then
-            sed -i "/cron-kubernetes-update-136/a\    \"${version136[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version135=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.35' ) )
-    if [ ${#version135[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-135/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version135[0]}" ; then
-            sed -i "/cron-kubernetes-update-135/a\    \"${version135[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version134=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.34' ) )
-    if [ ${#version134[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-134/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version134[0]}" ; then
-            sed -i "/cron-kubernetes-update-134/a\    \"${version134[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
+    done
 }
 
 function generate_step_versions() {
@@ -197,16 +300,20 @@ function generate_step_versions() {
 }
 
 function main() {
+    # relative ../ paths below are relative to the template dir, whatever the caller's cwd
+    cd "${KURL_TEMPLATE_DIR:-$(dirname "${BASH_SOURCE[0]}")}"
+
     VERSIONS=("$@")
     if [ ${#VERSIONS[@]} -eq 0 ]; then
         find_available_versions
     fi
 
-    for version in ${VERSIONS[*]}; do
+    local version=
+    for version in ${VERSIONS[@]+"${VERSIONS[@]}"}; do
         generate_version_directory "${version}"
         generate_conformance_package "${version}"
     done
-    echo "kubernetes_version=${VERSIONS[*]}" >> "$GITHUB_OUTPUT"
+    echo "kubernetes_version=${VERSIONS[*]:-}" >> "${GITHUB_OUTPUT:-/dev/null}"
 
     update_available_versions
 

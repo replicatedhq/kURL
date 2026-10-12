@@ -636,7 +636,7 @@ golangci-lint: GOLANGCI_LINT_VERSION = 2.11.4
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin "v$(GOLANGCI_LINT_VERSION)" ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin "v$(GOLANGCI_LINT_VERSION)" ;\
 	}
 
 .PHONY: lint
@@ -704,6 +704,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
 	./packages/kubernetes/template/script-test.sh
+	./packages/kubernetes/template/add-minor-test.sh
 	./scripts/distro/kubeadm/distro-test.sh
 	./addons/containerd/template/base/install-test.sh
 	./addons/containerd/all-versions-v1beta4-test.sh

@@ -125,6 +125,10 @@ dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.7.29
 6. Build the package locally: `make dist/<name>-<version>.tar.gz`.
 7. Test with Testgrid or via `make watchrsync` on a remote Linux VM.
 
+### Adding a new Kubernetes minor
+
+Follow `.claude/skills/add-kubernetes-minor/SKILL.md` (scaffold with `packages/kubernetes/template/add-minor.sh <N>`, then `script.sh 1.N.P`). New patches of existing minors come from the `update-kubernetes.yaml` cron.
+
 ### Templated add-ons
 
 Some add-ons are auto-generated from a `template/` directory:
