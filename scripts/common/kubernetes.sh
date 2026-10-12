@@ -458,11 +458,23 @@ function kubernetes_restart_kubelet() {
     rmdir "$tmp_manifest_dir"
 
     # wait for the API server to be reachable again before continuing. Fail loudly
-    # here instead of warning and continuing: a caller proceeding against a control
-    # plane that never came back up (e.g. the next kubeadm upgrade step) would
-    # otherwise fail later with a far more confusing error.
+    # here instead of warning and continuing only when this restart is part of
+    # upgrade_kubernetes_local_master (the kubeadm upgrade of this node): a caller
+    # proceeding against a control plane that never came back up there would
+    # otherwise fail later with a far more confusing error, and that path alone has
+    # a downstream safety net (spinner_kubernetes_api_stable) already fatal on the
+    # same condition. $upgrading_kubernetes is the same dynamic-scope local
+    # upgrade_kubernetes_local_master sets for kubernetes_api_address to read; every
+    # other caller of this restart (install.sh re-applied against an
+    # already-initialized master, the standalone per-node scripts/upgrade.sh) keeps
+    # the pre-existing warn-and-continue behavior, since a slow-but-eventual API
+    # recovery there is not fatal to the run.
     if ! spinner_until 120 kubernetes_api_is_healthy; then
-        bail "Kubernetes API did not report healthy within 120s of kubelet restart"
+        if [ -n "$upgrading_kubernetes" ]; then
+            bail "Kubernetes API did not report healthy within 120s of kubelet restart"
+        else
+            logWarn "Kubernetes API did not report healthy within 120s of kubelet restart"
+        fi
     fi
 }
 
