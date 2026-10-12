@@ -188,7 +188,7 @@
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
     - ubuntu-2204 # fails 11/11 release runs since 2026-09-15, see #6168
     - ol-79 # fails 11/11 release runs since 2026-09-15, see #6168
-- name: "Upgrade from k8s 1.31 to 1.36 - Airgap"
+- name: "Upgrade from k8s 1.31 to latest - Airgap"
   airgap: true
   installerSpec:
     kubernetes:
@@ -211,7 +211,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.36.x
+      version: latest
     kurl:
       installerVersion: ""
     flannel:
@@ -242,12 +242,12 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
-    - amzn-20 # Kubernetes 1.35 does not support cgroup v1
-    - centos-74 # Kubernetes 1.35 does not support cgroup v1
-    - centos-78 # Kubernetes 1.35 does not support cgroup v1
-    - centos-79 # Kubernetes 1.35 does not support cgroup v1
-    - ol-79 # Kubernetes 1.35 does not support cgroup v1
-    - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
+    - amzn-20 # latest Kubernetes (1.35+) does not support cgroup v1
+    - centos-74 # latest Kubernetes (1.35+) does not support cgroup v1
+    - centos-78 # latest Kubernetes (1.35+) does not support cgroup v1
+    - centos-79 # latest Kubernetes (1.35+) does not support cgroup v1
+    - ol-79 # latest Kubernetes (1.35+) does not support cgroup v1
+    - ubuntu-1804 # latest Kubernetes (1.35+) does not support cgroup v1
 - name: k8s136x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
