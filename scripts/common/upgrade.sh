@@ -443,9 +443,8 @@ function upgrade_kubernetes_local_master() {
     # kubelet command line argument, '--container-runtime', was removed in Kubernetes 1.27
     upgrade_should_remove_container_runtime_flag "$targetK8sVersion"
 
+    # Do not add a second kubelet restart after this call - it already quiesces and restarts kubelet.
     kubernetes_install_host_packages "$targetK8sVersion"
-    systemctl daemon-reload
-    systemctl restart kubelet
 
     spinner_kubernetes_api_stable
     kubectl uncordon "$nodeName"

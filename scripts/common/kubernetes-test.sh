@@ -561,4 +561,114 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
 }
 
+# If the API server never comes back healthy after the quiesced kubelet restart
+# during the targeted upgrade_kubernetes_local_master path, silently continuing
+# leaves that caller to fail later with a much more confusing error. Bail loudly
+# here instead so the real cause is clear. upgrading_kubernetes is the same
+# dynamic-scope local (set by upgrade_kubernetes_local_master, see
+# kubernetes_api_address's use of it) that scopes this bail to that one caller -
+# see test_kubernetes_restart_kubelet_warns_when_api_stays_unhealthy_outside_upgrade
+# for the other call paths (install.sh re-apply, standalone upgrade.sh), which must
+# keep warning and continuing instead of hard-exiting the whole run.
+function test_kubernetes_restart_kubelet_bails_when_api_stays_unhealthy_during_upgrade() {
+    local calls=""
+    # shellcheck disable=SC2034
+    local upgrading_kubernetes=true
+    systemctl() {
+        #shellcheck disable=SC2317
+        calls="$calls systemctl:$*"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        calls="$calls spinner_until:$2"
+        # the containers-stopped wait succeeds; the post-restart api-health wait does not
+        [ "$2" != "kubernetes_api_is_healthy" ]
+    }
+    mv() {
+        #shellcheck disable=SC2317
+        calls="$calls mv:$1>$2"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        true
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    # bail() exits, so run it in a subshell - a plain direct call would terminate
+    # this whole test process instead of just failing the assertion below.
+    local exit_code=0
+    ( kubernetes_restart_kubelet ) >/dev/null 2>&1 || exit_code="$?"
+
+    assertEquals "should bail instead of warning and continuing when the api never reports healthy during an upgrade" "1" "$exit_code"
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
+}
+
+# Outside upgrade_kubernetes_local_master (e.g. install.sh re-applied against an
+# already-initialized control-plane master, or the standalone per-node
+# scripts/upgrade.sh), a slow API recovery must not hard-exit the whole
+# install/re-apply run - that was the pre-existing warn-and-continue behavior for
+# these paths before the bail was introduced, and no safety net or test coverage
+# exists downstream of them the way spinner_kubernetes_api_stable backstops the
+# targeted upgrade path.
+function test_kubernetes_restart_kubelet_warns_when_api_stays_unhealthy_outside_upgrade() {
+    local calls=""
+    systemctl() {
+        #shellcheck disable=SC2317
+        calls="$calls systemctl:$*"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        calls="$calls spinner_until:$2"
+        # the containers-stopped wait succeeds; the post-restart api-health wait does not
+        [ "$2" != "kubernetes_api_is_healthy" ]
+    }
+    mv() {
+        #shellcheck disable=SC2317
+        calls="$calls mv:$1>$2"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        true
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        calls="$calls logWarn:$*"
+    }
+
+    local exit_code=0
+    kubernetes_restart_kubelet >/dev/null 2>&1 || exit_code="$?"
+
+    assertEquals "should not bail when the api never reports healthy outside an upgrade" "0" "$exit_code"
+    case "$calls" in
+        *"logWarn:"*"did not report healthy"*) ;;
+        *) fail "expected a logWarn about the api not reporting healthy, got: $calls" ;;
+    esac
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log logWarn
+}
+
 . shunit2
