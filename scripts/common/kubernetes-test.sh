@@ -561,4 +561,50 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
 }
 
+# If the API server never comes back healthy after the quiesced kubelet restart,
+# silently continuing leaves the caller (e.g. a kubeadm upgrade) to fail later with
+# a much more confusing error. Bail loudly here instead so the real cause is clear.
+function test_kubernetes_restart_kubelet_bails_when_api_stays_unhealthy() {
+    local calls=""
+    systemctl() {
+        #shellcheck disable=SC2317
+        calls="$calls systemctl:$*"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        calls="$calls spinner_until:$2"
+        # the containers-stopped wait succeeds; the post-restart api-health wait does not
+        [ "$2" != "kubernetes_api_is_healthy" ]
+    }
+    mv() {
+        #shellcheck disable=SC2317
+        calls="$calls mv:$1>$2"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        true
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    # bail() exits, so run it in a subshell - a plain direct call would terminate
+    # this whole test process instead of just failing the assertion below.
+    local exit_code=0
+    ( kubernetes_restart_kubelet ) >/dev/null 2>&1 || exit_code="$?"
+
+    assertEquals "should bail instead of warning and continuing when the api never reports healthy" "1" "$exit_code"
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
+}
+
 . shunit2

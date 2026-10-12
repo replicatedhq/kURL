@@ -457,9 +457,12 @@ function kubernetes_restart_kubelet() {
     mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
     rmdir "$tmp_manifest_dir"
 
-    # wait for the API server to be reachable again before continuing
+    # wait for the API server to be reachable again before continuing. Fail loudly
+    # here instead of warning and continuing: a caller proceeding against a control
+    # plane that never came back up (e.g. the next kubeadm upgrade step) would
+    # otherwise fail later with a far more confusing error.
     if ! spinner_until 120 kubernetes_api_is_healthy; then
-        logWarn "Kubernetes API did not report healthy within 120s of kubelet restart"
+        bail "Kubernetes API did not report healthy within 120s of kubelet restart"
     fi
 }
 

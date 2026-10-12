@@ -443,9 +443,13 @@ function upgrade_kubernetes_local_master() {
     # kubelet command line argument, '--container-runtime', was removed in Kubernetes 1.27
     upgrade_should_remove_container_runtime_flag "$targetK8sVersion"
 
+    # kubernetes_install_host_packages already restarts kubelet itself (it ends with
+    # systemctl enable kubelet && kubernetes_restart_kubelet), quiescing the control
+    # plane static pods first when they are present. An immediate second, un-quiesced
+    # restart here raced the just-recreated static pod containers against another
+    # fresh set, reproducing the exact port-bind/churn issue the quiesce logic exists
+    # to avoid - just on this second restart instead of the first.
     kubernetes_install_host_packages "$targetK8sVersion"
-    systemctl daemon-reload
-    systemctl restart kubelet
 
     spinner_kubernetes_api_stable
     kubectl uncordon "$nodeName"
