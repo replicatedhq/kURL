@@ -241,6 +241,28 @@
   preUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  postUpgradeScript: |
+    # sc-140018: a kURL upgrade imports the new sandbox/pause image into containerd while
+    # the old daemon (with the old sandbox_image) is still running, so the new image is
+    # never pinned unless containerd_ensure_pause_image_pinned (scripts/common/containerd.sh)
+    # heals it on this run. Assert against the real ctr binary that the pause image
+    # config.toml now points at is actually pinned, so kubelet GC / `crictl rmi --prune`
+    # cannot remove it on an airgapped host that can never re-pull it.
+    PAUSE_IMAGE="$(grep sandbox_image /etc/containerd/config.toml | sed 's/[=\"]//g' | awk '{ print $2 }')"
+    if [ -z "$PAUSE_IMAGE" ]; then
+      echo "could not determine the sandbox pause image from /etc/containerd/config.toml"
+      exit 1
+    fi
+    IMAGE_LINE="$(ctr -n=k8s.io images list | awk -v img="$PAUSE_IMAGE" '$1 == img')"
+    if [ -z "$IMAGE_LINE" ]; then
+      echo "pause image $PAUSE_IMAGE not found in containerd's image store after upgrade"
+      exit 1
+    fi
+    if ! echo "$IMAGE_LINE" | grep -q 'io.cri-containerd.pinned=pinned'; then
+      echo "pause image $PAUSE_IMAGE is not pinned after upgrade: $IMAGE_LINE"
+      exit 1
+    fi
+    echo "pause image $PAUSE_IMAGE confirmed pinned after upgrade"
   unsupportedOSIDs:
     - amzn-20 # Kubernetes 1.35 does not support cgroup v1
     - centos-74 # Kubernetes 1.35 does not support cgroup v1

@@ -516,6 +516,32 @@ function test_ensure_pause_image_pinned_warns_on_label_failure() {
     assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
 }
 
+function test_ensure_pause_image_pinned_noop_when_containerd_version_unset() {
+    local result
+    result="$( (
+        systemctl() { echo "SYSTEMCTL_CALLED"; }
+        ctr() { echo "CTR_CALLED: $*"; }
+        CONTAINERD_VERSION=""
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qE "SYSTEMCTL_CALLED|CTR_CALLED"
+    assertEquals "no-ops when CONTAINERD_VERSION is unset (e.g. Docker-CRI host)" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_config_toml_missing() {
+    local result
+    result="$( (
+        systemctl() { echo "SYSTEMCTL_CALLED"; }
+        ctr() { echo "CTR_CALLED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        rm -f /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qE "SYSTEMCTL_CALLED|CTR_CALLED"
+    assertEquals "no-ops when /etc/containerd/config.toml is missing" "1" "$?"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -555,6 +581,8 @@ test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 test_ensure_pause_image_pinned_warns_on_label_failure
+test_ensure_pause_image_pinned_noop_when_containerd_version_unset
+test_ensure_pause_image_pinned_noop_when_config_toml_missing
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."
