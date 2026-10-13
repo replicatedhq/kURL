@@ -494,6 +494,28 @@ function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
     assertEquals "no-ops on containerd 2.x, which never exposes sandbox_image" "1" "$?"
 }
 
+function test_ensure_pause_image_pinned_warns_on_label_failure() {
+    local result
+    local exit_code
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        ctr() {
+            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+                echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
+            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+                return 1
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to pin containerd pause image"
+    assertEquals "logs a warning when ctr images label fails" "0" "$?"
+    assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -532,6 +554,7 @@ test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
+test_ensure_pause_image_pinned_warns_on_label_failure
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."
