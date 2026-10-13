@@ -75,6 +75,11 @@ EOF
     assertEquals "kubeadm-image-overrides should be copied into the version dir" "0" "$result"
 }
 
+# same_content succeeds when two files are byte-identical (cmp is not installed on every test image)
+function same_content() {
+    [ "$(cksum < "$1")" = "$(cksum < "$2")" ]
+}
+
 # write_versions_js_fixture writes a trimmed-down versions.js with the same shape as the real one
 function write_versions_js_fixture() {
     cat > "$1" <<EOF
@@ -158,7 +163,7 @@ function test_update_available_versions_is_idempotent() {
     assertEquals "1" "$(grep -c '"1.37.2"' "$TEST_DIR/versions.js")"
     assertEquals "1" "$(grep -c '"1.36.6"' "$TEST_DIR/versions.js")"
     local result=
-    cmp -s "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
+    same_content "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
     assertEquals "second run should not change versions.js" "0" "$result"
 }
 
@@ -189,7 +194,7 @@ function test_update_available_versions_fails_without_marker() {
     assertContains "$result" "cron-kubernetes-update-138' marker"
     assertContains "$result" "rc=1"
     local unchanged=
-    cmp -s "$TEST_DIR/versions.js.orig" "$TEST_DIR/versions.js" && unchanged=0 || unchanged=1
+    same_content "$TEST_DIR/versions.js.orig" "$TEST_DIR/versions.js" && unchanged=0 || unchanged=1
     assertEquals "versions.js should be unchanged" "0" "$unchanged"
 }
 

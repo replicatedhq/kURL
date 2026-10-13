@@ -21,6 +21,11 @@ function tearDown() {
     rm -rf "$TEST_DIR"
 }
 
+# same_content succeeds when two files are byte-identical (cmp is not installed on every test image)
+function same_content() {
+    [ "$(cksum < "$1")" = "$(cksum < "$2")" ]
+}
+
 function write_dockerfile() {
     cat > "$1" <<EOF
 FROM ubuntu:22.04
@@ -94,9 +99,9 @@ function test_add_minor_is_idempotent() {
 
     assertEquals "Dockerfile.135 Dockerfile.136 Dockerfile.137 Dockerfile.138" "$(list_dockerfiles)"
     local result=
-    cmp -s "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
+    same_content "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
     assertEquals "versions.js unchanged on second run" "0" "$result"
-    cmp -s "$TEST_DIR/Dockerfile.138.first" "$TEST_DIR/template/Dockerfile.138" && result=0 || result=1
+    same_content "$TEST_DIR/Dockerfile.138.first" "$TEST_DIR/template/Dockerfile.138" && result=0 || result=1
     assertEquals "Dockerfile.138 unchanged on second run" "0" "$result"
     assertContains "$(cat "$TEST_DIR/out")" "skipping"
 }
@@ -130,7 +135,7 @@ function test_add_minor_rotates_again_when_oldest_dockerfile_comes_back() {
     assertEquals "2" "$(grep -c 'pkgs.k8s.io/core:/stable:/v1.38/deb/' "$TEST_DIR/template/Dockerfile.138")"
     assertEquals "0" "$(grep -c 'v1.34' "$TEST_DIR/template/Dockerfile.138")"
     local result=
-    cmp -s "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
+    same_content "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
     assertEquals "versions.js unchanged" "0" "$result"
 }
 
