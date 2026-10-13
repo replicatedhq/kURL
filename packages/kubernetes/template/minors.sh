@@ -6,6 +6,10 @@
 
 KURL_MINOR_RE='^[1-9][0-9]?$'
 
+# KURL_MINOR_WINDOW is how many minors have a Dockerfile: add-minor.sh N leaves exactly 1.<N-3>..1.N.
+# shellcheck disable=SC2034 # used by add-minor.sh
+KURL_MINOR_WINDOW=4
+
 # list_supported_minors prints the tracked minors, newest first, one per line (e.g. "37"), from the
 # Dockerfile.1<minor> files in the given directory (default: the current directory).
 function list_supported_minors() {

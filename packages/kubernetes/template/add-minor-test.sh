@@ -102,18 +102,75 @@ function test_add_minor_is_idempotent() {
 }
 
 function test_add_minor_adds_missing_marker_when_dockerfile_exists() {
+    rm "$TEST_DIR/template/Dockerfile.134"
     write_dockerfile "$TEST_DIR/template/Dockerfile.138" 38
 
     run_add_minor 38
     assertEquals "exit code" "0" "$?"
 
-    assertEquals "Dockerfile.134 Dockerfile.135 Dockerfile.136 Dockerfile.137 Dockerfile.138" "$(list_dockerfiles)"
+    assertEquals "Dockerfile.135 Dockerfile.136 Dockerfile.137 Dockerfile.138" "$(list_dockerfiles)"
+    assertEquals "1" "$(grep -c 'cron-kubernetes-update-138' "$TEST_DIR/versions.js")"
+}
+
+function test_add_minor_rotates_again_when_oldest_dockerfile_comes_back() {
+    # a rebase took main's side of a rename/modify conflict: main changed Dockerfile.134, the branch
+    # had renamed it to Dockerfile.138, and now both exist
+    run_add_minor 38
+    assertEquals "first run" "0" "$?"
+    write_dockerfile "$TEST_DIR/template/Dockerfile.134" 34
+    sed -i 's/ubuntu:22.04/ubuntu:24.04/' "$TEST_DIR/template/Dockerfile.134"
+    cp "$TEST_DIR/versions.js" "$TEST_DIR/versions.js.first"
+
+    run_add_minor 38
+    assertEquals "second run" "0" "$?"
+
+    assertContains "$(cat "$TEST_DIR/out")" "Dockerfile.134 is back next to Dockerfile.138, rotating it again"
+    assertEquals "Dockerfile.135 Dockerfile.136 Dockerfile.137 Dockerfile.138" "$(list_dockerfiles)"
+    assertEquals "main's change is carried over" "1" "$(grep -c 'ubuntu:24.04' "$TEST_DIR/template/Dockerfile.138")"
+    assertEquals "2" "$(grep -c 'pkgs.k8s.io/core:/stable:/v1.38/deb/' "$TEST_DIR/template/Dockerfile.138")"
+    assertEquals "0" "$(grep -c 'v1.34' "$TEST_DIR/template/Dockerfile.138")"
+    local result=
+    cmp -s "$TEST_DIR/versions.js.first" "$TEST_DIR/versions.js" && result=0 || result=1
+    assertEquals "versions.js unchanged" "0" "$result"
+}
+
+function test_add_minor_rejects_unexpected_window_size() {
+    # two Dockerfiles older than the window: not a single undone rotation, so refuse to guess
+    write_dockerfile "$TEST_DIR/template/Dockerfile.133" 33
+    run_add_minor 38
+    assertNotEquals "rotation from 5 Dockerfiles" "0" "$?"
+    assertContains "$(cat "$TEST_DIR/out")" "expected 4 Dockerfiles before rotation"
+
+    rm "$TEST_DIR/template/Dockerfile.133" "$TEST_DIR/template/Dockerfile.134"
+    write_dockerfile "$TEST_DIR/template/Dockerfile.138" 38
+    write_dockerfile "$TEST_DIR/template/Dockerfile.133" 33
+    run_add_minor 38
+    assertNotEquals "existing Dockerfile.138 with a stale 1.33" "0" "$?"
+    assertContains "$(cat "$TEST_DIR/out")" "expected 4 Dockerfiles (1.35..1.38)"
+    assertEquals "0" "$(grep -c 'cron-kubernetes-update-138' "$TEST_DIR/versions.js")"
+}
+
+function test_add_minor_rewrites_dockerfile_holding_rotated_out_repo() {
+    # a rebase took main's side of a content conflict in the renamed Dockerfile.138, so it now holds
+    # main's Dockerfile.134 (v1.34 repo, with main's change)
+    rm "$TEST_DIR/template/Dockerfile.134"
+    write_dockerfile "$TEST_DIR/template/Dockerfile.138" 34
+    sed -i 's|/deb/ /|/deb/ / # mirror|' "$TEST_DIR/template/Dockerfile.138"
+
+    run_add_minor 38
+    assertEquals "exit code" "0" "$?"
+
+    assertEquals "Dockerfile.135 Dockerfile.136 Dockerfile.137 Dockerfile.138" "$(list_dockerfiles)"
+    assertEquals "2" "$(grep -c 'pkgs.k8s.io/core:/stable:/v1.38/deb/' "$TEST_DIR/template/Dockerfile.138")"
+    assertEquals "0" "$(grep -c 'v1.34' "$TEST_DIR/template/Dockerfile.138")"
+    assertEquals "main's change is kept" "1" "$(grep -c '# mirror' "$TEST_DIR/template/Dockerfile.138")"
     assertEquals "1" "$(grep -c 'cron-kubernetes-update-138' "$TEST_DIR/versions.js")"
 }
 
 function test_add_minor_rejects_existing_dockerfile_with_wrong_repo() {
-    # e.g. a hand-copied Dockerfile.138 that still points at v1.34
-    write_dockerfile "$TEST_DIR/template/Dockerfile.138" 34
+    # e.g. a hand-copied Dockerfile.138 that points at a minor still in the window
+    rm "$TEST_DIR/template/Dockerfile.134"
+    write_dockerfile "$TEST_DIR/template/Dockerfile.138" 36
 
     run_add_minor 38
     assertNotEquals "exit code" "0" "$?"
@@ -122,6 +179,7 @@ function test_add_minor_rejects_existing_dockerfile_with_wrong_repo() {
 }
 
 function test_add_minor_rejects_existing_dockerfile_with_mixed_repos() {
+    rm "$TEST_DIR/template/Dockerfile.134"
     write_dockerfile "$TEST_DIR/template/Dockerfile.138" 38
     echo "RUN echo https://pkgs.k8s.io/core:/stable:/v1.37/deb/" >> "$TEST_DIR/template/Dockerfile.138"
 

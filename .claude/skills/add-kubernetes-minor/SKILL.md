@@ -39,8 +39,11 @@ packages/kubernetes/template/add-minor.sh N          # deterministic, idempotent
 `add-minor.sh N` validates N, `git mv`s the oldest `Dockerfile.1<old>` to `Dockerfile.1N` (the window
 stays at 4 minors) with its pkgs.k8s.io repo rewritten to `v1.N`, and inserts the
 `// cron-kubernetes-update-1N` marker in versions.js right after the current latest minor's block (so the
-latest minor stays first). Re-running it is a no-op. It exits non-zero on any invariant violation; fix
-the cause, do not hand-edit around it.
+latest minor stays first). Re-running it is a no-op, except that it repairs a rotation undone by a
+rebase that took `main`'s side: the rotated-out `Dockerfile.1<old>` back next to `Dockerfile.1N`, or
+`Dockerfile.1N` holding `main`'s copy of it. Either way it rotates again and keeps `main`'s change. The
+window size is `KURL_MINOR_WINDOW` in `packages/kubernetes/template/minors.sh`. It exits non-zero on any
+invariant violation; fix the cause, do not hand-edit around it.
 
 `script.sh 1.N.P` (pass the version explicitly; with no arguments it also bumps other minors' patches,
 which does not belong in this PR) generates:
