@@ -154,7 +154,7 @@ jobs:
       # (defaults to github.ref, which is what GitHub Actions resolves the
       # workflow YAML from) so `source` below never 404s on an older branch.
       - name: Checkout testgrid-pr-kurl-util.sh from the workflow's own ref
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           sparse-checkout: |
             bin/testgrid-pr-kurl-util.sh
