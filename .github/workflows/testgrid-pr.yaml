@@ -146,6 +146,21 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
           fetch-depth: 0
 
+      # A workflow_dispatch run can target any pre-existing branch via
+      # inputs.branch -- including one that predates this helper script, or
+      # one that was never rebased past it -- so the main checkout above
+      # cannot be relied on to contain bin/testgrid-pr-kurl-util.sh. Fetch it
+      # separately from the ref that is actually running this workflow
+      # (defaults to github.ref, which is what GitHub Actions resolves the
+      # workflow YAML from) so `source` below never 404s on an older branch.
+      - name: Checkout testgrid-pr-kurl-util.sh from the workflow's own ref
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            bin/testgrid-pr-kurl-util.sh
+          sparse-checkout-cone-mode: false
+          path: .testgrid-pr-ci
+
       - id: set-tag
         env:
           # Empty on workflow_dispatch, set on pull_request.
@@ -174,7 +189,7 @@ jobs:
           # build-kurl-util-image -- the kurl-util-image job below either
           # builds it fresh (true) or retags+pushes the existing :alpha under
           # it (false) -- so it is always the resolved image (kURL#6188).
-          source ./bin/testgrid-pr-kurl-util.sh
+          source ./.testgrid-pr-ci/bin/testgrid-pr-kurl-util.sh
           KURL_UTIL_IMAGE="$(testgrid_pr_kurl_util_image "${VERSION_TAG}")"
 
           REF="PR-${VERSION_TAG}-$(date --utc +%FT%TZ)"
