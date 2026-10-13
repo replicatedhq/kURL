@@ -41,6 +41,7 @@ function is_ubuntu_2404() { return "${_IS_UBUNTU_2404:-1}"; }
 function is_ubuntu_2604() { return "${_IS_UBUNTU_2604:-1}"; }
 # END GENERATED os-matrix: ubuntu-predicate-stubs
 function containerd_kubernetes_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
+function kubernetes_containerd_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
 function systemctl() { return 1; }      # "not active" → skip ctr pause-image import
 function kubernetes_version_minor() { echo "$1" | cut -d. -f2; }
 function log() { echo "$*"; }
@@ -407,6 +408,92 @@ function test_join_tolerates_missing_137_guard() {
     assertEquals "containerd_join does not error with 'command not found'" "1" "$?"
 }
 
+# --- containerd_ensure_pause_image_pinned tests (sc-140018) ---
+
+function test_ensure_pause_image_pinned_pins_when_unpinned() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        ctr() {
+            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+                echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
+            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED: -n=k8s.io images label registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    assertEquals "pins an unpinned pause image already present in containerd" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_already_pinned() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        ctr() {
+            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+                echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 io.cri-containerd.pinned=pinned"
+            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not re-label an already-pinned pause image" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_not_imported() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        ctr() {
+            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+                : # no images imported yet
+            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not try to pin an image containerd has not imported yet" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
+    local result
+    result="$( (
+        systemctl() { return 1; }
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not call ctr when containerd is not active" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        kubernetes_containerd_pause_image() { echo ""; } # 2.x: not exposed in config.toml
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="2.2.6"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "no-ops on containerd 2.x, which never exposes sandbox_image" "1" "$?"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -440,6 +527,11 @@ test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 test_pre_init_tolerates_missing_137_guard
 test_join_tolerates_missing_137_guard
+test_ensure_pause_image_pinned_pins_when_unpinned
+test_ensure_pause_image_pinned_noop_when_already_pinned
+test_ensure_pause_image_pinned_noop_when_not_imported
+test_ensure_pause_image_pinned_noop_when_containerd_inactive
+test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."
