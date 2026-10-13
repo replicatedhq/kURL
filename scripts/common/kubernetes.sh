@@ -561,21 +561,42 @@ function kubernetes_kubeadm_init_with_quiesce() {
 }
 
 # kubernetes_cleanup_control_plane_backup removes the control plane backup dir
-# created before a kubeadm init re-application. If the run aborted with the
-# live static pod manifests still moved aside (kubeadm init never rewrote
-# them), the originals are restored first so the previous control plane can
-# recover. Registered as an EXIT trap because the backup holds the apiserver
-# private key and must not survive the run - and must not be deleted while it
-# is still the only recovery material.
+# created before a kubeadm init re-application. If the run aborted after the
+# destructive steps (kubeconfigs deleted, apiserver cert/key moved, manifests
+# moved aside) but before kubeadm init regenerated them, anything missing from
+# the live locations is restored from the backup first so the previous control
+# plane can recover. Registered as an EXIT trap because the backup holds the
+# apiserver private key and must not survive the run - and must not be deleted
+# while it is still the only recovery material.
 function kubernetes_cleanup_control_plane_backup() {
     local backup_dir="$1"
     [ -n "$backup_dir" ] || return 0
     if [ -d "$backup_dir" ]; then
-        local backup_manifests=("$backup_dir"/manifests/*.yaml)
-        local live_manifests=(/etc/kubernetes/manifests/*.yaml)
-        if [ -e "${backup_manifests[0]}" ] && [ ! -e "${live_manifests[0]}" ]; then
-            logWarn "Aborted with control plane static pod manifests moved aside, restoring them from $backup_dir"
-            cp -a "$backup_dir"/manifests/. /etc/kubernetes/manifests/ 2>/dev/null || true
+        local restored=0
+        local f= base=
+        for f in "$backup_dir"/manifests/*.yaml; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/manifests/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/manifests/" 2>/dev/null && restored=1
+            fi
+        done
+        for f in "$backup_dir"/kubeconfigs/*.conf; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/" 2>/dev/null && restored=1
+            fi
+        done
+        for f in "$backup_dir"/pki/*; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/pki/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/pki/" 2>/dev/null && restored=1
+            fi
+        done
+        if [ "$restored" = "1" ]; then
+            logWarn "Aborted mid-init; restored control plane manifests/kubeconfigs/pki from $backup_dir"
         fi
     fi
     rm -rf "$backup_dir" 2>/dev/null || true

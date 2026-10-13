@@ -876,17 +876,19 @@ function test_kubernetes_kubeadm_init_with_quiesce_no_static_pods() {
 
 function test_kubernetes_cleanup_control_plane_backup_restores_on_abort() {
     local backup_dir="${SHUNIT_TMPDIR}/backup"
-    mkdir -p "$backup_dir/manifests"
+    mkdir -p "$backup_dir/manifests" "$backup_dir/kubeconfigs" "$backup_dir/pki"
     echo "fake manifest" > "$backup_dir/manifests/etcd.yaml"
+    echo "fake kubeconfig" > "$backup_dir/kubeconfigs/admin.conf"
+    echo "fake key" > "$backup_dir/pki/apiserver.key"
 
     local calls=""
     cp() {
         #shellcheck disable=SC2317
-        calls="$calls cp:$*"
+        calls="$calls cp:$*;"
     }
     rm() {
         #shellcheck disable=SC2317
-        calls="$calls rm:$*"
+        calls="$calls rm:$*;"
     }
     logWarn() {
         #shellcheck disable=SC2317
@@ -895,8 +897,8 @@ function test_kubernetes_cleanup_control_plane_backup_restores_on_abort() {
 
     kubernetes_cleanup_control_plane_backup "$backup_dir"
 
-    assertEquals "restores manifests then removes the backup" \
-        " cp:-a $backup_dir/manifests/. /etc/kubernetes/manifests/ rm:-rf $backup_dir" \
+    assertEquals "restores each missing file then removes the backup" \
+        " cp:-a $backup_dir/manifests/etcd.yaml /etc/kubernetes/manifests/; cp:-a $backup_dir/kubeconfigs/admin.conf /etc/kubernetes/; cp:-a $backup_dir/pki/apiserver.key /etc/kubernetes/pki/; rm:-rf $backup_dir;" \
         "$calls"
 
     unset -f cp rm logWarn
