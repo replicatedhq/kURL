@@ -535,7 +535,8 @@ function kubernetes_restore_control_plane_static_pods() {
 # quiescing the control plane static pods first whenever manifests are present
 # (a previous failed attempt leaves freshly-written manifests with running
 # pods). kubeadm init rewrites the manifests itself, so the moved-aside copies
-# are discarded.
+# are discarded - safe because the caller's snapshot (taken by copying) is what
+# feeds any rollback, never these.
 function kubernetes_kubeadm_init_with_quiesce() {
     if kubernetes_control_plane_static_pods_present; then
         local quiesced_dir=
@@ -545,9 +546,11 @@ function kubernetes_kubeadm_init_with_quiesce() {
         fi
         [ -n "$quiesced_dir" ] && rm -rf "$quiesced_dir"
     fi
+    # UPLOAD_CERTS is intentionally left unquoted: it is either empty or a flag
+    # list that must word-split
     kubeadm init \
         --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
-        --config $KUBEADM_CONF_FILE \
+        --config "$KUBEADM_CONF_FILE" \
         $UPLOAD_CERTS
 }
 

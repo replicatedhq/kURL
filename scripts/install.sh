@@ -219,13 +219,18 @@ function init() {
     disable_rook_ceph_operator
 
     # On an already-initialized node (upgrade / re-apply), snapshot the control
-    # plane state up front (kubeconfigs, apiserver cert/key) so a failed kubeadm
-    # init can be rolled back; the static pod manifests are moved aside into the
-    # same backup directory just before kubeadm init runs (see below).
+    # plane state up front (manifests, kubeconfigs, apiserver cert/key) so a
+    # failed kubeadm init can be rolled back. The snapshot is taken by copying,
+    # so later move-aside/discard steps never destroy the only copy.
+    # The directory holds private key material; make sure it is removed even if
+    # the script aborts before the cleanup below.
     local control_plane_backup_dir=
     if kubernetes_control_plane_static_pods_present; then
         control_plane_backup_dir="$(mktemp -d /tmp/kurl-control-plane-backup.XXXXXX)"
-        mkdir -p "$control_plane_backup_dir/kubeconfigs" "$control_plane_backup_dir/pki"
+        #shellcheck disable=SC2064  # expand the path now; the variable is local and gone by exit
+        trap "rm -rf '$control_plane_backup_dir'" EXIT
+        mkdir -p "$control_plane_backup_dir/kubeconfigs" "$control_plane_backup_dir/pki" "$control_plane_backup_dir/manifests"
+        cp -a /etc/kubernetes/manifests/*.yaml "$control_plane_backup_dir/manifests/"
         cp -a /etc/kubernetes/*.conf "$control_plane_backup_dir/kubeconfigs/" 2>/dev/null || true
         [ -f /etc/kubernetes/pki/apiserver.crt ] && cp -a /etc/kubernetes/pki/apiserver.crt "$control_plane_backup_dir/pki/"
         [ -f /etc/kubernetes/pki/apiserver.key ] && cp -a /etc/kubernetes/pki/apiserver.key "$control_plane_backup_dir/pki/"
@@ -250,15 +255,6 @@ function init() {
 
     if [ -z "$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" ]; then
         KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
-    fi
-
-    # move the manifests aside into the backup directory now so that they are
-    # preserved for the rollback path below; the kubelet tears the static pods
-    # down on removal, freeing their host ports before kubeadm init runs
-    if [ -n "$control_plane_backup_dir" ]; then
-        if ! kubernetes_move_control_plane_static_pods_aside "$control_plane_backup_dir/manifests"; then
-            logWarn "Failed to quiesce control plane static pods, continuing without quiescing"
-        fi
     fi
 
     set -o pipefail
@@ -287,13 +283,12 @@ function init() {
             rm -rf "$control_plane_backup_dir"
         else
             # restore the previous control plane state so it can recover while
-            # the failure is handled
-            if [ -n "$(ls -A "$control_plane_backup_dir/manifests" 2>/dev/null)" ]; then
-                kubernetes_restore_control_plane_static_pods "$control_plane_backup_dir/manifests"
-            fi
-            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/
-            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/
-            rm -rf "$control_plane_backup_dir"
+            # the failure is handled; every step is guarded so a failure here
+            # cannot abort the rollback mid-way under errexit
+            cp -a "$control_plane_backup_dir/manifests/." /etc/kubernetes/manifests/ 2>/dev/null || true
+            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/ 2>/dev/null || true
+            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/ 2>/dev/null || true
+            rm -rf "$control_plane_backup_dir" || true
         fi
     fi
     if [ "$kubeadm_init_exit" -ne 0 ]; then
