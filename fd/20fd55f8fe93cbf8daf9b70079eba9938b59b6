@@ -1,0 +1,21 @@
+scripts/common/kubernetes-test.sh
+  s_2b8463eec3fc13::t_8d006831ebdbd7 879,881-882,887,891,900-901
+scripts/common/kubernetes.sh
+  s_2b8463eec3fc13::t_05c8cd2f972e22 564-570,575-599
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fd20fd55f8fe93cbf8daf9b70079eba9938b59b6",
+  "prompts": {},
+  "sessions": {
+    "s_2b8463eec3fc13": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eec8b1a07ffez9OccLSvoCCESt",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
