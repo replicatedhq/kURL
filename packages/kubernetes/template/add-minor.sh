@@ -19,6 +19,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_DIR="${KURL_TEMPLATE_DIR:-$SCRIPT_DIR}"
 VERSIONS_JS="${KURL_VERSIONS_JS:-$SCRIPT_DIR/../../../web/src/installers/versions.js}"
 
+# list_supported_minors and KURL_MINOR_RE, shared with script.sh
+# shellcheck source=packages/kubernetes/template/minors.sh
+. "$SCRIPT_DIR/minors.sh"
+
 function log() {
     echo "add-minor: $*"
 }
@@ -35,14 +39,7 @@ function usage() {
 
 # template_minors prints the minors that have a Dockerfile.1<minor> in the template dir, oldest first
 function template_minors() {
-    local dockerfile=
-    local minor=
-    for dockerfile in "$TEMPLATE_DIR"/Dockerfile.1*; do
-        [ -f "$dockerfile" ] || continue
-        minor="${dockerfile##*/Dockerfile.1}"
-        [[ "$minor" =~ ^[1-9][0-9]*$ ]] || continue
-        echo "$minor"
-    done | sort -n
+    list_supported_minors "$TEMPLATE_DIR" | sort -n
 }
 
 function rotate_dockerfile() {
@@ -146,7 +143,7 @@ function add_versions_js_marker() {
 function main() {
     [ $# -eq 1 ] || usage
     local minor="$1"
-    [[ "$minor" =~ ^[1-9][0-9]?$ ]] || die "minor must match ^[1-9][0-9]?\$ (e.g. 38 for Kubernetes 1.38), got '${minor}'"
+    [[ "$minor" =~ $KURL_MINOR_RE ]] || die "minor must match ${KURL_MINOR_RE} (e.g. 38 for Kubernetes 1.38), got '${minor}'"
     [ -d "$TEMPLATE_DIR" ] || die "template dir not found: $TEMPLATE_DIR"
 
     rotate_dockerfile "$minor"

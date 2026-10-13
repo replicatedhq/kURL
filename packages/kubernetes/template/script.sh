@@ -2,21 +2,9 @@
 
 set -euo pipefail
 
-# list_supported_minors prints the Kubernetes minors kURL tracks, newest first, one per line
-# (e.g. "37"). The set is derived from the Dockerfile.1<minor> files in the given directory
-# (default: the current directory, which is packages/kubernetes/template when run as a script),
-# so adding a minor only requires adding its Dockerfile (see add-minor.sh).
-function list_supported_minors() {
-    local dir="${1:-.}"
-    local dockerfile=
-    local minor=
-    for dockerfile in "$dir"/Dockerfile.1*; do
-        [ -f "$dockerfile" ] || continue
-        minor="${dockerfile##*/Dockerfile.1}"
-        [[ "$minor" =~ ^[1-9][0-9]*$ ]] || continue
-        echo "$minor"
-    done | sort -rn
-}
+# list_supported_minors: the minor set comes from the Dockerfile.1<minor> files (see add-minor.sh)
+# shellcheck source=packages/kubernetes/template/minors.sh
+. "$(dirname "${BASH_SOURCE[0]}")/minors.sh"
 
 # versions_js_path prints the path of web/src/installers/versions.js relative to the template dir.
 # KURL_VERSIONS_JS overrides it (used by tests).
@@ -55,7 +43,7 @@ function find_available_versions() {
         fi
         docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"
         local versions=()
-        mapfile -t versions < <(docker run "k8s1${minor}" apt list -a kubelet 2>/dev/null | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
+        mapfile -t versions < <(docker run --rm "k8s1${minor}" apt list -a kubelet 2>/dev/null | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
         if [ ${#versions[@]} -gt 0 ]; then
             echo "Found latest version for Kubernetes 1.${minor}: ${versions[0]}"
             VERSIONS+=("${versions[0]}")
@@ -154,19 +142,22 @@ function use_securebuild_images() {
 }
 
 # generate_version_directory writes ../<version>/Manifest. It runs in a subshell so the EXIT trap
-# cleans up its temp dir, and the Manifest is only moved into place once complete.
+# cleans up its temp files. The Manifest is built in a temp dir, copied to a temp file next to its
+# destination and renamed into place, so ../<version>/Manifest is never left partially written.
 function generate_version_directory() (
     local version="$1"
-    local workdir=
+    # not local: the EXIT trap runs after the function body (this subshell keeps them contained)
     workdir="$(mktemp -d)"
-    # shellcheck disable=SC2064
-    trap "rm -rf '$workdir'" EXIT
+    staged=
+    trap 'rm -rf "$workdir"; [ -z "$staged" ] || rm -f "$staged"' EXIT
 
     download_kubeadm "$version" "$workdir" || return 1
 
-    # capture first so a kubeadm failure fails the script; never hand it our tokens
+    # capture first so a kubeadm failure fails the script. The sha256 check above only catches
+    # corruption (the checksum comes from the same origin), so kubeadm runs with an empty
+    # environment: no tokens or credentials, and HOME is the temp dir (no ~/.config, ~/.docker, ...).
     local images=
-    images="$(env -u GITHUB_TOKEN -u SHORTCUT_API_TOKEN "$workdir/kubeadm" config images list --kubernetes-version="${version}")" || return 1
+    images="$(env -i PATH="$PATH" HOME="$workdir" "$workdir/kubeadm" config images list --kubernetes-version="${version}")" || return 1
     if [ -z "$images" ]; then
         echo "ERROR: kubeadm config images list returned no images for ${version}" >&2
         return 1
@@ -214,7 +205,10 @@ function generate_version_directory() (
 
     mkdir -p "../$version"
     use_securebuild_images "$version" "$manifest"
-    mv "$manifest" "../$version/Manifest"
+    staged="$(mktemp "../$version/.Manifest.XXXXXX")"
+    cat "$manifest" > "$staged"
+    mv "$staged" "../$version/Manifest"
+    staged=
 )
 
 # generate_conformance_package writes ../<version>/conformance/Manifest, only once complete.
@@ -277,21 +271,44 @@ function get_latest_sonobuoy_release_version() {
         grep -Eo "0\.[0-9]+\.[0-9]+"
 }
 
-# update_available_versions adds the newest VERSIONS entry of every supported minor right below
-# its "// cron-kubernetes-update-1<minor>" marker in versions.js, unless already listed there.
-function update_available_versions() {
+# versions_minors prints the distinct minors of the VERSIONS entries (1.37.2 -> 37)
+function versions_minors() {
+    printf '%s\n' ${VERSIONS[@]+"${VERSIONS[@]}"} | awk -F. 'NF == 3 { print $2 }' | sort -rn | uniq
+}
+
+# check_versions_js_markers fails unless versions.js has exactly one
+# "// cron-kubernetes-update-1<minor>" marker for the minor of every VERSIONS entry, so a version is
+# never generated without a place to list it (run add-minor.sh <minor> first for a new minor).
+function check_versions_js_markers() {
     local versions_js=
     versions_js="$(versions_js_path)"
     local minor=
+    local count=
+    for minor in $(versions_minors); do
+        count="$(grep -Ec "^[[:space:]]*// cron-kubernetes-update-1${minor}[[:space:]]*\$" "$versions_js" || true)"
+        if [ "$count" != "1" ]; then
+            echo "ERROR: expected one '// cron-kubernetes-update-1${minor}' marker in ${versions_js}, found ${count}. For a new minor run add-minor.sh ${minor} first." >&2
+            return 1
+        fi
+    done
+}
+
+# update_available_versions adds the newest VERSIONS entry of every minor right below its
+# "// cron-kubernetes-update-1<minor>" marker in versions.js, unless already listed there.
+function update_available_versions() {
+    local versions_js=
+    versions_js="$(versions_js_path)"
+    check_versions_js_markers || return 1
+    local minor=
     local latest=
     local listed=
-    for minor in $(list_supported_minors .); do
-        latest="$(printf '%s\n' ${VERSIONS[@]+"${VERSIONS[@]}"} | grep "^1\.${minor}\." | head -n 1 || true)"
-        [ -n "$latest" ] || continue
+    for minor in $(versions_minors); do
+        latest="$(printf '%s\n' ${VERSIONS[@]+"${VERSIONS[@]}"} | grep "^1\.${minor}\." | sort -rV | head -n 1)"
         # everything after the marker up to the end of the kubernetes array
-        listed="$(sed "0,/cron-kubernetes-update-1${minor}/d" "$versions_js" | sed '/\],/,$d')"
+        listed="$(sed "0,/cron-kubernetes-update-1${minor}\b/d" "$versions_js" | sed '/\],/,$d')"
         if ! grep -qF "\"${latest}\"" <<< "$listed" ; then
-            sed -i "/cron-kubernetes-update-1${minor}/a\    \"${latest}\"\," "$versions_js"
+            sed -i "/cron-kubernetes-update-1${minor}\b/a\    \"${latest}\"\," "$versions_js"
+            grep -qF "\"${latest}\"," "$versions_js" || { echo "ERROR: failed to add ${latest} to ${versions_js}" >&2; return 1; }
         fi
     done
 }
@@ -326,6 +343,7 @@ function main() {
     if [ ${#VERSIONS[@]} -eq 0 ]; then
         find_available_versions
     fi
+    check_versions_js_markers
 
     local version=
     for version in ${VERSIONS[@]+"${VERSIONS[@]}"}; do

@@ -51,11 +51,14 @@ which does not belong in this PR) generates:
   compares them)
 
 `GITHUB_TOKEN` is optional: it only raises the GitHub API rate limit (60/h anonymous) for the single
-cri-tools lookup. `script.sh` sends it to curl on stdin and strips it from kubeadm's environment, so
-`GITHUB_TOKEN="$(gh auth token)" ./script.sh 1.N.P` is fine (set it in the environment of that command
-only, never on a command line argument or in a file). The API call is retried once. `script.sh` verifies the downloaded
-kubeadm against the published `kubeadm.sha256` before running it, writes each Manifest only once it is
-complete, and fails loudly on an empty image list. It can be run from any directory. In no-argument
+cri-tools lookup. `script.sh` sends it to curl on stdin and runs kubeadm with an empty environment
+(only `PATH`, and `HOME` set to a temp dir), so `GITHUB_TOKEN="$(gh auth token)" ./script.sh 1.N.P` is fine
+(set it in the environment of that command only, never on a command line argument or in a file). The API
+call is retried once. `script.sh` checks the downloaded kubeadm against the published `kubeadm.sha256`
+before running it (this catches corruption, not a compromised dl.k8s.io, since both come from the same
+origin), writes each Manifest only once it is complete, and fails loudly on an empty image list. It fails
+before generating anything if a version's `// cron-kubernetes-update-1<minor>` marker is missing (run
+`add-minor.sh` first), and fails if it cannot list the version under it. It can be run from any directory. In no-argument
 (cron) mode it skips minors with no `1.<minor>.x` entry in versions.js yet, and a failed Dockerfile build
 of a listed minor fails the run. `script.sh` no longer needs edits for a new minor: the minor set comes
 from the `Dockerfile.1*` files.

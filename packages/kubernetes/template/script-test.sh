@@ -162,19 +162,52 @@ function test_update_available_versions_is_idempotent() {
     assertEquals "second run should not change versions.js" "0" "$result"
 }
 
-function test_update_available_versions_ignores_minors_without_dockerfile() {
+function test_update_available_versions_lists_explicit_version_without_dockerfile() {
+    # e.g. a human publishes 1.36.6 after Dockerfile.136 was rotated out; its marker is still there
     touch "$TEST_DIR/template/Dockerfile.137"
     write_versions_js_fixture "$TEST_DIR/versions.js"
-    cp "$TEST_DIR/versions.js" "$TEST_DIR/versions.js.orig"
 
     cd "$TEST_DIR/template"
-    VERSIONS=("1.36.6" "1.35.10")
+    VERSIONS=("1.36.6")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
     cd "$ORIG_DIR"
 
+    assertEquals '"1.36.6",' "$(line_after_marker 'cron-kubernetes-update-136' "$TEST_DIR/versions.js")"
+}
+
+function test_update_available_versions_fails_without_marker() {
+    touch "$TEST_DIR/template/Dockerfile.137" "$TEST_DIR/template/Dockerfile.138"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+    cp "$TEST_DIR/versions.js" "$TEST_DIR/versions.js.orig"
+
     local result=
-    cmp -s "$TEST_DIR/versions.js.orig" "$TEST_DIR/versions.js" && result=0 || result=1
-    assertEquals "versions.js should be unchanged" "0" "$result"
+    result="$(
+        cd "$TEST_DIR/template"
+        VERSIONS=("1.37.2" "1.38.0")
+        KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "cron-kubernetes-update-138' marker"
+    assertContains "$result" "rc=1"
+    local unchanged=
+    cmp -s "$TEST_DIR/versions.js.orig" "$TEST_DIR/versions.js" && unchanged=0 || unchanged=1
+    assertEquals "versions.js should be unchanged" "0" "$unchanged"
+}
+
+function test_main_fails_before_generating_when_marker_is_missing() {
+    touch "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        export TEST_DIR
+        KURL_TEMPLATE_DIR="$TEST_DIR/template" KURL_VERSIONS_JS="$TEST_DIR/versions.js" \
+            bash -c '. "$1"; function generate_version_directory() { touch "$TEST_DIR/generated"; }; main 1.38.0' _ \
+            "$ORIG_DIR/packages/kubernetes/template/script.sh" >/dev/null 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertNotEquals "rc=0" "$result"
+    local generated=
+    [ -e "$TEST_DIR/generated" ] && generated=0 || generated=1
+    assertEquals "nothing should be generated" "1" "$generated"
 }
 
 function test_update_available_versions_does_not_confuse_patch_prefixes() {
@@ -329,13 +362,14 @@ function test_download_kubeadm_rejects_invalid_checksum_file() {
 }
 
 # stub_generate_deps replaces the network calls of generate_version_directory. The fake kubeadm
-# prints $FAKE_IMAGES, and fails if it can see GITHUB_TOKEN or FAKE_KUBEADM_FAIL is set.
+# prints $FAKE_IMAGES and fails if it can see GITHUB_TOKEN or AWS_SECRET_ACCESS_KEY. Both FAKE_
+# variables are baked in when the stub is written (kubeadm runs with an empty environment).
 function stub_generate_deps() {
     function download_kubeadm() {
         cat > "$2/kubeadm" <<EOF
 #!/bin/bash
-if [ -n "\${GITHUB_TOKEN:-}" ]; then echo "token leaked to kubeadm" >&2; exit 1; fi
-if [ -n "\${FAKE_KUBEADM_FAIL:-}" ]; then exit 1; fi
+if [ -n "\${GITHUB_TOKEN:-}\${AWS_SECRET_ACCESS_KEY:-}" ]; then echo "credential leaked to kubeadm" >&2; exit 1; fi
+if [ -n "${FAKE_KUBEADM_FAIL:-}" ]; then exit 1; fi
 printf '%b' "$FAKE_IMAGES"
 EOF
         chmod +x "$2/kubeadm"
@@ -349,7 +383,7 @@ function test_generate_version_directory_writes_manifest() {
     local result=
     result="$(
         cd "$TEST_DIR/template"
-        export GITHUB_TOKEN="secret"
+        export GITHUB_TOKEN="secret" AWS_SECRET_ACCESS_KEY="secret"
         FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\nregistry.k8s.io/coredns/coredns:v1.14.6\n'
         stub_generate_deps
         generate_version_directory 1.38.0 && echo ok
@@ -363,6 +397,7 @@ function test_generate_version_directory_writes_manifest() {
     assertEquals "1" "$(grep -c 'cri-tools/releases/download/v1.38.1/crictl-v1.38.1-linux-amd64.tar.gz$' "$manifest")"
     assertEquals "1" "$(grep -c '^asset kustomize-v5.4.3.tar.gz ' "$manifest")"
     assertEquals "no kubeadm left behind" "" "$(find "$TEST_DIR" -name kubeadm)"
+    assertEquals "no staged Manifest left behind" "" "$(find "$TEST_DIR/1.38.0" -name '.Manifest.*')"
 }
 
 function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure() {
@@ -372,7 +407,7 @@ function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure()
     local result=
     result="$(
         cd "$TEST_DIR/template"
-        export FAKE_KUBEADM_FAIL=1
+        FAKE_KUBEADM_FAIL=1
         FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
         stub_generate_deps
         generate_version_directory 1.38.0 2>/dev/null && echo "rc=0" || echo "rc=$?"
@@ -423,12 +458,12 @@ function test_generate_conformance_package_fails_without_nginx_image() {
 }
 
 # stub_docker_for_find stands in for docker in find_available_versions: build records the image tag
-# in $TEST_DIR/built, run lists kubelet 1.<minor>.1 and 1.<minor>.2 for the image's minor
+# in $TEST_DIR/built, run lists kubelet 1.<minor>.1 and 1.<minor>.2 for the k8s1<minor> image argument
 function stub_docker_for_find() {
     function docker() {
         case "$1" in
             build) cat > /dev/null; echo "$3" >> "$TEST_DIR/built"; [ "$3" != "${FAIL_BUILD:-}" ] ;;
-            run) local m="${2#k8s1}"; printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
+            run) local m=; m="$(printf '%s\n' "$@" | sed -n 's/^k8s1//p')"; printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
         esac
     }
 }
