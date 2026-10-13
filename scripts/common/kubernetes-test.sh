@@ -671,4 +671,92 @@ function test_kubernetes_restart_kubelet_warns_when_api_stays_unhealthy_outside_
     unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log logWarn
 }
 
+function test_kubernetes_move_control_plane_static_pods_aside() {
+    local calls_log="${SHUNIT_TMPDIR}/calls"
+    mv() {
+        #shellcheck disable=SC2317
+        echo "mv:$1>$2" >> "$calls_log"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        echo "spinner_until:$2" >> "$calls_log"
+        return 0
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    local dir=
+    dir="$(kubernetes_move_control_plane_static_pods_aside)"
+
+    assertEquals "returns the backup dir" "/tmp/kurl-static-pods.test" "$dir"
+    assertEquals "moves manifests aside and waits for teardown" \
+        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
+spinner_until:kubernetes_control_plane_containers_stopped" \
+        "$(cat "$calls_log")"
+
+    unset -f mv mktemp spinner_until log
+}
+
+function test_kubernetes_move_control_plane_static_pods_aside_teardown_timeout() {
+    local warns_log="${SHUNIT_TMPDIR}/warns"
+    mv() {
+        #shellcheck disable=SC2317
+        true
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        return 1
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        echo "$*" >> "$warns_log"
+    }
+
+    local dir=
+    dir="$(kubernetes_move_control_plane_static_pods_aside)"
+
+    assertEquals "still returns the backup dir" "/tmp/kurl-static-pods.test" "$dir"
+    assertNotEquals "warns when teardown does not complete in time" "" "$(cat "$warns_log" 2>/dev/null)"
+
+    unset -f mv mktemp spinner_until log logWarn
+}
+
+function test_kubernetes_restore_control_plane_static_pods() {
+    local calls=""
+    mv() {
+        #shellcheck disable=SC2317
+        calls="$calls mv:$1>$2"
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        calls="$calls rmdir:$1"
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    kubernetes_restore_control_plane_static_pods "/tmp/kurl-static-pods.test"
+
+    assertEquals "moves manifests back and removes the backup dir" \
+        " mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/ rmdir:/tmp/kurl-static-pods.test" \
+        "$calls"
+
+    unset -f mv rmdir log
+}
+
 . shunit2

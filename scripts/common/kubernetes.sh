@@ -493,6 +493,47 @@ function kubernetes_control_plane_containers_stopped() {
     [ "$running" = "0" ]
 }
 
+# kubernetes_move_control_plane_static_pods_aside moves the control plane
+# static pod manifests to a temporary directory and waits for the kubelet to
+# tear the pods down (releasing their host ports). Prints the directory the
+# manifests were moved to.
+#
+# Use this around operations that rewrite the static pod manifests and/or
+# restart the kubelet on an already-initialized node (e.g. the kubeadm init
+# re-application kURL runs after a Kubernetes version upgrade). Without it,
+# containers recreated by the rewrite/restart bind their host ports before the
+# previous containers have released them and crashloop with
+# "bind: address already in use", which can outlast the kubeadm
+# wait-control-plane budget and fail the run midway.
+function kubernetes_move_control_plane_static_pods_aside() {
+    local tmp_manifest_dir=
+    tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
+
+    # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
+    # tear the static pod down, which releases the pod's host ports
+    log "Moving control plane static pod manifests aside to $tmp_manifest_dir"
+    mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
+
+    # wait for the teardown; on timeout continue anyway, which is no worse than
+    # not quiescing at all
+    if ! spinner_until 60 kubernetes_control_plane_containers_stopped; then
+        logWarn "Control plane containers did not stop within 60s, continuing anyway"
+    fi
+
+    echo "$tmp_manifest_dir"
+}
+
+# kubernetes_restore_control_plane_static_pods moves manifests previously moved
+# aside by kubernetes_move_control_plane_static_pods_aside back into place.
+# Only needed on the failure path: kubeadm init rewrites the manifests itself,
+# so a successful run simply removes the backup directory.
+function kubernetes_restore_control_plane_static_pods() {
+    local tmp_manifest_dir="$1"
+    log "Restoring control plane static pod manifests"
+    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
+    rmdir "$tmp_manifest_dir"
+}
+
 # kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:
 # [FAIL] 4.1.1 Ensure that the kubelet service file permissions are set to 600 or more restrictive (Automated)
 function kubernetes_cis_chmod_kubelet_service_file() {

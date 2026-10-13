@@ -240,12 +240,37 @@ function init() {
     fi
 
     set -o pipefail
+    # On an already-initialized node (upgrade / re-apply), quiesce the control
+    # plane static pods first: kubeadm init rewrites their manifests and its
+    # kubelet-start phase restarts the kubelet, and without quiescing the
+    # recreated containers race the old containers' host ports and crashloop
+    # with "bind: address already in use", which can outlast the
+    # wait-control-plane budget and fail the run midway.
+    local static_pod_backup_dir=
+    if kubernetes_control_plane_static_pods_present; then
+        static_pod_backup_dir="$(kubernetes_move_control_plane_static_pods_aside)"
+    fi
+    local kubeadm_init_exit=0
     cmd_retry 3 kubeadm init \
         --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
-        | tee /tmp/kubeadm-init
+        | tee /tmp/kubeadm-init || kubeadm_init_exit=$?
     set +o pipefail
+
+    if [ -n "$static_pod_backup_dir" ]; then
+        if [ "$kubeadm_init_exit" -eq 0 ]; then
+            # kubeadm init wrote fresh manifests; the backup is not needed
+            rm -rf "$static_pod_backup_dir"
+        else
+            # restore the previous manifests so the old control plane can
+            # recover while the failure is handled
+            kubernetes_restore_control_plane_static_pods "$static_pod_backup_dir"
+        fi
+    fi
+    if [ "$kubeadm_init_exit" -ne 0 ]; then
+        return "$kubeadm_init_exit"
+    fi
 
     kubernetes_apply_image_overrides "$KUBERNETES_VERSION"
 
