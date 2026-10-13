@@ -521,10 +521,13 @@ function test_kubernetes_restart_kubelet_without_static_pods() {
 }
 
 function test_kubernetes_restart_kubelet_with_static_pods() {
-    local calls=""
+    # the function under test captures kubernetes_move_control_plane_static_pods_aside
+    # via $(), which runs it in a subshell - record mock calls through a file so
+    # they survive the subshell boundary
+    local calls_log="${SHUNIT_TMPDIR}/calls-restart"
     systemctl() {
         #shellcheck disable=SC2317
-        calls="$calls systemctl:$*"
+        echo "systemctl:$*" >> "$calls_log"
     }
     kubernetes_control_plane_static_pods_present() {
         #shellcheck disable=SC2317
@@ -532,12 +535,12 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     }
     spinner_until() {
         #shellcheck disable=SC2317
-        calls="$calls spinner_until:$2"
+        echo "spinner_until:$2" >> "$calls_log"
         return 0
     }
     mv() {
         #shellcheck disable=SC2317
-        calls="$calls mv:$1>$2"
+        echo "mv:$1>$2" >> "$calls_log"
     }
     mktemp() {
         #shellcheck disable=SC2317
@@ -555,8 +558,12 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     kubernetes_restart_kubelet
 
     assertEquals "should quiesce static pods, restart kubelet, restore and wait for the api" \
-        " mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/ spinner_until:kubernetes_control_plane_containers_stopped systemctl:restart kubelet mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/ spinner_until:kubernetes_api_is_healthy" \
-        "$calls"
+        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
+spinner_until:kubernetes_control_plane_containers_stopped
+systemctl:restart kubelet
+mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/
+spinner_until:kubernetes_api_is_healthy" \
+        "$(cat "$calls_log")"
 
     unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
 }
@@ -672,7 +679,7 @@ function test_kubernetes_restart_kubelet_warns_when_api_stays_unhealthy_outside_
 }
 
 function test_kubernetes_move_control_plane_static_pods_aside() {
-    local calls_log="${SHUNIT_TMPDIR}/calls"
+    local calls_log="${SHUNIT_TMPDIR}/calls-move"
     mv() {
         #shellcheck disable=SC2317
         echo "mv:$1>$2" >> "$calls_log"
@@ -757,6 +764,114 @@ function test_kubernetes_restore_control_plane_static_pods() {
         "$calls"
 
     unset -f mv rmdir log
+}
+
+function test_kubernetes_move_control_plane_static_pods_aside_move_failure() {
+    local calls_log="${SHUNIT_TMPDIR}/calls-move-failure"
+    mv() {
+        #shellcheck disable=SC2317
+        echo "mv:$1>$2" >> "$calls_log"
+        return 1
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        echo "spinner_until:$2" >> "$calls_log"
+        return 0
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        true
+    }
+    rmdir() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    local exit_code=0
+    kubernetes_move_control_plane_static_pods_aside || exit_code="$?"
+
+    assertEquals "fails cleanly" "1" "$exit_code"
+    assertEquals "moves back what was taken and does not wait for teardown" \
+        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
+mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/" \
+        "$(cat "$calls_log")"
+
+    unset -f mv mktemp spinner_until log logWarn rmdir
+}
+
+function test_kubernetes_kubeadm_init_with_quiesce_first_attempt() {
+    # the wrapper captures the move helper via $(), so record through a file
+    local calls_log="${SHUNIT_TMPDIR}/calls-init-quiesce"
+    kubeadm() {
+        #shellcheck disable=SC2317
+        echo "kubeadm:$*" >> "$calls_log"
+        return 0
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    kubernetes_move_control_plane_static_pods_aside() {
+        #shellcheck disable=SC2317
+        echo "quiesce" >> "$calls_log"
+        echo "/tmp/kurl-static-pods.test"
+    }
+    rm() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    # consumed by kubernetes_kubeadm_init_with_quiesce via dynamic scoping
+    # shellcheck disable=SC2034
+    KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
+    # shellcheck disable=SC2034
+    KUBEADM_CONF_FILE=/tmp/kubeadm.conf
+    # shellcheck disable=SC2034
+    UPLOAD_CERTS=
+    kubernetes_kubeadm_init_with_quiesce
+
+    assertEquals "quiesces then runs kubeadm init" \
+        "quiesce
+kubeadm:init --ignore-preflight-errors=all --config /tmp/kubeadm.conf" \
+        "$(cat "$calls_log")"
+
+    unset -f kubeadm kubernetes_control_plane_static_pods_present kubernetes_move_control_plane_static_pods_aside rm
+}
+
+function test_kubernetes_kubeadm_init_with_quiesce_no_static_pods() {
+    local calls=""
+    kubeadm() {
+        #shellcheck disable=SC2317
+        calls="$calls kubeadm:$*"
+        return 0
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 1
+    }
+
+    # consumed by kubernetes_kubeadm_init_with_quiesce via dynamic scoping
+    # shellcheck disable=SC2034
+    KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
+    # shellcheck disable=SC2034
+    KUBEADM_CONF_FILE=/tmp/kubeadm.conf
+    # shellcheck disable=SC2034
+    UPLOAD_CERTS=
+    kubernetes_kubeadm_init_with_quiesce
+
+    assertEquals "runs kubeadm init directly on a fresh install" \
+        " kubeadm:init --ignore-preflight-errors=all --config /tmp/kubeadm.conf" \
+        "$calls"
+
+    unset -f kubeadm kubernetes_control_plane_static_pods_present
 }
 
 . shunit2

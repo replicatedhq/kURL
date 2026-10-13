@@ -218,6 +218,19 @@ function init() {
     # lead to a loss of quorum
     disable_rook_ceph_operator
 
+    # On an already-initialized node (upgrade / re-apply), snapshot the control
+    # plane state up front (kubeconfigs, apiserver cert/key) so a failed kubeadm
+    # init can be rolled back; the static pod manifests are moved aside into the
+    # same backup directory just before kubeadm init runs (see below).
+    local control_plane_backup_dir=
+    if kubernetes_control_plane_static_pods_present; then
+        control_plane_backup_dir="$(mktemp -d /tmp/kurl-control-plane-backup.XXXXXX)"
+        mkdir -p "$control_plane_backup_dir/kubeconfigs" "$control_plane_backup_dir/pki"
+        cp -a /etc/kubernetes/*.conf "$control_plane_backup_dir/kubeconfigs/" 2>/dev/null || true
+        [ -f /etc/kubernetes/pki/apiserver.crt ] && cp -a /etc/kubernetes/pki/apiserver.crt "$control_plane_backup_dir/pki/"
+        [ -f /etc/kubernetes/pki/apiserver.key ] && cp -a /etc/kubernetes/pki/apiserver.key "$control_plane_backup_dir/pki/"
+    fi
+
     # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
     # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
     # already exist pointing to the load balancer
@@ -239,33 +252,48 @@ function init() {
         KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS=all
     fi
 
+    # move the manifests aside into the backup directory now so that they are
+    # preserved for the rollback path below; the kubelet tears the static pods
+    # down on removal, freeing their host ports before kubeadm init runs
+    if [ -n "$control_plane_backup_dir" ]; then
+        if ! kubernetes_move_control_plane_static_pods_aside "$control_plane_backup_dir/manifests"; then
+            logWarn "Failed to quiesce control plane static pods, continuing without quiescing"
+        fi
+    fi
+
     set -o pipefail
     # On an already-initialized node (upgrade / re-apply), quiesce the control
-    # plane static pods first: kubeadm init rewrites their manifests and its
-    # kubelet-start phase restarts the kubelet, and without quiescing the
-    # recreated containers race the old containers' host ports and crashloop
-    # with "bind: address already in use", which can outlast the
-    # wait-control-plane budget and fail the run midway.
-    local static_pod_backup_dir=
-    if kubernetes_control_plane_static_pods_present; then
-        static_pod_backup_dir="$(kubernetes_move_control_plane_static_pods_aside)"
-    fi
-    local kubeadm_init_exit=0
-    cmd_retry 3 kubeadm init \
-        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
-        --config $KUBEADM_CONF_FILE \
-        $UPLOAD_CERTS \
-        | tee /tmp/kubeadm-init || kubeadm_init_exit=$?
+    # plane static pods before each kubeadm init attempt: kubeadm init rewrites
+    # their manifests and its kubelet-start phase restarts the kubelet, and
+    # without quiescing the recreated containers race the old containers' host
+    # ports and crashloop with "bind: address already in use", which can outlast
+    # the wait-control-plane budget and fail the run midway.
+    set +e
+    cmd_retry 3 kubernetes_kubeadm_init_with_quiesce | tee /tmp/kubeadm-init
+    local pipeline_status=("${PIPESTATUS[@]}")
+    set -e
     set +o pipefail
+    # tee failing is not a kubeadm init failure: do not roll back a freshly
+    # re-initialized control plane because the log copy failed
+    local kubeadm_init_exit="${pipeline_status[0]}"
+    if [ "${pipeline_status[1]:-0}" -ne 0 ]; then
+        logWarn "tee /tmp/kubeadm-init exited ${pipeline_status[1]}; the kubeadm init log may be incomplete"
+    fi
 
-    if [ -n "$static_pod_backup_dir" ]; then
+    if [ -n "$control_plane_backup_dir" ]; then
         if [ "$kubeadm_init_exit" -eq 0 ]; then
-            # kubeadm init wrote fresh manifests; the backup is not needed
-            rm -rf "$static_pod_backup_dir"
+            # kubeadm init wrote fresh manifests and kubeconfigs; the backup is
+            # not needed
+            rm -rf "$control_plane_backup_dir"
         else
-            # restore the previous manifests so the old control plane can
-            # recover while the failure is handled
-            kubernetes_restore_control_plane_static_pods "$static_pod_backup_dir"
+            # restore the previous control plane state so it can recover while
+            # the failure is handled
+            if [ -n "$(ls -A "$control_plane_backup_dir/manifests" 2>/dev/null)" ]; then
+                kubernetes_restore_control_plane_static_pods "$control_plane_backup_dir/manifests"
+            fi
+            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/
+            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/
+            rm -rf "$control_plane_backup_dir"
         fi
     fi
     if [ "$kubeadm_init_exit" -ne 0 ]; then

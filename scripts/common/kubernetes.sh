@@ -436,26 +436,13 @@ function kubernetes_restart_kubelet() {
     fi
 
     local tmp_manifest_dir=
-    tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
-
-    # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
-    # tear the static pod down, which releases the pod's host ports
-    log "Moving control plane static pod manifests aside before kubelet restart"
-    mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
-
-    # wait for the kubelet to tear the static pods down so their host ports are
-    # free; on timeout proceed anyway, which is no worse than not quiescing
-    if ! spinner_until 60 kubernetes_control_plane_containers_stopped; then
-        logWarn "Control plane containers did not stop within 60s, restarting kubelet anyway"
-    fi
+    tmp_manifest_dir="$(kubernetes_move_control_plane_static_pods_aside)"
 
     systemctl restart kubelet
 
     # kubelet watches /etc/kubernetes/manifests: restoring the manifests is
     # sufficient for it to recreate the pods - no second restart is needed.
-    log "Restoring control plane static pod manifests"
-    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
-    rmdir "$tmp_manifest_dir"
+    kubernetes_restore_control_plane_static_pods "$tmp_manifest_dir"
 
     # wait for the API server to be reachable again before continuing. Fail loudly
     # here instead of warning and continuing only when this restart is part of
@@ -496,7 +483,7 @@ function kubernetes_control_plane_containers_stopped() {
 # kubernetes_move_control_plane_static_pods_aside moves the control plane
 # static pod manifests to a temporary directory and waits for the kubelet to
 # tear the pods down (releasing their host ports). Prints the directory the
-# manifests were moved to.
+# manifests were moved to. Accepts an optional destination directory.
 #
 # Use this around operations that rewrite the static pod manifests and/or
 # restart the kubelet on an already-initialized node (e.g. the kubeadm init
@@ -506,17 +493,27 @@ function kubernetes_control_plane_containers_stopped() {
 # "bind: address already in use", which can outlast the kubeadm
 # wait-control-plane budget and fail the run midway.
 function kubernetes_move_control_plane_static_pods_aside() {
-    local tmp_manifest_dir=
-    tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
+    local tmp_manifest_dir="${1:-}"
+    if [ -z "$tmp_manifest_dir" ]; then
+        tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
+    fi
+    mkdir -p "$tmp_manifest_dir"
 
     # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
     # tear the static pod down, which releases the pod's host ports
     log "Moving control plane static pod manifests aside to $tmp_manifest_dir"
-    mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
+    if ! mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"; then
+        # a partial move leaves the node half-quiesced; put back what was taken
+        logWarn "Failed to move control plane static pod manifests aside, moving back what was taken"
+        mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/ 2>/dev/null || true
+        rmdir "$tmp_manifest_dir" 2>/dev/null || true
+        return 1
+    fi
 
     # wait for the teardown; on timeout continue anyway, which is no worse than
-    # not quiescing at all
-    if ! spinner_until 60 kubernetes_control_plane_containers_stopped; then
+    # not quiescing at all. spinner_until prints its spinner on stdout, so it is
+    # redirected to stderr to keep this function's stdout capture clean.
+    if ! spinner_until 60 kubernetes_control_plane_containers_stopped 1>&2; then
         logWarn "Control plane containers did not stop within 60s, continuing anyway"
     fi
 
@@ -532,6 +529,26 @@ function kubernetes_restore_control_plane_static_pods() {
     log "Restoring control plane static pod manifests"
     mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
     rmdir "$tmp_manifest_dir"
+}
+
+# kubernetes_kubeadm_init_with_quiesce runs a single kubeadm init attempt,
+# quiescing the control plane static pods first whenever manifests are present
+# (a previous failed attempt leaves freshly-written manifests with running
+# pods). kubeadm init rewrites the manifests itself, so the moved-aside copies
+# are discarded.
+function kubernetes_kubeadm_init_with_quiesce() {
+    if kubernetes_control_plane_static_pods_present; then
+        local quiesced_dir=
+        if ! quiesced_dir="$(kubernetes_move_control_plane_static_pods_aside)"; then
+            logWarn "Failed to quiesce control plane static pods, running kubeadm init without quiescing"
+            quiesced_dir=
+        fi
+        [ -n "$quiesced_dir" ] && rm -rf "$quiesced_dir"
+    fi
+    kubeadm init \
+        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
+        --config $KUBEADM_CONF_FILE \
+        $UPLOAD_CERTS
 }
 
 # kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:
