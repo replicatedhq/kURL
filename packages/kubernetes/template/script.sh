@@ -18,9 +18,28 @@ function list_supported_minors() {
     done | sort -rn
 }
 
-# Populate VERSIONS array with the latest patch of every kURL-supported minor (one per Dockerfile.1<minor>)
+# versions_js_path prints the path of web/src/installers/versions.js relative to the template dir.
+# KURL_VERSIONS_JS overrides it (used by tests).
+function versions_js_path() {
+    echo "${KURL_VERSIONS_JS:-../../../web/src/installers/versions.js}"
+}
+
+# minor_in_versions_js succeeds when the kubernetes array of versions.js ($2) lists a 1.<minor>.x version.
+function minor_in_versions_js() {
+    sed -n '/^[[:space:]]*kubernetes: \[/,/^[[:space:]]*\],/p' "$2" | grep -Eq "\"1\.${1}\.[0-9]+\""
+}
+
+# Populate VERSIONS array with the latest patch of every kURL-supported minor (one per Dockerfile.1<minor>).
+# Minors not yet listed in versions.js (scaffolded by add-minor.sh) are skipped: the first patch of a new
+# minor is added by the add-kubernetes-minor skill (script.sh 1.N.P), not by the patch cron.
 VERSIONS=()
 function find_available_versions() {
+    local versions_js=
+    versions_js="$(versions_js_path)"
+    if [ ! -f "$versions_js" ]; then
+        echo "versions.js not found at $versions_js" >&2
+        return 1
+    fi
     local minors=()
     mapfile -t minors < <(list_supported_minors .)
     if [ ${#minors[@]} -eq 0 ]; then
@@ -30,11 +49,11 @@ function find_available_versions() {
 
     local minor=
     for minor in "${minors[@]}"; do
-        # a minor whose package repo is not live yet (e.g. scaffolded before GA) must not abort the cron
-        if ! docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"; then
-            echo "WARNING: docker build of Dockerfile.1${minor} failed, skipping Kubernetes 1.${minor}" >&2
+        if ! minor_in_versions_js "$minor" "$versions_js"; then
+            echo "Kubernetes 1.${minor} is not listed in versions.js yet, skipping (added by the add-kubernetes-minor skill)"
             continue
         fi
+        docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"
         local versions=()
         mapfile -t versions < <(docker run "k8s1${minor}" apt list -a kubelet 2>/dev/null | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
         if [ ${#versions[@]} -gt 0 ]; then
@@ -260,9 +279,9 @@ function get_latest_sonobuoy_release_version() {
 
 # update_available_versions adds the newest VERSIONS entry of every supported minor right below
 # its "// cron-kubernetes-update-1<minor>" marker in versions.js, unless already listed there.
-# KURL_VERSIONS_JS overrides the versions.js path (used by tests).
 function update_available_versions() {
-    local versions_js="${KURL_VERSIONS_JS:-../../../web/src/installers/versions.js}"
+    local versions_js=
+    versions_js="$(versions_js_path)"
     local minor=
     local latest=
     local listed=

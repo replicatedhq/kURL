@@ -9,8 +9,9 @@ Input: the target version `1.N.P` (newest GA patch of the new minor 1.N). `N` is
 Everything below runs from the kURL repo root unless stated otherwise.
 
 New patches of *existing* minors are handled by the weekly `.github/workflows/update-kubernetes.yaml`
-cron (`packages/kubernetes/template/script.sh` with no arguments). That cron only knows the minors that
-have a `packages/kubernetes/template/Dockerfile.1<minor>`, which is why a new minor needs this skill.
+cron (`packages/kubernetes/template/script.sh` with no arguments). That cron only looks at minors that
+have a `packages/kubernetes/template/Dockerfile.1<minor>` *and* a `1.<minor>.x` entry in versions.js, so
+the first patch of a new minor always comes from this skill, even if the minor was scaffolded before GA.
 
 ## 1. Preconditions
 
@@ -54,9 +55,10 @@ cri-tools lookup. `script.sh` sends it to curl on stdin and strips it from kubea
 `GITHUB_TOKEN="$(gh auth token)" ./script.sh 1.N.P` is fine (set it in the environment of that command
 only, never on a command line argument or in a file). The API call is retried once. `script.sh` verifies the downloaded
 kubeadm against the published `kubeadm.sha256` before running it, writes each Manifest only once it is
-complete, and fails loudly on an empty image list. It can be run from any directory. A minor whose
-Dockerfile build fails is skipped with a warning in no-argument (cron) mode. `script.sh` no longer needs
-edits for a new minor: the minor set comes from the `Dockerfile.1*` files.
+complete, and fails loudly on an empty image list. It can be run from any directory. In no-argument
+(cron) mode it skips minors with no `1.<minor>.x` entry in versions.js yet, and a failed Dockerfile build
+of a listed minor fails the run. `script.sh` no longer needs edits for a new minor: the minor set comes
+from the `Dockerfile.1*` files.
 
 Check the result: `git status`, the Manifest image list matches `kubeadm config images list
 --kubernetes-version=1.N.P`, and the crictl asset is `1.N.x` (or note the fallback).

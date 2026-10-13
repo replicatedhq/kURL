@@ -422,23 +422,66 @@ function test_generate_conformance_package_fails_without_nginx_image() {
     assertEquals "no conformance Manifest should be written" "1" "$exists"
 }
 
-function test_find_available_versions_skips_minor_whose_build_fails() {
-    touch "$TEST_DIR/template/Dockerfile.137" "$TEST_DIR/template/Dockerfile.138"
+# stub_docker_for_find stands in for docker in find_available_versions: build records the image tag
+# in $TEST_DIR/built, run lists kubelet 1.<minor>.1 and 1.<minor>.2 for the image's minor
+function stub_docker_for_find() {
+    function docker() {
+        case "$1" in
+            build) cat > /dev/null; echo "$3" >> "$TEST_DIR/built"; [ "$3" != "${FAIL_BUILD:-}" ] ;;
+            run) local m="${2#k8s1}"; printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
+        esac
+    }
+}
+
+function test_find_available_versions_skips_minor_not_in_versions_js() {
+    touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137" "$TEST_DIR/template/Dockerfile.138"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+    # scaffolded by add-minor.sh: marker, no 1.38.x entry yet; a 1.38 version in another add-on doesn't count
+    sed -i '/"1.36.4",/a\    // cron-kubernetes-update-138' "$TEST_DIR/versions.js"
+    sed -i '/"0.27.4",/a\    "1.38.0",' "$TEST_DIR/versions.js"
+
     local result=
     result="$(
         cd "$TEST_DIR/template"
-        function docker() {
-            case "$1" in
-                build) cat > /dev/null; [ "$3" != "k8s138" ] ;;
-                run) printf '%s\n' "kubelet/unknown 1.37.1-1.1 amd64" "kubelet/unknown 1.37.2-1.1 amd64" ;;
-            esac
-        }
+        stub_docker_for_find
         VERSIONS=()
-        find_available_versions >/dev/null 2>"$TEST_DIR/stderr"
+        KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions > "$TEST_DIR/stdout"
         echo "${VERSIONS[*]}"
     )"
-    assertEquals "1.37.2" "$result"
-    assertContains "$(cat "$TEST_DIR/stderr")" "skipping Kubernetes 1.38"
+    assertEquals "1.37.2 1.36.2" "$result"
+    assertEquals "k8s137 k8s136" "$(xargs < "$TEST_DIR/built")"
+    assertContains "$(cat "$TEST_DIR/stdout")" "Kubernetes 1.38 is not listed in versions.js yet, skipping"
+}
+
+function test_find_available_versions_fails_when_a_listed_minor_build_fails() {
+    touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        cd "$TEST_DIR/template"
+        export TEST_DIR
+        export -f stub_docker_for_find
+        # a separate bash, because set -e (from script.sh) is ignored on the left of && in this shell
+        FAIL_BUILD=k8s137 KURL_VERSIONS_JS="$TEST_DIR/versions.js" \
+            bash -c '. "$1"; stub_docker_for_find; find_available_versions; echo "after build failure"' _ \
+            "$ORIG_DIR/packages/kubernetes/template/script.sh" >/dev/null 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertNotEquals "rc=0" "$result"
+    assertEquals "k8s137" "$(xargs < "$TEST_DIR/built")"
+}
+
+function test_find_available_versions_fails_without_versions_js() {
+    touch "$TEST_DIR/template/Dockerfile.137"
+
+    local result=
+    result="$(
+        cd "$TEST_DIR/template"
+        stub_docker_for_find
+        KURL_VERSIONS_JS="$TEST_DIR/missing.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "versions.js not found"
+    assertNotEquals "rc=0" "${result##*$'\n'}"
 }
 
 function test_main_works_without_github_output_from_any_cwd() {
