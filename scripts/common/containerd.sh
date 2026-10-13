@@ -152,6 +152,47 @@ function containerd_evaluate_upgrade() {
     done
 }
 
+# containerd_ensure_pause_image_pinned guards against a containerd 1.x gap: it only marks an
+# image io.cri-containerd.pinned=pinned the first time it observes an image matching the
+# running process's sandbox_image (pkg/cri/server/image_pull.go). A kURL upgrade imports the
+# new pause image into containerd while the OLD daemon (with the OLD sandbox_image) is still
+# running, then restarts containerd with the new sandbox_image already written to config.toml
+# -- so the new pause image is never pinned. Kubelet GC (Kubernetes >= 1.29) or
+# `crictl rmi --prune` can then remove it; on an airgapped host that cannot re-pull it, the next
+# reboot takes the control plane down. containerd 2.x re-checks the pin on every image event and
+# does not expose sandbox_image in config.toml at all, so kubernetes_containerd_pause_image
+# already returns empty there and this is a no-op. Safe to call on every kURL run -- it also
+# heals clusters that already upgraded before this fix existed.
+function containerd_ensure_pause_image_pinned() {
+    if [ -z "$CONTAINERD_VERSION" ] || [ ! -f /etc/containerd/config.toml ]; then
+        return
+    fi
+
+    if ! systemctl is-active --quiet containerd; then
+        return
+    fi
+
+    local pause_image=
+    pause_image="$(kubernetes_containerd_pause_image)"
+    if [ -z "$pause_image" ]; then
+        return
+    fi
+
+    local image_line=
+    image_line="$(ctr -n=k8s.io images list 2>/dev/null | awk -v img="$pause_image" '$1 == img')"
+    if [ -z "$image_line" ]; then
+        # not imported yet (e.g. a fresh install before images are loaded) -- nothing to pin
+        return
+    fi
+
+    if echo "$image_line" | grep -q 'io.cri-containerd.pinned=pinned'; then
+        return
+    fi
+
+    log "Pinning containerd pause image $pause_image"
+    ctr -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned
+}
+
 function use_os_containerd() {
     if ! host_packages_shipped && ! is_rhel_9_variant ; then
         # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
