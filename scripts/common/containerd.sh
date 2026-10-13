@@ -190,7 +190,9 @@ function containerd_ensure_pause_image_pinned() {
     fi
 
     log "Pinning containerd pause image $pause_image"
-    ctr -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned
+    if ! ctr -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned; then
+        logWarn "Failed to pin containerd pause image $pause_image; will retry on next install/upgrade run"
+    fi
 }
 
 function use_os_containerd() {
