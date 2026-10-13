@@ -874,4 +874,54 @@ function test_kubernetes_kubeadm_init_with_quiesce_no_static_pods() {
     unset -f kubeadm kubernetes_control_plane_static_pods_present
 }
 
+function test_kubernetes_cleanup_control_plane_backup_restores_on_abort() {
+    local backup_dir="${SHUNIT_TMPDIR}/backup"
+    mkdir -p "$backup_dir/manifests"
+    echo "fake manifest" > "$backup_dir/manifests/etcd.yaml"
+
+    local calls=""
+    cp() {
+        #shellcheck disable=SC2317
+        calls="$calls cp:$*"
+    }
+    rm() {
+        #shellcheck disable=SC2317
+        calls="$calls rm:$*"
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    kubernetes_cleanup_control_plane_backup "$backup_dir"
+
+    assertEquals "restores manifests then removes the backup" \
+        " cp:-a $backup_dir/manifests/. /etc/kubernetes/manifests/ rm:-rf $backup_dir" \
+        "$calls"
+
+    unset -f cp rm logWarn
+}
+
+function test_kubernetes_cleanup_control_plane_backup_noop_without_backup() {
+    local calls=""
+    cp() {
+        #shellcheck disable=SC2317
+        calls="$calls cp:$1>$2"
+    }
+    rm() {
+        #shellcheck disable=SC2317
+        calls="$calls rm:$*"
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    kubernetes_cleanup_control_plane_backup ""
+
+    assertEquals "no backup dir means no work" "" "$calls"
+
+    unset -f cp rm logWarn
+}
+
 . shunit2

@@ -227,8 +227,10 @@ function init() {
     local control_plane_backup_dir=
     if kubernetes_control_plane_static_pods_present; then
         control_plane_backup_dir="$(mktemp -d /tmp/kurl-control-plane-backup.XXXXXX)"
-        #shellcheck disable=SC2064  # expand the path now; the variable is local and gone by exit
-        trap "rm -rf '$control_plane_backup_dir'" EXIT
+        # expand the path now; the variable is local and gone by exit. The trap
+        # restores the manifests first if the run aborted with them moved aside
+        #shellcheck disable=SC2064
+        trap "kubernetes_cleanup_control_plane_backup '$control_plane_backup_dir'" EXIT
         mkdir -p "$control_plane_backup_dir/kubeconfigs" "$control_plane_backup_dir/pki" "$control_plane_backup_dir/manifests"
         cp -a /etc/kubernetes/manifests/*.yaml "$control_plane_backup_dir/manifests/"
         cp -a /etc/kubernetes/*.conf "$control_plane_backup_dir/kubeconfigs/" 2>/dev/null || true

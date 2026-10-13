@@ -436,7 +436,13 @@ function kubernetes_restart_kubelet() {
     fi
 
     local tmp_manifest_dir=
-    tmp_manifest_dir="$(kubernetes_move_control_plane_static_pods_aside)"
+    if ! tmp_manifest_dir="$(kubernetes_move_control_plane_static_pods_aside)"; then
+        # same contract as the kubeadm init wrapper: tolerate a failed quiesce
+        # and restart un-quiesced (status quo ante), never abort the run here
+        logWarn "Failed to quiesce control plane static pods, restarting kubelet without quiescing"
+        systemctl restart kubelet
+        return 0
+    fi
 
     systemctl restart kubelet
 
@@ -552,6 +558,27 @@ function kubernetes_kubeadm_init_with_quiesce() {
         --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
         --config "$KUBEADM_CONF_FILE" \
         $UPLOAD_CERTS
+}
+
+# kubernetes_cleanup_control_plane_backup removes the control plane backup dir
+# created before a kubeadm init re-application. If the run aborted with the
+# live static pod manifests still moved aside (kubeadm init never rewrote
+# them), the originals are restored first so the previous control plane can
+# recover. Registered as an EXIT trap because the backup holds the apiserver
+# private key and must not survive the run - and must not be deleted while it
+# is still the only recovery material.
+function kubernetes_cleanup_control_plane_backup() {
+    local backup_dir="$1"
+    [ -n "$backup_dir" ] || return 0
+    if [ -d "$backup_dir" ]; then
+        local backup_manifests=("$backup_dir"/manifests/*.yaml)
+        local live_manifests=(/etc/kubernetes/manifests/*.yaml)
+        if [ -e "${backup_manifests[0]}" ] && [ ! -e "${live_manifests[0]}" ]; then
+            logWarn "Aborted with control plane static pod manifests moved aside, restoring them from $backup_dir"
+            cp -a "$backup_dir"/manifests/. /etc/kubernetes/manifests/ 2>/dev/null || true
+        fi
+    fi
+    rm -rf "$backup_dir" 2>/dev/null || true
 }
 
 # kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:
