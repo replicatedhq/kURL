@@ -285,12 +285,16 @@ function init() {
             rm -rf "$control_plane_backup_dir"
         else
             # restore the previous control plane state so it can recover while
-            # the failure is handled; every step is guarded so a failure here
-            # cannot abort the rollback mid-way under errexit
-            cp -a "$control_plane_backup_dir/manifests/." /etc/kubernetes/manifests/ 2>/dev/null || true
-            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/ 2>/dev/null || true
-            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/ 2>/dev/null || true
+            # the failure is handled; failures here are logged but cannot abort
+            # the rollback mid-way under errexit
+            local rollback_ok=1
+            cp -a "$control_plane_backup_dir/manifests/." /etc/kubernetes/manifests/ 2>/dev/null || rollback_ok=0
+            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/ 2>/dev/null || rollback_ok=0
+            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/ 2>/dev/null || rollback_ok=0
             rm -rf "$control_plane_backup_dir" || true
+            if [ "$rollback_ok" = "0" ]; then
+                logWarn "Failed to fully restore the pre-init control plane state from the backup; manual recovery of /etc/kubernetes may be required"
+            fi
         fi
     fi
     if [ "$kubeadm_init_exit" -ne 0 ]; then

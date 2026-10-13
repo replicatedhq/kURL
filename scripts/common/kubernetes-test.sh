@@ -536,6 +536,7 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     spinner_until() {
         #shellcheck disable=SC2317
         echo "spinner_until:$2" >> "$calls_log"
+        #shellcheck disable=SC2317
         return 0
     }
     mv() {
@@ -568,6 +569,51 @@ spinner_until:kubernetes_api_is_healthy" \
     unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until mv mktemp rmdir log
 }
 
+function test_kubernetes_restart_kubelet_tolerates_quiesce_failure() {
+    local calls_log="${SHUNIT_TMPDIR}/calls-restart-tolerate"
+    systemctl() {
+        #shellcheck disable=SC2317
+        echo "systemctl:$*" >> "$calls_log"
+    }
+    kubernetes_control_plane_static_pods_present() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    kubernetes_move_control_plane_static_pods_aside() {
+        #shellcheck disable=SC2317
+        return 1
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        echo "spinner_until:$2" >> "$calls_log"
+        #shellcheck disable=SC2317
+        return 0
+    }
+    logWarn() {
+        #shellcheck disable=SC2317
+        echo "logWarn:$*" >> "$calls_log"
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    local exit_code=0
+    kubernetes_restart_kubelet || exit_code="$?"
+
+    assertEquals "a failed quiesce must not abort the restart" "0" "$exit_code"
+    assertEquals "warns, restarts without quiescing and still waits for the api" \
+        "logWarn:Failed to quiesce control plane static pods, restarting kubelet without quiescing
+systemctl:restart kubelet
+spinner_until:kubernetes_api_is_healthy" \
+        "$(cat "$calls_log")"
+
+    unset -f systemctl kubernetes_control_plane_static_pods_present spinner_until logWarn log
+    # re-sourcing restores the real kubernetes_move_control_plane_static_pods_aside
+    # (mocking it replaced the definition) for the tests below
+    . ./scripts/common/kubernetes.sh
+}
+
 # If the API server never comes back healthy after the quiesced kubelet restart
 # during the targeted upgrade_kubernetes_local_master path, silently continuing
 # leaves that caller to fail later with a much more confusing error. Bail loudly
@@ -593,6 +639,7 @@ function test_kubernetes_restart_kubelet_bails_when_api_stays_unhealthy_during_u
         #shellcheck disable=SC2317
         calls="$calls spinner_until:$2"
         # the containers-stopped wait succeeds; the post-restart api-health wait does not
+        #shellcheck disable=SC2317
         [ "$2" != "kubernetes_api_is_healthy" ]
     }
     mv() {
@@ -643,6 +690,7 @@ function test_kubernetes_restart_kubelet_warns_when_api_stays_unhealthy_outside_
         #shellcheck disable=SC2317
         calls="$calls spinner_until:$2"
         # the containers-stopped wait succeeds; the post-restart api-health wait does not
+        #shellcheck disable=SC2317
         [ "$2" != "kubernetes_api_is_healthy" ]
     }
     mv() {
@@ -691,6 +739,7 @@ function test_kubernetes_move_control_plane_static_pods_aside() {
     spinner_until() {
         #shellcheck disable=SC2317
         echo "spinner_until:$2" >> "$calls_log"
+        #shellcheck disable=SC2317
         return 0
     }
     log() {
@@ -771,6 +820,7 @@ function test_kubernetes_move_control_plane_static_pods_aside_move_failure() {
     mv() {
         #shellcheck disable=SC2317
         echo "mv:$1>$2" >> "$calls_log"
+        #shellcheck disable=SC2317
         return 1
     }
     mktemp() {
@@ -780,6 +830,7 @@ function test_kubernetes_move_control_plane_static_pods_aside_move_failure() {
     spinner_until() {
         #shellcheck disable=SC2317
         echo "spinner_until:$2" >> "$calls_log"
+        #shellcheck disable=SC2317
         return 0
     }
     log() {
@@ -813,6 +864,7 @@ function test_kubernetes_kubeadm_init_with_quiesce_first_attempt() {
     kubeadm() {
         #shellcheck disable=SC2317
         echo "kubeadm:$*" >> "$calls_log"
+        #shellcheck disable=SC2317
         return 0
     }
     kubernetes_control_plane_static_pods_present() {
@@ -822,6 +874,7 @@ function test_kubernetes_kubeadm_init_with_quiesce_first_attempt() {
     kubernetes_move_control_plane_static_pods_aside() {
         #shellcheck disable=SC2317
         echo "quiesce" >> "$calls_log"
+        #shellcheck disable=SC2317
         echo "/tmp/kurl-static-pods.test"
     }
     rm() {
@@ -851,6 +904,7 @@ function test_kubernetes_kubeadm_init_with_quiesce_no_static_pods() {
     kubeadm() {
         #shellcheck disable=SC2317
         calls="$calls kubeadm:$*"
+        #shellcheck disable=SC2317
         return 0
     }
     kubernetes_control_plane_static_pods_present() {

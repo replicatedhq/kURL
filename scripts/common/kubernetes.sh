@@ -440,15 +440,16 @@ function kubernetes_restart_kubelet() {
         # same contract as the kubeadm init wrapper: tolerate a failed quiesce
         # and restart un-quiesced (status quo ante), never abort the run here
         logWarn "Failed to quiesce control plane static pods, restarting kubelet without quiescing"
-        systemctl restart kubelet
-        return 0
+        tmp_manifest_dir=
     fi
 
     systemctl restart kubelet
 
     # kubelet watches /etc/kubernetes/manifests: restoring the manifests is
     # sufficient for it to recreate the pods - no second restart is needed.
-    kubernetes_restore_control_plane_static_pods "$tmp_manifest_dir"
+    if [ -n "$tmp_manifest_dir" ]; then
+        kubernetes_restore_control_plane_static_pods "$tmp_manifest_dir"
+    fi
 
     # wait for the API server to be reachable again before continuing. Fail loudly
     # here instead of warning and continuing only when this restart is part of
