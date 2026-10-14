@@ -579,21 +579,6 @@ function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
     assertEquals "does not log a warning for a legitimate inactive/failed state" "1" "$?"
 }
 
-function test_ensure_pause_image_pinned_warns_when_systemctl_check_fails() {
-    local result
-    result="$( (
-        systemctl() { echo "Failed to connect to bus: No such file or directory" >&2; return 1; }
-        ctr() { echo "LABELED: $*"; }
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not call ctr when the systemctl check itself cannot be trusted" "1" "$?"
-    echo "$result" | grep -qi "WARN.*systemctl is-active"
-    assertEquals "logs a warning when systemctl is-active fails unexpectedly, instead of silently treating it as inactive" "0" "$?"
-}
-
 function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
     local result
     result="$( (
@@ -717,7 +702,6 @@ test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
-test_ensure_pause_image_pinned_warns_when_systemctl_check_fails
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 test_ensure_pause_image_pinned_warns_on_list_failure
 test_ensure_pause_image_pinned_warns_on_label_failure

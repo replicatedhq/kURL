@@ -168,17 +168,8 @@ function containerd_ensure_pause_image_pinned() {
         return
     fi
 
-    local active_status=
-    if ! active_status="$(systemctl is-active containerd 2>&1)"; then
-        case "$active_status" in
-            inactive|failed|unknown|activating|deactivating)
-                return
-                ;;
-            *)
-                logWarn "systemctl is-active containerd returned an unexpected result ($active_status); skipping pause-image pin check, will retry on next install/upgrade run"
-                return
-                ;;
-        esac
+    if ! systemctl is-active --quiet containerd; then
+        return
     fi
 
     local pause_image=
@@ -187,8 +178,11 @@ function containerd_ensure_pause_image_pinned() {
         return
     fi
 
+    local sock=
+    sock="$(${K8S_DISTRO}_get_containerd_sock)"
+
     local list_output=
-    if ! list_output="$(ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images list 2>&1)"; then
+    if ! list_output="$(ctr -a "$sock" -n=k8s.io images list 2>&1)"; then
         logWarn "Failed to list containerd images while checking pause-image pin ($list_output); will retry on next install/upgrade run"
         return
     fi
@@ -237,7 +231,7 @@ function containerd_ensure_pause_image_pinned() {
     matched_ref="$(echo "$image_line" | awk '{ print $1 }')"
 
     log "Pinning containerd pause image $matched_ref"
-    if ! ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images label -- "$matched_ref" io.cri-containerd.pinned=pinned; then
+    if ! ctr -a "$sock" -n=k8s.io images label -- "$matched_ref" io.cri-containerd.pinned=pinned; then
         logWarn "Failed to pin containerd pause image $matched_ref; will retry on next install/upgrade run"
     fi
 }
