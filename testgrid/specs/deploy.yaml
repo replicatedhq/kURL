@@ -120,7 +120,11 @@
       echo "could not determine the sandbox pause image from /etc/containerd/config.toml"
       exit 1
     fi
-    IMAGE_LINE="$(ctr -n=k8s.io images list | awk -v img="$PAUSE_IMAGE" '$1 == img')"
+    if ! LIST_OUTPUT="$(ctr -n=k8s.io images list 2>&1)"; then
+      echo "failed to list containerd images: $LIST_OUTPUT"
+      exit 1
+    fi
+    IMAGE_LINE="$(echo "$LIST_OUTPUT" | awk -v img="$PAUSE_IMAGE" '$1 == img')"
     if [ -z "$IMAGE_LINE" ]; then
       echo "pause image $PAUSE_IMAGE not found in containerd's image store after upgrade"
       exit 1
