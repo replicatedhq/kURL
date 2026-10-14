@@ -22,10 +22,16 @@ testKurlUtilImageJobUsesProvisionedDockerHubCredential() {
     # Isolate the kurl-util-image job body (next top-level job starts the
     # cutoff) so a secret reference anywhere else in the file can't hide the
     # job-specific check.
+    #
+    # Strip comment-only lines before asserting: this job's own explanatory
+    # comments are free to mention any of these secret names (e.g. while
+    # describing the history of this guard), and a plain grep over the raw
+    # job body would wrongly pass/fail on that comment text instead of the
+    # actual docker/login-action credentials (PR #6173 review).
     local job_body
     job_body="$(mktemp)"
     awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
-        "${WORKFLOW}" > "${job_body}"
+        "${WORKFLOW}" | grep -v '^[[:space:]]*#' > "${job_body}"
 
     assertTrue "kurl-util-image job must use the provisioned secrets.DOCKERHUB_USER" \
         "grep -q 'secrets.DOCKERHUB_USER' '${job_body}'"
@@ -37,6 +43,40 @@ testKurlUtilImageJobUsesProvisionedDockerHubCredential() {
         "grep -q 'secrets.DOCKERHUB_PR_TOKEN' '${job_body}'"
 
     rm -f "${job_body}"
+}
+
+testDockerHubCredentialGuardIgnoresCommentOnlyMentions() {
+    # Reproduces the gap above directly: a job that actually authenticates
+    # with the unprovisioned DOCKERHUB_PR_USER/DOCKERHUB_PR_TOKEN pair, but
+    # whose comments happen to mention the provisioned DOCKERHUB_USER/
+    # DOCKERHUB_PASSWORD names, must fail the guard rather than pass on the
+    # comment text.
+    local fixture job_body
+    fixture="$(mktemp)"
+    job_body="$(mktemp)"
+    cat > "${fixture}" <<'EOF'
+  kurl-util-image:
+    runs-on: ubuntu-24.04
+    steps:
+      # Earlier revisions logged in with secrets.DOCKERHUB_USER and
+      # secrets.DOCKERHUB_PASSWORD; this comment only describes that history.
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_PR_USER }}
+          password: ${{ secrets.DOCKERHUB_PR_TOKEN }}
+  job2:
+    runs-on: ubuntu-24.04
+EOF
+
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${fixture}" | grep -v '^[[:space:]]*#' > "${job_body}"
+
+    assertFalse "a comment-only mention of secrets.DOCKERHUB_USER must not satisfy the guard when the job actually logs in with the unprovisioned pair" \
+        "grep -q 'secrets.DOCKERHUB_USER' '${job_body}'"
+    assertTrue "the job's real use of the unprovisioned secrets.DOCKERHUB_PR_USER must still be caught" \
+        "grep -q 'secrets.DOCKERHUB_PR_USER' '${job_body}'"
+
+    rm -f "${fixture}" "${job_body}"
 }
 
 testKurlUtilImageJobScopesGitHubTokenAndDropsPersistedCredentials() {

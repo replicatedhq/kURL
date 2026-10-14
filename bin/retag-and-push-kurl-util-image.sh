@@ -1,26 +1,7 @@
 #!/bin/bash
 
-# retry <retries> <command...>
-#
-# Exponential-backoff retry for flaky network calls (mirrors the S3 retry
-# helpers inlined in testgrid-pr.yaml).
-function retry() {
-    local retries="$1"; shift
-    local count=0 exit wait
-    until "$@"; do
-        exit=$?
-        wait=$((2 ** count))
-        count=$((count + 1))
-        if [ "${count}" -lt "${retries}" ]; then
-            echo "Retry ${count}/${retries} exited ${exit}, retrying in ${wait}s..." >&2
-            sleep "${wait}"
-        else
-            echo "Retry ${count}/${retries} exited ${exit}, no more retries left." >&2
-            return "${exit}"
-        fi
-    done
-    return 0
-}
+# shellcheck source=retry.sh
+. ./bin/retry.sh
 
 # retag_and_push_kurl_util_image <source_image> <dest_image>
 #

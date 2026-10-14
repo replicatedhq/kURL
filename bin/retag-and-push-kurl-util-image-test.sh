@@ -154,5 +154,17 @@ testRetagAndPushRequiresSourceAndDestImages() {
     assertEquals "retag_and_push_kurl_util_image: source_image and dest_image are required" "${output}"
 }
 
+testRetagScriptSourcesSharedRetryHelperInsteadOfDefiningItsOwnCopy() {
+    # PR #6173 review (doomer-ai): this script's retry() was a third
+    # hand-maintained copy of the exponential-backoff helper (bin/upload-
+    # dist-staging.sh, and two inlined in testgrid-pr.yaml, already had
+    # their own). Guard that it sources the shared bin/retry.sh instead of
+    # redefining the function here, so the two can't drift apart.
+    assertTrue "bin/retag-and-push-kurl-util-image.sh must source bin/retry.sh" \
+        "grep -q '^\. \./bin/retry\.sh' ./bin/retag-and-push-kurl-util-image.sh"
+    assertFalse "bin/retag-and-push-kurl-util-image.sh must not define its own retry()" \
+        "grep -q '^function retry()' ./bin/retag-and-push-kurl-util-image.sh"
+}
+
 # shellcheck source=/dev/null
 . shunit2

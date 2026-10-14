@@ -256,12 +256,13 @@ jobs:
           ref: ${{ inputs.branch }}
           persist-credentials: false
 
-      # The retag step below sources this script regardless of path, so it
-      # must exist even on the default (label) path, which otherwise checks
-      # out nothing. Sparse-checkout just this one file -- same pattern as
-      # get-tag's fetch of resolve-kurl-util-image-tag.sh -- so the fast
-      # default path keeps PR-authored code exposure to this single
-      # tag+push helper, not the whole repo or its Makefile.
+      # The retag step below sources this script (and the shared retry
+      # helper it depends on) regardless of path, so both must exist even on
+      # the default (label) path, which otherwise checks out nothing.
+      # Sparse-checkout just these two files -- same pattern as get-tag's
+      # fetch of resolve-kurl-util-image-tag.sh -- so the fast default path
+      # keeps PR-authored code exposure to this single tag+push helper and
+      # its retry dependency, not the whole repo or its Makefile.
       #
       # ref: the repository's default branch for a labeled PR run, NOT the
       # implicit triggering ref. The step right after this logs in to Docker
@@ -300,6 +301,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: |
             bin/retag-and-push-kurl-util-image.sh
+            bin/retry.sh
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
@@ -309,6 +311,7 @@ jobs:
           ref: ${{ inputs.branch }}
           sparse-checkout: |
             bin/retag-and-push-kurl-util-image.sh
+            bin/retry.sh
           sparse-checkout-cone-mode: false
           persist-credentials: false
           path: .testgrid-pr-dispatch-branch-script
@@ -324,11 +327,18 @@ jobs:
         run: |
           set -euo pipefail
           DISPATCH_SCRIPT=".testgrid-pr-dispatch-branch-script/bin/retag-and-push-kurl-util-image.sh"
+          DISPATCH_RETRY_LIB=".testgrid-pr-dispatch-branch-script/bin/retry.sh"
           if [ -f "${DISPATCH_SCRIPT}" ]; then
             echo "using inputs.branch's own copy of the retag script"
             cp "${DISPATCH_SCRIPT}" ./bin/retag-and-push-kurl-util-image.sh
           else
             echo "inputs.branch has no copy of the retag script; keeping the default-branch copy"
+          fi
+          if [ -f "${DISPATCH_RETRY_LIB}" ]; then
+            echo "using inputs.branch's own copy of the shared retry helper"
+            cp "${DISPATCH_RETRY_LIB}" ./bin/retry.sh
+          else
+            echo "inputs.branch has no copy of the shared retry helper; keeping the default-branch copy"
           fi
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
