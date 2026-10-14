@@ -2,12 +2,31 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$VERSION-$CHARTVERSION"
-    [ "$VERSION-$CHARTVERSION" = "0.94.1-91.8.0" ] || return 0
+    [ "$(printf '%s\n' "0.94.1-91.8.0" "$VERSION-$CHARTVERSION" | sort -V | head -n 1)" = "0.94.1-91.8.0" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])quay\.io/prometheus/prometheus:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/prometheus:\2~g
+s~(^|[[:space:]"'=])docker\.io/grafana/grafana:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/grafana:\2~g
+s~(^|[[:space:]"'=])quay\.io/kiwigrid/k8s-sidecar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/kiwigrid-k8s-sidecar:\2~g
+s~(^|[[:space:]"'=])quay\.io/prometheus/alertmanager:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/alertmanager:\2~g
+s~(^|[[:space:]"'=])quay\.io/prometheus/node-exporter:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/node-exporter:\2~g
+s~(^|[[:space:]"'=])quay\.io/prometheus-operator/prometheus-operator:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/prometheus-operator:\2~g
+s~(^|[[:space:]"'=])quay\.io/prometheus-operator/prometheus-config-reloader:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/prometheus-config-reloader:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/kube-state-metrics/kube-state-metrics:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/kube-state-metrics:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/prometheus-adapter/prometheus-adapter:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/prometheus-adapter:\2~g
+s~(docker\.io/kurlsh/prometheus:v?[0-9][[:alnum:]._-]*)-distroless~\1~g
+s~(docker\.io/kurlsh/grafana:v?[0-9][[:alnum:]._-]*)-distroless~\1~g
+s~(docker\.io/kurlsh/node-exporter:v?[0-9][[:alnum:]._-]*)-distroless~\1~g
+SED
+)"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E -f ./securebuild-images.sed {} +
+        -exec sed -i -E "$replacements" {} +
 }
 
 function get_latest_release_version() {

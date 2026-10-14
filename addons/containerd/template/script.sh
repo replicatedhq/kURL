@@ -2,12 +2,20 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$version"
-    [ "$version" = "2.3.6" ] || return 0
+    [ "$(printf '%s\n' "2.3.6" "$version" | sort -V | head -n 1)" = "2.3.6" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])registry\.k8s\.io/pause:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/pause:\2~g
+SED
+)"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E -f ./securebuild-images.sed {} +
+        -exec sed -i -E "$replacements" {} +
 }
 
 function contains() {

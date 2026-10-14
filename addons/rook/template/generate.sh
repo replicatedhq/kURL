@@ -2,12 +2,29 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$VERSION"
-    [ "$VERSION" = "1.19.7" ] || return 0
+    [ "$(printf '%s\n' "1.19.7" "$VERSION" | sort -V | head -n 1)" = "1.19.7" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])docker\.io/rook/ceph:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/rook-ceph:\2~g
+s~(^|[[:space:]"'=])quay\.io/ceph/ceph:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/ceph:\2~g
+s~(^|[[:space:]"'=])quay\.io/cephcsi/cephcsi:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cephcsi:\2~g
+s~(^|[[:space:]"'=])quay\.io/cephcsi/ceph-csi-operator:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/ceph-csi-operator:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-node-driver-registrar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-node-driver-registrar:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-resizer:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-resizer:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-provisioner:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-provisioner:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-snapshotter:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-snapshotter:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-attacher:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-attacher:\2~g
+s~(^|[[:space:]"'=])quay\.io/csiaddons/k8s-sidecar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csiaddons-k8s-sidecar:\2~g
+SED
+)"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E -f ./securebuild-images.sed {} +
+        -exec sed -i -E "$replacements" {} +
 }
 
 function get_latest_version() {

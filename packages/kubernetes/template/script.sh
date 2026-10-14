@@ -177,6 +177,12 @@ function use_securebuild_images() {
     local version="$1"
     local manifest="${2:-../$version/Manifest}"
     local dest="${3:-../$version}"
+
+    # Keep old Kubernetes packages unchanged; future releases use the matching SB pause tag.
+    if [ "$(printf '%s\n' "1.36.5" "$version" | sort -V | head -n 1)" = "1.36.5" ]; then
+        sed -i -E 's~^image pause registry\.k8s\.io/pause:([^[:space:]@]+)(@sha256:[[:xdigit:]]+)?~image pause docker.io/kurlsh/pause:\1~' "$manifest"
+    fi
+
     local securebuild_dir="./securebuild-${version}"
     [ -d "$securebuild_dir" ] || return 0
 
@@ -190,12 +196,6 @@ function use_securebuild_images() {
     while read -r workload container image upstream_image; do
         sed -i "s|$upstream_image|$image|" "$manifest" || return 1
     done < "$securebuild_dir/image-overrides" || return 1
-
-    if [ -f "$securebuild_dir/pause-image" ]; then
-        local pause_image=
-        pause_image="$(cat "$securebuild_dir/pause-image")"
-        sed -i "s|^image pause .*|image pause $pause_image|" "$manifest"
-    fi
 
     cp -r "$securebuild_dir"/* "$dest/"
 }

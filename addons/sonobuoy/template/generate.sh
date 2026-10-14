@@ -2,12 +2,21 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$VERSION"
-    [ "$VERSION" = "0.57.5" ] || return 0
+    [ "$(printf '%s\n' "0.57.5" "$VERSION" | sort -V | head -n 1)" = "0.57.5" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])sonobuoy/sonobuoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/sonobuoy:\2~g
+s~(^|[[:space:]"'=])sonobuoy/systemd-logs:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/sonobuoy-systemd-logs:\2~g
+SED
+)"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E -f ./securebuild-images.sed {} +
+        -exec sed -i -E "$replacements" {} +
 }
 
 function get_latest_release_version() {
@@ -36,7 +45,12 @@ function generate() {
     local sonobuoy_image= systemd_logs_image=
     sonobuoy_image="$(awk '$1 == "image" && $2 == "sonobuoy" {print $3}' "../${VERSION}/Manifest")"
     systemd_logs_image="$(awk '$1 == "image" && $2 == "systemd-logs" {print $3}' "../${VERSION}/Manifest")"
-    sed -i "s|__SONOBUOY_IMAGE__|$sonobuoy_image|g; s|__SYSTEMD_LOGS_IMAGE__|$systemd_logs_image|g" "../${VERSION}/sonobuoy.sh"
+    if [[ "$sonobuoy_image" == docker.io/kurlsh/* ]]; then
+        sed -i "s|__SONOBUOY_IMAGE__|$sonobuoy_image|g; s|__SYSTEMD_LOGS_IMAGE__|$systemd_logs_image|g" "../${VERSION}/sonobuoy.sh"
+    else
+        # Historical releases retain their original CLI installation and defaults.
+        rm -f "../${VERSION}/sonobuoy.sh"
+    fi
 }
 
 function add_as_latest() {

@@ -29,7 +29,7 @@ function tearDown() {
     rm -rf "$TEST_DIR"
 }
 
-function test_use_securebuild_images_is_noop_without_a_securebuild_dir() {
+function test_use_securebuild_images_keeps_control_plane_without_a_securebuild_dir() {
     local version="1.37.1"
     mkdir -p "$TEST_DIR/$version"
     cat > "$TEST_DIR/$version/Manifest" <<EOF
@@ -74,8 +74,8 @@ EOF
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-proxy:v1.37.1' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/coredns:1.14.6' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/etcd:v3.7.0' "$TEST_DIR/$version/Manifest")"
-    # pause stays on the upstream image
-    assertEquals "1" "$(grep -c 'registry.k8s.io/pause:3.10.2' "$TEST_DIR/$version/Manifest")"
+    # pause follows the SecureBuild repository policy
+    assertEquals "1" "$(grep -c 'docker.io/kurlsh/pause:3.10.2' "$TEST_DIR/$version/Manifest")"
     assertEquals "0" "$(grep -c 'registry.k8s.io/kube-apiserver' "$TEST_DIR/$version/Manifest" || true)"
 
     local result=

@@ -7,7 +7,9 @@ function sonobuoy() {
 }
 
 function sonobuoy_already_applied() {
-    sonobuoy_binary
+    if [ -f "$DIR/addons/sonobuoy/$SONOBUOY_VERSION/sonobuoy.sh" ]; then
+        sonobuoy_binary
+    fi
 
     sonobuoy_airgap_maybe_tag_image "k8s.gcr.io/conformance:v${KUBERNETES_VERSION}" "registry.k8s.io/conformance:v${KUBERNETES_VERSION}"
     sonobuoy_airgap_maybe_tag_image "registry.k8s.io/conformance:v${KUBERNETES_VERSION}" "k8s.gcr.io/conformance:v${KUBERNETES_VERSION}"
@@ -32,9 +34,13 @@ function sonobuoy_binary() {
         curl -L -o "${src}/assets/sonobuoy.tar.gz" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz"
     fi
 
-    mkdir -p /usr/local/lib/sonobuoy
-    tar xzf "${src}/assets/sonobuoy.tar.gz" -C /usr/local/lib/sonobuoy
-    install -m 0755 "${src}/sonobuoy.sh" /usr/local/bin/sonobuoy
+    if [ -f "${src}/sonobuoy.sh" ]; then
+        mkdir -p /usr/local/lib/sonobuoy
+        tar xzf "${src}/assets/sonobuoy.tar.gz" -C /usr/local/lib/sonobuoy
+        install -m 0755 "${src}/sonobuoy.sh" /usr/local/bin/sonobuoy
+    else
+        tar xzf "${src}/assets/sonobuoy.tar.gz" -C /usr/local/bin
+    fi
 }
 
 function sonobuoy_airgap_maybe_tag_image() {

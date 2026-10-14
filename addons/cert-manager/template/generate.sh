@@ -2,14 +2,26 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$CERT_MANAGER_VERSION"
-    [ "$CERT_MANAGER_VERSION" = "1.21.2" ] || return 0
+    [ "$(printf '%s\n' "1.21.2" "$CERT_MANAGER_VERSION" | sort -V | head -n 1)" = "1.21.2" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-controller:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-controller:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-cainjector:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-cainjector:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-webhook:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-webhook:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-acmesolver:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-acmesolver:\2~g
+SED
+)"
+    # Leave the legacy v1.0.3 upgrade detection in install.sh on its original image.
     local file=
     while IFS= read -r -d '' file; do
-        sed_i -E -f ./securebuild-images.sed "$file"
-    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+        sed_i -E "$replacements" "$file"
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' \) -print0)
 }
 
 # Portable sed -i function that works on both macOS and Linux

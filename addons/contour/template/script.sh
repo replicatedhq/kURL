@@ -3,12 +3,25 @@
 
 set -euo pipefail
 
-# Keep generated runtime references and air-gap image manifests in sync.
+# Keep older releases on upstream images; use SecureBuild from this release onward.
 function use_securebuild_images() {
     local dir="../$CONTOUR_VERSION"
-    [ "$CONTOUR_VERSION" = "1.33.7" ] || return 0
+    [ "$(printf '%s\n' "1.33.7" "$CONTOUR_VERSION" | sort -V | head -n 1)" = "1.33.7" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])ghcr\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+s~(^|[[:space:]"'=])docker\.io/envoyproxy/envoy:distroless-(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])docker\.io/envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])envoyproxy/envoy:distroless-(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])docker\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+SED
+)"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E -f ./securebuild-images.sed {} +
+        -exec sed -i -E "$replacements" {} +
 }
 
 # get the upstream url that the contour yaml can be found at permanently
