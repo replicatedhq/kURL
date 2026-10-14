@@ -113,6 +113,13 @@ linters:
 #    - wsl
     - zerologlint
   settings:
+    goconst:
+      # restore pre-2.14 behavior: do not count occurrences in test files
+      ignore-tests: true
+    govet:
+      disable:
+        # the inline analyzer (new in the go1.27 toolchain) is purely stylistic
+        - inline
     revive:
       rules:
         - name: blank-imports
