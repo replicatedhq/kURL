@@ -1,0 +1,27 @@
+bin/scan-images/addons.js
+  s_2b8463eec3fc13::t_33f51b91f64522 161
+  s_2b8463eec3fc13::t_8dddf4bc5f787d 2,9-20
+  s_2b8463eec3fc13::t_0e0fcec0a4e7db 59
+  s_2b8463eec3fc13::t_d336151cf8f6f9 119-160
+bin/scan-images/matrix.js
+  s_2b8463eec3fc13::t_808b9e8a34a028 5,8,18-31
+.github/workflows/cron-scan-images-daily.yaml
+  s_2b8463eec3fc13::t_61372d98dce396 63
+  s_2b8463eec3fc13::t_7dfa4fb5804903 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52eb934ce6356ac889c9455c140f2e2092dd5ba4",
+  "prompts": {},
+  "sessions": {
+    "s_2b8463eec3fc13": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eec8b1a07ffez9OccLSvoCCESt",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}

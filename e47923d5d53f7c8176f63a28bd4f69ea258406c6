@@ -1,0 +1,24 @@
+kurl_util/deploy/Dockerfile
+  s_98624405018402::t_414ec0a526a7e7 14,24-25
+  s_98624405018402::t_1db7dcf9b8e295 26-28,31
+go.mod
+  s_98624405018402::t_8444c0377094de 295
+go.sum
+  s_98624405018402::t_83bba5ab191355 1485-1486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e47923d5d53f7c8176f63a28bd4f69ea258406c6",
+  "prompts": {},
+  "sessions": {
+    "s_98624405018402": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec936e637ffe06Y0vEW9CFopsd",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}

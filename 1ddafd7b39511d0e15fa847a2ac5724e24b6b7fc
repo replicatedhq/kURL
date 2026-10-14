@@ -1,0 +1,19 @@
+bin/scan-images/matrix.js
+  s_008c8533281255::t_9485460751ab51 21-29,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ddafd7b39511d0e15fa847a2ac5724e24b6b7fc",
+  "prompts": {},
+  "sessions": {
+    "s_008c8533281255": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec74fa152ffeuXHTPeb7RbidtJ",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}

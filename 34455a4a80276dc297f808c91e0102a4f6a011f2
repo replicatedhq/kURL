@@ -1,0 +1,19 @@
+kurl_util/deploy/Dockerfile
+  s_98624405018402::t_c27607deb3c567 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34455a4a80276dc297f808c91e0102a4f6a011f2",
+  "prompts": {},
+  "sessions": {
+    "s_98624405018402": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec936e637ffe06Y0vEW9CFopsd",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}

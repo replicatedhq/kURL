@@ -1,0 +1,19 @@
+.claude/skills/testgrid-failure-analysis/SKILL.md
+  s_2b8463eec3fc13::t_f2b945d6690936 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6b4c908c9c7a6c4afd9a1b5746b31d107e5383e4",
+  "prompts": {},
+  "sessions": {
+    "s_2b8463eec3fc13": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eec8b1a07ffez9OccLSvoCCESt",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}

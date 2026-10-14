@@ -1,0 +1,19 @@
+addons/rook/template/generate.sh
+  s_008c8533281255::t_421adbe28707d0 23-28,30-34,41-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf3705367e6489235907aba5cf1734be523d7067",
+  "prompts": {},
+  "sessions": {
+    "s_008c8533281255": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec74fa152ffeuXHTPeb7RbidtJ",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
