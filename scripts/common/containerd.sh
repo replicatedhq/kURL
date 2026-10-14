@@ -194,7 +194,23 @@ function containerd_ensure_pause_image_pinned() {
     fi
 
     local image_line=
-    image_line="$(echo "$list_output" | awk -v img="$pause_image" '$1 == img')"
+    image_line="$(echo "$list_output" | awk -v img="$pause_image" '$1 == img { print; exit }')"
+    if [ -z "$image_line" ]; then
+        # sandbox_image can record a ref that containerd imported the pause image under a
+        # different ref for (an airgap mirror rewrite, or sandbox_image itself pinned to a
+        # digest while the image was imported by tag) -- fall back to matching by repo+tag or
+        # by digest before giving up.
+        case "$pause_image" in
+            *@sha256:*)
+                local pause_digest="${pause_image##*@}"
+                image_line="$(echo "$list_output" | awk -v d="$pause_digest" '$3 == d { print; exit }')"
+                ;;
+            *)
+                local pause_repo_tag="${pause_image##*/}"
+                image_line="$(echo "$list_output" | awk -v rt="$pause_repo_tag" '$1 == rt || $1 ~ ("/" rt "$") { print; exit }')"
+                ;;
+        esac
+    fi
     if [ -z "$image_line" ]; then
         # not imported yet (e.g. a fresh install before images are loaded) -- nothing to pin
         return
@@ -204,9 +220,12 @@ function containerd_ensure_pause_image_pinned() {
         return
     fi
 
-    log "Pinning containerd pause image $pause_image"
-    if ! ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned; then
-        logWarn "Failed to pin containerd pause image $pause_image; will retry on next install/upgrade run"
+    local matched_ref=
+    matched_ref="$(echo "$image_line" | awk '{ print $1 }')"
+
+    log "Pinning containerd pause image $matched_ref"
+    if ! ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images label -- "$matched_ref" io.cri-containerd.pinned=pinned; then
+        logWarn "Failed to pin containerd pause image $matched_ref; will retry on next install/upgrade run"
     fi
 }
 
