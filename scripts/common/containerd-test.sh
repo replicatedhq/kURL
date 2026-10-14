@@ -66,6 +66,7 @@ function ctr() {
         [ -n "$_CTR_PAUSE_LIST" ] && printf '%s\n' "$_CTR_PAUSE_LIST"
     elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
         if [ "$_CTR_PAUSE_LABEL_FAIL" = "1" ]; then
+            echo "ctr: failed to label image: permission denied" >&2
             return 1
         fi
         echo "LABELED: $*"
@@ -579,6 +580,27 @@ function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
     assertEquals "does not log a warning for a legitimate inactive/failed state" "1" "$?"
 }
 
+function test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result() {
+    local result
+    local exit_code
+    result="$( (
+        # A failed systemctl invocation (binary missing, permission denied, timeout, ...) is
+        # not the same thing as containerd being inactive -- it must not be silently treated
+        # as "containerd is down".
+        systemctl() { echo "Failed to connect to bus: No such file or directory" >&2; return 1; }
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not try to pin when systemctl itself fails" "1" "$?"
+    echo "$result" | grep -qi "WARN.*unexpected result"
+    assertEquals "logs a warning distinguishing a failed systemctl call from a genuinely inactive unit" "0" "$?"
+    assertEquals "does not abort the caller when systemctl fails" "0" "$exit_code"
+}
+
 function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
     local result
     result="$( (
@@ -631,6 +653,8 @@ function test_ensure_pause_image_pinned_warns_on_label_failure() {
     exit_code="$?"
     echo "$result" | grep -q "Failed to pin containerd pause image"
     assertEquals "logs a warning when ctr images label fails" "0" "$?"
+    echo "$result" | grep "Failed to pin containerd pause image" | grep -q "permission denied"
+    assertEquals "the warning itself (not just stray stderr) captures the underlying error, like the list-failure branch does" "0" "$?"
     assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
 }
 
@@ -702,6 +726,7 @@ test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
+test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 test_ensure_pause_image_pinned_warns_on_list_failure
 test_ensure_pause_image_pinned_warns_on_label_failure

@@ -37,5 +37,22 @@ function test_pins_pause_image_after_install_cri_and_pause_image_upgrade() {
         '[ -n "$configure_line" ] && [ -n "$pin_line" ] && [ "$configure_line" -lt "$pin_line" ]'
 }
 
+function test_pins_pause_image_after_report_kubernetes_install_imports_it() {
+    local report_line pin_line
+
+    # report_kubernetes_install runs all_kubernetes_install, which calls init() and actually
+    # performs kubeadm init -- the step that imports the pause image into containerd on a fresh
+    # install. Pinning any earlier is a no-op: the image isn't in containerd yet, so a first-run
+    # node (or a joined worker, see join-test.sh) ends up permanently unpinned.
+    report_line="$(echo "$MAIN_SRC" | grep -n -x '    report_kubernetes_install' | cut -d: -f1)"
+    pin_line="$(echo "$MAIN_SRC" | grep -n -x '    containerd_ensure_pause_image_pinned' | cut -d: -f1)"
+
+    assertTrue "report_kubernetes_install and containerd_ensure_pause_image_pinned must each appear exactly once" \
+        '[ -n "$report_line" ] && [ -n "$pin_line" ]'
+
+    assertTrue "containerd_ensure_pause_image_pinned runs after report_kubernetes_install, which performs kubeadm init and actually imports the pause image" \
+        '[ -n "$report_line" ] && [ -n "$pin_line" ] && [ "$report_line" -lt "$pin_line" ]'
+}
+
 # shellcheck disable=SC1091
 . shunit2
