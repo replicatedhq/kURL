@@ -33,6 +33,18 @@ function assertEquals() {
     fi
 }
 
+# assertTrue runs its command under an `if`, so a failing condition does not trip `set -e`
+# and abort the whole script before FAILURES/the FAIL message can be recorded.
+function assertTrue() {
+    local msg="$1"
+    shift
+    if "$@"; then
+        assertEquals "$msg" "0" "0"
+    else
+        assertEquals "$msg" "0" "1"
+    fi
+}
+
 function test_pins_pause_image_before_kubeadm_node_upgrade() {
     local result
     result="$( (
@@ -78,7 +90,9 @@ function test_pins_pause_image_before_kubeadm_node_upgrade() {
         function popd_install_directory() { record popd_install_directory; }
         function logStep() { :; }
 
-        main >/dev/null 2>&1
+        if ! main >/dev/null 2>&1; then
+            echo "FAIL: main() exited non-zero; a stubbed function may be missing or misbehaving" >&2
+        fi
 
         echo "$CALLS"
     ) )"
@@ -90,14 +104,14 @@ function test_pins_pause_image_before_kubeadm_node_upgrade() {
     pos_pin="$(echo "$result" | tr ' ' '\n' | grep -n -x "containerd_ensure_pause_image_pinned" | cut -d: -f1)"
     pos_maybe_upgrade="$(echo "$result" | tr ' ' '\n' | grep -n -x "maybe_upgrade" | cut -d: -f1)"
 
-    [ "$pos_install_cri" -lt "$pos_pin" ]
-    assertEquals "containerd_ensure_pause_image_pinned runs after install_cri" "0" "$?"
+    assertTrue "containerd_ensure_pause_image_pinned runs after install_cri" \
+        [ "$pos_install_cri" -lt "$pos_pin" ]
 
-    [ "$pos_configure" -lt "$pos_pin" ]
-    assertEquals "containerd_ensure_pause_image_pinned runs after kubernetes_configure_pause_image_upgrade" "0" "$?"
+    assertTrue "containerd_ensure_pause_image_pinned runs after kubernetes_configure_pause_image_upgrade" \
+        [ "$pos_configure" -lt "$pos_pin" ]
 
-    [ "$pos_pin" -lt "$pos_maybe_upgrade" ]
-    assertEquals "containerd_ensure_pause_image_pinned runs before maybe_upgrade (the kubeadm node upgrade), so the pin happens before kubelet can reschedule pods against the new image" "0" "$?"
+    assertTrue "containerd_ensure_pause_image_pinned runs before maybe_upgrade (the kubeadm node upgrade), so the pin happens before kubelet can reschedule pods against the new image" \
+        [ "$pos_pin" -lt "$pos_maybe_upgrade" ]
 }
 
 test_pins_pause_image_before_kubeadm_node_upgrade
