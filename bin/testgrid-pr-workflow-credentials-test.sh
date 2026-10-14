@@ -84,6 +84,58 @@ testKurlUtilImageJobCheckOutRetagScriptOnLabelPath() {
     rm -f "${job_body}"
 }
 
+testJobNameCutoffHandlesDigitsInNextJobName() {
+    # 09abd35f4 widened the next-job cutoff pattern from [a-zA-Z_-]+ to
+    # [a-zA-Z0-9_-]+ specifically so a next-job name containing a digit still
+    # ends the kurl-util-image job extraction -- otherwise that job's body
+    # leaks into the extracted block and silently defeats every assertion
+    # above. The real workflow's actual next job (build-matrix) has no
+    # digits, so none of the tests above exercise this boundary. Build a
+    # synthetic fixture with a digit-bearing next-job name instead.
+    local fixture job_body
+    fixture="$(mktemp)"
+    job_body="$(mktemp)"
+    cat > "${fixture}" <<'EOF'
+  kurl-util-image:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo building
+  job2:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "${{ secrets.SOME_OTHER_SECRET }}"
+EOF
+
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${fixture}" > "${job_body}"
+
+    assertFalse "the digit-bearing next job's body must not leak into the extracted kurl-util-image job" \
+        "grep -q 'SOME_OTHER_SECRET' '${job_body}'"
+
+    rm -f "${fixture}" "${job_body}"
+}
+
+testKurlUtilImageJobPinsLabelPathCheckoutToTrustedRef() {
+    # BLOCKING-1 (PR #6173 review round 5): the label-path checkout that
+    # sparse-checks-out bin/retag-and-push-kurl-util-image.sh had no `ref:`
+    # at all, so it defaulted to the triggering ref -- the PR's own merge
+    # commit -- then docker/login-action logs in right after it, and the
+    # retag step sources that PR-authored script while authenticated. A
+    # run-testgrid-labeled PR (labelable at Triage access) that edits that
+    # script runs it with a prod-capable Docker Hub credential. Pin the
+    # checkout to the repository's default branch so only a maintainer
+    # merging to it can change what that script does.
+    local job_body
+    job_body="$(mktemp)"
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${WORKFLOW}" > "${job_body}"
+
+    assertTrue "kurl-util-image job must have a checkout step, gated to the !build-kurl-util-image (label) path, that pins ref to the repository default branch" \
+        "awk '/^      - /{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/ && step ~ /github\\.event\\.repository\\.default_branch/) found=1; step=\"\"} {step = step \"\\n\" \$0} END{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/ && step ~ /github\\.event\\.repository\\.default_branch/) found=1; exit !found}' '${job_body}'"
+
+    rm -f "${job_body}"
+}
+
 testHeaderDoesNotDocumentUnprovisionedDockerHubCredential() {
     # Scope the grep to the header comment block (everything before the
     # top-level `on:` trigger section) so this only checks the provisioning
