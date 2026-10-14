@@ -17,12 +17,14 @@ s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-webhook:(v?[0-9][[:alnum:]._-
 s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-acmesolver:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-acmesolver:\2~g
 SED
 )"
-    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
-    # Leave the legacy v1.0.3 upgrade detection in install.sh on its original image.
-    local file=
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
     while IFS= read -r -d '' file; do
-        sed_i -E "$replacements" "$file"
+        files+=("$file")
     done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    # Leave the legacy v1.0.3 upgrade detection in install.sh on its original image.
+    sed_i -E "$replacements" "${files[@]}"
 }
 
 # Portable sed -i function that works on both macOS and Linux

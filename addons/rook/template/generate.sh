@@ -23,9 +23,13 @@ s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-attacher:(v?[0-9][[:alnum:
 s~(^|[[:space:]"'=])quay\.io/csiaddons/k8s-sidecar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csiaddons-k8s-sidecar:\2~g
 SED
 )"
-    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
-    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E "$replacements" {} +
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
 }
 
 function get_latest_version() {

@@ -14,9 +14,13 @@ function use_securebuild_images() {
 s~(^|[[:space:]"'=])registry\.k8s\.io/metrics-server/metrics-server:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/metrics-server:\2~g
 SED
 )"
-    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
-    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
-        -exec sed -i -E "$replacements" {} +
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
 }
 
 function generate() {

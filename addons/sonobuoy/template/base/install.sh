@@ -42,9 +42,13 @@ function sonobuoy_binary() {
         mkdir -p "${src}/assets"
         local download=
         download="$(mktemp "${src}/assets/sonobuoy.tar.gz.XXXXXX")"
-        if ! curl -fL -o "$download" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz" || \
-            ! tar tzf "$download" >/dev/null 2>&1; then
-            logFail "Failed to download or validate the Sonobuoy ${SONOBUOY_VERSION} CLI archive."
+        if ! curl -fL -o "$download" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz"; then
+            logFail "Failed to download the Sonobuoy ${SONOBUOY_VERSION} CLI archive."
+            rm -f "$download"
+            return 1
+        fi
+        if ! tar tzf "$download" >/dev/null; then
+            logFail "Failed to validate the downloaded Sonobuoy ${SONOBUOY_VERSION} CLI archive $download."
             rm -f "$download"
             return 1
         fi
