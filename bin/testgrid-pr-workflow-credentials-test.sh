@@ -65,6 +65,32 @@ testKurlUtilImageJobScopesGitHubTokenAndDropsPersistedCredentials() {
     rm -f "${job_body}"
 }
 
+testKurlUtilImageJobCheckOutRetagScriptOnLabelPath() {
+    # The retag step always sources bin/retag-and-push-kurl-util-image.sh,
+    # so it must exist even on the default (label) path, which otherwise
+    # checks out nothing. This exact checkout step was missing in
+    # production between 6513d8da4 (credential scoping) and 994be44fa (this
+    # fix), breaking every label-triggered run with "No such file or
+    # directory" -- pin it so it can't silently regress again.
+    local job_body
+    job_body="$(mktemp)"
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${WORKFLOW}" > "${job_body}"
+
+    # Split into per-step blocks on the "      - " step marker and require a
+    # SINGLE step to contain all three of: an actions/checkout use, the
+    # script's sparse-checkout path, and the label-path gate. A looser
+    # "appears somewhere in the job body" check (plain grep, or grep -B5 on
+    # the script-path line) also passes against the pre-fix job body: the
+    # retag-and-push step that *sources* the script carries the same
+    # `!inputs.build-kurl-util-image` condition on itself, so it satisfies
+    # a proximity check without any checkout step existing at all.
+    assertTrue "kurl-util-image job must have a checkout step, gated to the !build-kurl-util-image (label) path, that sparse-checks-out bin/retag-and-push-kurl-util-image.sh" \
+        "awk '/^      - /{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/) found=1; step=\"\"} {step = step \"\\n\" \$0} END{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/) found=1; exit !found}' '${job_body}'"
+
+    rm -f "${job_body}"
+}
+
 testHeaderDocumentsScopedDockerHubCredentialRequirement() {
     # Scope the grep to the header comment block (everything before the
     # top-level `on:` trigger section) so this only passes if the
