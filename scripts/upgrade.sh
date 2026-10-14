@@ -151,9 +151,9 @@ function main() {
     get_shared
     kubernetes_pre_init
     ${K8S_DISTRO}_addon_for_each addon_join
-    maybe_upgrade
     kubernetes_configure_pause_image_upgrade
     containerd_ensure_pause_image_pinned
+    maybe_upgrade
     install_helm
     uninstall_docker
     outro

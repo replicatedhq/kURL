@@ -179,7 +179,7 @@ function containerd_ensure_pause_image_pinned() {
     fi
 
     local list_output=
-    if ! list_output="$(ctr -n=k8s.io images list 2>&1)"; then
+    if ! list_output="$(ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images list 2>&1)"; then
         logWarn "Failed to list containerd images while checking pause-image pin ($list_output); will retry on next install/upgrade run"
         return
     fi
@@ -196,7 +196,7 @@ function containerd_ensure_pause_image_pinned() {
     fi
 
     log "Pinning containerd pause image $pause_image"
-    if ! ctr -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned; then
+    if ! ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images label "$pause_image" io.cri-containerd.pinned=pinned; then
         logWarn "Failed to pin containerd pause image $pause_image; will retry on next install/upgrade run"
     fi
 }
