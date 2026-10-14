@@ -263,20 +263,29 @@ jobs:
       # default path keeps PR-authored code exposure to this single
       # tag+push helper, not the whole repo or its Makefile.
       #
-      # ref: the repository's default branch, NOT the implicit triggering
-      # ref. The step right after this logs in to Docker Hub with a
-      # prod-capable credential, and the retag step sources this script
-      # while that login is active -- without pinning the ref here, a
+      # ref: the repository's default branch for a labeled PR run, NOT the
+      # implicit triggering ref. The step right after this logs in to Docker
+      # Hub with a prod-capable credential, and the retag step sources this
+      # script while that login is active -- without pinning the ref here, a
       # run-testgrid-labeled PR (labelable at Triage access, not
       # maintainer-only) that edits this script would run its own content
       # with that credential. Pinning to the default branch means only a
       # maintainer merging to it can change what runs here.
       #
+      # A workflow_dispatch run falls back to inputs.branch instead: that
+      # trigger already requires repository WRITE access, the same trust bar
+      # as pushing a branch, so there is no new exposure in letting it check
+      # out the dispatched branch's own copy of the script. This is also the
+      # only way to validate a PR that itself changes this script (such as
+      # this one): the script does not exist on the default branch until the
+      # PR introducing it merges, so a labeled run on that PR cannot resolve
+      # it pre-merge regardless (kURL#6173 review).
+      #
       # persist-credentials: false -- same reasoning as the checkout above.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: ${{ !inputs.build-kurl-util-image }}
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.event.repository.default_branch }}
           sparse-checkout: |
             bin/retag-and-push-kurl-util-image.sh
           sparse-checkout-cone-mode: false

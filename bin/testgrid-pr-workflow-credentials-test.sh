@@ -173,6 +173,32 @@ testKurlUtilImageJobPinsLabelPathCheckoutToTrustedRef() {
     rm -f "${job_body}"
 }
 
+testKurlUtilImageJobLabelPathCheckoutFallsBackToDispatchBranch() {
+    # PR #6173 review round 6 (doomer-ai): bin/retag-and-push-kurl-util-image.sh
+    # is introduced BY this PR, so it does not exist on the repository default
+    # branch until this PR merges. A sparse-checkout pinned unconditionally to
+    # github.event.repository.default_branch can therefore never validate the
+    # change that introduces it -- any labeled run on a PR that only renames
+    # or edits this script fails with "file not found" until after merge.
+    #
+    # workflow_dispatch already requires repository write access to trigger at
+    # all -- the same trust bar as pushing a branch -- so it is safe to let a
+    # workflow_dispatch run pin this checkout to the dispatched branch
+    # (inputs.branch) instead, letting a maintainer validate a PR branch's own
+    # version of the script pre-merge. The labeled (Triage-level) path keeps
+    # the unconditional default-branch pin, since that is the actual security
+    # boundary docker/login-action's credential needs.
+    local job_body
+    job_body="$(mktemp)"
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${WORKFLOW}" > "${job_body}"
+
+    assertTrue "kurl-util-image job's retag-script checkout must fall back to inputs.branch on workflow_dispatch, default_branch otherwise" \
+        "awk '/^      - /{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/ && step ~ /github\\.event_name.*workflow_dispatch.*inputs\\.branch.*github\\.event\\.repository\\.default_branch/) found=1; step=\"\"} {step = step \"\\n\" \$0} END{if (step ~ /uses: actions\\/checkout/ && step ~ /retag-and-push-kurl-util-image\\.sh/ && step ~ /!inputs\\.build-kurl-util-image/ && step ~ /github\\.event_name.*workflow_dispatch.*inputs\\.branch.*github\\.event\\.repository\\.default_branch/) found=1; exit !found}' '${job_body}'"
+
+    rm -f "${job_body}"
+}
+
 testHeaderDoesNotDocumentUnprovisionedDockerHubCredential() {
     # Scope the grep to the header comment block (everything before the
     # top-level `on:` trigger section) so this only checks the provisioning
