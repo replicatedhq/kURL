@@ -43,6 +43,8 @@ function is_ubuntu_2604() { return "${_IS_UBUNTU_2604:-1}"; }
 function containerd_kubernetes_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
 function kubernetes_containerd_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
 function systemctl() { return 1; }      # "not active" → skip ctr pause-image import
+K8S_DISTRO=kubeadm
+function kubeadm_get_containerd_sock() { echo "/run/containerd/containerd.sock"; }
 function kubernetes_version_minor() { echo "$1" | cut -d. -f2; }
 function log() { echo "$*"; }
 function logWarn() { echo "WARN: $*"; }
@@ -415,9 +417,9 @@ function test_ensure_pause_image_pinned_pins_when_unpinned() {
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
         ctr() {
-            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
                 echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
-            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
                 echo "LABELED: $*"
             fi
         }
@@ -425,7 +427,7 @@ function test_ensure_pause_image_pinned_pins_when_unpinned() {
         touch /etc/containerd/config.toml
         containerd_ensure_pause_image_pinned
     ) 2>&1 )"
-    echo "$result" | grep -q "LABELED: -n=k8s.io images label registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    echo "$result" | grep -q "LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
     assertEquals "pins an unpinned pause image already present in containerd" "0" "$?"
 }
 
@@ -434,9 +436,9 @@ function test_ensure_pause_image_pinned_noop_when_already_pinned() {
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
         ctr() {
-            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
                 echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 io.cri-containerd.pinned=pinned"
-            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
                 echo "LABELED: $*"
             fi
         }
@@ -453,9 +455,9 @@ function test_ensure_pause_image_pinned_noop_when_not_imported() {
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
         ctr() {
-            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
                 : # no images imported yet
-            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
                 echo "LABELED: $*"
             fi
         }
@@ -500,10 +502,10 @@ function test_ensure_pause_image_pinned_warns_on_list_failure() {
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
         ctr() {
-            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
                 echo "ctr: failed to dial \"/run/containerd/containerd.sock\": connection refused" >&2
                 return 1
-            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
                 echo "LABELED: $*"
             fi
         }
@@ -525,9 +527,9 @@ function test_ensure_pause_image_pinned_warns_on_label_failure() {
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
         ctr() {
-            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
                 echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
-            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
                 return 1
             fi
         }
