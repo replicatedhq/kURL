@@ -63,7 +63,7 @@ ROOK_CEPH_IMAGE=
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
-    export ROOK_CEPH_IMAGE="quay.io/ceph/ceph:v19.2.4"
+    export ROOK_CEPH_IMAGE="docker.io/kurlsh/ceph:v19.2.4"
 
     if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
@@ -142,7 +142,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
-    export ROOK_CEPH_IMAGE="quay.io/ceph/ceph:v19.2.4"
+    export ROOK_CEPH_IMAGE="docker.io/kurlsh/ceph:v19.2.4"
     rook_set_ceph_pool_replicas
     "$DIR"/bin/kurl rook wait-for-health 120
     rook_maybe_wait_for_rollout
@@ -276,7 +276,7 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
-    local ceph_image="quay.io/ceph/ceph:v19.2.4"
+    local ceph_image="docker.io/kurlsh/ceph:v19.2.4"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
@@ -522,13 +522,16 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     local bin_path=
     bin_path="$(realpath "$BIN_ROOK_PVMIGRATOR")"
 
+    local migrator_image=
+    migrator_image="$(awk '$1 == "image" && $2 == "rook-ceph" {print $3}' "$DIR/addons/rook/$ROOK_VERSION/Manifest")"
+
     ( set -x;
     "$BIN_KURL" rook flexvolume-to-csi \
         --source-sc "$src_sc" \
         --destination-sc "$dst_sc" \
         --node "$node_name" \
         --pv-migrator-bin-path "$bin_path" \
-        --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
+        --ceph-migrator-image "$migrator_image" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
 }
 

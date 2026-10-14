@@ -1,2 +1,2 @@
-image envoy docker.io/envoyproxy/envoy:distroless-v1.38.4
-image contour ghcr.io/projectcontour/contour:v1.33.7
+image envoy docker.io/kurlsh/envoy:v1.38.4
+image contour docker.io/kurlsh/contour:v1.33.7

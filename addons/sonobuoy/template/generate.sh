@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$VERSION"
+    [ "$VERSION" = "0.57.5" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 function get_latest_release_version() {
     curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
         grep -i "^location" | \
@@ -24,6 +32,11 @@ function generate() {
         grep -v conformance | \
         sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
     rm -r "${tmpdir}"
+    use_securebuild_images
+    local sonobuoy_image= systemd_logs_image=
+    sonobuoy_image="$(awk '$1 == "image" && $2 == "sonobuoy" {print $3}' "../${VERSION}/Manifest")"
+    systemd_logs_image="$(awk '$1 == "image" && $2 == "systemd-logs" {print $3}' "../${VERSION}/Manifest")"
+    sed -i "s|__SONOBUOY_IMAGE__|$sonobuoy_image|g; s|__SYSTEMD_LOGS_IMAGE__|$systemd_logs_image|g" "../${VERSION}/sonobuoy.sh"
 }
 
 function add_as_latest() {

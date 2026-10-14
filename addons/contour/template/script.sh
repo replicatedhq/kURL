@@ -3,6 +3,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$CONTOUR_VERSION"
+    [ "$CONTOUR_VERSION" = "1.33.7" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 # get the upstream url that the contour yaml can be found at permanently
 UPSTREAM_URL=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://projectcontour.io/quickstart/contour.yaml) # https://raw.githubusercontent.com/projectcontour/contour/release-1.11/examples/render/contour.yaml
 echo "upstream URL: $UPSTREAM_URL"
@@ -79,6 +87,8 @@ sed -i 's/# minimum-protocol-version: "1.."/  minimum-protocol-version: "$CONTOU
 # edit contour.yaml to remove `hostPort: 80` and `hostPort: 443`
 sed -i '/hostPort: 80/d' "../$CONTOUR_VERSION/contour.yaml"
 sed -i '/hostPort: 443/d' "../$CONTOUR_VERSION/contour.yaml"
+
+use_securebuild_images
 
 # get the current list of versions
 versions="$(ls .. | grep -e '[0-9]\+\.[0-9]\+\.[0-9]\+' | sort -r -V)"

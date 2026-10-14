@@ -11,4 +11,4 @@ yum2023 containerd
 yum2023 libzstd
 apt24 containerd
 apt26 containerd
-image pause registry.k8s.io/pause:3.10
+image pause docker.io/kurlsh/pause:3.10

@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$VERSION-$CHARTVERSION"
+    [ "$VERSION-$CHARTVERSION" = "0.94.1-91.8.0" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 function get_latest_release_version() {
     VERSION=$(helm show chart prometheus-community/kube-prometheus-stack | \
         grep -i "^appVersion" | \
@@ -90,6 +98,7 @@ function generate() {
     # deduplicate manifest
     cat "../$VERSION-$CHARTVERSION/Manifest.tmp" | sort | uniq >> "../$VERSION-$CHARTVERSION/Manifest"
     rm "../$VERSION-$CHARTVERSION/Manifest.tmp"
+    use_securebuild_images
 }
 
 function add_as_latest() {

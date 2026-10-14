@@ -2,6 +2,16 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$CERT_MANAGER_VERSION"
+    [ "$CERT_MANAGER_VERSION" = "1.21.2" ] || return 0
+    local file=
+    while IFS= read -r -d '' file; do
+        sed_i -E -f ./securebuild-images.sed "$file"
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+}
+
 # Portable sed -i function that works on both macOS and Linux
 function sed_i() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -51,6 +61,7 @@ function generate() {
 
     # Download the cert-manager.yaml from GitHub releases
     download_cert_manager_yaml
+    use_securebuild_images
 }
 
 function add_as_latest() {

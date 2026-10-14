@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$version"
+    [ "$version" = "0.9.0" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 function generate() {
     local dir="../$version"
 
@@ -14,6 +22,7 @@ function generate() {
     download_yaml
 
     find_images_in_yaml
+    use_securebuild_images
 }
 
 function download_yaml() {

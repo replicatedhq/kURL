@@ -1734,7 +1734,7 @@ spec:
       serviceAccountName: prometheus-node-exporter
       containers:
         - name: node-exporter
-          image: quay.io/prometheus/node-exporter:v1.12.1-distroless
+          image: docker.io/kurlsh/node-exporter:v1.12.1
           imagePullPolicy: IfNotPresent
           args:
             - --path.procfs=/host/proc
@@ -1869,7 +1869,7 @@ spec:
       enableServiceLinks: true
       containers:
         - name: grafana-sc-dashboard
-          image: "quay.io/kiwigrid/k8s-sidecar:2.11.2"
+          image: "docker.io/kurlsh/kiwigrid-k8s-sidecar:2.11.2"
           imagePullPolicy: IfNotPresent
           env:
             - name: METHOD
@@ -1910,7 +1910,7 @@ spec:
             - name: sc-dashboard-volume
               mountPath: "/tmp/dashboards"
         - name: grafana-sc-datasources
-          image: "quay.io/kiwigrid/k8s-sidecar:2.11.2"
+          image: "docker.io/kurlsh/kiwigrid-k8s-sidecar:2.11.2"
           imagePullPolicy: IfNotPresent
           env:
             - name: METHOD
@@ -1949,7 +1949,7 @@ spec:
             - name: sc-datasources-volume
               mountPath: "/etc/grafana/provisioning/datasources"
         - name: grafana
-          image: "docker.io/grafana/grafana:13.2.2-distroless"
+          image: "docker.io/kurlsh/grafana:13.2.2"
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -2105,7 +2105,7 @@ spec:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpointslices,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
         imagePullPolicy: IfNotPresent
-        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0
+        image: docker.io/kurlsh/kube-state-metrics:v2.20.0
         ports:
         - containerPort: 8080
           name: http
@@ -2182,14 +2182,14 @@ spec:
     spec:
       containers:
         - name: kube-prometheus-stack
-          image: "quay.io/prometheus-operator/prometheus-operator:v0.94.1"
+          image: "docker.io/kurlsh/prometheus-operator:v0.94.1"
           imagePullPolicy: "IfNotPresent"
           args:
             - --kubelet-service=kube-system/prometheus-kubelet
             - --kubelet-endpoints=true
             - --kubelet-endpointslice=false
             - --localhost=127.0.0.1
-            - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.94.1
+            - --prometheus-config-reloader=docker.io/kurlsh/prometheus-config-reloader:v0.94.1
             - --config-reloader-cpu-request=0
             - --config-reloader-cpu-limit=0
             - --config-reloader-memory-request=0
@@ -2267,7 +2267,7 @@ metadata:
     release: "v0.94.1-91.8.0"
     heritage: "Helm"
 spec:
-  image: "quay.io/prometheus/alertmanager:v0.34.1"
+  image: "docker.io/kurlsh/alertmanager:v0.34.1"
   imagePullPolicy: "IfNotPresent"
   version: "v0.34.1"
   replicas: 3
@@ -2325,7 +2325,7 @@ spec:
         port: http-web
         pathPrefix: "/"
         apiVersion: v2
-  image: "quay.io/prometheus/prometheus:v3.15.0-distroless"
+  image: "docker.io/kurlsh/prometheus:v3.15.0"
   imagePullPolicy: "IfNotPresent"
   version: "v3.15.0-distroless"
   externalUrl: http://prometheus-k8s.monitoring:9090

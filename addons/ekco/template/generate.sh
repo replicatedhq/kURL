@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$VERSION"
+    [ "$VERSION" = "0.28.17" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 function get_latest_version() {
     docker run quay.io/skopeo/stable --override-os linux \
         list-tags "docker://replicated/ekco" | \
@@ -39,6 +47,7 @@ function generate() {
     sed -i "s/__EKCO_VERSION__/$VERSION/g" "$dir/deployment.tmpl.yaml"
     sed -i "s/__HAPROXY_VERSION__/$HAPROXY_VERSION/g" "$dir/Manifest"
     sed -i "s/__HAPROXY_VERSION__/$HAPROXY_VERSION/g" "$dir/install.sh"
+    use_securebuild_images
 }
 
 function add_as_only_version() {

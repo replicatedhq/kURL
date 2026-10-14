@@ -191,6 +191,12 @@ function use_securebuild_images() {
         sed -i "s|$upstream_image|$image|" "$manifest" || return 1
     done < "$securebuild_dir/image-overrides" || return 1
 
+    if [ -f "$securebuild_dir/pause-image" ]; then
+        local pause_image=
+        pause_image="$(cat "$securebuild_dir/pause-image")"
+        sed -i "s|^image pause .*|image pause $pause_image|" "$manifest"
+    fi
+
     cp -r "$securebuild_dir"/* "$dest/"
 }
 

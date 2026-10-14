@@ -2,8 +2,8 @@ image kube-apiserver docker.io/kurlsh/kube-apiserver:v1.37.1
 image kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.37.1
 image kube-scheduler docker.io/kurlsh/kube-scheduler:v1.37.1
 image kube-proxy docker.io/kurlsh/kube-proxy:v1.37.1
-image coredns docker.io/kurlsh/coredns:1.14.6
-image pause registry.k8s.io/pause:3.10.2
+image coredns docker.io/kurlsh/coredns:1.14.7
+image pause docker.io/kurlsh/pause:3.10.2
 image etcd docker.io/kurlsh/etcd:v3.7.0
 
 asset kubeadm https://dl.k8s.io/v1.37.1/bin/linux/amd64/kubeadm

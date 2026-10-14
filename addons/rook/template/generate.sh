@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+# Keep generated runtime references and air-gap image manifests in sync.
+function use_securebuild_images() {
+    local dir="../$VERSION"
+    [ "$VERSION" = "1.19.7" ] || return 0
+    find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
+        -exec sed -i -E -f ./securebuild-images.sed {} +
+}
+
 function get_latest_version() {
     helm search repo rook-release/rook-ceph 2>/dev/null | \
         grep -F 'rook-release/rook-ceph ' | \
@@ -70,6 +78,7 @@ function generate() {
         # image reference so both formats work.
         curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' | sed -E 's/"([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+)"/image \2-\3 \1\2\/\3:\4/' ; \
     } >> "${dir}/Manifest"
+    use_securebuild_images
 }
 
 function split_resources() {
