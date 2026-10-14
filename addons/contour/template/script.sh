@@ -18,6 +18,7 @@ s~(^|[[:space:]"'=])docker\.io/envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256
 s~(^|[[:space:]"'=])envoyproxy/envoy:distroless-(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
 s~(^|[[:space:]"'=])envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
 s~(^|[[:space:]"'=])docker\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+s~(^|[[:space:]"'=])projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
 SED
 )"
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
@@ -79,8 +80,11 @@ sed -i "s/__releasever_dash__/$CONTOUR_VERSION_DASH/g" "../$CONTOUR_VERSION/patc
 # insert upstream URL into contour.yaml header
 sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"
 
-# remove docker.io from all image name (supports docker ee)
-sed -i "s|docker.io/||g" $tmpdir/contour.yaml
+# Preserve the historical Docker EE workaround only for pre-SecureBuild releases.
+# Newer releases deliberately retain canonical docker.io/ prefixes, matching their Manifests.
+if [ "$(printf '%s\n' "1.33.7" "$CONTOUR_VERSION" | sort -V | head -n 1)" != "1.33.7" ]; then
+    sed -i "s|docker.io/||g" "$tmpdir/contour.yaml"
+fi
 
 # remove namespace and config from contour.yaml
 

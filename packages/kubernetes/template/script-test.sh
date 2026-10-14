@@ -18,6 +18,11 @@ function file_mode() {
     stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"
 }
 
+# Existing fixtures model a published pause tag; never contact Docker Hub in shell unit tests.
+function docker() {
+    [ "$*" = "manifest inspect docker.io/kurlsh/pause:3.10.2" ]
+}
+
 function setUp() {
     TEST_DIR="$(mktemp -d)"
     mkdir -p "$TEST_DIR/template"
