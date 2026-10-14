@@ -523,7 +523,11 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     bin_path="$(realpath "$BIN_ROOK_PVMIGRATOR")"
 
     local migrator_image=
-    migrator_image="$(awk '$1 == "image" && $2 == "rook-ceph" {print $3}' "$DIR/addons/rook/$ROOK_VERSION/Manifest")"
+    local manifest="$DIR/addons/rook/$ROOK_VERSION/Manifest"
+    if ! migrator_image="$(awk '$1 == "image" && $2 == "rook-ceph" {print $3; exit}' "$manifest")" || [ -z "$migrator_image" ]; then
+        logFail "Cannot determine the Rook migration image from $manifest."
+        return 1
+    fi
 
     ( set -x;
     "$BIN_KURL" rook flexvolume-to-csi \

@@ -29,17 +29,33 @@ function sonobuoy_binary() {
         return 0
     fi
 
-    if [ "${AIRGAP}" != "1" ]; then
+    # Reinstall the image-default wrapper without fetching an unchanged CLI on re-runs.
+    local binary="/usr/local/lib/sonobuoy/sonobuoy"
+    if [ -f "${src}/sonobuoy.sh" ] && [ -x "$binary" ] && \
+        [ "$("$binary" version 2>/dev/null | awk '/^Sonobuoy Version:/ {print $NF}')" = "v${SONOBUOY_VERSION}" ]; then
+        install -m 0755 "${src}/sonobuoy.sh" /usr/local/bin/sonobuoy
+        return
+    fi
+
+    local archive="${src}/assets/sonobuoy.tar.gz"
+    if [ "${AIRGAP}" != "1" ] && ! tar tzf "$archive" >/dev/null 2>&1; then
         mkdir -p "${src}/assets"
-        curl -L -o "${src}/assets/sonobuoy.tar.gz" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz"
+        local download=
+        download="$(mktemp "${src}/assets/sonobuoy.tar.gz.XXXXXX")"
+        if ! curl -fL -o "$download" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz" || \
+            ! tar tzf "$download" >/dev/null 2>&1; then
+            rm -f "$download"
+            return 1
+        fi
+        mv "$download" "$archive"
     fi
 
     if [ -f "${src}/sonobuoy.sh" ]; then
         mkdir -p /usr/local/lib/sonobuoy
-        tar xzf "${src}/assets/sonobuoy.tar.gz" -C /usr/local/lib/sonobuoy
+        tar xzf "$archive" -C /usr/local/lib/sonobuoy || return 1
         install -m 0755 "${src}/sonobuoy.sh" /usr/local/bin/sonobuoy
     else
-        tar xzf "${src}/assets/sonobuoy.tar.gz" -C /usr/local/bin
+        tar xzf "$archive" -C /usr/local/bin || return 1
     fi
 }
 
