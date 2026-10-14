@@ -1,0 +1,40 @@
+addons/cert-manager/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 20-21,23,25-27
+addons/contour/template/script.sh
+  s_c0b9977a69a78e::t_13bf314378290b 24-30
+addons/metrics-server/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 17-23
+addons/prometheus/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 28-34
+addons/sonobuoy/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 18-24
+addons/sonobuoy/template/base/install.sh
+  s_c0b9977a69a78e::t_9e2a36df138ad1 45-51
+addons/containerd/template/script.sh
+  s_c0b9977a69a78e::t_13bf314378290b 17-23
+addons/rook/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 26-32
+bin/verify-securebuild-images.sh
+  s_c0b9977a69a78e::t_9e2a36df138ad1 5,8,16-35
+  s_c0b9977a69a78e::t_41feeb69280523 36
+addons/ekco/template/generate.sh
+  s_c0b9977a69a78e::t_13bf314378290b 18-24
+addons/sonobuoy/0.57.5/install.sh
+  s_c0b9977a69a78e::t_13bf314378290b 45-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d88264356cf7b30477e6b457c258bea09eac4f80",
+  "prompts": {},
+  "sessions": {
+    "s_c0b9977a69a78e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13c0f-66c2-79a0-b9a4-d01e65e7b966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
