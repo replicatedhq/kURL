@@ -20,7 +20,6 @@ jobs:
     if: >-
       ${{ github.repository_owner == 'replicatedhq' &&
          github.actor != 'dependabot' &&
-         github.actor != 'replicated-ci-kurl' &&
          !contains(github.event.pull_request.labels.*.name, 'skip-testgrid') }}
     runs-on: ubuntu-24.04
     outputs:
