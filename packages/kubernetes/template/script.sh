@@ -42,12 +42,21 @@ function find_available_versions() {
             continue
         fi
         docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"
-        local versions=()
-        mapfile -t versions < <(docker run --rm "k8s1${minor}" apt list -a kubelet 2>/dev/null | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
-        if [ ${#versions[@]} -gt 0 ]; then
-            echo "Found latest version for Kubernetes 1.${minor}: ${versions[0]}"
-            VERSIONS+=("${versions[0]}")
+        # A minor listed in versions.js must resolve to a version: a failed or empty package listing is
+        # an error, not a silent skip that would leave the minor without patch updates.
+        local apt_list=
+        if ! apt_list="$(docker run --rm "k8s1${minor}" apt list -a kubelet 2>/dev/null)"; then
+            echo "ERROR: listing kubelet versions for Kubernetes 1.${minor} failed (docker run k8s1${minor})" >&2
+            return 1
         fi
+        local versions=()
+        mapfile -t versions < <(printf '%s\n' "$apt_list" | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
+        if [ ${#versions[@]} -eq 0 ]; then
+            echo "ERROR: no kubelet 1.${minor}.x versions found in the Kubernetes 1.${minor} package repository" >&2
+            return 1
+        fi
+        echo "Found latest version for Kubernetes 1.${minor}: ${versions[0]}"
+        VERSIONS+=("${versions[0]}")
     done
 
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]:-}"
@@ -102,10 +111,25 @@ function download_kubeadm() {
     local dir="$2"
     local url="https://dl.k8s.io/release/v${version}/bin/linux/amd64/kubeadm"
 
-    curl -fsSL --proto '=https' --proto-redir '=https' -o "$dir/kubeadm" "$url" || return 1
+    local rc=0
+    curl -fsSL --proto '=https' --proto-redir '=https' -o "$dir/kubeadm" "$url" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ERROR: failed to download kubeadm v${version} from ${url} (curl exit $rc)" >&2
+        rm -f "$dir/kubeadm"
+        return 1
+    fi
 
+    # a failed fetch is a transport error, reported as such; only a fetched file that isn't a
+    # sha256 is an invalid published checksum
+    local checksum=
+    checksum="$(curl -fsSL --proto '=https' --proto-redir '=https' "${url}.sha256")" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ERROR: failed to fetch the kubeadm v${version} checksum from ${url}.sha256 (curl exit $rc)" >&2
+        rm -f "$dir/kubeadm"
+        return 1
+    fi
     local expected=
-    expected="$(curl -fsSL --proto '=https' --proto-redir '=https' "${url}.sha256" | awk '{ print $1 }')"
+    expected="$(printf '%s\n' "$checksum" | awk '{ print $1; exit }')"
     if ! [[ "$expected" =~ ^[0-9a-f]{64}$ ]]; then
         echo "ERROR: invalid sha256 published for kubeadm v${version}: '${expected}'" >&2
         return 1

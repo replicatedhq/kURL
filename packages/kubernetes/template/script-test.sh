@@ -255,6 +255,8 @@ function stub_curl_for_download() {
         done
         if [ -n "$out" ]; then
             printf 'fake-kubeadm' > "$out"
+        elif [ -n "${FAIL_CHECKSUM_FETCH:-}" ]; then
+            return 22
         else
             echo "$FAKE_SHA  kubeadm"
         fi
@@ -366,6 +368,22 @@ function test_download_kubeadm_rejects_invalid_checksum_file() {
     assertContains "$result" "rc=1"
 }
 
+function test_download_kubeadm_reports_checksum_fetch_failure() {
+    local result=
+    result="$(
+        FAIL_CHECKSUM_FETCH=1
+        stub_curl_for_download
+        download_kubeadm 1.38.0 "$TEST_DIR" 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "failed to fetch the kubeadm v1.38.0 checksum"
+    assertContains "$result" "curl exit 22"
+    assertNotContains "$result" "invalid sha256"
+    assertContains "$result" "rc=1"
+    local exists=
+    [ -e "$TEST_DIR/kubeadm" ] && exists=0 || exists=1
+    assertEquals "unverified kubeadm should be removed" "1" "$exists"
+}
+
 # stub_generate_deps replaces the network calls of generate_version_directory. The fake kubeadm
 # prints $FAKE_IMAGES and fails if it can see GITHUB_TOKEN or AWS_SECRET_ACCESS_KEY. Both FAKE_
 # variables are baked in when the stub is written (kubeadm runs with an empty environment).
@@ -463,12 +481,17 @@ function test_generate_conformance_package_fails_without_nginx_image() {
 }
 
 # stub_docker_for_find stands in for docker in find_available_versions: build records the image tag
-# in $TEST_DIR/built, run lists kubelet 1.<minor>.1 and 1.<minor>.2 for the k8s1<minor> image argument
+# in $TEST_DIR/built, run lists kubelet 1.<minor>.1 and 1.<minor>.2 for the k8s1<minor> image argument;
+# run fails for the image named in FAIL_RUN and lists nothing for the one in EMPTY_RUN
 function stub_docker_for_find() {
     function docker() {
         case "$1" in
             build) cat > /dev/null; echo "$3" >> "$TEST_DIR/built"; [ "$3" != "${FAIL_BUILD:-}" ] ;;
-            run) local m=; m="$(printf '%s\n' "$@" | sed -n 's/^k8s1//p')"; printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
+            run)
+                local m=; m="$(printf '%s\n' "$@" | sed -n 's/^k8s1//p')"
+                [ "k8s1$m" != "${FAIL_RUN:-}" ] || return 125
+                [ "k8s1$m" != "${EMPTY_RUN:-}" ] || return 0
+                printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
         esac
     }
 }
@@ -509,6 +532,34 @@ function test_find_available_versions_fails_when_a_listed_minor_build_fails() {
     )"
     assertNotEquals "rc=0" "$result"
     assertEquals "k8s137" "$(xargs < "$TEST_DIR/built")"
+}
+
+function test_find_available_versions_fails_when_listing_versions_fails() {
+    touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        cd "$TEST_DIR/template"
+        stub_docker_for_find
+        FAIL_RUN=k8s137 KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "listing kubelet versions for Kubernetes 1.37 failed"
+    assertEquals "rc=1" "${result##*$'\n'}"
+}
+
+function test_find_available_versions_fails_when_no_versions_are_listed() {
+    touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        cd "$TEST_DIR/template"
+        stub_docker_for_find
+        EMPTY_RUN=k8s136 KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "no kubelet 1.36.x versions found"
+    assertEquals "rc=1" "${result##*$'\n'}"
 }
 
 function test_find_available_versions_fails_without_versions_js() {
