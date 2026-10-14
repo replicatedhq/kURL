@@ -20,17 +20,31 @@ function rook_csi_images() {
     local dir="$1"
     local github_content_url="$2"
 
+    # transport failures must fail loudly, not fall through as "no images"
+    local operator_yaml=
+    if ! operator_yaml="$(curl -fsSL "${github_content_url}/deploy/examples/operator.yaml")"; then
+        echo "failed to download rook v${VERSION} operator.yaml" >&2
+        return 1
+    fi
     local images=
-    images="$(curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
-    if [ -z "$images" ]; then
+    images="$(echo "${operator_yaml}" | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
+    # gate on CSI images actually being found, not just any quoted ref, so an
+    # operator.yaml that no longer pins the sidecars cannot ship a Manifest
+    # silently missing them. csi-provisioner is pinned by every rook release.
+    if ! echo "${images}" | grep -q 'csi-provisioner'; then
         local csi_operator_version=
         csi_operator_version="$(grep -m1 -oE 'quay\.io/cephcsi/ceph-csi-operator:[^" ]+' "${dir}/operator/deployment.yaml" | cut -d: -f2 || true)"
         if [ -z "$csi_operator_version" ]; then
             echo "failed to find CSI images in operator.yaml and no ceph-csi-operator image in deployment.yaml" >&2
             return 1
         fi
-        images="$(curl -fsSL "https://raw.githubusercontent.com/ceph/ceph-csi-operator/${csi_operator_version}/internal/controller/defaults.go" | sed -n '/imageDefaults/,/^}/p' | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
-        if [ -z "$images" ]; then
+        local defaults_go=
+        if ! defaults_go="$(curl -fsSL "https://raw.githubusercontent.com/ceph/ceph-csi-operator/${csi_operator_version}/internal/controller/defaults.go")"; then
+            echo "failed to download ceph-csi-operator ${csi_operator_version} defaults.go" >&2
+            return 1
+        fi
+        images="$(echo "${defaults_go}" | sed -n '/imageDefaults/,/^}/p' | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
+        if ! echo "${images}" | grep -q 'csi-provisioner'; then
             echo "failed to extract CSI images from ceph-csi-operator ${csi_operator_version} defaults.go" >&2
             return 1
         fi
