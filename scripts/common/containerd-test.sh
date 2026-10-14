@@ -687,6 +687,36 @@ function test_ensure_pause_image_pinned_heals_when_previously_initialized_node_m
     assertEquals "re-imports kubernetes package images and pins the pause image when a previously initialized node is missing it (kubelet GC healed, sc-140018)" "0" "$?"
 }
 
+function test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e() {
+    local result
+    local exit_code
+    result="$( (
+        set -e # install.sh runs with set -e; the heal re-import must not be exempt from it
+        systemctl() { [ "$1" = "is-active" ]; }
+        load_images() { return 1; } # the re-import itself fails (e.g. a transient ctr/disk error)
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                : # still nothing -- the failed re-import never restored it
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+        echo "REACHED_END_OF_FUNCTION"
+    ) 2>&1 )"
+    exit_code="$?"
+    assertEquals "a failed heal re-import does not abort the caller under set -e" "0" "$exit_code"
+    echo "$result" | grep -q "REACHED_END_OF_FUNCTION"
+    assertEquals "function returns normally instead of set -e killing the subshell on the failed re-import" "0" "$?"
+    echo "$result" | grep -qi "still missing from containerd after re-importing"
+    assertEquals "warns that the heal re-import did not recover the pause image, same as a recovered-but-empty re-import" "0" "$?"
+}
+
 function test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport() {
     local result
     result="$( (
@@ -781,6 +811,7 @@ test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image
 test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport
+test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image

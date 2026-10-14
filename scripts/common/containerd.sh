@@ -256,7 +256,7 @@ function containerd_ensure_pause_image_pinned() {
         # removed it while it was unpinned. Re-import the kubernetes package images and retry
         # so a future sandbox create does not try, and on an airgapped host fail, to pull it.
         logWarn "Pause image $pause_image expected but missing from containerd; re-importing kubernetes package images to heal"
-        load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
+        load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images" || true
         image_line="$(containerd_find_pause_image_line "$sock" "$pause_image")" || return 0
         if [ -z "$image_line" ]; then
             logWarn "Pause image $pause_image still missing from containerd after re-importing kubernetes images; will retry on next install/upgrade run"
