@@ -1,0 +1,33 @@
+go.mod
+  s_98624405018402::t_18acbb55c8b394 3
+.golangci.yml
+  s_98624405018402::t_550b9236f7f75f 116-122
+pkg/rook/toolbox.go
+  s_98624405018402::t_46389b9ba62c29 24-30
+pkg/rook/health.go
+  s_98624405018402::t_1a87d1578b6b91 177,201,353
+Makefile
+  s_98624405018402::t_6c57434bcb9b74 635,637-642,644
+pkg/cluster/space/openebs_free_disk_space_getter.go
+  s_98624405018402::t_597159b3b35677 42-50
+  s_98624405018402::t_1a87d1578b6b91 81,105,195,250,272,275,287,294,311,341,351,444
+pkg/rook/migrate.go
+  s_98624405018402::t_1a87d1578b6b91 168,207
+  s_98624405018402::t_4cb831258d238e 236
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15f04b8ee7885c4d6445a80859c9b3a5ce8a1b03",
+  "prompts": {},
+  "sessions": {
+    "s_98624405018402": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec936e637ffe06Y0vEW9CFopsd",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
