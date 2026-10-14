@@ -50,7 +50,7 @@ etcd docker.io/kurlsh/etcd:v3.7.0 registry.k8s.io/etcd:3.7.0-0
 EOF
     cat > "$TEST_DIR/template/securebuild-$version/image-overrides" <<EOF
 daemonset/kube-proxy kube-proxy docker.io/kurlsh/kube-proxy:v1.37.1 registry.k8s.io/kube-proxy:v1.37.1
-deployment/coredns coredns docker.io/kurlsh/coredns:1.14.6 registry.k8s.io/coredns/coredns:v1.14.6
+deployment/coredns coredns docker.io/kurlsh/coredns:1.14.7 registry.k8s.io/coredns/coredns:v1.14.6
 EOF
 
     cd "$TEST_DIR/template"
@@ -61,7 +61,7 @@ EOF
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-controller-manager:v1.37.1' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-scheduler:v1.37.1' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-proxy:v1.37.1' "$TEST_DIR/$version/Manifest")"
-    assertEquals "1" "$(grep -c 'docker.io/kurlsh/coredns:1.14.6' "$TEST_DIR/$version/Manifest")"
+    assertEquals "1" "$(grep -c 'docker.io/kurlsh/coredns:1.14.7' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/etcd:v3.7.0' "$TEST_DIR/$version/Manifest")"
     # pause stays on the upstream image
     assertEquals "1" "$(grep -c 'registry.k8s.io/pause:3.10.2' "$TEST_DIR/$version/Manifest")"
