@@ -165,7 +165,7 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 	out(fmt.Sprintf("Reweighting osd.%d to 0", osdNum))
 	// reweight hostpath OSDs to 0
 	// ceph osd reweight osd.<num> 0
-	_, _, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "reweight", fmt.Sprintf("osd.%d", osdNum), "0"})
+	_, _, err := runToolboxCommand(ctx, client, []string{cephCommand, osdCommand, "reweight", fmt.Sprintf("osd.%d", osdNum), "0"})
 	if err != nil {
 		return fmt.Errorf("failed to run 'ceph osd reweight osd.%d 0': %w", osdNum, err)
 	}
@@ -204,7 +204,7 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 	out(fmt.Sprintf("Purging hostpath osd.%d as all data has been migrated to other devices", osdNum))
 	// purge hostpath OSDs
 	// osd purge <osdnum> --yes-i-really-mean-it
-	_, _, err = runToolboxCommand(ctx, client, []string{"ceph", "osd", "purge", fmt.Sprintf("%d", osdNum), "--yes-i-really-mean-it"})
+	_, _, err = runToolboxCommand(ctx, client, []string{cephCommand, osdCommand, "purge", fmt.Sprintf("%d", osdNum), "--yes-i-really-mean-it"})
 	if err != nil {
 		return fmt.Errorf("failed to run 'ceph osd purge %d --yes-i-really-mean-it': %w", osdNum, err)
 	}
@@ -233,7 +233,7 @@ func awaitDeploymentScale(ctx context.Context, client kubernetes.Interface, name
 			errCount = 0 // only fail for _consecutive_ errors
 
 			if dep.Spec.Replicas != nil && *dep.Spec.Replicas != desiredScale {
-				return fmt.Errorf("deployment %s:%s has scale %d, expected %d", namespace, name, dep.Spec.Replicas, desiredScale)
+				return fmt.Errorf("deployment %s:%s has scale %d, expected %d", namespace, name, *dep.Spec.Replicas, desiredScale)
 			}
 
 			if dep.Status.Replicas == desiredScale && dep.Status.AvailableReplicas == desiredScale && dep.Status.ReadyReplicas == desiredScale && dep.Status.UpdatedReplicas == desiredScale {

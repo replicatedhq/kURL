@@ -632,11 +632,16 @@ watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING
 ##@ Tests
 
 GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
-golangci-lint: GOLANGCI_LINT_VERSION = 2.11.4
+golangci-lint: GOLANGCI_LINT_VERSION = 2.14.0
 golangci-lint:
-	@[ -f $(GOLANGCI_LINT) ] || { \
+	# Install from source with the active Go toolchain so the linter binary can
+	# always analyze code targeting the module's Go version (prebuilt releases
+	# fail with "language version lower than targeted" when the module moves
+	# first; the v2.14.0 prebuilt installer also downloads the wrong release
+	# asset upstream). Reinstalls when the pinned version changes.
+	@$(GOLANGCI_LINT) version 2>/dev/null | grep -q "version $(GOLANGCI_LINT_VERSION) " || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin "v$(GOLANGCI_LINT_VERSION)" ;\
+	GOBIN=$(shell go env GOPATH)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION) ;\
 	}
 
 .PHONY: lint

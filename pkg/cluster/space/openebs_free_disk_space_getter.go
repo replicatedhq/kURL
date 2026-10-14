@@ -39,6 +39,15 @@ type OpenEBSVolume struct {
 	RootVolume bool
 }
 
+const (
+	// pvcNamespace is the namespace where temporary PVCs are created for the disk space check
+	pvcNamespace = "default"
+	// fstabName is the name of the fstab ConfigMap and Volume used by the temporary pod
+	fstabName = "fstab"
+	// dataMountPath is the path where the temporary pod mounts the PVC
+	dataMountPath = "/data"
+)
+
 // OpenEBSVolumes attempts to gather the free and used disk space for the openebs volume in
 // all nodes in the cluster. this function creates a temporary pod in each of the nodes of
 // the cluster, the pod runs a "df" command and we parse its output.
@@ -69,7 +78,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) OpenEBSVolumes(ctx context.Context) (map[st
 		}
 
 		pvc := o.buildTmpPVC(node.Name)
-		if pvc, err = o.kcli.CoreV1().PersistentVolumeClaims("default").Create(
+		if pvc, err = o.kcli.CoreV1().PersistentVolumeClaims(pvcNamespace).Create(
 			ctx, pvc, metav1.CreateOptions{},
 		); err != nil {
 			return nil, fmt.Errorf("failed to create temporary pvc: %w", err)
@@ -93,7 +102,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) OpenEBSVolumes(ctx context.Context) (map[st
 			)
 		}
 
-		volumes, err := o.parseFstabContainerOutput(out["fstab"])
+		volumes, err := o.parseFstabContainerOutput(out[fstabName])
 		if err != nil {
 			o.logContainersState(out, status)
 			return nil, fmt.Errorf(
@@ -183,7 +192,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildTmpPVC(node string) *corev1.Persistent
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      pvcName,
-			Namespace: "default",
+			Namespace: pvcNamespace,
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			StorageClassName: ptr.To(o.scname),
@@ -238,7 +247,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 				},
 			},
 			{
-				Name: "fstab",
+				Name: fstabName,
 				VolumeSource: corev1.VolumeSource{
 					HostPath: &corev1.HostPathVolumeSource{
 						Type: &typeFile,
@@ -260,10 +269,10 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 				Name:    "df",
 				Image:   o.image,
 				Command: []string{"df"},
-				Args:    []string{"-B1", "/data"},
+				Args:    []string{"-B1", dataMountPath},
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						MountPath: "/data",
+						MountPath: dataMountPath,
 						Name:      "openebs",
 						ReadOnly:  true,
 					},
@@ -275,14 +284,14 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 				},
 			},
 			{
-				Name:    "fstab",
+				Name:    fstabName,
 				Image:   o.image,
 				Command: []string{"cat"},
 				Args:    []string{"/node/etc/fstab"},
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						MountPath: "/node/etc/fstab",
-						Name:      "fstab",
+						Name:      fstabName,
 						ReadOnly:  true,
 					},
 				},
@@ -299,7 +308,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobName,
-			Namespace: "default",
+			Namespace: pvcNamespace,
 			Labels: map[string]string{
 				"app": "kurl-job-openebs-disk-free",
 			},
@@ -329,7 +338,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) deleteTmpPVCs(pvcs []*corev1.PersistentVolu
 
 	pvsByPVCName := map[string]corev1.PersistentVolume{}
 	for _, pv := range pvs.Items {
-		if pv.Spec.ClaimRef == nil || pv.Spec.ClaimRef.Namespace != "default" {
+		if pv.Spec.ClaimRef == nil || pv.Spec.ClaimRef.Namespace != pvcNamespace {
 			continue
 		}
 		pvsByPVCName[pv.Spec.ClaimRef.Name] = pv
@@ -339,7 +348,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) deleteTmpPVCs(pvcs []*corev1.PersistentVolu
 	for _, pvc := range pvcs {
 		propagation := metav1.DeletePropagationForeground
 		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
-		if err := o.kcli.CoreV1().PersistentVolumeClaims("default").Delete(
+		if err := o.kcli.CoreV1().PersistentVolumeClaims(pvcNamespace).Delete(
 			ctx, pvc.Name, delopts,
 		); err != nil {
 			if errors.IsNotFound(err) {
@@ -432,7 +441,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) parseDFContainerOutput(output []byte) (int6
 
 		// lastpos is where the mount point lives.
 		lastpos := len(words) - 1
-		if words[lastpos] != "/data" || len(words) < 5 {
+		if words[lastpos] != dataMountPath || len(words) < 5 {
 			continue
 		}
 
