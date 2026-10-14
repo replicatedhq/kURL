@@ -707,6 +707,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./bin/resolve-kurl-util-image-tag-test.sh
 	./bin/retag-and-push-kurl-util-image-test.sh
 	./bin/testgrid-pr-spec-test.sh
+	./bin/testgrid-pr-workflow-credentials-test.sh
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
