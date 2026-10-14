@@ -1,0 +1,36 @@
+addons/metrics-server/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 17
+addons/containerd/template/script.sh
+  s_c0b9977a69a78e::t_151020819317a2 17
+addons/ekco/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 18
+addons/cert-manager/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 20
+addons/rook/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 26
+addons/contour/template/script.sh
+  s_c0b9977a69a78e::t_151020819317a2 24
+addons/prometheus/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 28
+bin/verify-securebuild-images.sh
+  s_c0b9977a69a78e::t_56be0d8d25f7f0 1-16
+addons/sonobuoy/template/generate.sh
+  s_c0b9977a69a78e::t_151020819317a2 18
+  s_c0b9977a69a78e::t_c252d45c9c0ece 46-49,51-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "96660d9751a22fb91e389034f00b189a7f2576c6",
+  "prompts": {},
+  "sessions": {
+    "s_c0b9977a69a78e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13c0f-66c2-79a0-b9a4-d01e65e7b966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
