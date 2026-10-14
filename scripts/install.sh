@@ -634,10 +634,10 @@ function main() {
     configure_no_proxy
     install_cri
     kubernetes_configure_pause_image_upgrade
-    containerd_ensure_pause_image_pinned
     get_shared
     report_upgrade_kubernetes
     report_kubernetes_install
+    containerd_ensure_pause_image_pinned
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
     maybe_set_kurl_cluster_uuid
