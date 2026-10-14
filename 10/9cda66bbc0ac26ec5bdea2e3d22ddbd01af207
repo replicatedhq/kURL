@@ -1,0 +1,25 @@
+addons/rook/1.19.7/install.sh
+  s_f22df7b173be42::t_181f9814a06357 526-530
+addons/sonobuoy/template/base/install.sh
+  s_f22df7b173be42::t_181f9814a06357 32-41,43-50,55,58
+addons/rook/template/base/install.sh
+  s_f22df7b173be42::t_181f9814a06357 527-531
+addons/sonobuoy/0.57.5/install.sh
+  s_f22df7b173be42::t_181f9814a06357 32-41,43-50,55,58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "109cda66bbc0ac26ec5bdea2e3d22ddbd01af207",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}

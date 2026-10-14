@@ -1,0 +1,52 @@
+addons/cert-manager/template/generate.sh
+  s_f22df7b173be42::t_db28312f497f4e 20,24
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-19,23
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+addons/rook/template/generate.sh
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-25,27
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+addons/ekco/template/generate.sh
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-17,19
+packages/kubernetes/template/script-test.sh
+  s_f22df7b173be42::t_20b4284049e2af 19
+  s_f22df7b173be42::t_1046736e5d1315 66-67
+addons/sonobuoy/template/generate.sh
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-17,19
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+  s_f22df7b173be42::t_9ed7265c83938c 48-53
+packages/kubernetes/template/script.sh
+  s_f22df7b173be42::t_1046736e5d1315 41-45
+addons/metrics-server/template/generate.sh
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-16,18
+addons/contour/template/script.sh
+  s_f22df7b173be42::t_1046736e5d1315 6,9-13,15-22,24
+  s_f22df7b173be42::t_c5651e6b6320bf 14
+addons/prometheus/template/generate.sh
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-27,29
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+addons/sonobuoy/template/base/install.sh
+  s_f22df7b173be42::t_9ed7265c83938c 10-12,37-43
+addons/sonobuoy/0.57.5/install.sh
+  s_f22df7b173be42::t_9ed7265c83938c 10-12,37-43
+addons/containerd/template/script.sh
+  s_f22df7b173be42::t_c5651e6b6320bf 13
+  s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-16,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "14b42509bb893f3d24a042255ad0d4ce6033da95",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/kubernetes/template/script-test.sh
+  s_f22df7b173be42::t_3544181efbe579 8-12
+addons/contour/template/script.sh
+  s_f22df7b173be42::t_3544181efbe579 21,83-87
+packages/kubernetes/template/script.sh
+  s_f22df7b173be42::t_3544181efbe579 41,43-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ab53e0c691a1f66c01873ecadaaf2d3e2b05594",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}

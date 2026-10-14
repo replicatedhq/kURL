@@ -1,0 +1,126 @@
+addons/rook/template/base/install.sh
+  s_f22df7b173be42::t_518029563c8717 526-528,535
+packages/kubernetes/template/securebuild-1.37.1/pause-image
+  s_f22df7b173be42::t_b703966b56dda3 1
+packages/kubernetes/1.36.5/Manifest
+  s_f22df7b173be42::t_b703966b56dda3 6
+packages/kubernetes/1.37.1/pause-image
+  s_f22df7b173be42::t_b703966b56dda3 1
+addons/cert-manager/1.21.2/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 1-4
+addons/prometheus/0.94.1-91.8.0/operator/default.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 1737,1872,1913,1952,2108,2185,2192,2270,2328
+addons/rook/1.19.7/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 5-14
+addons/prometheus/template/generate.sh
+  s_f22df7b173be42::t_b703966b56dda3 5-12,101
+addons/metrics-server/0.9.0/components.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 141
+addons/rook/1.19.7/operator/deployment.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 37,135
+addons/rook/1.19.7/operator/toolbox.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 22
+addons/sonobuoy/0.57.5/sonobuoy.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 1-12
+addons/prometheus/0.94.1-91.8.0/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 1-9
+addons/rook/template/generate.sh
+  s_f22df7b173be42::t_b703966b56dda3 5-12,81
+addons/sonobuoy/template/base/sonobuoy.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 1-12
+packages/kubernetes/template/script.sh
+  s_f22df7b173be42::t_b703966b56dda3 54-59
+addons/containerd/2.3.6/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 14
+addons/contour/1.33.7/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 1-2
+addons/sonobuoy/0.57.5/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 3-4
+packages/kubernetes/1.36.5/pause-image
+  s_f22df7b173be42::t_b703966b56dda3 1
+packages/kubernetes/template/securebuild-1.36.5/pause-image
+  s_f22df7b173be42::t_b703966b56dda3 1
+addons/ekco/template/securebuild-images.sed
+  s_f22df7b173be42::t_b703966b56dda3 1
+  s_f22df7b173be42::t_092f9e998a7fc7 2
+addons/metrics-server/template/securebuild-images.sed
+  s_f22df7b173be42::t_092f9e998a7fc7 2
+  s_f22df7b173be42::t_b703966b56dda3 1
+addons/rook/1.19.7/install.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 66,145,279
+  s_f22df7b173be42::t_518029563c8717 525-527,534
+addons/sonobuoy/0.57.5/install.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 10-11,35-37
+addons/sonobuoy/template/securebuild-images.sed
+  s_f22df7b173be42::t_b703966b56dda3 1
+  s_f22df7b173be42::t_092f9e998a7fc7 2-3
+addons/cert-manager/template/base/Manifest.tmpl
+  s_f22df7b173be42::t_b703966b56dda3 4
+addons/cert-manager/template/generate.sh
+  s_f22df7b173be42::t_fc0fd355fae409 5
+  s_f22df7b173be42::t_b703966b56dda3 6-8,13-14,64
+  s_f22df7b173be42::t_518029563c8717 9-12
+addons/prometheus/0.94.1-91.8.0/operator/adapter.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 306
+packages/kubernetes/1.37.1/Manifest
+  s_f22df7b173be42::t_b703966b56dda3 6
+addons/ekco/template/generate.sh
+  s_f22df7b173be42::t_b703966b56dda3 5-12,50
+addons/sonobuoy/template/generate.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 36-39
+  s_f22df7b173be42::t_b703966b56dda3 5-12,35
+addons/ekco/0.28.17/install.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 3
+addons/metrics-server/template/generate.sh
+  s_f22df7b173be42::t_b703966b56dda3 5-12,25
+addons/cert-manager/1.21.2/cert-manager.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 13677,13741,13747,13824
+addons/ekco/0.28.17/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 2
+addons/containerd/template/script.sh
+  s_f22df7b173be42::t_b703966b56dda3 5-12,383
+addons/rook/1.19.7/cluster/cluster.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 24
+addons/contour/template/securebuild-images.sed
+  s_f22df7b173be42::t_092f9e998a7fc7 2-4
+  s_f22df7b173be42::t_b703966b56dda3 1
+addons/prometheus/template/securebuild-images.sed
+  s_f22df7b173be42::t_b703966b56dda3 1
+  s_f22df7b173be42::t_092f9e998a7fc7 2-10
+addons/rook/1.19.7/operator/configmap.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 44-49,52
+addons/sonobuoy/template/base/install.sh
+  s_f22df7b173be42::t_092f9e998a7fc7 10-11,35-37
+addons/containerd/template/securebuild-images.sed
+  s_f22df7b173be42::t_b703966b56dda3 1
+  s_f22df7b173be42::t_092f9e998a7fc7 2
+addons/contour/1.33.7/contour.yaml
+  s_f22df7b173be42::t_092f9e998a7fc7 8965,9223,9307,9328,9386
+addons/contour/template/script.sh
+  s_f22df7b173be42::t_b703966b56dda3 6-13,91
+  s_f22df7b173be42::t_39bee038d659cb 92
+addons/rook/template/securebuild-images.sed
+  s_f22df7b173be42::t_092f9e998a7fc7 2-11
+  s_f22df7b173be42::t_b703966b56dda3 1
+addons/metrics-server/0.9.0/Manifest
+  s_f22df7b173be42::t_092f9e998a7fc7 1
+addons/cert-manager/template/securebuild-images.sed
+  s_f22df7b173be42::t_b703966b56dda3 1
+  s_f22df7b173be42::t_092f9e998a7fc7 2-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "81972736c959f98d10727a5470a470484ab06b2d",
+  "prompts": {},
+  "sessions": {
+    "s_f22df7b173be42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f308-06ea-7c70-ac29-b92872b15a43",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
