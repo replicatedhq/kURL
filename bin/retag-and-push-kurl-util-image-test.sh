@@ -148,8 +148,10 @@ testRetagAndPushShortCircuitsOnTagFailureAndDoesNotPush() {
 }
 
 testRetagAndPushRequiresSourceAndDestImages() {
-    ( retag_and_push_kurl_util_image "replicated/kurl-util:alpha" "" ) >/dev/null 2>&1
-    assertNotEquals "0" "$?"
+    local output
+    output="$(retag_and_push_kurl_util_image "replicated/kurl-util:alpha" "" 2>&1 >/dev/null)"
+    assertEquals "1" "$?"
+    assertEquals "retag_and_push_kurl_util_image: source_image and dest_image are required" "${output}"
 }
 
 # shellcheck source=/dev/null

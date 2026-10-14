@@ -45,10 +45,15 @@ testKurlUtilImageJobScopesGitHubTokenAndDropsPersistedCredentials() {
     # block the workflow falls back to the repo default GITHUB_TOKEN scope,
     # and checkout's default `persist-credentials: true` leaves that token
     # sitting in .git/config for anything the retag/build steps run.
+    #
+    # Strip comment-only lines before asserting: the job's explanatory
+    # comments quote `persist-credentials: false` verbatim, so a plain grep
+    # over the raw job body would pass even if the real `with:` key were
+    # removed from a checkout step.
     local job_body
     job_body="$(mktemp)"
     awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
-        "${WORKFLOW}" > "${job_body}"
+        "${WORKFLOW}" | grep -v '^[[:space:]]*#' > "${job_body}"
 
     assertTrue "kurl-util-image job must declare a minimal permissions block" \
         "grep -q 'permissions:' '${job_body}'"
@@ -56,6 +61,38 @@ testKurlUtilImageJobScopesGitHubTokenAndDropsPersistedCredentials() {
         "grep -q 'persist-credentials: false' '${job_body}'"
 
     rm -f "${job_body}"
+}
+
+testPersistCredentialsGuardIgnoresCommentOnlyMentions() {
+    # Reproduces the gap above directly: a job whose ONLY mention of
+    # `persist-credentials: false` is inside a comment, with no real
+    # checkout step setting the key, must fail the guard rather than pass
+    # on the comment text.
+    local fixture job_body
+    fixture="$(mktemp)"
+    job_body="$(mktemp)"
+    cat > "${fixture}" <<'EOF'
+  kurl-util-image:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      # persist-credentials: false -- this comment describes a step that
+      # never actually sets the key below.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+  job2:
+    runs-on: ubuntu-24.04
+EOF
+
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${fixture}" | grep -v '^[[:space:]]*#' > "${job_body}"
+
+    assertFalse "a comment-only mention of persist-credentials: false must not satisfy the guard" \
+        "grep -q 'persist-credentials: false' '${job_body}'"
+
+    rm -f "${fixture}" "${job_body}"
 }
 
 testKurlUtilImageJobCheckOutRetagScriptOnLabelPath() {
