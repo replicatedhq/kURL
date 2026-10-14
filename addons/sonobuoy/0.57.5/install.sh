@@ -44,6 +44,7 @@ function sonobuoy_binary() {
         download="$(mktemp "${src}/assets/sonobuoy.tar.gz.XXXXXX")"
         if ! curl -fL -o "$download" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz" || \
             ! tar tzf "$download" >/dev/null 2>&1; then
+            logFail "Failed to download or validate the Sonobuoy ${SONOBUOY_VERSION} CLI archive."
             rm -f "$download"
             return 1
         fi
@@ -52,10 +53,16 @@ function sonobuoy_binary() {
 
     if [ -f "${src}/sonobuoy.sh" ]; then
         mkdir -p /usr/local/lib/sonobuoy
-        tar xzf "$archive" -C /usr/local/lib/sonobuoy || return 1
+        if ! tar xzf "$archive" -C /usr/local/lib/sonobuoy; then
+            logFail "Failed to extract the Sonobuoy ${SONOBUOY_VERSION} CLI archive $archive."
+            return 1
+        fi
         install -m 0755 "${src}/sonobuoy.sh" /usr/local/bin/sonobuoy
     else
-        tar xzf "$archive" -C /usr/local/bin || return 1
+        if ! tar xzf "$archive" -C /usr/local/bin; then
+            logFail "Failed to extract the Sonobuoy ${SONOBUOY_VERSION} CLI archive $archive."
+            return 1
+        fi
     fi
 }
 
