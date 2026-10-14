@@ -18,15 +18,18 @@ var matrix = () => {
     const allImages = filteredImages.concat(getKubernetesImages(kubernetesSpecDir));
 
     // dedupe by image reference: adjacent versions often share the same image
-    // tag (e.g. pause, etcd), and scanning the same ref twice adds no signal
-    const seen = new Set();
-    const deduped = allImages.filter((image) => {
-        if (seen.has(image.image)) {
-            return false;
+    // tag (e.g. pause, etcd), and scanning the same ref twice adds no signal.
+    // a ref shared with a no-alert add-on (weave, longhorn) must still alert
+    // when another consumer of it alerts, so prefer the alerting leg rather
+    // than first-wins.
+    const byRef = new Map();
+    allImages.forEach((image) => {
+        const existing = byRef.get(image.image);
+        if (!existing || (!existing.alert && image.alert)) {
+            byRef.set(image.image, image);
         }
-        seen.add(image.image);
-        return true;
     });
+    const deduped = [...byRef.values()];
 
     console.log(JSON.stringify({include: deduped})); // format for git
 };
