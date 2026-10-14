@@ -47,7 +47,7 @@ K8S_DISTRO=kubeadm
 function kubeadm_get_containerd_sock() { echo "/run/containerd/containerd.sock"; }
 function kubernetes_version_minor() { echo "$1" | cut -d. -f2; }
 function log() { echo "$*"; }
-function logWarn() { echo "WARN: $*"; }
+function logWarn() { echo "WARN: $*" 1>&2; } # matches common.sh: logWarn writes to stderr
 
 # Shared stub for the `ctr -a <sock> -n=k8s.io images list|label ...` dispatch used by the
 # containerd_ensure_pause_image_pinned tests below. Call stub_ctr_pause_image "<list fixture>"
@@ -547,6 +547,9 @@ function test_ensure_pause_image_pinned_noop_when_already_pinned() {
 }
 
 function test_ensure_pause_image_pinned_noop_when_not_imported() {
+    # KUBELET_FLAGS_FILE is unset/absent here -- a genuine fresh install before kubeadm has
+    # ever configured this node, as opposed to the heal case below where the node was already
+    # initialized and the missing image means kubelet GC removed it.
     local result
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
@@ -658,6 +661,57 @@ function test_ensure_pause_image_pinned_warns_on_label_failure() {
     assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
 }
 
+function test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        reimported=0
+        load_images() { reimported=1; }
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                if [ "$reimported" = "1" ]; then
+                    echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
+                fi
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label -- registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    assertEquals "re-imports kubernetes package images and pins the pause image when a previously initialized node is missing it (kubelet GC healed, sc-140018)" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        load_images() { :; } # reimport does not restore the image (e.g. the local tarball is gone too)
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                : # still nothing after the heal re-import
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not pin when the pause image is still missing after the heal re-import" "1" "$?"
+    echo "$result" | grep -qi "still missing from containerd after re-importing"
+    assertEquals "warns that the heal re-import did not recover the pause image" "0" "$?"
+}
+
 function test_ensure_pause_image_pinned_noop_when_containerd_version_unset() {
     local result
     result="$( (
@@ -725,6 +779,8 @@ test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag
 test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
+test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image
+test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
