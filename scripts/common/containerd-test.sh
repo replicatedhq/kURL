@@ -494,6 +494,31 @@ function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
     assertEquals "no-ops on containerd 2.x, which never exposes sandbox_image" "1" "$?"
 }
 
+function test_ensure_pause_image_pinned_warns_on_list_failure() {
+    local result
+    local exit_code
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        ctr() {
+            if [ "$1" = "-n=k8s.io" ] && [ "$2" = "images" ] && [ "$3" = "list" ] && [ "$4" != "label" ]; then
+                echo "ctr: failed to dial \"/run/containerd/containerd.sock\": connection refused" >&2
+                return 1
+            elif [ "$2" = "images" ] && [ "$3" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to list containerd images"
+    assertEquals "logs a warning when ctr images list fails" "0" "$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not try to pin when ctr images list fails" "1" "$?"
+    assertEquals "does not abort the caller when ctr images list fails" "0" "$exit_code"
+}
+
 function test_ensure_pause_image_pinned_warns_on_label_failure() {
     local result
     local exit_code
@@ -580,6 +605,7 @@ test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
+test_ensure_pause_image_pinned_warns_on_list_failure
 test_ensure_pause_image_pinned_warns_on_label_failure
 test_ensure_pause_image_pinned_noop_when_containerd_version_unset
 test_ensure_pause_image_pinned_noop_when_config_toml_missing
