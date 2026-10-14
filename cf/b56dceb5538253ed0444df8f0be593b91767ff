@@ -1,0 +1,23 @@
+addons/sonobuoy/0.57.5/install.sh
+  s_c0b9977a69a78e::t_1a50b2ddf68b10 47,56-59,62-65
+addons/sonobuoy/template/base/install.sh
+  s_c0b9977a69a78e::t_c0ed4457b8004f 47,56-59,62-65
+bin/verify-securebuild-images.sh
+  s_c0b9977a69a78e::t_c0ed4457b8004f 10-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cfb56dceb5538253ed0444df8f0be593b91767ff",
+  "prompts": {},
+  "sessions": {
+    "s_c0b9977a69a78e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13c0f-66c2-79a0-b9a4-d01e65e7b966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    }
+  }
+}
