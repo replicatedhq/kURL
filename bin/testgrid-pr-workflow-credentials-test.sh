@@ -31,7 +31,7 @@ testKurlUtilImageJobDoesNotReuseProdDockerHubCredential() {
     # job-specific check.
     local job_body
     job_body="$(mktemp)"
-    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
         "${WORKFLOW}" > "${job_body}"
 
     assertFalse "kurl-util-image job must not reference the prod secrets.DOCKERHUB_USER" \
@@ -46,9 +46,39 @@ testKurlUtilImageJobDoesNotReuseProdDockerHubCredential() {
     rm -f "${job_body}"
 }
 
+testKurlUtilImageJobScopesGitHubTokenAndDropsPersistedCredentials() {
+    # This job checks out PR-authored content while a Docker Hub credential
+    # is logged in (see the test above). Without a job-level `permissions:`
+    # block the workflow falls back to the repo default GITHUB_TOKEN scope,
+    # and checkout's default `persist-credentials: true` leaves that token
+    # sitting in .git/config for anything the retag/build steps run.
+    local job_body
+    job_body="$(mktemp)"
+    awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
+        "${WORKFLOW}" > "${job_body}"
+
+    assertTrue "kurl-util-image job must declare a minimal permissions block" \
+        "grep -q 'permissions:' '${job_body}'"
+    assertTrue "kurl-util-image job must set persist-credentials: false on its checkout steps" \
+        "grep -q 'persist-credentials: false' '${job_body}'"
+
+    rm -f "${job_body}"
+}
+
 testHeaderDocumentsScopedDockerHubCredentialRequirement() {
+    # Scope the grep to the header comment block (everything before the
+    # top-level `on:` trigger section) so this only passes if the
+    # provisioning doc itself mentions the credential -- the job steps
+    # further down also reference DOCKERHUB_PR_USER, which would make an
+    # unscoped grep pass even if the header section were deleted.
+    local header
+    header="$(mktemp)"
+    awk '/^on:/{exit} {print}' "${WORKFLOW}" > "${header}"
+
     assertTrue "REQUIRED provisioning section must document a scoped Docker Hub credential, same as the AWS one" \
-        "grep -q 'DOCKERHUB_PR_USER' \"${WORKFLOW}\""
+        "grep -q 'DOCKERHUB_PR_USER' '${header}'"
+
+    rm -f "${header}"
 }
 
 # shellcheck source=/dev/null
