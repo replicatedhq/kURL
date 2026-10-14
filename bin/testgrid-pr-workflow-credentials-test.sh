@@ -1,46 +1,39 @@
 #!/bin/bash
 
 # Structural guard on .github/workflows/testgrid-pr.yaml's `kurl-util-image`
-# job: that job runs on a plain `label: run-testgrid` trigger (Triage-level
-# access, not maintainer-only -- see the workflow's own header) and checks
-# out the PR's own ref, so the `retag and push the existing alpha image under
-# the RC tag` step sources bin/retag-and-push-kurl-util-image.sh *from the
-# PR's branch* while Docker Hub credentials are already logged in.
+# job: that job must authenticate to Docker Hub with the existing
+# DOCKERHUB_USER / DOCKERHUB_PASSWORD secret, the same credential
+# build-image.yaml, deploy-prod.yaml, and deploy-staging.yaml already use.
 #
-# If that job's docker/login-action reuses the same DOCKERHUB_USER /
-# DOCKERHUB_PASSWORD secret that deploy-prod.yaml uses to publish real
-# releases, a PR that edits the retag script (e.g. to read
-# ~/.docker/config.json and exfiltrate it, or to push an extra tag) runs
-# with a prod-capable credential -- not the scoped, PR-only credential the
-# workflow's AWS path already requires (see the header's "REQUIRED
-# provisioning" section, point 1). The testgrid-pr environment's required
-# reviewers gate *that a run starts*, not that the diff was re-reviewed, so
-# it is not a substitute for scoping the credential itself.
+# An earlier revision of this workflow introduced a dedicated
+# DOCKERHUB_PR_USER / DOCKERHUB_PR_TOKEN pair to scope this job away from the
+# prod-capable credential. That pair was never actually provisioned in the
+# repo's secrets (see PR #6173 review feedback), so a run against that
+# revision fails docker/login-action outright. Revert to the credential that
+# is actually configured until a scoped pair is provisioned and documented.
 #
-# This test fails against a workflow that reuses the prod Docker Hub secret
-# for that job, and passes once it is switched to a dedicated,
-# least-privilege DOCKERHUB_PR_USER / DOCKERHUB_PR_TOKEN pair.
+# This test fails against a workflow that references the unprovisioned
+# DOCKERHUB_PR_USER / DOCKERHUB_PR_TOKEN pair, and passes once the job uses
+# the existing DOCKERHUB_USER / DOCKERHUB_PASSWORD secret.
 
 WORKFLOW="./.github/workflows/testgrid-pr.yaml"
 
-testKurlUtilImageJobDoesNotReuseProdDockerHubCredential() {
+testKurlUtilImageJobUsesProvisionedDockerHubCredential() {
     # Isolate the kurl-util-image job body (next top-level job starts the
-    # cutoff) so a prod-secret reference anywhere else in the file -- there
-    # is none today, but this keeps the assertion scoped to the job that
-    # actually runs PR-authored code under docker login -- can't hide the
+    # cutoff) so a secret reference anywhere else in the file can't hide the
     # job-specific check.
     local job_body
     job_body="$(mktemp)"
     awk '/^  kurl-util-image:/{found=1} found && /^  [a-zA-Z0-9_-]+:$/ && !/^  kurl-util-image:$/{exit} found' \
         "${WORKFLOW}" > "${job_body}"
 
-    assertFalse "kurl-util-image job must not reference the prod secrets.DOCKERHUB_USER" \
+    assertTrue "kurl-util-image job must use the provisioned secrets.DOCKERHUB_USER" \
         "grep -q 'secrets.DOCKERHUB_USER' '${job_body}'"
-    assertFalse "kurl-util-image job must not reference the prod secrets.DOCKERHUB_PASSWORD" \
+    assertTrue "kurl-util-image job must use the provisioned secrets.DOCKERHUB_PASSWORD" \
         "grep -q 'secrets.DOCKERHUB_PASSWORD' '${job_body}'"
-    assertTrue "kurl-util-image job must use a dedicated, scoped DOCKERHUB_PR_USER secret" \
+    assertFalse "kurl-util-image job must not reference the unprovisioned DOCKERHUB_PR_USER secret" \
         "grep -q 'secrets.DOCKERHUB_PR_USER' '${job_body}'"
-    assertTrue "kurl-util-image job must use a dedicated, scoped DOCKERHUB_PR_TOKEN secret" \
+    assertFalse "kurl-util-image job must not reference the unprovisioned DOCKERHUB_PR_TOKEN secret" \
         "grep -q 'secrets.DOCKERHUB_PR_TOKEN' '${job_body}'"
 
     rm -f "${job_body}"
@@ -91,17 +84,15 @@ testKurlUtilImageJobCheckOutRetagScriptOnLabelPath() {
     rm -f "${job_body}"
 }
 
-testHeaderDocumentsScopedDockerHubCredentialRequirement() {
+testHeaderDoesNotDocumentUnprovisionedDockerHubCredential() {
     # Scope the grep to the header comment block (everything before the
-    # top-level `on:` trigger section) so this only passes if the
-    # provisioning doc itself mentions the credential -- the job steps
-    # further down also reference DOCKERHUB_PR_USER, which would make an
-    # unscoped grep pass even if the header section were deleted.
+    # top-level `on:` trigger section) so this only checks the provisioning
+    # doc itself.
     local header
     header="$(mktemp)"
     awk '/^on:/{exit} {print}' "${WORKFLOW}" > "${header}"
 
-    assertTrue "REQUIRED provisioning section must document a scoped Docker Hub credential, same as the AWS one" \
+    assertFalse "REQUIRED provisioning section must not document the unprovisioned DOCKERHUB_PR_USER credential" \
         "grep -q 'DOCKERHUB_PR_USER' '${header}'"
 
     rm -f "${header}"

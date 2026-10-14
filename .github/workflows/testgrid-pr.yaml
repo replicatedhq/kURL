@@ -59,20 +59,10 @@ name: testgrid-pr
 #          explicitly as belt-and-suspenders. Do NOT deny staging/*-gen.json
 #          broadly — that would also block the versioned
 #          staging/<rc-tag>/addons-gen.json this workflow must write.)
-#   2. Dedicated least-privilege Docker Hub credential: DOCKERHUB_PR_USER /
-#      DOCKERHUB_PR_TOKEN. This MUST be a NEW access token, NOT the prod
-#      DOCKERHUB_USER / DOCKERHUB_PASSWORD credential that deploy-prod.yaml
-#      uses to publish real releases. The `kurl-util-image` job's "retag and
-#      push" step sources bin/retag-and-push-kurl-util-image.sh *from the
-#      PR's own checked-out ref*, so a PR that edits that script runs with
-#      whatever credential is already docker-logged-in — scope the token to
-#      push access on replicated/kurl-util only, same reasoning as the AWS
-#      credential above.
-#   3. The `testgrid-pr` GitHub Environment MUST be configured with required
+#   2. The `testgrid-pr` GitHub Environment MUST be configured with required
 #      reviewers, so every run pauses for maintainer approval before any secret
 #      is exposed. This — not the label — is the gate that limits who can start a
-#      credentialed run. It gates that a run starts, not that the diff was
-#      re-reviewed, so it does not substitute for scoping the credential itself.
+#      credentialed run.
 #
 # ── Cost / expectations ─────────────────────────────────────────────────────
 #   * Core-only build: rebuilds a handful of core packages and copies the rest
@@ -284,8 +274,8 @@ jobs:
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
-          username: ${{ secrets.DOCKERHUB_PR_USER }}
-          password: ${{ secrets.DOCKERHUB_PR_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: build and push kurl-util image
         if: inputs.build-kurl-util-image
