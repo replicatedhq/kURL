@@ -9,6 +9,35 @@ function get_latest_version() {
         sed 's/v//'
 }
 
+# rook_csi_images prints the CSI sidecar images for the Rook version being
+# generated. Rook <= 1.20 pinned them as quoted image refs in
+# deploy/examples/operator.yaml (e.g. provisioner: "registry.k8s.io/...:v1.2.3").
+# Rook 1.21+ leaves them empty and lets the ceph-csi-operator subchart use its
+# compiled-in defaults (internal/controller/defaults.go), so fall back to
+# extracting them from the ceph-csi-operator release found in the rendered
+# operator deployment.
+function rook_csi_images() {
+    local dir="$1"
+    local github_content_url="$2"
+
+    local images=
+    images="$(curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
+    if [ -z "$images" ]; then
+        local csi_operator_version=
+        csi_operator_version="$(grep -m1 -oE 'quay\.io/cephcsi/ceph-csi-operator:[^" ]+' "${dir}/operator/deployment.yaml" | cut -d: -f2 || true)"
+        if [ -z "$csi_operator_version" ]; then
+            echo "failed to find CSI images in operator.yaml and no ceph-csi-operator image in deployment.yaml" >&2
+            return 1
+        fi
+        images="$(curl -fsSL "https://raw.githubusercontent.com/ceph/ceph-csi-operator/${csi_operator_version}/internal/controller/defaults.go" | sed -n '/imageDefaults/,/^}/p' | grep -oE '"[^"]+/[^"]+:[^"]+"' || true)"
+        if [ -z "$images" ]; then
+            echo "failed to extract CSI images from ceph-csi-operator ${csi_operator_version} defaults.go" >&2
+            return 1
+        fi
+    fi
+    echo "$images" | sed -E 's/"([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+)"/image \2-\3 \1\2\/\3:\4/'
+}
+
 function generate() {
     local dir="../${VERSION}"
 
@@ -64,11 +93,7 @@ function generate() {
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
         grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
-        # Newer Rook operator.yaml stores the CSI sidecar images in a ConfigMap as
-        # quoted image refs (e.g. provisioner: "registry.k8s.io/...:v1.2.3").
-        # Older versions kept them in commented _IMAGE: lines. Extract any quoted
-        # image reference so both formats work.
-        curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' | sed -E 's/"([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+)"/image \2-\3 \1\2\/\3:\4/' ; \
+        rook_csi_images "${dir}" "${github_content_url}" ; \
     } >> "${dir}/Manifest"
 }
 
