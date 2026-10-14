@@ -365,6 +365,9 @@ function test_download_kubeadm_rejects_invalid_checksum_file() {
     )"
     assertContains "$result" "invalid sha256"
     assertContains "$result" "rc=1"
+    local exists=
+    [ -e "$TEST_DIR/kubeadm" ] && exists=0 || exists=1
+    assertEquals "unverified kubeadm should be removed" "1" "$exists"
 }
 
 function test_download_kubeadm_reports_checksum_fetch_failure() {
@@ -391,7 +394,7 @@ function stub_generate_deps() {
         cat > "$2/kubeadm" <<EOF
 #!/bin/bash
 if [ -n "\${GITHUB_TOKEN:-}\${AWS_SECRET_ACCESS_KEY:-}" ]; then echo "credential leaked to kubeadm" >&2; exit 1; fi
-if [ -n "${FAKE_KUBEADM_FAIL:-}" ]; then exit 1; fi
+if [ -n "${FAKE_KUBEADM_FAIL:-}" ]; then exit 3; fi
 printf '%b' "$FAKE_IMAGES"
 EOF
         chmod +x "$2/kubeadm"
@@ -432,9 +435,10 @@ function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure()
         FAKE_KUBEADM_FAIL=1
         FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
         stub_generate_deps
-        generate_version_directory 1.38.0 2>/dev/null && echo "rc=0" || echo "rc=$?"
+        generate_version_directory 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
-    assertEquals "rc=1" "$result"
+    assertContains "$result" "kubeadm config images list failed for 1.38.0 (exit 3)"
+    assertEquals "rc=1" "${result##*$'\n'}"
     assertEquals "old" "$(cat "$TEST_DIR/1.38.0/Manifest")"
 }
 
@@ -474,6 +478,20 @@ function test_generate_conformance_package_fails_without_nginx_image() {
     )"
     assertContains "$result" "no nginx image"
     assertContains "$result" "rc=1"
+    local exists=
+    [ -e "$TEST_DIR/1.38.0/conformance/Manifest" ] && exists=0 || exists=1
+    assertEquals "no conformance Manifest should be written" "1" "$exists"
+}
+
+function test_generate_conformance_package_reports_docker_run_failure() {
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        function docker() { echo "manifest unknown" >&2; return 125; }
+        generate_conformance_package 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "listing conformance images failed (docker run registry.k8s.io/conformance:v1.38.0, exit 125)"
+    assertEquals "rc=1" "${result##*$'\n'}"
     local exists=
     [ -e "$TEST_DIR/1.38.0/conformance/Manifest" ] && exists=0 || exists=1
     assertEquals "no conformance Manifest should be written" "1" "$exists"

@@ -153,6 +153,7 @@ function download_kubeadm() {
     expected="$(printf '%s\n' "$checksum" | awk '{ print $1; exit }')"
     if ! [[ "$expected" =~ ^[0-9a-f]{64}$ ]]; then
         echo "ERROR: invalid sha256 published for kubeadm v${version}: '${expected}'" >&2
+        rm -f "$dir/kubeadm"
         return 1
     fi
     local actual=
@@ -202,7 +203,12 @@ function generate_version_directory() (
     # corruption (the checksum comes from the same origin), so kubeadm runs with an empty
     # environment: no tokens or credentials, and HOME is the temp dir (no ~/.config, ~/.docker, ...).
     local images=
-    images="$(env -i PATH="$PATH" HOME="$workdir" "$workdir/kubeadm" config images list --kubernetes-version="${version}")" || return 1
+    local rc=0
+    images="$(env -i PATH="$PATH" HOME="$workdir" "$workdir/kubeadm" config images list --kubernetes-version="${version}")" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ERROR: kubeadm config images list failed for ${version} (exit $rc)" >&2
+        return 1
+    fi
     if [ -z "$images" ]; then
         echo "ERROR: kubeadm config images list returned no images for ${version}" >&2
         return 1
@@ -262,7 +268,12 @@ function generate_conformance_package() {
 
     # --mode quick image
     local images=
-    images="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images)" || return 1
+    local rc=0
+    images="$(docker run --rm --entrypoint e2e.test "registry.k8s.io/conformance:v${version}" --list-images)" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ERROR: listing conformance images failed (docker run registry.k8s.io/conformance:v${version}, exit $rc)" >&2
+        return 1
+    fi
     local image=
     image="$(echo "$images" | { grep "nginx" || true; } | sort -n | head -n 1)"
     if [ -z "$image" ]; then
