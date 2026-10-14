@@ -21,6 +21,7 @@ s~(^|[[:space:]"'=])docker\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@
 s~(^|[[:space:]"'=])projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
         -exec sed -i -E "$replacements" {} +
 }

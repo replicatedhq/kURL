@@ -25,6 +25,7 @@ s~(docker\.io/kurlsh/grafana:v?[0-9][[:alnum:]._-]*)-distroless~\1~g
 s~(docker\.io/kurlsh/node-exporter:v?[0-9][[:alnum:]._-]*)-distroless~\1~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
         -exec sed -i -E "$replacements" {} +
 }

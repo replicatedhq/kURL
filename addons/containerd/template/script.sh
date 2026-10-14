@@ -14,6 +14,7 @@ function use_securebuild_images() {
 s~(^|[[:space:]"'=])registry\.k8s\.io/pause:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/pause:\2~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
         -exec sed -i -E "$replacements" {} +
 }

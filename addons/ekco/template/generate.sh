@@ -15,6 +15,7 @@ s~(^|[[:space:]"'=])haproxy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1d
 s~(docker\.io/kurlsh/haproxy:[0-9][[:alnum:]._-]*)-alpine[0-9]+\.[0-9]+~\1~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
         -exec sed -i -E "$replacements" {} +
 }

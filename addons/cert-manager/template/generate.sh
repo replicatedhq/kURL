@@ -17,6 +17,7 @@ s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-webhook:(v?[0-9][[:alnum:]._-
 s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-acmesolver:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-acmesolver:\2~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     # Leave the legacy v1.0.3 upgrade detection in install.sh on its original image.
     local file=
     while IFS= read -r -d '' file; do

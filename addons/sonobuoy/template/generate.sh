@@ -15,6 +15,7 @@ s~(^|[[:space:]"'=])sonobuoy/sonobuoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit
 s~(^|[[:space:]"'=])sonobuoy/systemd-logs:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/sonobuoy-systemd-logs:\2~g
 SED
 )"
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" || return 1
     find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) \
         -exec sed -i -E "$replacements" {} +
 }
@@ -42,10 +43,35 @@ function generate() {
         sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
     rm -r "${tmpdir}"
     use_securebuild_images
+    sonobuoy_configure_image_defaults
+}
+
+function sonobuoy_configure_image_defaults() {
     local sonobuoy_image= systemd_logs_image=
-    sonobuoy_image="$(awk '$1 == "image" && $2 == "sonobuoy" {print $3}' "../${VERSION}/Manifest")"
-    systemd_logs_image="$(awk '$1 == "image" && $2 == "systemd-logs" {print $3}' "../${VERSION}/Manifest")"
-    if [[ "$sonobuoy_image" == docker.io/kurlsh/* ]]; then
+    sonobuoy_image="$(awk '$1 == "image" && $2 == "sonobuoy" && NF == 3 {print $3}' "../${VERSION}/Manifest")" || return 1
+    systemd_logs_image="$(awk '$1 == "image" && $2 == "systemd-logs" && NF == 3 {print $3}' "../${VERSION}/Manifest")" || return 1
+
+    # Classify by version, then validate both image entries. Missing or malformed
+    # references must not silently select the historical CLI installation path.
+    local securebuild_release=0
+    local sonobuoy_repository='(docker[.]io/)?sonobuoy/sonobuoy'
+    local systemd_logs_repository='(docker[.]io/)?sonobuoy/systemd-logs'
+    if [ "$(printf '%s\n' "0.57.5" "$VERSION" | sort -V | head -n 1)" = "0.57.5" ]; then
+        securebuild_release=1
+        sonobuoy_repository='docker[.]io/kurlsh/sonobuoy'
+        systemd_logs_repository='docker[.]io/kurlsh/sonobuoy-systemd-logs'
+    fi
+    local tag_pattern='[[:alnum:]_][[:alnum:]_.-]*(@sha256:[[:xdigit:]]{64})?'
+    if ! [[ "$sonobuoy_image" =~ ^${sonobuoy_repository}:${tag_pattern}$ ]]; then
+        echo "Missing or invalid sonobuoy image in ../${VERSION}/Manifest: $sonobuoy_image" >&2
+        return 1
+    fi
+    if ! [[ "$systemd_logs_image" =~ ^${systemd_logs_repository}:${tag_pattern}$ ]]; then
+        echo "Missing or invalid systemd-logs image in ../${VERSION}/Manifest: $systemd_logs_image" >&2
+        return 1
+    fi
+
+    if [ "$securebuild_release" = "1" ]; then
         sed -i "s|__SONOBUOY_IMAGE__|$sonobuoy_image|g; s|__SYSTEMD_LOGS_IMAGE__|$systemd_logs_image|g" "../${VERSION}/sonobuoy.sh"
     else
         # Historical releases retain their original CLI installation and defaults.
