@@ -33,5 +33,22 @@ function test_pins_pause_image_after_install_cri() {
         '[ -n "$install_cri_line" ] && [ -n "$pin_line" ] && [ "$install_cri_line" -lt "$pin_line" ]'
 }
 
+function test_pins_pause_image_after_join_imports_it() {
+    local join_line pin_line
+
+    # join() performs the actual `kubeadm join`, which is what imports the pause image into
+    # containerd on a joined node. Pinning any earlier (e.g. right after install_cri) is a
+    # no-op: the image isn't in containerd yet, so the joined node ends up permanently
+    # unpinned until a later install.sh/upgrade.sh run touches it.
+    join_line="$(echo "$MAIN_SRC" | grep -n -x '    join' | cut -d: -f1)"
+    pin_line="$(echo "$MAIN_SRC" | grep -n -x '    containerd_ensure_pause_image_pinned' | cut -d: -f1)"
+
+    assertTrue "join and containerd_ensure_pause_image_pinned must each appear exactly once" \
+        '[ -n "$join_line" ] && [ -n "$pin_line" ]'
+
+    assertTrue "containerd_ensure_pause_image_pinned runs after join, which performs kubeadm join and actually imports the pause image" \
+        '[ -n "$join_line" ] && [ -n "$pin_line" ] && [ "$join_line" -lt "$pin_line" ]'
+}
+
 # shellcheck disable=SC1091
 . shunit2
