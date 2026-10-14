@@ -491,6 +491,41 @@ function test_ensure_pause_image_pinned_matches_by_digest_when_sandbox_image_is_
     assertEquals "falls back to matching by digest when sandbox_image itself is a digest reference" "0" "$?"
 }
 
+function test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        # "pause:3.10" as a regex would wildcard-match "pause:3X10" via the unescaped "."
+        # and the old end-anchor-only pattern would also match a ref with extra trailing
+        # characters after the tag. Neither should match a literal "/pause:3.10" suffix.
+        stub_ctr_pause_image "$(printf '%s\n%s' \
+            "registry.k8s.io/pause:3X10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 -" \
+            "registry.k8s.io/pause:3.10x application/vnd.oci.image.index.v1+json sha256:bbbbbbbb 300.0KiB linux/amd64 -")"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not treat regex metacharacters in the repo+tag as a wildcard, nor match a ref that only shares a prefix of the tag" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "$(printf '%s\n%s' \
+            "airgap-mirror-one.example.com/registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 -" \
+            "airgap-mirror-two.example.com/registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:bbbbbbbb 300.0KiB linux/amd64 -")"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not guess when two imported images share the same repo+tag suffix" "1" "$?"
+    echo "$result" | grep -qi "WARN.*[Mm]ultiple.*ambiguously"
+    assertEquals "warns about the ambiguous repo+tag match instead of silently picking the first one" "0" "$?"
+}
+
 function test_ensure_pause_image_pinned_noop_when_already_pinned() {
     local result
     result="$( (
@@ -677,6 +712,8 @@ test_ensure_pause_image_pinned_pins_when_unpinned
 test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only
 test_ensure_pause_image_pinned_matches_mirror_rewritten_ref_by_repo_and_tag
 test_ensure_pause_image_pinned_matches_by_digest_when_sandbox_image_is_digest_pinned
+test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag
+test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
