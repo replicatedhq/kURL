@@ -240,6 +240,12 @@ jobs:
   kurl-util-image:
     runs-on: ubuntu-24.04
     environment: testgrid-pr
+    # Minimal GITHUB_TOKEN scope: this job checks out PR-authored content
+    # while a Docker Hub credential is logged in, so it should not also
+    # carry the repo-default token scope -- it never needs to write
+    # anything back to GitHub.
+    permissions:
+      contents: read
     needs:
       - get-tag
     steps:
@@ -249,10 +255,16 @@ jobs:
       # path below never runs `make` or any other broad checked-out repo
       # content, so Docker Hub credentials are never exposed to a
       # PR-authored Makefile.
+      #
+      # persist-credentials: false -- the step after this logs in to Docker
+      # Hub and then runs PR-authored content; the GITHUB_TOKEN used for
+      # this checkout has no reason to sit in .git/config for that content
+      # to find.
       - uses: actions/checkout@v7
         if: inputs.build-kurl-util-image
         with:
           ref: ${{ inputs.branch }}
+          persist-credentials: false
 
       # The retag step below sources this script regardless of path, so it
       # must exist even on the default (label) path, which otherwise checks
@@ -260,12 +272,15 @@ jobs:
       # get-tag's fetch of resolve-kurl-util-image-tag.sh -- so the fast
       # default path keeps PR-authored code exposure to this single
       # tag+push helper, not the whole repo or its Makefile.
+      #
+      # persist-credentials: false -- same reasoning as the checkout above.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: ${{ !inputs.build-kurl-util-image }}
         with:
           sparse-checkout: |
             bin/retag-and-push-kurl-util-image.sh
           sparse-checkout-cone-mode: false
+          persist-credentials: false
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
