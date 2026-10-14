@@ -88,10 +88,25 @@ jobs:
           testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
           staging: true
 
-      - name: Post TG URL
-        uses: mshick/add-pr-comment@v3
+      # Do NOT comment from this job: the caller fans this workflow out into
+      # one invocation per (addon, version) matrix leg, so per-leg comments
+      # flood the PR (each leg posts its own comment for every pushed commit).
+      # Instead, record this leg's Testgrid run links as a run-scoped artifact
+      # and let the caller's aggregation job post ONE sticky comment for the
+      # whole matrix (see testgrid-comment in test-addon-pr.yaml).
+      - name: Record Testgrid run links
+        env:
+          QUEUED_MESSAGE: ${{ steps.queue.outputs.message }}
+        run: |
+          set -euo pipefail
+          mkdir -p testgrid-comment
+          LINKS="${QUEUED_MESSAGE#Testgrid Run(s) Executing @ }"
+          echo "| \`${{ env.addon }}-${{ env.version }}\` | ${LINKS} |" \
+            > "testgrid-comment/${{ env.addon }}-${{ env.version }}.md"
+
+      - name: Upload Testgrid run links
+        uses: actions/upload-artifact@v7
         with:
-          message: ${{ steps.queue.outputs.message }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          message-id: addon-${{ env.addon }}-${{ env.version }}-${{ github.sha }}
-          allow-repeats: false
+          name: testgrid-runs-${{ env.addon }}-${{ env.version }}
+          path: testgrid-comment/${{ env.addon }}-${{ env.version }}.md
+          if-no-files-found: error

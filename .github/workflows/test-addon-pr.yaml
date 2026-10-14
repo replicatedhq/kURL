@@ -47,3 +47,77 @@ jobs:
       prefix: ${{ matrix.prefix }}
       update-supported-versions: true
     secrets: inherit
+
+  # Aggregates every test-addons matrix leg's Testgrid run links into ONE
+  # sticky PR comment. The message-id is stable per PR (no head sha on
+  # purpose), so each push UPDATES the existing comment in place instead of
+  # piling up a new comment per addon version per commit.
+  testgrid-comment:
+    needs: test-addons
+    if: >-
+      ${{ always() && github.event_name == 'pull_request' &&
+          needs.test-addons.result != 'skipped' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Collect run links from all matrix legs
+        # Fails (expectedly) when every leg failed before queueing any run;
+        # the comment below then says no runs were queued.
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: testgrid-runs-*
+          merge-multiple: true
+          path: testgrid-comment
+
+      - name: Build aggregated comment
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          ROWS=""
+          if ls testgrid-comment/*.md > /dev/null 2>&1; then
+            ROWS=$(cat testgrid-comment/*.md | sort)
+          fi
+          {
+            echo "Testgrid Run(s) Executing for commit \`${SHORT_SHA}\`"
+            echo
+            if [ -n "${ROWS}" ]; then
+              echo "| Add-on version | Testgrid run |"
+              echo "| --- | --- |"
+              echo "${ROWS}"
+              echo
+              echo "Legs that failed before queueing a run are absent from this table. See the [workflow run](${RUN_URL})."
+            else
+              echo "No Testgrid runs were queued. Check the [workflow run](${RUN_URL}) for failures."
+            fi
+          } > comment.md
+          # One-line per-run entry, minimized on creation. Comment *creation*
+          # still fires PR notifications (edits of the sticky summary do not),
+          # and the collapse keeps the thread clean. Deliberately not sticky:
+          # each run appends a new collapsed entry to the trail.
+          if [ -n "${ROWS}" ]; then
+            echo "Testgrid run(s) queued for commit \`${SHORT_SHA}\` ($(echo "${ROWS}" | wc -l | tr -d ' ') add-on version(s)) -- [workflow run](${RUN_URL})" > trail.md
+          else
+            echo "No Testgrid runs queued for commit \`${SHORT_SHA}\` -- [workflow run](${RUN_URL})" > trail.md
+          fi
+          cat comment.md trail.md
+
+      - name: Post sticky summary comment
+        uses: mshick/add-pr-comment@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: testgrid-addon-pr-${{ github.event.pull_request.number }}
+          message-path: comment.md
+          allow-repeats: false
+          # Edit-in-place buries the summary under newer conversation; float
+          # it back to the bottom on every update.
+          refresh-message-position: true
+
+      - name: Post minimized run-trail comment
+        uses: mshick/add-pr-comment@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message-path: trail.md
+          allow-repeats: true
+          create-minimized: true
+          minimize-reason: outdated
