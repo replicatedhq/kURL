@@ -1,20 +1,23 @@
 const fs = require('fs');
+const path = require('path');
 const semver = require('semver');
 
 const skipAddons = [
     "rookupgrade", "kotsadm",
 ];
 
-// maintainerImages contains a list of images we maintain.
-// The scan action will only report failures for images in this list.
-// Note: deprecated add-ons (e.g. weave) stay out of this list - their images
-// are still scanned so CVEs land in the artifacts, but they must not fail the
-// workflow since the images are frozen and will never receive fixes.
-const maintainerImages = {
-    ekco: ["ekco", "haproxy"],
-    registry: ["s3cmd"],
-    velero: ["local-volume-provider", "s3cmd"],
-};
+// noAlertAddons are scanned but must not fail the workflow.
+// Deprecated add-ons (weave, longhorn) are frozen upstream and will never
+// receive fixes, so their CVEs would keep the workflow red forever.
+// Every other image fails the build when grype finds a fixable High+ CVE,
+// whether or not we maintain it - customers run all of them.
+const noAlertAddons = ["weave", "longhorn"];
+
+// kubernetesMinorTracks is how many of the newest Kubernetes minor tracks get
+// their images scanned (latest patch version of each), mirroring the rolling
+// support window maintained by update-kubernetes.yaml.
+const kubernetesMinorTracks = 4;
+const kubernetesSpecDir = './packages/kubernetes';
 
 var getImages = rootDir => {
     const images = [];
@@ -48,16 +51,12 @@ var getImages = rootDir => {
                 if (imageName.split('/').length === 1) {
                     imageName = `library/${imageName}`
                 }
-                let maintainer = false;
-                if (maintainerImages[addon] && maintainerImages[addon].includes(name)) {
-                    maintainer = true;
-                }
                 const image = {
                     addon: addon,
                     version: version,
                     name: name,
                     image: imageName,
-                    maintainer: maintainer,
+                    alert: !noAlertAddons.includes(addon),
                 };
                 images.push(image);
             });
@@ -117,4 +116,46 @@ var findLatestAddonVersions = rootDir => {
     return versions;
 };
 
-module.exports = { getImages, findLatestAddonVersions };
+// getKubernetesImages returns the images of the latest patch version of each
+// of the newest kubernetesMinorTracks minor tracks under packages/kubernetes.
+// This covers the kubeadm-managed images (etcd, CoreDNS, pause, kube-proxy,
+// the control plane) that add-on manifests never reference.
+var getKubernetesImages = rootDir => {
+    const versions = fs.readdirSync(rootDir).filter((version) => {
+        return semver.valid(version) && fs.existsSync(path.join(rootDir, version, 'Manifest'));
+    });
+
+    // latest patch version per minor track
+    const byTrack = {};
+    versions.forEach((version) => {
+        const track = `${semver.major(version)}.${semver.minor(version)}`;
+        if (!byTrack[track] || semver.gt(version, byTrack[track])) {
+            byTrack[track] = version;
+        }
+    });
+
+    const tracks = Object.keys(byTrack)
+        .sort((a, b) => semver.rcompare(`${a}.0`, `${b}.0`))
+        .slice(0, kubernetesMinorTracks);
+
+    const images = [];
+    tracks.forEach((track) => {
+        const version = byTrack[track];
+        fs.readFileSync(path.join(rootDir, version, 'Manifest'), 'utf-8').split(/\r?\n/).forEach((line) => {
+            const parts = line.split(' ');
+            if (parts[0] !== 'image') {
+                return;
+            }
+            images.push({
+                addon: 'kubernetes',
+                version: version,
+                name: parts[1],
+                image: parts[2],
+                alert: true,
+            });
+        });
+    });
+    return images;
+};
+
+module.exports = { getImages, findLatestAddonVersions, getKubernetesImages };
