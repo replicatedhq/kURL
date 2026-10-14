@@ -168,8 +168,17 @@ function containerd_ensure_pause_image_pinned() {
         return
     fi
 
-    if ! systemctl is-active --quiet containerd; then
-        return
+    local active_status=
+    if ! active_status="$(systemctl is-active containerd 2>&1)"; then
+        case "$active_status" in
+            inactive|failed|unknown|activating|deactivating)
+                return
+                ;;
+            *)
+                logWarn "systemctl is-active containerd returned an unexpected result ($active_status); skipping pause-image pin check, will retry on next install/upgrade run"
+                return
+                ;;
+        esac
     fi
 
     local pause_image=
