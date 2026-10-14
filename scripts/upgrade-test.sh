@@ -2,8 +2,6 @@
 # shellcheck disable=SC2034,SC2329 # main() is eval'd as text below, so shellcheck can't see
 # that K8S_DISTRO and the stub functions in this file are used by it.
 
-set -e
-
 # Regression test for sc-140018: containerd_ensure_pause_image_pinned must run before the
 # kubeadm node upgrade (inside maybe_upgrade) has a chance to restart the kubelet and
 # reschedule pods against the new, as-yet-unpinned pause image. Pinning only after
@@ -12,6 +10,10 @@ set -e
 # scripts/upgrade.sh is a top-level entrypoint that executes main() unconditionally at the
 # bottom of the file, so it cannot be sourced directly in a test. Extract just the main()
 # function body instead and eval it here with every function it calls stubbed out.
+#
+# No top-level `set -e`: shunit2's assertTrue/assertEquals run `[ ... ]` conditions
+# directly, and errexit at this level turns a failing assertion into an opaque
+# "unknown failure" instead of the real assertion message.
 
 K8S_DISTRO=kubeadm
 
@@ -22,32 +24,15 @@ if [ -z "$MAIN_SRC" ]; then
 fi
 eval "$MAIN_SRC"
 
-FAILURES=0
-function assertEquals() {
-    local msg="$1" expected="$2" actual="$3"
-    if [ "$expected" != "$actual" ]; then
-        echo "FAIL: $msg (expected [$expected], got [$actual])"
-        FAILURES=$((FAILURES + 1))
-    else
-        echo "PASS: $msg"
-    fi
-}
-
-# assertTrue runs its command under an `if`, so a failing condition does not trip `set -e`
-# and abort the whole script before FAILURES/the FAIL message can be recorded.
-function assertTrue() {
-    local msg="$1"
-    shift
-    if "$@"; then
-        assertEquals "$msg" "0" "0"
-    else
-        assertEquals "$msg" "0" "1"
-    fi
-}
-
 function test_pins_pause_image_before_kubeadm_node_upgrade() {
-    local result
-    result="$( (
+    local result rc
+
+    # Run main() under set -e, matching how scripts/upgrade.sh itself runs it in
+    # production. main's own stdout is noise from the stubbed-out helpers, but its
+    # stderr is left to flow through to the real stderr instead of being discarded,
+    # so a genuine failure is visible in test output rather than looking like a
+    # silent, misleading success.
+    result="$( set -e
         CALLS=""
         function record() { CALLS="$CALLS $1"; }
         function require_root_user() { record require_root_user; }
@@ -90,12 +75,15 @@ function test_pins_pause_image_before_kubeadm_node_upgrade() {
         function popd_install_directory() { record popd_install_directory; }
         function logStep() { :; }
 
-        if ! main >/dev/null 2>&1; then
-            echo "FAIL: main() exited non-zero; a stubbed function may be missing or misbehaving" >&2
-        fi
-
+        main >/dev/null
         echo "$CALLS"
-    ) )"
+    )"
+    rc=$?
+
+    assertEquals "main() exits zero (a stubbed function may be missing or misbehaving; see stderr above for details)" 0 "$rc"
+    if [ "$rc" -ne 0 ]; then
+        return
+    fi
     echo "$result"
 
     local pos_install_cri pos_pin pos_configure pos_maybe_upgrade
@@ -105,19 +93,14 @@ function test_pins_pause_image_before_kubeadm_node_upgrade() {
     pos_maybe_upgrade="$(echo "$result" | tr ' ' '\n' | grep -n -x "maybe_upgrade" | cut -d: -f1)"
 
     assertTrue "containerd_ensure_pause_image_pinned runs after install_cri" \
-        [ "$pos_install_cri" -lt "$pos_pin" ]
+        '[ "$pos_install_cri" -lt "$pos_pin" ]'
 
     assertTrue "containerd_ensure_pause_image_pinned runs after kubernetes_configure_pause_image_upgrade" \
-        [ "$pos_configure" -lt "$pos_pin" ]
+        '[ "$pos_configure" -lt "$pos_pin" ]'
 
     assertTrue "containerd_ensure_pause_image_pinned runs before maybe_upgrade (the kubeadm node upgrade), so the pin happens before kubelet can reschedule pods against the new image" \
-        [ "$pos_pin" -lt "$pos_maybe_upgrade" ]
+        '[ "$pos_pin" -lt "$pos_maybe_upgrade" ]'
 }
 
-test_pins_pause_image_before_kubeadm_node_upgrade
-
-if [ "$FAILURES" -gt 0 ]; then
-    echo "$FAILURES upgrade.sh test(s) failed."
-    exit 1
-fi
-echo "All upgrade.sh tests passed."
+# shellcheck disable=SC1091
+. shunit2
