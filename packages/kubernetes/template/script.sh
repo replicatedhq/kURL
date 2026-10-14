@@ -12,9 +12,14 @@ function versions_js_path() {
     echo "${KURL_VERSIONS_JS:-../../../web/src/installers/versions.js}"
 }
 
+# versions_js_kubernetes_section prints the kubernetes array of versions.js ($1).
+function versions_js_kubernetes_section() {
+    sed -n '/^[[:space:]]*kubernetes: \[/,/^[[:space:]]*\],/p' "$1"
+}
+
 # minor_in_versions_js succeeds when the kubernetes array of versions.js ($2) lists a 1.<minor>.x version.
 function minor_in_versions_js() {
-    sed -n '/^[[:space:]]*kubernetes: \[/,/^[[:space:]]*\],/p' "$2" | grep -Eq "\"1\.${1}\.[0-9]+\""
+    versions_js_kubernetes_section "$2" | grep -Eq "\"1\.${1}\.[0-9]+\""
 }
 
 # Populate VERSIONS array with the latest patch of every kURL-supported minor (one per Dockerfile.1<minor>).
@@ -26,6 +31,12 @@ function find_available_versions() {
     versions_js="$(versions_js_path)"
     if [ ! -f "$versions_js" ]; then
         echo "versions.js not found at $versions_js" >&2
+        return 1
+    fi
+    # "minor not listed" below must mean exactly that, not that versions.js changed shape and the
+    # kubernetes array was not found
+    if ! versions_js_kubernetes_section "$versions_js" | grep -Eq '"1\.[0-9]+\.[0-9]+"'; then
+        echo "ERROR: no kubernetes versions found in the kubernetes array of $versions_js" >&2
         return 1
     fi
     local minors=()
@@ -41,14 +52,24 @@ function find_available_versions() {
             echo "Kubernetes 1.${minor} is not listed in versions.js yet, skipping (added by the add-kubernetes-minor skill)"
             continue
         fi
-        docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"
-        # A minor listed in versions.js must resolve to a version: a failed or empty package listing is
-        # an error, not a silent skip that would leave the minor without patch updates.
-        local apt_list=
-        if ! apt_list="$(docker run --rm "k8s1${minor}" apt list -a kubelet 2>/dev/null)"; then
-            echo "ERROR: listing kubelet versions for Kubernetes 1.${minor} failed (docker run k8s1${minor})" >&2
+        # A minor listed in versions.js must resolve to a version: a failed build or an empty or failed
+        # package listing is an error, not a silent skip that would leave the minor without patch updates.
+        if ! docker build -t "k8s1${minor}" - < "Dockerfile.1${minor}"; then
+            echo "ERROR: building the Kubernetes 1.${minor} package image failed (Dockerfile.1${minor})" >&2
             return 1
         fi
+        local apt_list=
+        local apt_err=
+        local rc=0
+        apt_err="$(mktemp)"
+        apt_list="$(docker run --rm "k8s1${minor}" apt list -a kubelet 2>"$apt_err")" || rc=$?
+        if [ "$rc" -ne 0 ]; then
+            echo "ERROR: listing kubelet versions for Kubernetes 1.${minor} failed (docker run k8s1${minor}, exit $rc):" >&2
+            tail -n 20 "$apt_err" >&2
+            rm -f "$apt_err"
+            return 1
+        fi
+        rm -f "$apt_err"
         local versions=()
         mapfile -t versions < <(printf '%s\n' "$apt_list" | grep -Eo "1\.${minor}\.[0-9]+" | sort -rV | uniq)
         if [ ${#versions[@]} -eq 0 ]; then

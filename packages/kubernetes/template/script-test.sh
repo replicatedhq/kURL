@@ -1,10 +1,17 @@
 #!/bin/bash
 # shellcheck disable=SC2034 # VERSIONS is read by the functions sourced from script.sh
 
-set -e
-
 # shellcheck disable=SC1091
 . ./packages/kubernetes/template/script.sh
+# script.sh turns on errexit; shunit2 needs it off so a failing assertion is reported and the rest of
+# the test still runs. Tests that check errexit behaviour run script.sh in a separate bash.
+set +e
+
+# must_cd changes directory or fails the test: errexit is off, so a failed cd would otherwise run the
+# rest of the test (and its sed -i calls) in the wrong directory
+function must_cd() {
+    cd "$1" || { fail "cd $1"; return 1; }
+}
 
 function setUp() {
     TEST_DIR="$(mktemp -d)"
@@ -13,7 +20,7 @@ function setUp() {
 }
 
 function tearDown() {
-    cd "$ORIG_DIR"
+    must_cd "$ORIG_DIR" || return 1
     rm -rf "$TEST_DIR"
 }
 
@@ -24,10 +31,9 @@ function test_use_securebuild_images_is_noop_without_a_securebuild_dir() {
 image kube-apiserver registry.k8s.io/kube-apiserver:v1.37.1
 EOF
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     use_securebuild_images "$version"
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals "1" "$(grep -c 'registry.k8s.io/kube-apiserver:v1.37.1' "$TEST_DIR/$version/Manifest")"
 }
 
@@ -54,10 +60,9 @@ daemonset/kube-proxy kube-proxy docker.io/kurlsh/kube-proxy:v1.37.1 registry.k8s
 deployment/coredns coredns docker.io/kurlsh/coredns:1.14.6 registry.k8s.io/coredns/coredns:v1.14.6
 EOF
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     use_securebuild_images "$version"
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-apiserver:v1.37.1' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-controller-manager:v1.37.1' "$TEST_DIR/$version/Manifest")"
     assertEquals "1" "$(grep -c 'docker.io/kurlsh/kube-scheduler:v1.37.1' "$TEST_DIR/$version/Manifest")"
@@ -123,11 +128,10 @@ function test_list_supported_minors_sorts_numerically() {
 }
 
 function test_list_supported_minors_defaults_to_cwd_and_handles_empty_dir() {
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     local result=
     result="$(list_supported_minors)"
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals "" "$result"
 }
 
@@ -135,11 +139,10 @@ function test_update_available_versions_inserts_under_matching_marker() {
     touch "$TEST_DIR/template/Dockerfile.135" "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
     write_versions_js_fixture "$TEST_DIR/versions.js"
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     VERSIONS=("1.37.2" "1.36.6" "1.35.9")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals '"1.37.2",' "$(line_after_marker 'cron-kubernetes-update-137' "$TEST_DIR/versions.js")"
     assertEquals '"1.36.6",' "$(line_after_marker 'cron-kubernetes-update-136' "$TEST_DIR/versions.js")"
     # 1.35.9 is already listed: nothing is added
@@ -153,13 +156,12 @@ function test_update_available_versions_is_idempotent() {
     touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
     write_versions_js_fixture "$TEST_DIR/versions.js"
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     VERSIONS=("1.37.2" "1.36.6")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
     cp "$TEST_DIR/versions.js" "$TEST_DIR/versions.js.first"
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals "1" "$(grep -c '"1.37.2"' "$TEST_DIR/versions.js")"
     assertEquals "1" "$(grep -c '"1.36.6"' "$TEST_DIR/versions.js")"
     local result=
@@ -172,11 +174,10 @@ function test_update_available_versions_lists_explicit_version_without_dockerfil
     touch "$TEST_DIR/template/Dockerfile.137"
     write_versions_js_fixture "$TEST_DIR/versions.js"
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     VERSIONS=("1.36.6")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals '"1.36.6",' "$(line_after_marker 'cron-kubernetes-update-136' "$TEST_DIR/versions.js")"
 }
 
@@ -187,7 +188,7 @@ function test_update_available_versions_fails_without_marker() {
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         VERSIONS=("1.37.2" "1.38.0")
         KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
@@ -220,11 +221,10 @@ function test_update_available_versions_does_not_confuse_patch_prefixes() {
     write_versions_js_fixture "$TEST_DIR/versions.js"
     sed -i 's/"1.37.1",/"1.37.10",/' "$TEST_DIR/versions.js"
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     VERSIONS=("1.37.1")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals "1" "$(grep -c '"1.37.1",' "$TEST_DIR/versions.js")"
     assertEquals "1" "$(grep -c '"1.37.10",' "$TEST_DIR/versions.js")"
 }
@@ -234,11 +234,10 @@ function test_update_available_versions_supports_a_new_minor_marker() {
     write_versions_js_fixture "$TEST_DIR/versions.js"
     sed -i '/"1.36.4",/a\    // cron-kubernetes-update-138' "$TEST_DIR/versions.js"
 
-    cd "$TEST_DIR/template"
+    must_cd "$TEST_DIR/template" || return 1
     VERSIONS=("1.38.0")
     KURL_VERSIONS_JS="$TEST_DIR/versions.js" update_available_versions
-    cd "$ORIG_DIR"
-
+    must_cd "$ORIG_DIR" || return 1
     assertEquals '"1.38.0",' "$(line_after_marker 'cron-kubernetes-update-138' "$TEST_DIR/versions.js")"
 }
 
@@ -405,7 +404,7 @@ EOF
 function test_generate_version_directory_writes_manifest() {
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         export GITHUB_TOKEN="secret" AWS_SECRET_ACCESS_KEY="secret"
         FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\nregistry.k8s.io/coredns/coredns:v1.14.6\n'
         stub_generate_deps
@@ -429,7 +428,7 @@ function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure()
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         FAKE_KUBEADM_FAIL=1
         FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
         stub_generate_deps
@@ -442,7 +441,7 @@ function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure()
 function test_generate_version_directory_fails_without_images() {
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         FAKE_IMAGES=''
         stub_generate_deps
         generate_version_directory 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
@@ -457,7 +456,7 @@ function test_generate_version_directory_fails_without_images() {
 function test_generate_conformance_package_writes_manifest() {
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         function docker() { printf '%s\n' registry.k8s.io/e2e-test-images/agnhost:2.53 registry.k8s.io/e2e-test-images/nginx:1.27.0-2; }
         generate_conformance_package 1.38.0 && echo ok
     )"
@@ -469,7 +468,7 @@ image nginx-1-27.0-2 registry.k8s.io/e2e-test-images/nginx:1.27.0-2" "$(cat "$TE
 function test_generate_conformance_package_fails_without_nginx_image() {
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         function docker() { echo registry.k8s.io/e2e-test-images/agnhost:2.53; }
         generate_conformance_package 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
@@ -489,7 +488,7 @@ function stub_docker_for_find() {
             build) cat > /dev/null; echo "$3" >> "$TEST_DIR/built"; [ "$3" != "${FAIL_BUILD:-}" ] ;;
             run)
                 local m=; m="$(printf '%s\n' "$@" | sed -n 's/^k8s1//p')"
-                [ "k8s1$m" != "${FAIL_RUN:-}" ] || return 125
+                [ "k8s1$m" != "${FAIL_RUN:-}" ] || { echo "docker: no space left on device" >&2; return 125; }
                 [ "k8s1$m" != "${EMPTY_RUN:-}" ] || return 0
                 printf '%s\n' "kubelet/unknown 1.${m}.1-1.1 amd64" "kubelet/unknown 1.${m}.2-1.1 amd64" ;;
         esac
@@ -505,7 +504,7 @@ function test_find_available_versions_skips_minor_not_in_versions_js() {
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         stub_docker_for_find
         VERSIONS=()
         KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions > "$TEST_DIR/stdout"
@@ -522,10 +521,10 @@ function test_find_available_versions_fails_when_a_listed_minor_build_fails() {
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         export TEST_DIR
         export -f stub_docker_for_find
-        # a separate bash, because set -e (from script.sh) is ignored on the left of && in this shell
+        # a separate bash with script.sh's errexit on, as when script.sh runs for real
         FAIL_BUILD=k8s137 KURL_VERSIONS_JS="$TEST_DIR/versions.js" \
             bash -c '. "$1"; stub_docker_for_find; find_available_versions; echo "after build failure"' _ \
             "$ORIG_DIR/packages/kubernetes/template/script.sh" >/dev/null 2>&1 && echo "rc=0" || echo "rc=$?"
@@ -540,11 +539,13 @@ function test_find_available_versions_fails_when_listing_versions_fails() {
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         stub_docker_for_find
         FAIL_RUN=k8s137 KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
     assertContains "$result" "listing kubelet versions for Kubernetes 1.37 failed"
+    assertContains "$result" "exit 125"
+    assertContains "$result" "no space left on device"
     assertEquals "rc=1" "${result##*$'\n'}"
 }
 
@@ -554,7 +555,7 @@ function test_find_available_versions_fails_when_no_versions_are_listed() {
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         stub_docker_for_find
         EMPTY_RUN=k8s136 KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
@@ -562,12 +563,46 @@ function test_find_available_versions_fails_when_no_versions_are_listed() {
     assertEquals "rc=1" "${result##*$'\n'}"
 }
 
+function test_find_available_versions_fails_in_process_when_a_listed_minor_build_fails() {
+    touch "$TEST_DIR/template/Dockerfile.136" "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        stub_docker_for_find
+        FAIL_BUILD=k8s137 KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "building the Kubernetes 1.37 package image failed"
+    assertEquals "rc=1" "${result##*$'\n'}"
+}
+
+function test_find_available_versions_fails_when_the_kubernetes_array_is_not_found() {
+    touch "$TEST_DIR/template/Dockerfile.137"
+    write_versions_js_fixture "$TEST_DIR/versions.js"
+    # versions.js changed shape: the array is no longer "kubernetes: ["
+    sed -i 's/^  kubernetes: \[/  "kubernetes": [/' "$TEST_DIR/versions.js"
+
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        stub_docker_for_find
+        KURL_VERSIONS_JS="$TEST_DIR/versions.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "no kubernetes versions found in the kubernetes array"
+    assertNotContains "$result" "not listed in versions.js yet"
+    assertEquals "rc=1" "${result##*$'\n'}"
+    local built=
+    [ -e "$TEST_DIR/built" ] && built=0 || built=1
+    assertEquals "nothing should be built" "1" "$built"
+}
+
 function test_find_available_versions_fails_without_versions_js() {
     touch "$TEST_DIR/template/Dockerfile.137"
 
     local result=
     result="$(
-        cd "$TEST_DIR/template"
+        must_cd "$TEST_DIR/template" || return 1
         stub_docker_for_find
         KURL_VERSIONS_JS="$TEST_DIR/missing.js" find_available_versions 2>&1 && echo "rc=0" || echo "rc=$?"
     )"
@@ -581,7 +616,7 @@ function test_main_works_without_github_output_from_any_cwd() {
 
     local result=
     result="$(
-        cd /
+        must_cd / || return 1
         unset GITHUB_OUTPUT
         function generate_version_directory() { :; }
         function generate_conformance_package() { :; }
