@@ -207,7 +207,20 @@ function containerd_ensure_pause_image_pinned() {
                 ;;
             *)
                 local pause_repo_tag="${pause_image##*/}"
-                image_line="$(echo "$list_output" | awk -v rt="$pause_repo_tag" '$1 == rt || $1 ~ ("/" rt "$") { print; exit }')"
+                local repo_tag_matches
+                repo_tag_matches="$(echo "$list_output" | awk -v rt="$pause_repo_tag" '
+                    $1 == rt { print; next }
+                    {
+                        suffix = "/" rt
+                        n = length($1) - length(suffix)
+                        if (n >= 0 && substr($1, n + 1) == suffix) print
+                    }
+                ')"
+                if [ -n "$repo_tag_matches" ] && [ "$(echo "$repo_tag_matches" | wc -l)" -gt 1 ]; then
+                    logWarn "Multiple containerd images match pause image repo+tag $pause_repo_tag ambiguously; skipping pin, will retry on next install/upgrade run"
+                    return
+                fi
+                image_line="$repo_tag_matches"
                 ;;
         esac
     fi
