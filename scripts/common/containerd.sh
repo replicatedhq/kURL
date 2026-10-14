@@ -178,8 +178,14 @@ function containerd_ensure_pause_image_pinned() {
         return
     fi
 
+    local list_output=
+    if ! list_output="$(ctr -n=k8s.io images list 2>&1)"; then
+        logWarn "Failed to list containerd images while checking pause-image pin ($list_output); will retry on next install/upgrade run"
+        return
+    fi
+
     local image_line=
-    image_line="$(ctr -n=k8s.io images list 2>/dev/null | awk -v img="$pause_image" '$1 == img')"
+    image_line="$(echo "$list_output" | awk -v img="$pause_image" '$1 == img')"
     if [ -z "$image_line" ]; then
         # not imported yet (e.g. a fresh install before images are loaded) -- nothing to pin
         return
