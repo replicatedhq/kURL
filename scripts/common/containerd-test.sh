@@ -742,6 +742,95 @@ function test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reim
     assertEquals "warns that the heal re-import did not recover the pause image" "0" "$?"
 }
 
+function test_ensure_pause_image_pinned_skips_heal_during_version_transition() {
+    # The pod-infra-container-image flag kubelet is currently running with still names the OLD
+    # pause image, but the sandbox_image containerd.sh is checking (_PAUSE_IMAGE) is the NEW
+    # target version's -- containerd.sh (install_cri) already rewrote config.toml ahead of the
+    # actual image import step that maybe_upgrade/kubernetes_configure_pause_image_upgrade will
+    # run later. The new image simply has not been imported yet; this is not kubelet GC removing
+    # an image that was in use, so there is nothing to heal on this call.
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        load_images() { echo "LOAD_IMAGES_CALLED"; }
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                : # the new pause image genuinely is not imported yet
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        _PAUSE_IMAGE="registry.k8s.io/pause:3.10"
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)"
+        echo '--pod-infra-container-image=registry.k8s.io/pause:3.9' > "$KUBELET_FLAGS_FILE"
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LOAD_IMAGES_CALLED"
+    assertEquals "does not re-import kubernetes package images when the missing image is simply the new target version not imported yet" "1" "$?"
+    echo "$result" | grep -qi "kubelet GC\|re-importing kubernetes package images to heal"
+    assertEquals "does not warn about a GC-heal that is not actually happening" "1" "$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not pin anything on this call -- the second call after the image is actually imported will pin it" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_heals_when_sandbox_image_unchanged_but_missing() {
+    # kubelet is already running with this exact pause image (the pod-infra-container-image flag
+    # matches), yet containerd does not have it -- this is the genuine kubelet-GC-removed case,
+    # not a version transition, so the heal re-import must still run.
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        reimported=0
+        load_images() { reimported=1; }
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                if [ "$reimported" = "1" ]; then
+                    echo "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
+                fi
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        _PAUSE_IMAGE="registry.k8s.io/pause:3.10"
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)"
+        echo '--pod-infra-container-image=registry.k8s.io/pause:3.10' > "$KUBELET_FLAGS_FILE"
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label -- registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    assertEquals "still heals when the currently-running pause image itself went missing (no version transition in play)" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_warns_explicitly_when_reimport_itself_fails() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        load_images() { return 7; } # the re-import command itself failed, distinct from a no-op
+        ctr() {
+            if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ] && [ "$6" != "label" ]; then
+                : # still nothing -- the failed re-import never restored it
+            elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+                echo "LABELED: $*"
+            fi
+        }
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
+        DIR="/tmp"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qi "failed to re-import kubernetes package images.*exit.*7"
+    assertEquals "logs a distinct warning carrying the re-import's own failing exit status, not just the later still-missing warning" "0" "$?"
+}
+
 function test_ensure_pause_image_pinned_noop_when_containerd_version_unset() {
     local result
     result="$( (
@@ -812,6 +901,9 @@ test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image
 test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport
 test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e
+test_ensure_pause_image_pinned_skips_heal_during_version_transition
+test_ensure_pause_image_pinned_heals_when_sandbox_image_unchanged_but_missing
+test_ensure_pause_image_pinned_warns_explicitly_when_reimport_itself_fails
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image

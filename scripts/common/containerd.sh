@@ -251,12 +251,28 @@ function containerd_ensure_pause_image_pinned() {
             return
         fi
 
+        local running_pause_image=
+        running_pause_image="$(grep -o '\--pod-infra-container-image=[^" ]*' "$KUBELET_FLAGS_FILE" | awk -F'=' '{ print $2 }')"
+        if [ -n "$running_pause_image" ] && [ "$running_pause_image" != "$pause_image" ]; then
+            # sandbox_image was already rewritten to this target version ahead of the actual
+            # image import step (maybe_upgrade / kubernetes_configure_pause_image_upgrade), but
+            # kubelet is still running the OLD pause image. The new image simply has not been
+            # imported yet -- that is not kubelet GC removing an image that was in use, so there
+            # is nothing to heal on this call; the next containerd_ensure_pause_image_pinned call
+            # (after the real import) will pin it.
+            return
+        fi
+
         # kubeadm already configured this node with this sandbox_image, so containerd should
         # already have the image -- its absence means kubelet GC (or `crictl rmi --prune`)
         # removed it while it was unpinned. Re-import the kubernetes package images and retry
         # so a future sandbox create does not try, and on an airgapped host fail, to pull it.
         logWarn "Pause image $pause_image expected but missing from containerd; re-importing kubernetes package images to heal"
-        load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images" || true
+        local reimport_rc=0
+        load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images" || reimport_rc=$?
+        if [ "$reimport_rc" -ne 0 ]; then
+            logWarn "Failed to re-import kubernetes package images while healing pause image $pause_image (exit $reimport_rc); will retry on next install/upgrade run"
+        fi
         image_line="$(containerd_find_pause_image_line "$sock" "$pause_image")" || return 0
         if [ -z "$image_line" ]; then
             logWarn "Pause image $pause_image still missing from containerd after re-importing kubernetes images; will retry on next install/upgrade run"
