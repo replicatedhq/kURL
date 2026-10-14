@@ -1,105 +1,49 @@
 #!/bin/bash
-# shellcheck disable=SC2034,SC2329 # main() is eval'd as text below, so shellcheck can't see
-# that K8S_DISTRO and the stub functions in this file are used by it.
+# shellcheck disable=SC2034 # these locals are read inside single-quoted assertTrue
+# expressions below, which shellcheck can't see into.
 
-# Regression test for sc-140018: containerd_ensure_pause_image_pinned must run before the
-# kubeadm node upgrade (inside maybe_upgrade) has a chance to restart the kubelet and
-# reschedule pods against the new, as-yet-unpinned pause image. Pinning only after
-# maybe_upgrade leaves that image exposed to kubelet GC for the whole node upgrade.
+# Regression test for sc-140018: containerd_ensure_pause_image_pinned must run both before and
+# after the kubeadm node upgrade (maybe_upgrade). The first call pins a pause image that
+# install_cri already imported while restarting containerd with the new sandbox_image. The
+# second call (after kubernetes_configure_pause_image_upgrade, which itself must stay after
+# maybe_upgrade so kubeadm can't clobber its kubelet flag rewrite) catches a pause image that is
+# instead first imported by kubernetes_load_images during maybe_upgrade itself, where
+# CONTAINERD_NEEDS_RESTART is usually 0 and the old daemon never restarts to trigger the pin.
 #
 # scripts/upgrade.sh is a top-level entrypoint that executes main() unconditionally at the
-# bottom of the file, so it cannot be sourced directly in a test. Extract just the main()
-# function body instead and eval it here with every function it calls stubbed out.
-#
-# No top-level `set -e`: shunit2's assertTrue/assertEquals run `[ ... ]` conditions
-# directly, and errexit at this level turns a failing assertion into an opaque
-# "unknown failure" instead of the real assertion message.
-
-K8S_DISTRO=kubeadm
+# bottom of the file, so it cannot be sourced directly in a test. This asserts call order
+# statically against the extracted main() source instead of stubbing and running every function
+# it calls -- stubbing the full call graph means any unrelated future change to main() breaks
+# this test with an unrelated "command not found".
 
 MAIN_SRC="$(sed -n '/^function main() {/,/^}/p' ./scripts/upgrade.sh)"
 if [ -z "$MAIN_SRC" ]; then
     echo "FAIL: could not extract main() from scripts/upgrade.sh"
     exit 1
 fi
-eval "$MAIN_SRC"
 
-function test_pins_pause_image_before_kubeadm_node_upgrade() {
-    local result rc
+function test_pins_pause_image_before_and_after_the_kubeadm_node_upgrade() {
+    local pin_lines first_pin_line last_pin_line configure_line upgrade_line pin_count
 
-    # Run main() under set -e, matching how scripts/upgrade.sh itself runs it in
-    # production. main's own stdout is noise from the stubbed-out helpers, but its
-    # stderr is left to flow through to the real stderr instead of being discarded,
-    # so a genuine failure is visible in test output rather than looking like a
-    # silent, misleading success.
-    result="$( set -e
-        CALLS=""
-        function record() { CALLS="$CALLS $1"; }
-        function require_root_user() { record require_root_user; }
-        function path_add() { record path_add; }
-        function kubernetes_init_hostname() { record kubernetes_init_hostname; }
-        function get_patch_yaml() { record get_patch_yaml; }
-        function maybe_read_kurl_config_from_cluster() { record maybe_read_kurl_config_from_cluster; }
-        function move_airgap_assets() { record move_airgap_assets; }
-        function pushd_install_directory() { record pushd_install_directory; }
-        function proxy_bootstrap() { record proxy_bootstrap; }
-        function download_util_binaries() { record download_util_binaries; }
-        function get_machine_id() { record get_machine_id; }
-        function merge_yaml_specs() { record merge_yaml_specs; }
-        function apply_bash_flag_overrides() { record apply_bash_flag_overrides; }
-        function parse_yaml_into_bash_variables() { record parse_yaml_into_bash_variables; }
-        function parse_kubernetes_target_version() { record parse_kubernetes_target_version; }
-        function discover() { record discover; }
-        function preflights() { record preflights; }
-        function journald_persistent() { record journald_persistent; }
-        function configure_proxy() { record configure_proxy; }
-        function configure_no_proxy() { record configure_no_proxy; }
-        function kubeadm_addon_for_each() { record "kubeadm_addon_for_each:$1"; }
-        function kubernetes_get_packages() { record kubernetes_get_packages; }
-        function kubernetes_maybe_get_packages_airgap() { record kubernetes_maybe_get_packages_airgap; }
-        function preflights_require_host_packages() { record preflights_require_host_packages; }
-        function host_preflights() { record host_preflights; }
-        function install_host_dependencies() { record install_host_dependencies; }
-        function get_common() { record get_common; }
-        function setup_kubeadm_kustomize() { record setup_kubeadm_kustomize; }
-        function install_cri() { record install_cri; }
-        function get_shared() { record get_shared; }
-        function kubernetes_pre_init() { record kubernetes_pre_init; }
-        function maybe_upgrade() { record maybe_upgrade; }
-        function kubernetes_configure_pause_image_upgrade() { record kubernetes_configure_pause_image_upgrade; }
-        function containerd_ensure_pause_image_pinned() { record containerd_ensure_pause_image_pinned; }
-        function install_helm() { record install_helm; }
-        function uninstall_docker() { record uninstall_docker; }
-        function outro() { record outro; }
-        function package_cleanup() { record package_cleanup; }
-        function popd_install_directory() { record popd_install_directory; }
-        function logStep() { :; }
+    pin_lines="$(echo "$MAIN_SRC" | grep -n -x '    containerd_ensure_pause_image_pinned' | cut -d: -f1)"
+    configure_line="$(echo "$MAIN_SRC" | grep -n -x '    kubernetes_configure_pause_image_upgrade' | cut -d: -f1)"
+    upgrade_line="$(echo "$MAIN_SRC" | grep -n -x '    maybe_upgrade' | cut -d: -f1)"
+    first_pin_line="$(echo "$pin_lines" | head -n1)"
+    last_pin_line="$(echo "$pin_lines" | tail -n1)"
+    pin_count="$(echo "$pin_lines" | grep -c .)"
 
-        main >/dev/null
-        echo "$CALLS"
-    )"
-    rc=$?
+    assertEquals "containerd_ensure_pause_image_pinned must be called exactly twice" 2 "$pin_count"
+    assertTrue "maybe_upgrade must be present exactly once" '[ -n "$upgrade_line" ]'
+    assertTrue "kubernetes_configure_pause_image_upgrade must be present exactly once" '[ -n "$configure_line" ]'
 
-    assertEquals "main() exits zero (a stubbed function may be missing or misbehaving; see stderr above for details)" 0 "$rc"
-    if [ "$rc" -ne 0 ]; then
-        return
-    fi
-    echo "$result"
+    assertTrue "the first containerd_ensure_pause_image_pinned call must run before maybe_upgrade (the kubeadm node upgrade), so a pause image already imported by install_cri is pinned before kubelet can reschedule pods against it" \
+        '[ -n "$first_pin_line" ] && [ -n "$upgrade_line" ] && [ "$first_pin_line" -lt "$upgrade_line" ]'
 
-    local pos_install_cri pos_pin pos_configure pos_maybe_upgrade
-    pos_install_cri="$(echo "$result" | tr ' ' '\n' | grep -n -x "install_cri" | cut -d: -f1)"
-    pos_configure="$(echo "$result" | tr ' ' '\n' | grep -n -x "kubernetes_configure_pause_image_upgrade" | cut -d: -f1)"
-    pos_pin="$(echo "$result" | tr ' ' '\n' | grep -n -x "containerd_ensure_pause_image_pinned" | cut -d: -f1)"
-    pos_maybe_upgrade="$(echo "$result" | tr ' ' '\n' | grep -n -x "maybe_upgrade" | cut -d: -f1)"
+    assertTrue "kubernetes_configure_pause_image_upgrade must run after maybe_upgrade: kubeadm upgrade node can rewrite kubeadm-flags.env, so the kubelet pause-image flag rewrite has to happen after, or kubeadm could clobber it" \
+        '[ -n "$configure_line" ] && [ -n "$upgrade_line" ] && [ "$upgrade_line" -lt "$configure_line" ]'
 
-    assertTrue "containerd_ensure_pause_image_pinned runs after install_cri" \
-        '[ "$pos_install_cri" -lt "$pos_pin" ]'
-
-    assertTrue "containerd_ensure_pause_image_pinned runs after kubernetes_configure_pause_image_upgrade" \
-        '[ "$pos_configure" -lt "$pos_pin" ]'
-
-    assertTrue "containerd_ensure_pause_image_pinned runs before maybe_upgrade (the kubeadm node upgrade), so the pin happens before kubelet can reschedule pods against the new image" \
-        '[ "$pos_pin" -lt "$pos_maybe_upgrade" ]'
+    assertTrue "the second containerd_ensure_pause_image_pinned call must run after kubernetes_configure_pause_image_upgrade, so a pause image only imported during maybe_upgrade (via kubernetes_load_images) still gets pinned on this run" \
+        '[ -n "$last_pin_line" ] && [ -n "$configure_line" ] && [ "$configure_line" -lt "$last_pin_line" ]'
 }
 
 # shellcheck disable=SC1091
