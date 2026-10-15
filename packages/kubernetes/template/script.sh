@@ -163,7 +163,11 @@ function download_kubeadm() {
         rm -f "$dir/kubeadm"
         return 1
     fi
-    chmod +x "$dir/kubeadm"
+    if ! chmod +x "$dir/kubeadm"; then
+        echo "ERROR: failed to make kubeadm v${version} executable" >&2
+        rm -f "$dir/kubeadm"
+        return 1
+    fi
 }
 
 # use_securebuild_images rewrites upstream images to SecureBuild ones in a Manifest (default
