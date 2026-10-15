@@ -30,6 +30,7 @@ addons/sonobuoy/template/base/sonobuoy.sh
   s_f22df7b173be42::t_092f9e998a7fc7 1-12
 packages/kubernetes/template/script.sh
   s_f22df7b173be42::t_b703966b56dda3 194-196,198-199
+  s_f69085f9a02589::t_01953d3996d0e5 197
 addons/containerd/2.3.6/Manifest
   s_f22df7b173be42::t_092f9e998a7fc7 14
 addons/contour/1.33.7/Manifest
@@ -64,6 +65,7 @@ addons/prometheus/0.94.1-91.8.0/operator/adapter.yaml
   s_f22df7b173be42::t_092f9e998a7fc7 306
 packages/kubernetes/1.37.1/Manifest
   s_f22df7b173be42::t_b703966b56dda3 6
+  s_f69085f9a02589::t_c5db72f6e42f6c 5
 addons/ekco/template/generate.sh
   s_f22df7b173be42::t_b703966b56dda3 5-12,50
 addons/sonobuoy/template/generate.sh
@@ -121,6 +123,14 @@ addons/cert-manager/template/securebuild-images.sed
         "model": "gpt-6.1-sol"
       },
       "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    },
+    "s_f69085f9a02589": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec298f99affeP70j143q3BxpX1",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
     }
   }
 }
