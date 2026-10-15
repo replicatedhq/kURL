@@ -632,11 +632,16 @@ watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING
 ##@ Tests
 
 GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
-golangci-lint: GOLANGCI_LINT_VERSION = 2.11.4
+golangci-lint: GOLANGCI_LINT_VERSION = 2.14.0
 golangci-lint:
-	@[ -f $(GOLANGCI_LINT) ] || { \
+	# Install from source with the active Go toolchain so the linter binary can
+	# always analyze code targeting the module's Go version (prebuilt releases
+	# fail with "language version lower than targeted" when the module moves
+	# first; the v2.14.0 prebuilt installer also downloads the wrong release
+	# asset upstream). Reinstalls when the pinned version changes.
+	@$(GOLANGCI_LINT) version 2>/dev/null | grep -q "version $(GOLANGCI_LINT_VERSION) " || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin "v$(GOLANGCI_LINT_VERSION)" ;\
+	GOBIN=$(shell go env GOPATH)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION) ;\
 	}
 
 .PHONY: lint
@@ -700,9 +705,11 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	#   - add to ci
 	./bin/list-all-packages-test.sh
 	./bin/testgrid-pr-spec-test.sh
+	./bin/testgrid-pr-kurl-util-test.sh
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
+	./scripts/common/upgrade-test.sh
 	./packages/kubernetes/template/script-test.sh
 	./packages/kubernetes/template/add-minor-test.sh
 	./scripts/distro/kubeadm/distro-test.sh

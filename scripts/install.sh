@@ -218,6 +218,26 @@ function init() {
     # lead to a loss of quorum
     disable_rook_ceph_operator
 
+    # On an already-initialized node (upgrade / re-apply), snapshot the control
+    # plane state up front (manifests, kubeconfigs, apiserver cert/key) so a
+    # failed kubeadm init can be rolled back. The snapshot is taken by copying,
+    # so later move-aside/discard steps never destroy the only copy.
+    # The directory holds private key material; make sure it is removed even if
+    # the script aborts before the cleanup below.
+    local control_plane_backup_dir=
+    if kubernetes_control_plane_static_pods_present; then
+        control_plane_backup_dir="$(mktemp -d /tmp/kurl-control-plane-backup.XXXXXX)"
+        # expand the path now; the variable is local and gone by exit. The trap
+        # restores the manifests first if the run aborted with them moved aside
+        #shellcheck disable=SC2064
+        trap "kubernetes_cleanup_control_plane_backup '$control_plane_backup_dir'" EXIT
+        mkdir -p "$control_plane_backup_dir/kubeconfigs" "$control_plane_backup_dir/pki" "$control_plane_backup_dir/manifests"
+        cp -a /etc/kubernetes/manifests/*.yaml "$control_plane_backup_dir/manifests/"
+        cp -a /etc/kubernetes/*.conf "$control_plane_backup_dir/kubeconfigs/" 2>/dev/null || true
+        [ -f /etc/kubernetes/pki/apiserver.crt ] && cp -a /etc/kubernetes/pki/apiserver.crt "$control_plane_backup_dir/pki/"
+        [ -f /etc/kubernetes/pki/apiserver.key ] && cp -a /etc/kubernetes/pki/apiserver.key "$control_plane_backup_dir/pki/"
+    fi
+
     # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
     # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
     # already exist pointing to the load balancer
@@ -240,12 +260,46 @@ function init() {
     fi
 
     set -o pipefail
-    cmd_retry 3 kubeadm init \
-        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
-        --config $KUBEADM_CONF_FILE \
-        $UPLOAD_CERTS \
-        | tee /tmp/kubeadm-init
+    # On an already-initialized node (upgrade / re-apply), quiesce the control
+    # plane static pods before each kubeadm init attempt: kubeadm init rewrites
+    # their manifests and its kubelet-start phase restarts the kubelet, and
+    # without quiescing the recreated containers race the old containers' host
+    # ports and crashloop with "bind: address already in use", which can outlast
+    # the wait-control-plane budget and fail the run midway.
+    set +e
+    cmd_retry 3 kubernetes_kubeadm_init_with_quiesce | tee /tmp/kubeadm-init
+    local pipeline_status=("${PIPESTATUS[@]}")
+    set -e
     set +o pipefail
+    # tee failing is not a kubeadm init failure: do not roll back a freshly
+    # re-initialized control plane because the log copy failed
+    local kubeadm_init_exit="${pipeline_status[0]}"
+    if [ "${pipeline_status[1]:-0}" -ne 0 ]; then
+        logWarn "tee /tmp/kubeadm-init exited ${pipeline_status[1]}; the kubeadm init log may be incomplete"
+    fi
+
+    if [ -n "$control_plane_backup_dir" ]; then
+        if [ "$kubeadm_init_exit" -eq 0 ]; then
+            # kubeadm init wrote fresh manifests and kubeconfigs; the backup is
+            # not needed
+            rm -rf "$control_plane_backup_dir"
+        else
+            # restore the previous control plane state so it can recover while
+            # the failure is handled; failures here are logged but cannot abort
+            # the rollback mid-way under errexit
+            local rollback_ok=1
+            cp -a "$control_plane_backup_dir/manifests/." /etc/kubernetes/manifests/ 2>/dev/null || rollback_ok=0
+            cp -a "$control_plane_backup_dir/kubeconfigs/." /etc/kubernetes/ 2>/dev/null || rollback_ok=0
+            cp -a "$control_plane_backup_dir/pki/." /etc/kubernetes/pki/ 2>/dev/null || rollback_ok=0
+            rm -rf "$control_plane_backup_dir" || true
+            if [ "$rollback_ok" = "0" ]; then
+                logWarn "Failed to fully restore the pre-init control plane state from the backup; manual recovery of /etc/kubernetes may be required"
+            fi
+        fi
+    fi
+    if [ "$kubeadm_init_exit" -ne 0 ]; then
+        return "$kubeadm_init_exit"
+    fi
 
     kubernetes_apply_image_overrides "$KUBERNETES_VERSION"
 

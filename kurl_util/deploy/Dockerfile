@@ -1,4 +1,4 @@
-FROM golang:1.26 AS build
+FROM golang:1.27.2 AS build
 
 WORKDIR /go/src/github.com/replicatedhq/kurl
 COPY kurl_util/cmd kurl_util/cmd
@@ -11,7 +11,7 @@ COPY Makefile Makefile
 
 RUN make build/bin
 
-FROM golang:1.27.1 AS cri-tools-build
+FROM golang:1.27.2 AS cri-tools-build
 
 ARG CRITOOLS_VERSION=v1.37.0
 ARG CRITOOLS_COMMIT=13496db06e3f6636a0855977dd86344698dfc501
@@ -21,13 +21,14 @@ RUN git clone --depth 1 --branch "$CRITOOLS_VERSION" https://github.com/kubernet
 
 WORKDIR /src
 
-# The upstream release still includes vulnerable x/mod. Rebuild both tools with
-# the fixed dependency rather than copying its precompiled release binaries.
-# x/mod v0.40.0 requires x/tools v0.49.0, so go get also bumps x/tools from
-# v0.48.0. Flags mirror upstream hack/release.sh (CGO_ENABLED=0, -trimpath,
+# The upstream release still includes vulnerable x/mod and x/net. Rebuild both
+# tools with the fixed dependencies rather than copying its precompiled release
+# binaries. x/net v0.60.0 indirectly requires x/mod v0.41.0, and x/mod requires
+# x/tools v0.49.0, so go get also bumps x/tools from v0.48.0. Flags mirror
+# upstream hack/release.sh (CGO_ENABLED=0, -trimpath,
 # Version ldflag with the "v" prefix). -mod=mod is required because the vendor
 # directory no longer matches the modified go.mod.
-RUN go get golang.org/x/mod@v0.40.0 \
+RUN go get golang.org/x/mod@v0.41.0 golang.org/x/net@v0.60.0 \
   && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod -trimpath \
     -ldflags "-X sigs.k8s.io/cri-tools/pkg/version.Version=${CRITOOLS_VERSION}" \
     -o /crictl ./cmd/crictl \

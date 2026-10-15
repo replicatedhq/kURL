@@ -436,30 +436,39 @@ function kubernetes_restart_kubelet() {
     fi
 
     local tmp_manifest_dir=
-    tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
-
-    # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
-    # tear the static pod down, which releases the pod's host ports
-    log "Moving control plane static pod manifests aside before kubelet restart"
-    mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"
-
-    # wait for the kubelet to tear the static pods down so their host ports are
-    # free; on timeout proceed anyway, which is no worse than not quiescing
-    if ! spinner_until 60 kubernetes_control_plane_containers_stopped; then
-        logWarn "Control plane containers did not stop within 60s, restarting kubelet anyway"
+    if ! tmp_manifest_dir="$(kubernetes_move_control_plane_static_pods_aside)"; then
+        # same contract as the kubeadm init wrapper: tolerate a failed quiesce
+        # and restart un-quiesced (status quo ante), never abort the run here
+        logWarn "Failed to quiesce control plane static pods, restarting kubelet without quiescing"
+        tmp_manifest_dir=
     fi
 
     systemctl restart kubelet
 
     # kubelet watches /etc/kubernetes/manifests: restoring the manifests is
     # sufficient for it to recreate the pods - no second restart is needed.
-    log "Restoring control plane static pod manifests"
-    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
-    rmdir "$tmp_manifest_dir"
+    if [ -n "$tmp_manifest_dir" ]; then
+        kubernetes_restore_control_plane_static_pods "$tmp_manifest_dir"
+    fi
 
-    # wait for the API server to be reachable again before continuing
+    # wait for the API server to be reachable again before continuing. Fail loudly
+    # here instead of warning and continuing only when this restart is part of
+    # upgrade_kubernetes_local_master (the kubeadm upgrade of this node): a caller
+    # proceeding against a control plane that never came back up there would
+    # otherwise fail later with a far more confusing error, and that path alone has
+    # a downstream safety net (spinner_kubernetes_api_stable) already fatal on the
+    # same condition. $upgrading_kubernetes is the same dynamic-scope local
+    # upgrade_kubernetes_local_master sets for kubernetes_api_address to read; every
+    # other caller of this restart (install.sh re-applied against an
+    # already-initialized master, the standalone per-node scripts/upgrade.sh) keeps
+    # the pre-existing warn-and-continue behavior, since a slow-but-eventual API
+    # recovery there is not fatal to the run.
     if ! spinner_until 120 kubernetes_api_is_healthy; then
-        logWarn "Kubernetes API did not report healthy within 120s of kubelet restart"
+        if [ -n "$upgrading_kubernetes" ]; then
+            bail "Kubernetes API did not report healthy within 120s of kubelet restart"
+        else
+            logWarn "Kubernetes API did not report healthy within 120s of kubelet restart"
+        fi
     fi
 }
 
@@ -476,6 +485,122 @@ function kubernetes_control_plane_containers_stopped() {
     local running=
     running=$(crictl ps --name '^(etcd|kube-apiserver|kube-controller-manager|kube-scheduler)$' --state Running -q 2>/dev/null | wc -l)
     [ "$running" = "0" ]
+}
+
+# kubernetes_move_control_plane_static_pods_aside moves the control plane
+# static pod manifests to a temporary directory and waits for the kubelet to
+# tear the pods down (releasing their host ports). Prints the directory the
+# manifests were moved to. Accepts an optional destination directory.
+#
+# Use this around operations that rewrite the static pod manifests and/or
+# restart the kubelet on an already-initialized node (e.g. the kubeadm init
+# re-application kURL runs after a Kubernetes version upgrade). Without it,
+# containers recreated by the rewrite/restart bind their host ports before the
+# previous containers have released them and crashloop with
+# "bind: address already in use", which can outlast the kubeadm
+# wait-control-plane budget and fail the run midway.
+function kubernetes_move_control_plane_static_pods_aside() {
+    local tmp_manifest_dir="${1:-}"
+    if [ -z "$tmp_manifest_dir" ]; then
+        tmp_manifest_dir="$(mktemp -d /tmp/kurl-static-pods.XXXXXX)"
+    fi
+    mkdir -p "$tmp_manifest_dir"
+
+    # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
+    # tear the static pod down, which releases the pod's host ports
+    log "Moving control plane static pod manifests aside to $tmp_manifest_dir"
+    if ! mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"; then
+        # a partial move leaves the node half-quiesced; put back what was taken
+        logWarn "Failed to move control plane static pod manifests aside, moving back what was taken"
+        mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/ 2>/dev/null || true
+        rmdir "$tmp_manifest_dir" 2>/dev/null || true
+        return 1
+    fi
+
+    # wait for the teardown; on timeout continue anyway, which is no worse than
+    # not quiescing at all. spinner_until prints its spinner on stdout, so it is
+    # redirected to stderr to keep this function's stdout capture clean.
+    if ! spinner_until 60 kubernetes_control_plane_containers_stopped 1>&2; then
+        logWarn "Control plane containers did not stop within 60s, continuing anyway"
+    fi
+
+    echo "$tmp_manifest_dir"
+}
+
+# kubernetes_restore_control_plane_static_pods moves manifests previously moved
+# aside by kubernetes_move_control_plane_static_pods_aside back into place.
+# Only needed on the failure path: kubeadm init rewrites the manifests itself,
+# so a successful run simply removes the backup directory.
+function kubernetes_restore_control_plane_static_pods() {
+    local tmp_manifest_dir="$1"
+    log "Restoring control plane static pod manifests"
+    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
+    rmdir "$tmp_manifest_dir"
+}
+
+# kubernetes_kubeadm_init_with_quiesce runs a single kubeadm init attempt,
+# quiescing the control plane static pods first whenever manifests are present
+# (a previous failed attempt leaves freshly-written manifests with running
+# pods). kubeadm init rewrites the manifests itself, so the moved-aside copies
+# are discarded - safe because the caller's snapshot (taken by copying) is what
+# feeds any rollback, never these.
+function kubernetes_kubeadm_init_with_quiesce() {
+    if kubernetes_control_plane_static_pods_present; then
+        local quiesced_dir=
+        if ! quiesced_dir="$(kubernetes_move_control_plane_static_pods_aside)"; then
+            logWarn "Failed to quiesce control plane static pods, running kubeadm init without quiescing"
+            quiesced_dir=
+        fi
+        [ -n "$quiesced_dir" ] && rm -rf "$quiesced_dir"
+    fi
+    # UPLOAD_CERTS is intentionally left unquoted: it is either empty or a flag
+    # list that must word-split
+    kubeadm init \
+        --ignore-preflight-errors="$KUBERNETES_INIT_IGNORE_PREFLIGHT_ERRORS" \
+        --config "$KUBEADM_CONF_FILE" \
+        $UPLOAD_CERTS
+}
+
+# kubernetes_cleanup_control_plane_backup removes the control plane backup dir
+# created before a kubeadm init re-application. If the run aborted after the
+# destructive steps (kubeconfigs deleted, apiserver cert/key moved, manifests
+# moved aside) but before kubeadm init regenerated them, anything missing from
+# the live locations is restored from the backup first so the previous control
+# plane can recover. Registered as an EXIT trap because the backup holds the
+# apiserver private key and must not survive the run - and must not be deleted
+# while it is still the only recovery material.
+function kubernetes_cleanup_control_plane_backup() {
+    local backup_dir="$1"
+    [ -n "$backup_dir" ] || return 0
+    if [ -d "$backup_dir" ]; then
+        local restored=0
+        local f= base=
+        for f in "$backup_dir"/manifests/*.yaml; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/manifests/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/manifests/" 2>/dev/null && restored=1
+            fi
+        done
+        for f in "$backup_dir"/kubeconfigs/*.conf; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/" 2>/dev/null && restored=1
+            fi
+        done
+        for f in "$backup_dir"/pki/*; do
+            [ -e "$f" ] || continue
+            base="${f##*/}"
+            if [ ! -e "/etc/kubernetes/pki/$base" ]; then
+                cp -a "$f" "/etc/kubernetes/pki/" 2>/dev/null && restored=1
+            fi
+        done
+        if [ "$restored" = "1" ]; then
+            logWarn "Aborted mid-init; restored control plane manifests/kubeconfigs/pki from $backup_dir"
+        fi
+    fi
+    rm -rf "$backup_dir" 2>/dev/null || true
 }
 
 # kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:

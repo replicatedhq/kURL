@@ -18,9 +18,13 @@ name: testgrid-pr
 #   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
 #
 # ── What a label run builds ─────────────────────────────────────────────────
-#   * A LABEL run reuses the existing replicated/kurl-util:alpha image and
-#     rebuilds ONLY the core batch (install/join/upgrade/tasks.tmpl, common.tar.gz,
-#     kurl-bin-utils); everything else is copied from the last staging release.
+#   * A LABEL run reuses the existing replicated/kurl-util:alpha image
+#     (retagged and pushed under this run's own versioned tag, since the
+#     installer templates kurl.sh renders always resolve to
+#     replicated/kurl-util:<version>, never :alpha -- see kurl-util-image job)
+#     and rebuilds ONLY the core batch (install/join/upgrade/tasks.tmpl,
+#     common.tar.gz, kurl-bin-utils); everything else is copied from the last
+#     staging release.
 #   * To rebuild EXTRA packages (e.g. a specific kubernetes-<ver>.tar.gz) or to
 #     build a branch-specific kurl-util image, use workflow_dispatch and set the
 #     `extra-packages` / `build-kurl-util-image` inputs (not available on label
@@ -68,6 +72,11 @@ name: testgrid-pr
 #     into the full matrix. RC artifacts land under staging/<rc-tag>/ and are
 #     auto-expired by bin/cleanup-staging-s3.sh (staging/v20* prefix, 30 days).
 #     RC builds are NEVER promoted to prod.
+#   * KNOWN RETENTION GAP: every run also pushes a per-run versioned tag
+#     (replicated/kurl-util:<version_tag>) to the shared, externally-visible
+#     replicated/kurl-util Docker Hub repo (see kurl-util-image job). Unlike
+#     the S3 RC artifacts above, nothing currently deletes these Docker Hub
+#     tags — tracked in https://github.com/replicatedhq/kURL/issues/6190.
 
 on:
   pull_request:
@@ -137,13 +146,27 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
           fetch-depth: 0
 
+      # A workflow_dispatch run can target any pre-existing branch via
+      # inputs.branch -- including one that predates this helper script, or
+      # one that was never rebased past it -- so the main checkout above
+      # cannot be relied on to contain bin/testgrid-pr-kurl-util.sh. Fetch it
+      # separately from the ref that is actually running this workflow
+      # (defaults to github.ref, which is what GitHub Actions resolves the
+      # workflow YAML from) so `source` below never 404s on an older branch.
+      - name: Checkout testgrid-pr-kurl-util.sh from the workflow's own ref
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: |
+            bin/testgrid-pr-kurl-util.sh
+          sparse-checkout-cone-mode: false
+          path: .testgrid-pr-ci
+
       - id: set-tag
         env:
           # Empty on workflow_dispatch, set on pull_request.
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           DISPATCH_BRANCH: ${{ inputs.branch }}
-          BUILD_UTIL_IMAGE: ${{ inputs.build-kurl-util-image }}
         run: |
           set -euo pipefail
           git fetch --tags -f
@@ -159,11 +182,15 @@ jobs:
             VERSION_TAG="${LATEST_TAG}-rc-${SAFE_BRANCH}-${SHORT_SHA}"
           fi
 
-          if [ "${BUILD_UTIL_IMAGE}" = "true" ]; then
-            KURL_UTIL_IMAGE="replicated/kurl-util:${VERSION_TAG}"
-          else
-            KURL_UTIL_IMAGE="replicated/kurl-util:alpha"
-          fi
+          # kurl.sh renders this run's install.tmpl/join.tmpl/upgrade.tmpl/
+          # tasks.tmpl server-side using the same convention every real
+          # release relies on: replicated/kurl-util:<installerVersion>. That
+          # versioned tag must exist in the registry regardless of
+          # build-kurl-util-image -- the kurl-util-image job below either
+          # builds it fresh (true) or retags+pushes the existing :alpha under
+          # it (false) -- so it is always the resolved image (kURL#6188).
+          source ./.testgrid-pr-ci/bin/testgrid-pr-kurl-util.sh
+          KURL_UTIL_IMAGE="$(testgrid_pr_kurl_util_image "${VERSION_TAG}")"
 
           REF="PR-${VERSION_TAG}-$(date --utc +%FT%TZ)"
 
@@ -208,12 +235,17 @@ jobs:
     needs:
       - get-tag
     steps:
+      # Only checked out -- and only on an explicit workflow_dispatch build --
+      # because this repo content becomes PR-authored once a label run's
+      # default ref resolves to the PR's merge commit. The default (label)
+      # path below never checks out repo content, so Docker Hub credentials
+      # are never exposed to a PR-authored Makefile or script.
       - uses: actions/checkout@v7
+        if: inputs.build-kurl-util-image
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+          ref: ${{ inputs.branch }}
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        if: inputs.build-kurl-util-image
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -227,10 +259,52 @@ jobs:
         run: |
           make -C kurl_util build-and-push-kurl-util-image
 
-      - name: skip kurl-util image build
+      - name: retag and push existing kurl-util image
+        # Reusing :alpha still must publish this run's versioned tag -- the
+        # installer templates kurl.sh renders for this run resolve
+        # KURL_UTIL_IMAGE to replicated/kurl-util:<version_tag> regardless of
+        # whether a branch-specific image was built, so that tag must exist
+        # in the registry or kurlnet-client/kurlnet-server ErrImagePull
+        # before any scenario runs (kURL#6188). Mirrors deploy-staging.yaml's
+        # kurl-util-image job, which always retags+pushes :alpha under the
+        # release's own VERSION_TAG in addition to :alpha itself.
+        #
+        # This is the default (label) path's only step, so it must not rely
+        # on `make` or any other checked-out repo content -- this job never
+        # checks out a repo on this path (see the checkout step above), and
+        # must not start doing so, or a PR-authored Makefile/script would run
+        # with the Docker Hub credentials docker/login-action just loaded.
         if: ${{ !inputs.build-kurl-util-image }}
+        env:
+          KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
+          KURL_UTIL_IMAGE: ${{ needs.get-tag.outputs.kurl_util_image }}
         run: |
-          echo "Using existing kurl-util image: ${{ needs.get-tag.outputs.kurl_util_image }}"
+          set -euo pipefail
+
+          # Exponential-backoff retry for flaky Docker Hub calls (mirrors the
+          # S3 retry below and bin/upload-dist-staging.sh).
+          retry() {
+            local retries="$1"; shift
+            local count=0 exit wait
+            until "$@"; do
+              exit=$?
+              wait=$((2 ** count))
+              count=$((count + 1))
+              if [ "${count}" -lt "${retries}" ]; then
+                echo "Retry ${count}/${retries} exited ${exit}, retrying in ${wait}s..."
+                sleep "${wait}"
+              else
+                echo "Retry ${count}/${retries} exited ${exit}, no more retries left."
+                return "${exit}"
+              fi
+            done
+            return 0
+          }
+
+          echo "Reusing existing kurl-util image, retagging as ${KURL_UTIL_IMAGE}"
+          retry 5 docker pull "${KURL_UTIL_IMAGE_ALPHA}"
+          docker tag "${KURL_UTIL_IMAGE_ALPHA}" "${KURL_UTIL_IMAGE}"
+          retry 5 docker push "${KURL_UTIL_IMAGE}"
 
   build-matrix:
     runs-on: ubuntu-24.04

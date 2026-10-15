@@ -21,6 +21,13 @@ import (
 // this is modified by unit test functions to add mock command/response entries
 var execFunction func(coreClient corev1client.CoreV1Interface, clientConfig *restclient.Config, ns, pod, container string, command ...string) (int, string, string, error) = k8sutil.SyncExec
 
+const (
+	// cephCommand is the ceph CLI binary invoked in the toolbox pod
+	cephCommand = "ceph"
+	// osdCommand is the ceph osd subcommand invoked in the toolbox pod
+	osdCommand = "osd"
+)
+
 // this is the config used to exec commands in a pod
 var conf *restclient.Config
 
