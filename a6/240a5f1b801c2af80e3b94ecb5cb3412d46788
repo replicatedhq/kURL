@@ -4,6 +4,7 @@ addons/contour/template/script.sh
   s_f22df7b173be42::t_3544181efbe579 21,83-87
 packages/kubernetes/template/script.sh
   s_f22df7b173be42::t_3544181efbe579 181,183,185-195,197
+  s_f69085f9a02589::t_5a0a4401d01a15 184,196
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -18,6 +19,14 @@ packages/kubernetes/template/script.sh
         "model": "gpt-6.1-sol"
       },
       "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    },
+    "s_f69085f9a02589": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec298f99affeP70j143q3BxpX1",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
     }
   }
 }
