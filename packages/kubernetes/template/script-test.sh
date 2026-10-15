@@ -481,20 +481,20 @@ function test_generate_version_directory_leaves_securebuild_overrides_on_failure
     assertEquals "kubeadm-image-overrides should not be installed" "1" "$exists"
 }
 
-function test_install_file_replaces_destination_atomically() {
+function test_install_files_replaces_destination_atomically() {
     echo "new" > "$TEST_DIR/src"
     echo "old" > "$TEST_DIR/dest"
-    install_file "$TEST_DIR/src" "$TEST_DIR/dest"
+    install_files "$TEST_DIR/src" "$TEST_DIR/dest"
     assertEquals "exit code" "0" "$?"
     assertEquals "new" "$(cat "$TEST_DIR/dest")"
     assertEquals "644" "$(file_mode "$TEST_DIR/dest")"
     assertEquals "no staged file left behind" "" "$(find "$TEST_DIR" -name '.dest.*')"
 }
 
-function test_install_file_keeps_destination_when_source_is_missing() {
+function test_install_files_keeps_destination_when_source_is_missing() {
     echo "old" > "$TEST_DIR/dest"
     local result=
-    result="$(install_file "$TEST_DIR/missing" "$TEST_DIR/dest" 2>&1 && echo "rc=0" || echo "rc=$?")"
+    result="$(install_files "$TEST_DIR/missing" "$TEST_DIR/dest" 2>&1 && echo "rc=0" || echo "rc=$?")"
     assertContains "$result" "failed to install $TEST_DIR/dest"
     assertEquals "rc=1" "${result##*$'\n'}"
     assertEquals "old" "$(cat "$TEST_DIR/dest")"

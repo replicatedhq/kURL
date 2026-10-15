@@ -176,31 +176,55 @@ function use_securebuild_images() {
     local securebuild_dir="./securebuild-${version}"
     [ -d "$securebuild_dir" ] || return 0
 
+    # explicit returns: callers check the status, which turns errexit off in here
     local name= image= upstream_image=
     while read -r name image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "$manifest"
-    done < "$securebuild_dir/kubeadm-image-overrides"
+        sed -i "s|$upstream_image|$image|" "$manifest" || return 1
+    done < "$securebuild_dir/kubeadm-image-overrides" || return 1
 
     local workload= container=
     while read -r workload container image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "$manifest"
-    done < "$securebuild_dir/image-overrides"
+        sed -i "s|$upstream_image|$image|" "$manifest" || return 1
+    done < "$securebuild_dir/image-overrides" || return 1
 
     cp -r "$securebuild_dir"/* "$dest/"
 }
 
-# install_file copies a file to a temp file next to its destination and renames it into place
-# (0644), so the destination is never left partially written.
-function install_file() {
-    local src="$1"
-    local dest="$2"
+# install_files installs "<src> <dest>" pairs as 0644 files in two passes: every source is first
+# copied to a temp file next to its destination, then all are renamed into place. A failure while
+# staging removes the temp files and leaves every destination as it was.
+function install_files() {
+    local staged=()
+    local dests=()
+    local src=
+    local dest=
     local tmp=
-    tmp="$(mktemp "$(dirname "$dest")/.${dest##*/}.XXXXXX")" || return 1
-    if ! { cat "$src" > "$tmp" && chmod 644 "$tmp" && mv "$tmp" "$dest"; }; then
-        rm -f "$tmp"
-        echo "ERROR: failed to install ${dest}" >&2
-        return 1
-    fi
+    while [ "$#" -ge 2 ]; do
+        src="$1"
+        dest="$2"
+        shift 2
+        if ! tmp="$(mktemp "$(dirname "$dest")/.${dest##*/}.XXXXXX")"; then
+            echo "ERROR: failed to create a staging file next to ${dest}" >&2
+            rm -f ${staged[@]+"${staged[@]}"}
+            return 1
+        fi
+        staged+=("$tmp")
+        dests+=("$dest")
+        if ! { cat "$src" > "$tmp" && chmod 644 "$tmp"; }; then
+            echo "ERROR: failed to install ${dest}" >&2
+            rm -f "${staged[@]}"
+            return 1
+        fi
+    done
+
+    local i=
+    for i in "${!staged[@]}"; do
+        if ! mv "${staged[$i]}" "${dests[$i]}"; then
+            echo "ERROR: failed to install ${dests[$i]}" >&2
+            rm -f "${staged[@]:$i}"
+            return 1
+        fi
+    done
 }
 
 # generate_version_directory writes ../<version>/Manifest and the SecureBuild override files. It
@@ -275,15 +299,21 @@ function generate_version_directory() (
 
     local overrides="$workdir/securebuild"
     mkdir -p "$overrides"
-    use_securebuild_images "$version" "$manifest" "$overrides"
+    use_securebuild_images "$version" "$manifest" "$overrides" || {
+        echo "ERROR: failed to apply SecureBuild images for ${version}" >&2
+        return 1
+    }
 
+    # the Manifest goes last, so it is renamed into place after the override files it refers to
     mkdir -p "../$version"
+    local pairs=()
     local file=
     for file in "$overrides"/*; do
         [ -f "$file" ] || continue
-        install_file "$file" "../$version/${file##*/}" || return 1
+        pairs+=("$file" "../$version/${file##*/}")
     done
-    install_file "$manifest" "../$version/Manifest" || return 1
+    pairs+=("$manifest" "../$version/Manifest")
+    install_files "${pairs[@]}" || return 1
 )
 
 # generate_conformance_package writes ../<version>/conformance/Manifest, only once complete.
@@ -319,7 +349,7 @@ function generate_conformance_package() {
         echo "image conformance registry.k8s.io/conformance:v${version}"
         echo "image $name $image"
     } > "$tmp"
-    install_file "$tmp" "../$version/conformance/Manifest" || { rm -f "$tmp"; return 1; }
+    install_files "$tmp" "../$version/conformance/Manifest" || { rm -f "$tmp"; return 1; }
     rm -f "$tmp"
 
     # The following code would add all conformance images to the manifest but it adds too much to the bundle:

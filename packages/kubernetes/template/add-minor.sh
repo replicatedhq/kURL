@@ -49,10 +49,12 @@ function rewrite_package_repo() {
     local to="$3"
     # stage next to the file and rename, so an interrupted run never leaves a half-written file
     local tmp=
-    tmp="$(mktemp "$(dirname "$file")/.${file##*/}.XXXXXX")"
-    sed -e "s/v1\.${from}\([^0-9]\)/v1.${to}\1/g" -e "s/v1\.${from}\$/v1.${to}/" "$file" > "$tmp"
-    chmod 644 "$tmp"
-    mv "$tmp" "$file"
+    tmp="$(mktemp "$(dirname "$file")/.${file##*/}.XXXXXX")" || die "failed to create a staging file next to ${file##*/}"
+    if ! { sed -e "s/v1\.${from}\([^0-9]\)/v1.${to}\1/g" -e "s/v1\.${from}\$/v1.${to}/" "$file" > "$tmp" \
+        && chmod 644 "$tmp" && mv "$tmp" "$file"; }; then
+        rm -f "$tmp"
+        die "failed to rewrite ${file##*/}"
+    fi
 
     if grep -Eq "v1\.${from}([^0-9]|\$)" "$file"; then
         die "${file##*/} still references v1.${from} after rewrite"
@@ -134,7 +136,7 @@ function add_versions_js_marker() {
 
     # stage next to versions.js and rename, like the Manifest writes in script.sh
     local tmp=
-    tmp="$(mktemp "$(dirname "$VERSIONS_JS")/.versions.js.XXXXXX")"
+    tmp="$(mktemp "$(dirname "$VERSIONS_JS")/.versions.js.XXXXXX")" || die "failed to create a staging file next to $VERSIONS_JS"
     local rc=0
     awk -v marker="$marker" '
         BEGIN { state = 0; done = 0 }
@@ -161,8 +163,10 @@ function add_versions_js_marker() {
         rm -f "$tmp"
         die "could not find a cron-kubernetes-update-* marker block in the kubernetes array of $VERSIONS_JS"
     fi
-    chmod 644 "$tmp"
-    mv "$tmp" "$VERSIONS_JS"
+    if ! { chmod 644 "$tmp" && mv "$tmp" "$VERSIONS_JS"; }; then
+        rm -f "$tmp"
+        die "failed to update $VERSIONS_JS"
+    fi
 
     [ "$(grep -Ec "^[[:space:]]*// cron-kubernetes-update-1${minor}[[:space:]]*\$" "$VERSIONS_JS")" = "1" ] \
         || die "expected exactly one ${marker} marker in $VERSIONS_JS after insertion"
