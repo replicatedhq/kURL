@@ -167,10 +167,12 @@ function download_kubeadm() {
 }
 
 # use_securebuild_images rewrites upstream images to SecureBuild ones in a Manifest (default
-# ../<version>/Manifest) and copies the override files into ../<version>/, when ./securebuild-<version> exists.
+# ../<version>/Manifest) and copies the override files into a directory (default ../<version>/),
+# when ./securebuild-<version> exists.
 function use_securebuild_images() {
     local version="$1"
     local manifest="${2:-../$version/Manifest}"
+    local dest="${3:-../$version}"
     local securebuild_dir="./securebuild-${version}"
     [ -d "$securebuild_dir" ] || return 0
 
@@ -184,18 +186,32 @@ function use_securebuild_images() {
         sed -i "s|$upstream_image|$image|" "$manifest"
     done < "$securebuild_dir/image-overrides"
 
-    cp -r "$securebuild_dir"/* "../$version/"
+    cp -r "$securebuild_dir"/* "$dest/"
 }
 
-# generate_version_directory writes ../<version>/Manifest. It runs in a subshell so the EXIT trap
-# cleans up its temp files. The Manifest is built in a temp dir, copied to a temp file next to its
-# destination and renamed into place, so ../<version>/Manifest is never left partially written.
+# install_file copies a file to a temp file next to its destination and renames it into place
+# (0644), so the destination is never left partially written.
+function install_file() {
+    local src="$1"
+    local dest="$2"
+    local tmp=
+    tmp="$(mktemp "$(dirname "$dest")/.${dest##*/}.XXXXXX")" || return 1
+    if ! { cat "$src" > "$tmp" && chmod 644 "$tmp" && mv "$tmp" "$dest"; }; then
+        rm -f "$tmp"
+        echo "ERROR: failed to install ${dest}" >&2
+        return 1
+    fi
+}
+
+# generate_version_directory writes ../<version>/Manifest and the SecureBuild override files. It
+# runs in a subshell so the EXIT trap cleans up its temp files. Everything is built in a temp dir
+# and only installed into ../<version>/ once complete, override files first and the Manifest last,
+# so a failed run leaves ../<version>/ as it was.
 function generate_version_directory() (
     local version="$1"
     # not local: the EXIT trap runs after the function body (this subshell keeps them contained)
     workdir="$(mktemp -d)"
-    staged=
-    trap 'rm -rf "$workdir"; [ -z "$staged" ] || rm -f "$staged"' EXIT
+    trap 'rm -rf "$workdir"' EXIT
 
     download_kubeadm "$version" "$workdir" || return 1
 
@@ -257,14 +273,17 @@ function generate_version_directory() (
         echo "asset kustomize-v5.4.3.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz"
     } >> "$manifest"
 
+    local overrides="$workdir/securebuild"
+    mkdir -p "$overrides"
+    use_securebuild_images "$version" "$manifest" "$overrides"
+
     mkdir -p "../$version"
-    use_securebuild_images "$version" "$manifest"
-    staged="$(mktemp "../$version/.Manifest.XXXXXX")"
-    cat "$manifest" > "$staged"
-    # mktemp creates 0600; the Manifest ships in the dist tarball, so keep the usual 0644
-    chmod 644 "$staged"
-    mv "$staged" "../$version/Manifest"
-    staged=
+    local file=
+    for file in "$overrides"/*; do
+        [ -f "$file" ] || continue
+        install_file "$file" "../$version/${file##*/}" || return 1
+    done
+    install_file "$manifest" "../$version/Manifest" || return 1
 )
 
 # generate_conformance_package writes ../<version>/conformance/Manifest, only once complete.
@@ -294,14 +313,14 @@ function generate_conformance_package() {
 
     mkdir -p "../$version/conformance"
     local tmp=
-    tmp="$(mktemp "../$version/conformance/.Manifest.XXXXXX")"
+    tmp="$(mktemp)"
     # add conformance image for sonobuoy to manifest
     {
         echo "image conformance registry.k8s.io/conformance:v${version}"
         echo "image $name $image"
     } > "$tmp"
-    chmod 644 "$tmp"
-    mv "$tmp" "../$version/conformance/Manifest"
+    install_file "$tmp" "../$version/conformance/Manifest" || { rm -f "$tmp"; return 1; }
+    rm -f "$tmp"
 
     # The following code would add all conformance images to the manifest but it adds too much to the bundle:
     # sonobuoy_pull_images "$version" || true

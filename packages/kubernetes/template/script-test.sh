@@ -433,6 +433,74 @@ function test_generate_version_directory_writes_manifest() {
     assertEquals "Manifest mode" "644" "$(file_mode "$manifest")"
 }
 
+# write_securebuild_fixture writes template/securebuild-1.38.0 overriding kube-apiserver
+function write_securebuild_fixture() {
+    mkdir -p "$TEST_DIR/template/securebuild-1.38.0"
+    echo "kube-apiserver docker.io/kurlsh/kube-apiserver:v1.38.0 registry.k8s.io/kube-apiserver:v1.38.0" \
+        > "$TEST_DIR/template/securebuild-1.38.0/kubeadm-image-overrides"
+    echo "daemonset/kube-proxy kube-proxy docker.io/kurlsh/kube-proxy:v1.38.0 registry.k8s.io/kube-proxy:v1.38.0" \
+        > "$TEST_DIR/template/securebuild-1.38.0/image-overrides"
+}
+
+function test_generate_version_directory_installs_securebuild_overrides() {
+    write_securebuild_fixture
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\nregistry.k8s.io/kube-proxy:v1.38.0\n'
+        stub_generate_deps
+        generate_version_directory 1.38.0 && echo ok
+    )"
+    assertEquals "ok" "$result"
+    assertEquals "1" "$(grep -c '^image kube-apiserver docker.io/kurlsh/kube-apiserver:v1.38.0$' "$TEST_DIR/1.38.0/Manifest")"
+    assertEquals "1" "$(grep -c '^image kube-proxy docker.io/kurlsh/kube-proxy:v1.38.0$' "$TEST_DIR/1.38.0/Manifest")"
+    local file=
+    for file in image-overrides kubeadm-image-overrides; do
+        same_content "$TEST_DIR/template/securebuild-1.38.0/$file" "$TEST_DIR/1.38.0/$file" || fail "$file not installed"
+        assertEquals "$file mode" "644" "$(file_mode "$TEST_DIR/1.38.0/$file")"
+    done
+    assertEquals "no staged files left behind" "" "$(find "$TEST_DIR/1.38.0" -name '.*')"
+}
+
+function test_generate_version_directory_leaves_securebuild_overrides_on_failure() {
+    write_securebuild_fixture
+    mkdir -p "$TEST_DIR/1.38.0"
+    echo "old" > "$TEST_DIR/1.38.0/image-overrides"
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
+        stub_generate_deps
+        function github_curl() { return 22; }
+        generate_version_directory 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertEquals "rc=1" "${result##*$'\n'}"
+    assertEquals "old" "$(cat "$TEST_DIR/1.38.0/image-overrides")"
+    local exists=
+    [ -e "$TEST_DIR/1.38.0/kubeadm-image-overrides" ] && exists=0 || exists=1
+    assertEquals "kubeadm-image-overrides should not be installed" "1" "$exists"
+}
+
+function test_install_file_replaces_destination_atomically() {
+    echo "new" > "$TEST_DIR/src"
+    echo "old" > "$TEST_DIR/dest"
+    install_file "$TEST_DIR/src" "$TEST_DIR/dest"
+    assertEquals "exit code" "0" "$?"
+    assertEquals "new" "$(cat "$TEST_DIR/dest")"
+    assertEquals "644" "$(file_mode "$TEST_DIR/dest")"
+    assertEquals "no staged file left behind" "" "$(find "$TEST_DIR" -name '.dest.*')"
+}
+
+function test_install_file_keeps_destination_when_source_is_missing() {
+    echo "old" > "$TEST_DIR/dest"
+    local result=
+    result="$(install_file "$TEST_DIR/missing" "$TEST_DIR/dest" 2>&1 && echo "rc=0" || echo "rc=$?")"
+    assertContains "$result" "failed to install $TEST_DIR/dest"
+    assertEquals "rc=1" "${result##*$'\n'}"
+    assertEquals "old" "$(cat "$TEST_DIR/dest")"
+    assertEquals "no staged file left behind" "" "$(find "$TEST_DIR" -name '.dest.*')"
+}
+
 function test_generate_version_directory_reports_cri_tools_fetch_failure() {
     local result=
     result="$(
