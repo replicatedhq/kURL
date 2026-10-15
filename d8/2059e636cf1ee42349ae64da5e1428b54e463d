@@ -1,0 +1,20 @@
+bin/generate-addons.js
+  s_8e763f109b41f9::t_5eb8a8f8974c52 4
+  s_8e763f109b41f9::t_99edd10cab3d67 112-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d82059e636cf1ee42349ae64da5e1428b54e463d",
+  "prompts": {},
+  "sessions": {
+    "s_8e763f109b41f9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ebee55bbfffe2Knsf0CkzgRNcK",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
