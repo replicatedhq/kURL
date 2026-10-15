@@ -499,6 +499,14 @@ function kubernetes_control_plane_containers_stopped() {
 # previous containers have released them and crashloop with
 # "bind: address already in use", which can outlast the kubeadm
 # wait-control-plane budget and fail the run midway.
+#
+# Only the four kubeadm-managed manifests are moved. Other static pods kURL
+# runs from this directory - ekco's haproxy.yaml internal load balancer - are
+# left running: kubeadm init never rewrites them, so moving them aside tears
+# them down with nothing to recreate them (the kubeadm init wrapper discards
+# the quiesced copies on the success path), after which localhost:6444 refuses
+# every connection. Their host ports also never collide with the control plane
+# ports this quiesce exists to free.
 function kubernetes_move_control_plane_static_pods_aside() {
     local tmp_manifest_dir="${1:-}"
     if [ -z "$tmp_manifest_dir" ]; then
@@ -509,7 +517,11 @@ function kubernetes_move_control_plane_static_pods_aside() {
     # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
     # tear the static pod down, which releases the pod's host ports
     log "Moving control plane static pod manifests aside to $tmp_manifest_dir"
-    if ! mv /etc/kubernetes/manifests/*.yaml "$tmp_manifest_dir/"; then
+    if ! mv /etc/kubernetes/manifests/kube-apiserver.yaml \
+            /etc/kubernetes/manifests/kube-controller-manager.yaml \
+            /etc/kubernetes/manifests/kube-scheduler.yaml \
+            /etc/kubernetes/manifests/etcd.yaml \
+            "$tmp_manifest_dir/"; then
         # a partial move leaves the node half-quiesced; put back what was taken
         logWarn "Failed to move control plane static pod manifests aside, moving back what was taken"
         mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/ 2>/dev/null || true

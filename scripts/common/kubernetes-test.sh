@@ -541,7 +541,7 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     }
     mv() {
         #shellcheck disable=SC2317
-        echo "mv:$1>$2" >> "$calls_log"
+        echo "mv:$*" >> "$calls_log"
     }
     mktemp() {
         #shellcheck disable=SC2317
@@ -559,10 +559,10 @@ function test_kubernetes_restart_kubelet_with_static_pods() {
     kubernetes_restart_kubelet
 
     assertEquals "should quiesce static pods, restart kubelet, restore and wait for the api" \
-        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
+        "mv:/etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/manifests/kube-controller-manager.yaml /etc/kubernetes/manifests/kube-scheduler.yaml /etc/kubernetes/manifests/etcd.yaml /tmp/kurl-static-pods.test/
 spinner_until:kubernetes_control_plane_containers_stopped
 systemctl:restart kubelet
-mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/
+mv:/tmp/kurl-static-pods.test/*.yaml /etc/kubernetes/manifests/
 spinner_until:kubernetes_api_is_healthy" \
         "$(cat "$calls_log")"
 
@@ -730,7 +730,7 @@ function test_kubernetes_move_control_plane_static_pods_aside() {
     local calls_log="${SHUNIT_TMPDIR}/calls-move"
     mv() {
         #shellcheck disable=SC2317
-        echo "mv:$1>$2" >> "$calls_log"
+        echo "mv:$*" >> "$calls_log"
     }
     mktemp() {
         #shellcheck disable=SC2317
@@ -751,10 +751,49 @@ function test_kubernetes_move_control_plane_static_pods_aside() {
     dir="$(kubernetes_move_control_plane_static_pods_aside)"
 
     assertEquals "returns the backup dir" "/tmp/kurl-static-pods.test" "$dir"
-    assertEquals "moves manifests aside and waits for teardown" \
-        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
+    assertEquals "moves only the kubeadm-managed manifests aside and waits for teardown" \
+        "mv:/etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/manifests/kube-controller-manager.yaml /etc/kubernetes/manifests/kube-scheduler.yaml /etc/kubernetes/manifests/etcd.yaml /tmp/kurl-static-pods.test/
 spinner_until:kubernetes_control_plane_containers_stopped" \
         "$(cat "$calls_log")"
+
+    unset -f mv mktemp spinner_until log
+}
+
+# ekco's internal load balancer runs as a non-kubeadm static pod
+# (/etc/kubernetes/manifests/haproxy.yaml) and every local kubeconfig points at
+# its localhost:6444 listener. Quiescing must never move that manifest aside:
+# kubeadm init does not rewrite it, so the pod would be torn down and never
+# recreated (the kubeadm init wrapper discards the quiesced copies on the
+# success path), leaving all post-upgrade kubectl/sonobuoy calls refused on
+# localhost:6444.
+function test_kubernetes_move_control_plane_static_pods_aside_keeps_non_kubeadm_manifests() {
+    local calls_log="${SHUNIT_TMPDIR}/calls-move-nonkubeadm"
+    mv() {
+        #shellcheck disable=SC2317
+        echo "mv:$*" >> "$calls_log"
+    }
+    mktemp() {
+        #shellcheck disable=SC2317
+        echo "/tmp/kurl-static-pods.test"
+    }
+    spinner_until() {
+        #shellcheck disable=SC2317
+        return 0
+    }
+    log() {
+        #shellcheck disable=SC2317
+        true
+    }
+
+    local dir=
+    dir="$(kubernetes_move_control_plane_static_pods_aside)"
+
+    assertEquals "returns the backup dir" "/tmp/kurl-static-pods.test" "$dir"
+    case "$(cat "$calls_log")" in
+        *haproxy*)
+            fail "quiesce must not move ekco's haproxy manifest aside, got: $(cat "$calls_log")"
+            ;;
+    esac
 
     unset -f mv mktemp spinner_until log
 }
@@ -819,7 +858,7 @@ function test_kubernetes_move_control_plane_static_pods_aside_move_failure() {
     local calls_log="${SHUNIT_TMPDIR}/calls-move-failure"
     mv() {
         #shellcheck disable=SC2317
-        echo "mv:$1>$2" >> "$calls_log"
+        echo "mv:$*" >> "$calls_log"
         #shellcheck disable=SC2317
         return 1
     }
@@ -851,8 +890,8 @@ function test_kubernetes_move_control_plane_static_pods_aside_move_failure() {
 
     assertEquals "fails cleanly" "1" "$exit_code"
     assertEquals "moves back what was taken and does not wait for teardown" \
-        "mv:/etc/kubernetes/manifests/*.yaml>/tmp/kurl-static-pods.test/
-mv:/tmp/kurl-static-pods.test/*.yaml>/etc/kubernetes/manifests/" \
+        "mv:/etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/manifests/kube-controller-manager.yaml /etc/kubernetes/manifests/kube-scheduler.yaml /etc/kubernetes/manifests/etcd.yaml /tmp/kurl-static-pods.test/
+mv:/tmp/kurl-static-pods.test/*.yaml /etc/kubernetes/manifests/" \
         "$(cat "$calls_log")"
 
     unset -f mv mktemp spinner_until log logWarn rmdir
