@@ -114,6 +114,10 @@ fs.readdir(specDir, (err, files) => {
   // per-minor marker comments), so sort it to honor the "first version of
   // each is latest" contract. Filtering to valid semver also guards the
   // sort against non-semver entries.
+  const nonSemverVersions = preferredVersions.kubernetes.filter((v) => !semverValid(v));
+  if (nonSemverVersions.length > 0) {
+    console.log("\x1b[33m%s\x1b[0m", "Warning: dropping non-semver kubernetes versions from supported-versions-gen.json: " + nonSemverVersions.join(", "));
+  }
   supportedVersions.kubernetes = preferredVersions.kubernetes.filter((v) => semverValid(v)).sort(semverCompare);
   supportedVersions.kubernetes.unshift("latest");
 
