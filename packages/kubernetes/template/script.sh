@@ -191,8 +191,10 @@ function use_securebuild_images() {
 }
 
 # install_files installs "<src> <dest>" pairs as 0644 files in two passes: every source is first
-# copied to a temp file next to its destination, then all are renamed into place. A failure while
-# staging removes the temp files and leaves every destination as it was.
+# copied to a temp file next to its destination, then all are renamed into place, in order. A failure
+# while staging removes the temp files and leaves every destination as it was. The renames are not
+# rolled back: if one fails (rare, as each stays in its own directory), earlier destinations are
+# already replaced and the rest are left as they were.
 function install_files() {
     local staged=()
     local dests=()
@@ -230,7 +232,7 @@ function install_files() {
 # generate_version_directory writes ../<version>/Manifest and the SecureBuild override files. It
 # runs in a subshell so the EXIT trap cleans up its temp files. Everything is built in a temp dir
 # and only installed into ../<version>/ once complete, override files first and the Manifest last,
-# so a failed run leaves ../<version>/ as it was.
+# so a run that fails before the install leaves ../<version>/ as it was (see install_files).
 function generate_version_directory() (
     local version="$1"
     # not local: the EXIT trap runs after the function body (this subshell keeps them contained)
