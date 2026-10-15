@@ -47,11 +47,12 @@ function rewrite_package_repo() {
     local file="$1"
     local from="$2"
     local to="$3"
+    # stage next to the file and rename, so an interrupted run never leaves a half-written file
     local tmp=
-    tmp="$(mktemp)"
+    tmp="$(mktemp "$(dirname "$file")/.${file##*/}.XXXXXX")"
     sed -e "s/v1\.${from}\([^0-9]\)/v1.${to}\1/g" -e "s/v1\.${from}\$/v1.${to}/" "$file" > "$tmp"
-    cat "$tmp" > "$file"
-    rm -f "$tmp"
+    chmod 644 "$tmp"
+    mv "$tmp" "$file"
 
     if grep -Eq "v1\.${from}([^0-9]|\$)" "$file"; then
         die "${file##*/} still references v1.${from} after rewrite"
@@ -131,8 +132,9 @@ function add_versions_js_marker() {
         return 0
     fi
 
+    # stage next to versions.js and rename, like the Manifest writes in script.sh
     local tmp=
-    tmp="$(mktemp)"
+    tmp="$(mktemp "$(dirname "$VERSIONS_JS")/.versions.js.XXXXXX")"
     local rc=0
     awk -v marker="$marker" '
         BEGIN { state = 0; done = 0 }
@@ -159,8 +161,8 @@ function add_versions_js_marker() {
         rm -f "$tmp"
         die "could not find a cron-kubernetes-update-* marker block in the kubernetes array of $VERSIONS_JS"
     fi
-    cat "$tmp" > "$VERSIONS_JS"
-    rm -f "$tmp"
+    chmod 644 "$tmp"
+    mv "$tmp" "$VERSIONS_JS"
 
     [ "$(grep -Ec "^[[:space:]]*// cron-kubernetes-update-1${minor}[[:space:]]*\$" "$VERSIONS_JS")" = "1" ] \
         || die "expected exactly one ${marker} marker in $VERSIONS_JS after insertion"

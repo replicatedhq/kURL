@@ -433,6 +433,34 @@ function test_generate_version_directory_writes_manifest() {
     assertEquals "Manifest mode" "644" "$(file_mode "$manifest")"
 }
 
+function test_generate_version_directory_reports_cri_tools_fetch_failure() {
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
+        stub_generate_deps
+        function github_curl() { return 22; }
+        generate_version_directory 1.38.0 2>&1 && echo "rc=0" || echo "rc=$?"
+    )"
+    assertContains "$result" "failed to fetch cri-tools releases for Kubernetes 1.38.0"
+    assertEquals "rc=1" "${result##*$'\n'}"
+}
+
+function test_generate_version_directory_reports_releases_without_tag_name() {
+    local result=
+    result="$(
+        must_cd "$TEST_DIR/template" || return 1
+        FAKE_IMAGES='registry.k8s.io/kube-apiserver:v1.38.0\n'
+        stub_generate_deps
+        function github_curl() { echo '[]'; }
+        # errexit on, as in the cron: a failing grep in a pipeline must not end the run silently
+        ( set -e; generate_version_directory 1.38.0 ) 2>&1
+        echo "rc=$?"
+    )"
+    assertContains "$result" "could not determine a cri-tools version for Kubernetes 1.38.0"
+    assertEquals "rc=1" "${result##*$'\n'}"
+}
+
 function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure() {
     mkdir -p "$TEST_DIR/1.38.0"
     echo "old" > "$TEST_DIR/1.38.0/Manifest"

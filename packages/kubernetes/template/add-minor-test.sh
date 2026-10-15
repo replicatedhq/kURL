@@ -86,6 +86,9 @@ function test_add_minor_inserts_marker_after_first_marker_block() {
     assertEquals "    // cron-kubernetes-update-137" "$(grep -A1 'cron-kubernetes-update-138' "$TEST_DIR/versions.js" | tail -n1)"
     # the latest minor (1.36.5) stays the first kubernetes entry after the legacy ones
     assertEquals '"1.36.5",' "$(grep -A1 'cron-kubernetes-update-136' "$TEST_DIR/versions.js" | tail -n1 | tr -d ' ')"
+    # versions.js and the Dockerfile are staged next to the file and renamed into place
+    assertEquals "no staged files left behind" "" "$(find "$TEST_DIR" -name '.versions.js.*' -o -name '.Dockerfile.*')"
+    assertEquals "versions.js mode" "644" "$(stat -c %a "$TEST_DIR/versions.js" 2>/dev/null || stat -f %Lp "$TEST_DIR/versions.js")"
 }
 
 function test_add_minor_is_idempotent() {
@@ -228,6 +231,7 @@ function test_add_minor_fails_without_marker_block() {
     assertNotEquals "exit code" "0" "$?"
     assertContains "$(cat "$TEST_DIR/out")" "marker block"
     assertEquals "0" "$(grep -c 'cron-kubernetes-update' "$TEST_DIR/versions.js")"
+    assertEquals "no staged versions.js left behind" "" "$(find "$TEST_DIR" -name '.versions.js.*')"
 }
 
 function test_add_minor_uses_git_mv_for_tracked_dockerfiles() {

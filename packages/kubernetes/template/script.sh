@@ -232,14 +232,17 @@ function generate_version_directory() (
     local minor=
     minor="$(echo "$version" | awk -F'.' '{ print $2 }')"
     local releases=
-    releases="$(github_curl https://api.github.com/repos/kubernetes-sigs/cri-tools/releases)" || return 1
+    releases="$(github_curl https://api.github.com/repos/kubernetes-sigs/cri-tools/releases)" || {
+        echo "ERROR: failed to fetch cri-tools releases for Kubernetes ${version}" >&2
+        return 1
+    }
     local criToolsVersion=
-    criToolsVersion="$(echo "$releases" | grep '"tag_name": ' | { grep -Eo "1\.${minor}\.[0-9]+" || true; } | head -1)"
+    criToolsVersion="$(echo "$releases" | { grep '"tag_name": ' || true; } | { grep -Eo "1\.${minor}\.[0-9]+" || true; } | head -1)"
 
     # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
     # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
     if [ -z "$criToolsVersion" ]; then
-        criToolsVersion="$(echo "$releases" | grep '"tag_name": ' | { grep -Eo "1\.[2-9][0-9]\.[0-9]+" || true; } | head -1)"
+        criToolsVersion="$(echo "$releases" | { grep '"tag_name": ' || true; } | { grep -Eo "1\.[2-9][0-9]\.[0-9]+" || true; } | head -1)"
     fi
     if ! [[ "$criToolsVersion" =~ ^1\.[0-9]+\.[0-9]+$ ]]; then
         echo "ERROR: could not determine a cri-tools version for Kubernetes ${version}" >&2
