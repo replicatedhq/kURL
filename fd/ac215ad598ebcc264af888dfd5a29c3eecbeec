@@ -1,0 +1,31 @@
+scripts/common/kubernetes-test.sh
+  s_26ed47327116d5::t_30552e4855f871 679,688
+  s_26ed47327116d5::t_270124cc806a8e 574,579,582,586
+  s_26ed47327116d5::t_b02af93aaba5aa 811-812,824-864,868-896
+  s_26ed47327116d5::t_0f7e345c6a4205 771,778,782
+  s_26ed47327116d5::t_4ce5316be94f57 920,928
+  s_26ed47327116d5::t_165be6d64ad17b 77-92
+  s_26ed47327116d5::t_e2293360db7d0e 736,747
+  s_26ed47327116d5::t_776aaf87ebd61d 986,993-994,997
+  s_26ed47327116d5::t_ece07ec53a62a3 897
+scripts/common/kubernetes.sh
+  s_26ed47327116d5::t_dc3f4b668c7010 568,570
+  s_26ed47327116d5::t_f19a0b0009d6f8 510-515,527-529,532-540,544
+  s_26ed47327116d5::t_b802075bd8f1c7 523-526,530-531,547
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fdac215ad598ebcc264af888dfd5a29c3eecbeec",
+  "prompts": {},
+  "sessions": {
+    "s_26ed47327116d5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec1ece1dfffe4rKUAlCBHi88e6",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
