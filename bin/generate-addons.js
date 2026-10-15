@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const semverCompare = require('semver/functions/rcompare')
+const semverValid = require('semver/functions/valid')
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const installerVersions = require("../web/src/installers/versions");
 
@@ -108,7 +109,12 @@ fs.readdir(specDir, (err, files) => {
     }
   });
 
-  supportedVersions.kubernetes = preferredVersions.kubernetes;
+  // The kubernetes list in versions.js is not ordered newest-first (legacy
+  // versions are listed first and the cron workflow inserts new minors at
+  // per-minor marker comments), so sort it to honor the "first version of
+  // each is latest" contract. Filtering to valid semver also guards the
+  // sort against non-semver entries.
+  supportedVersions.kubernetes = preferredVersions.kubernetes.filter((v) => semverValid(v)).sort(semverCompare);
   supportedVersions.kubernetes.unshift("latest");
 
   supportedVersions.fio = ["host"]; // fio serves as a signal that the 'fio' host package should be included
