@@ -507,6 +507,12 @@ function kubernetes_control_plane_containers_stopped() {
 # the quiesced copies on the success path), after which localhost:6444 refuses
 # every connection. Their host ports also never collide with the control plane
 # ports this quiesce exists to free.
+#
+# Whichever of the four exist are moved: any of them can legitimately be
+# absent (a previously failed kubeadm init may have written only some, and an
+# interrupted run of the scheduler/controller-manager bounce in
+# install.sh/upgrade.sh/tasks.sh leaves that manifest missing), and one
+# missing manifest must not skip quiescing the rest.
 function kubernetes_move_control_plane_static_pods_aside() {
     local tmp_manifest_dir="${1:-}"
     if [ -z "$tmp_manifest_dir" ]; then
@@ -514,17 +520,31 @@ function kubernetes_move_control_plane_static_pods_aside() {
     fi
     mkdir -p "$tmp_manifest_dir"
 
+    # KUBERNETES_MANIFESTS_DIR is a test seam (same pattern as
+    # KUBELET_FLAGS_FILE): tests point it at a fixture dir, production never
+    # sets it
+    local manifests_dir="${KUBERNETES_MANIFESTS_DIR:-/etc/kubernetes/manifests}"
+    local manifests=()
+    local name=
+    for name in kube-apiserver kube-controller-manager kube-scheduler etcd; do
+        if [ -f "$manifests_dir/$name.yaml" ]; then
+            manifests+=("$manifests_dir/$name.yaml")
+        fi
+    done
+    if [ "${#manifests[@]}" -eq 0 ]; then
+        # nothing to quiesce; treat as a failed quiesce so callers proceed
+        # un-quiesced rather than later restoring an empty backup dir
+        rmdir "$tmp_manifest_dir" 2>/dev/null || true
+        return 1
+    fi
+
     # kubelet watches /etc/kubernetes/manifests: moving a manifest out makes it
     # tear the static pod down, which releases the pod's host ports
     log "Moving control plane static pod manifests aside to $tmp_manifest_dir"
-    if ! mv /etc/kubernetes/manifests/kube-apiserver.yaml \
-            /etc/kubernetes/manifests/kube-controller-manager.yaml \
-            /etc/kubernetes/manifests/kube-scheduler.yaml \
-            /etc/kubernetes/manifests/etcd.yaml \
-            "$tmp_manifest_dir/"; then
+    if ! mv "${manifests[@]}" "$tmp_manifest_dir/"; then
         # a partial move leaves the node half-quiesced; put back what was taken
         logWarn "Failed to move control plane static pod manifests aside, moving back what was taken"
-        mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/ 2>/dev/null || true
+        mv "$tmp_manifest_dir"/*.yaml "$manifests_dir/" 2>/dev/null || true
         rmdir "$tmp_manifest_dir" 2>/dev/null || true
         return 1
     fi
@@ -545,8 +565,9 @@ function kubernetes_move_control_plane_static_pods_aside() {
 # so a successful run simply removes the backup directory.
 function kubernetes_restore_control_plane_static_pods() {
     local tmp_manifest_dir="$1"
+    local manifests_dir="${KUBERNETES_MANIFESTS_DIR:-/etc/kubernetes/manifests}"
     log "Restoring control plane static pod manifests"
-    mv "$tmp_manifest_dir"/*.yaml /etc/kubernetes/manifests/
+    mv "$tmp_manifest_dir"/*.yaml "$manifests_dir/"
     rmdir "$tmp_manifest_dir"
 }
 
