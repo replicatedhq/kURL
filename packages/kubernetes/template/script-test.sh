@@ -13,6 +13,11 @@ function must_cd() {
     cd "$1" || { fail "cd $1"; return 1; }
 }
 
+# file_mode prints the permission bits of a file (GNU stat, else BSD stat)
+function file_mode() {
+    stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"
+}
+
 function setUp() {
     TEST_DIR="$(mktemp -d)"
     mkdir -p "$TEST_DIR/template"
@@ -272,6 +277,7 @@ function test_github_curl_omits_authorization_header_without_token() {
     assertNotContains "$out" "Authorization"
     assertContains "$out" "https://api.github.com/repos/kubernetes-sigs/cri-tools/releases"
     assertContains "$out" "-fsS"
+    assertContains "$out" "--connect-timeout 10 --max-time 60"
     assertNotContains "$out" "-L"
 
     out="$(
@@ -292,6 +298,7 @@ function test_github_curl_sends_authorization_header_on_stdin_with_token() {
     assertContains "$out" "STDIN: Authorization: token abc123"
     assertNotContains "token must not be in argv" "$(echo "$out" | grep '^ARGV:')" "abc123"
     assertContains "$out" "-H @-"
+    assertContains "$out" "--connect-timeout 10 --max-time 60"
     assertNotContains "$out" "-L"
 }
 
@@ -423,6 +430,7 @@ function test_generate_version_directory_writes_manifest() {
     assertEquals "1" "$(grep -c '^asset kustomize-v5.4.3.tar.gz ' "$manifest")"
     assertEquals "no kubeadm left behind" "" "$(find "$TEST_DIR" -name kubeadm)"
     assertEquals "no staged Manifest left behind" "" "$(find "$TEST_DIR/1.38.0" -name '.Manifest.*')"
+    assertEquals "Manifest mode" "644" "$(file_mode "$manifest")"
 }
 
 function test_generate_version_directory_keeps_old_manifest_on_kubeadm_failure() {
@@ -467,6 +475,7 @@ function test_generate_conformance_package_writes_manifest() {
     assertEquals "ok" "$result"
     assertEquals "image conformance registry.k8s.io/conformance:v1.38.0
 image nginx-1-27.0-2 registry.k8s.io/e2e-test-images/nginx:1.27.0-2" "$(cat "$TEST_DIR/1.38.0/conformance/Manifest")"
+    assertEquals "conformance Manifest mode" "644" "$(file_mode "$TEST_DIR/1.38.0/conformance/Manifest")"
 }
 
 function test_generate_conformance_package_fails_without_nginx_image() {

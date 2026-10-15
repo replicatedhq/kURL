@@ -97,9 +97,9 @@ function github_curl() {
     for attempt in 1 2; do
         rc=0
         if [ -n "${GITHUB_TOKEN:-}" ]; then
-            printf 'Authorization: token %s\n' "$GITHUB_TOKEN" | curl -fsS --proto '=https' -H @- "$@" > "$body" || rc=$?
+            printf 'Authorization: token %s\n' "$GITHUB_TOKEN" | curl -fsS --proto '=https' --connect-timeout 10 --max-time 60 -H @- "$@" > "$body" || rc=$?
         else
-            curl -fsS --proto '=https' "$@" < /dev/null > "$body" || rc=$?
+            curl -fsS --proto '=https' --connect-timeout 10 --max-time 60 "$@" < /dev/null > "$body" || rc=$?
         fi
         if [ "$rc" -eq 0 ]; then
             cat "$body"
@@ -133,7 +133,7 @@ function download_kubeadm() {
     local url="https://dl.k8s.io/release/v${version}/bin/linux/amd64/kubeadm"
 
     local rc=0
-    curl -fsSL --proto '=https' --proto-redir '=https' -o "$dir/kubeadm" "$url" || rc=$?
+    curl -fsSL --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 600 -o "$dir/kubeadm" "$url" || rc=$?
     if [ "$rc" -ne 0 ]; then
         echo "ERROR: failed to download kubeadm v${version} from ${url} (curl exit $rc)" >&2
         rm -f "$dir/kubeadm"
@@ -143,7 +143,7 @@ function download_kubeadm() {
     # a failed fetch is a transport error, reported as such; only a fetched file that isn't a
     # sha256 is an invalid published checksum
     local checksum=
-    checksum="$(curl -fsSL --proto '=https' --proto-redir '=https' "${url}.sha256")" || rc=$?
+    checksum="$(curl -fsSL --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 60 "${url}.sha256")" || rc=$?
     if [ "$rc" -ne 0 ]; then
         echo "ERROR: failed to fetch the kubeadm v${version} checksum from ${url}.sha256 (curl exit $rc)" >&2
         rm -f "$dir/kubeadm"
@@ -258,6 +258,8 @@ function generate_version_directory() (
     use_securebuild_images "$version" "$manifest"
     staged="$(mktemp "../$version/.Manifest.XXXXXX")"
     cat "$manifest" > "$staged"
+    # mktemp creates 0600; the Manifest ships in the dist tarball, so keep the usual 0644
+    chmod 644 "$staged"
     mv "$staged" "../$version/Manifest"
     staged=
 )
@@ -295,6 +297,7 @@ function generate_conformance_package() {
         echo "image conformance registry.k8s.io/conformance:v${version}"
         echo "image $name $image"
     } > "$tmp"
+    chmod 644 "$tmp"
     mv "$tmp" "../$version/conformance/Manifest"
 
     # The following code would add all conformance images to the manifest but it adds too much to the bundle:

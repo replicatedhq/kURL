@@ -30,8 +30,7 @@ sbom/
 .vscode
 
 # ai/editor metadata
-.claude/*
-!.claude/skills/
+.claude
 .cursor
 .aider*
 .continue
