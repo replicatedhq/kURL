@@ -17,6 +17,7 @@ addons/sonobuoy/template/generate.sh
   s_f22df7b173be42::t_9ed7265c83938c 48-53
 packages/kubernetes/template/script.sh
   s_f22df7b173be42::t_1046736e5d1315 181-182,184-185
+  s_f69085f9a02589::t_864a95fb75eee7 180,183
 addons/metrics-server/template/generate.sh
   s_f22df7b173be42::t_c5651e6b6320bf 13
   s_f22df7b173be42::t_1046736e5d1315 5,8-12,14-16,18
@@ -47,6 +48,14 @@ addons/containerd/template/script.sh
         "model": "gpt-6.1-sol"
       },
       "human_author": "Mikhail Swift <mikhail@replicated.com>"
+    },
+    "s_f69085f9a02589": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec298f99affeP70j143q3BxpX1",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
     }
   }
 }
