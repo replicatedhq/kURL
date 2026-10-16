@@ -55,7 +55,7 @@ jobs:
   testgrid-comment:
     needs: test-addons
     if: >-
-      ${{ always() && github.event_name == 'pull_request' &&
+      ${{ !cancelled() && github.event_name == 'pull_request' &&
           needs.test-addons.result != 'skipped' }}
     runs-on: ubuntu-24.04
     steps:
@@ -70,9 +70,11 @@ jobs:
           path: testgrid-comment
 
       - name: Build aggregated comment
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          SHORT_SHA="${PR_HEAD_SHA:0:7}"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           ROWS=""
           if ls testgrid-comment/*.md > /dev/null 2>&1; then
@@ -103,7 +105,7 @@ jobs:
           cat comment.md trail.md
 
       - name: Post sticky summary comment
-        uses: mshick/add-pr-comment@v3
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           message-id: testgrid-addon-pr-${{ github.event.pull_request.number }}
@@ -114,7 +116,7 @@ jobs:
           refresh-message-position: true
 
       - name: Post minimized run-trail comment
-        uses: mshick/add-pr-comment@v3
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           message-path: trail.md
