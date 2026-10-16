@@ -140,14 +140,6 @@ function rook_join() {
     rook_lvm2
 }
 
-function rook_already_applied() {
-    rook_object_store_output
-    export ROOK_CEPH_IMAGE="quay.io/ceph/ceph:v19.2.4"
-    rook_set_ceph_pool_replicas
-    "$DIR"/bin/kurl rook wait-for-health 120
-    rook_maybe_wait_for_rollout
-}
-
 function rook_operator_crds_deploy() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
     local dst="${DIR}/kustomize/rook"

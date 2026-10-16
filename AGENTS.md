@@ -94,7 +94,6 @@ The `install.sh` must define a function with the exact add-on name (e.g., `funct
 - `addon_preflights`
 - `addon_pre_init`
 - `addon_install` (required)
-- `addon_already_applied`
 - `addon_join`
 - `addon_post_init`
 - `addon_outro`

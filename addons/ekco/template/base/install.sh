@@ -129,31 +129,6 @@ function ekco_join() {
     ekco_load_images
 }
 
-function ekco_already_applied() {
-    local src="$DIR/addons/ekco/$EKCO_VERSION"
-    local dst="$DIR/kustomize/ekco"
-
-    # if rook-ceph has been removed, ekco should be redeployed to not attempt to manage it
-    if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
-        ekco_create_deployment "$src" "$dst"
-    fi
-
-    # check if EKCO deployment needs to be scaled up after a Rook upgrade
-    ekco_maybe_scaleup_operator
-
-    ekco_maybe_remove_rook_priority_class_label
-}
-
-function ekco_maybe_scaleup_operator() {
-    local ekcoReplicas=
-    ekcoReplicas=$(kubectl -n kurl get deployment ekc-operator -o jsonpath='{.spec.replicas}')
-
-    if [ -z "$ekcoReplicas" ] || [ "$ekcoReplicas" -eq 0 ]; then
-        log "Scaling up EKCO operator deployment"
-        kubectl -n kurl scale deploy ekc-operator --replicas=1
-    fi
-}
-
 # ekco_maybe_remove_rook_priority_class_label will remove the rook-priority.kurl.sh label
 # indicating that the EKCO rook-priority.kurl.sh mutating webhook should no longer be applied
 # to the rook-ceph namespace.

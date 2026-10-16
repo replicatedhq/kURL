@@ -82,22 +82,6 @@ function registry_will_migrate_pvc() {
     return 1
 }
 
-# When re-running the installer, make sure that you can perform a migration
-# even when an existing install of the same addon version is detected (and `registry()` is NOT called in this case).
-# Implements hook [addon]_already_applied()
-function registry_already_applied() {
-
-    if registry_will_migrate_pvc; then
-        registry_install
-
-        kubectl apply -k "$DIR/kustomize/registry"
-
-        logWarn "Registry will migrate from object store to pvc"
-        try_5m registry_pvc_migrated
-        logSuccess "Registry migration complete"
-    fi
-}
-
 function registry_pre_init() {
     if [ -n "$KURL_REGISTRY_IP" ]; then
         DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
