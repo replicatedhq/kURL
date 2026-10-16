@@ -94,17 +94,6 @@ function minio() {
     minio_wait_for_health
 }
 
-function minio_already_applied() {
-    if minio_already_uninstalled; then
-        return 0
-    fi
-
-    minio_object_store_output
-
-    minio_migrate_from_rgw
-    minio_refresh_image_build
-}
-
 # Rebuilt tags need a pod-template change even when the addon version is unchanged.
 function minio_refresh_image_build() {
     local image_build="sha256:7d81751f04a90d2c8cbd1742b64d50b0471da9a23ca9343c2c10756764fe75f4"

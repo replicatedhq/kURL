@@ -656,16 +656,3 @@ function flannel_kubeadm() {
     kubeadm init phase control-plane controller-manager --config="$KUBEADM_CONF_FILE"
     logSuccess "Kubeadm updated successfully"
 }
-
-function flannel_already_applied() {
-    # We will remove the flannel pods to let it be re-created
-    # in order to workaround the issue scenario described in
-    # https://github.com/flannel-io/flannel/issues/1721
-    if [ "$KUBERNETES_UPGRADE" == "1" ]; then
-       log "Restarting kube-flannel pods"
-       kubectl rollout restart --namespace=kube-flannel daemonset/kube-flannel-ds
-    fi
-
-    flannel_ready_spinner
-    check_network
-}
