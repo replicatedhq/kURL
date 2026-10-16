@@ -1,0 +1,27 @@
+addons/contour/template/testgrid/k8s-docker.yaml
+  s_f69085f9a02589::t_a92326fcb1aaad 57,66,131
+  s_f69085f9a02589::t_d6fb12305847e7 147-149
+  h_38cb974bb08fad 5,14,42-47,53,62,95,98,117-122,124,127
+  s_f69085f9a02589::t_f0ef69175c7d61 91-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1099ba1a693021b49afebdc8cb343e7becc7da2",
+  "prompts": {},
+  "humans": {
+    "h_38cb974bb08fad": {
+      "author": "Xav Paice <xav@replicated.com>"
+    }
+  },
+  "sessions": {
+    "s_f69085f9a02589": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ec298f99affeP70j143q3BxpX1",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
