@@ -127,5 +127,5 @@ Understanding this helps when deciding what to cancel:
 
 - `.github/workflows/test-addon-pr.yaml` builds its matrix via `bin/addon-has-changes-matrix.sh`: **one matrix leg per changed add-on version directory**. For template-generated add-ons (containerd, flannel), a cross-cutting change rewrites every version directory, so one push = one Testgrid run per version (containerd: 42 legs × ~61 instances ≈ 2,500 VMs per push).
 - The workflow's `paths: addons/**` filter on `pull_request` events is evaluated against the **whole PR diff**, not the pushed commits — every push re-fires the full matrix regardless of what the push changed.
-- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs** — they must be cancelled via the API (`/v1/skip/ref/...`).
+- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs** — they must be cancelled via the API (`POST /api/v1/ref/{refId}/cancel`, see above).
 - The matrix is throttled (`max-parallel: 5`), so legs emit runs in waves; a cancelled workflow run may leave later waves unqueued.
