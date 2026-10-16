@@ -344,32 +344,6 @@ function addon_cleanup() {
     rm -rf "${DIR}/addons"
 }
 
-function addon_has_been_applied() {
-    local name=$1
-
-    if [ "$name" = "containerd" ]; then
-        if [ -f $DIR/containerd-last-applied ]; then
-            last_applied=$(cat $DIR/containerd-last-applied)
-        fi
-    else
-        last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
-    fi
-
-    current=$(get_addon_config "$name" | base64 -w 0)
-
-    if [[ "$current" == "" ]] ; then
-        # current should never be the empty string - it should at least contain the version - so this indicates an error
-        # it would be better to reinstall unnecessarily rather than skip installing, so we report that the addon has not been applied
-        return 1
-    fi
-
-    if [[ "$last_applied" == "$current" ]] ; then
-        return 0
-    fi
-
-    return 1
-}
-
 function addon_set_has_been_applied() {
     local name=$1
     current=$(get_addon_config "$name" | base64 -w 0)

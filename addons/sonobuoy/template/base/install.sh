@@ -6,11 +6,6 @@ function sonobuoy() {
     sonobuoy_airgap_maybe_tag_image "registry.k8s.io/conformance:v${KUBERNETES_VERSION}" "k8s.gcr.io/conformance:v${KUBERNETES_VERSION}"
 }
 
-function sonobuoy_already_applied() {
-    sonobuoy_airgap_maybe_tag_image "k8s.gcr.io/conformance:v${KUBERNETES_VERSION}" "registry.k8s.io/conformance:v${KUBERNETES_VERSION}"
-    sonobuoy_airgap_maybe_tag_image "registry.k8s.io/conformance:v${KUBERNETES_VERSION}" "k8s.gcr.io/conformance:v${KUBERNETES_VERSION}"
-}
-
 function sonobuoy_join() {
     sonobuoy_binary
 

@@ -54,12 +54,8 @@ Operations that are performed in the pre-init script include installing host pac
 #### addon_install
 
 Kubectl apply this add-on to the cluster.
-This step is typically skipped if the add-on version and configuration has not changed since the previous run.
+This step runs on every install and upgrade, even when the add-on version and configuration have not changed since the previous run, so the add-on function must be safe to re-apply.
 This hook is unique in that implementation of this hook requires a function with the add-on name itself, for example [function weave()](https://github.com/replicatedhq/kURL/blob/5ce2372da583844137efee28f55498393ea32e8d/addons/weave/template/base/install.sh#L6).
-
-#### addon_already_applied
-
-This step run instead of addon_install if the add-on version and configuration has already been applied.
 
 #### addon_join
 
