@@ -10,7 +10,7 @@ This skill helps an agent collect the artifacts of a failed [Testgrid](https://t
 ## What it does
 
 1. Queries the Testgrid API for a run by `refId`.
-2. Identifies every failed instance (`isSuccess == false`, not unsupported, not skipped, and finished).
+2. Identifies every failed instance (`isSuccess == false`, not unsupported, not skipped, not cancelled, and finished).
 3. For each failure, fetches:
    - The instance metadata (`instance.json`)
    - The main instance logs (populated when the VM fails to start)
