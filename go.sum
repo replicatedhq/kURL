@@ -1138,8 +1138,8 @@ github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWb
 github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
 github.com/rook/rook v1.21.0 h1:w+VM5ERffuuNm6KjDqyoaLGMnfX7fdzD8tCmpSg1mYA=
 github.com/rook/rook v1.21.0/go.mod h1:Cjj1sK3S8PN5xMID4jLwny8cFDKvDC3Y//RDPeJrdvg=
-github.com/rook/rook/pkg/apis v0.0.0-20261013163528-f6fe4dd1403a h1:TtLPR02/U3Ez39ESPQYrK72DNHHPp8cnnYygsduXSsw=
-github.com/rook/rook/pkg/apis v0.0.0-20261013163528-f6fe4dd1403a/go.mod h1:G6ksSVAnogY0XH9yvy14ucQ8OK6utsZtgs4qDc5laLM=
+github.com/rook/rook/pkg/apis v0.0.0-20261016180343-cdfb3c2fa8dd h1:U5G1Puxy8eKgd/TCUBAiMPOxaRoppTe3qkMuE/Y61gg=
+github.com/rook/rook/pkg/apis v0.0.0-20261016180343-cdfb3c2fa8dd/go.mod h1:G6ksSVAnogY0XH9yvy14ucQ8OK6utsZtgs4qDc5laLM=
 github.com/rubenv/sql-migrate v1.8.1 h1:EPNwCvjAowHI3TnZ+4fQu3a915OpnQoPAjTXCGOy2U0=
 github.com/rubenv/sql-migrate v1.8.1/go.mod h1:BTIKBORjzyxZDS6dzoiw6eAFYJ1iNlGAtjn4LGeVjS8=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
@@ -2082,8 +2082,8 @@ sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.14/go.mod h1:LEScyz
 sigs.k8s.io/controller-runtime v0.2.2/go.mod h1:9dyohw3ZtoXQuV1e766PHUn+cmrRCIcBh6XIMFNMZ+I=
 sigs.k8s.io/controller-runtime v0.25.2 h1:bEkK3PVOIVK9X8QWLGVhJgmFc++47vfT6wakSzAOLsQ=
 sigs.k8s.io/controller-runtime v0.25.2/go.mod h1:4QqLdT6z/L6Olj8JJCtvztid4/fnIiYsfaTFScegctc=
-sigs.k8s.io/controller-tools v0.22.0 h1:eG3FAVja/KnlXKIWg95udIFz1cMyAtMjP11cqBh3t+k=
-sigs.k8s.io/controller-tools v0.22.0/go.mod h1:VizwUStoZK7rReCj704czGGrB7mLxXTiJSJt7wN5ilI=
+sigs.k8s.io/controller-tools v0.23.0 h1:GFmPTaHSyje/kZv/4XOdR1v3rWz0/OJixwpPnGyV4Sw=
+sigs.k8s.io/controller-tools v0.23.0/go.mod h1:JJRl1h3BoHJWtCVgwGsITk+dusn8LatINcIBhO8aP9A=
 sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6/go.mod h1:p4QtZmO4uMYipTQNzagwnNoseA6OxSUutVw05NhYDRs=
 sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2/go.mod h1:B8JuhiUyNFVKdsE8h686QcCxMaH6HrOAZj4vswFpcB0=
 sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 h1:k9jo7ED/fsfOcz3L1P20P5tjTNtsdQNwMOG2aKzHrl8=
