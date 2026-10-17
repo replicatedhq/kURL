@@ -26,7 +26,7 @@ require (
 	github.com/replicatedhq/pvmigrate v0.12.3
 	github.com/replicatedhq/troubleshoot v0.134.1
 	github.com/rook/rook v1.21.0
-	github.com/rook/rook/pkg/apis v0.0.0-20261014203837-3b0cdbefc747
+	github.com/rook/rook/pkg/apis v0.0.0-20261016180343-cdfb3c2fa8dd
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
