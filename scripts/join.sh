@@ -196,6 +196,7 @@ function main() {
     kubernetes_host
     install_helm
     join
+    containerd_ensure_pause_image_pinned
     check_proxy_config
     rook_maybe_migrate_from_openebs
     outro
