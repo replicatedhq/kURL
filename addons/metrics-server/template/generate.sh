@@ -2,6 +2,27 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$version"
+    [ "$(printf '%s\n' "0.9.0" "$version" | sort -V | head -n 1)" = "0.9.0" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])registry\.k8s\.io/metrics-server/metrics-server:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/metrics-server:\2~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+}
+
 function generate() {
     local dir="../$version"
 
@@ -14,6 +35,7 @@ function generate() {
     download_yaml
 
     find_images_in_yaml
+    use_securebuild_images
 }
 
 function download_yaml() {

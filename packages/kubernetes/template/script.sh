@@ -177,6 +177,26 @@ function use_securebuild_images() {
     local version="$1"
     local manifest="${2:-../$version/Manifest}"
     local dest="${3:-../$version}"
+
+    # Keep old Kubernetes packages unchanged; future releases require a published SB pause tag.
+    if [ "$(printf '%s\n' "1.36.5" "$version" | sort -V | head -n 1)" = "1.36.5" ]; then
+        local upstream_pause= pause_image=
+        upstream_pause="$(awk '$1 == "image" && $2 == "pause" {print $3; exit}' "$manifest")"
+        case "$upstream_pause" in
+            registry.k8s.io/pause:*) pause_image="docker.io/kurlsh/pause:${upstream_pause#registry.k8s.io/pause:}" ;;
+            docker.io/kurlsh/pause:*) pause_image="$upstream_pause" ;;
+        esac
+        if [ -n "$pause_image" ]; then
+            # Upstream image digests cannot identify a rebuilt SecureBuild image.
+            pause_image="${pause_image%%@*}"
+            if ! docker manifest inspect "$pause_image" >/dev/null; then
+                echo "Cannot verify SecureBuild pause image $pause_image. Publish this tag before generating Kubernetes $version." >&2
+                return 1
+            fi
+            sed -i "s|^image pause .*|image pause $pause_image|" "$manifest"
+        fi
+    fi
+
     local securebuild_dir="./securebuild-${version}"
     [ -d "$securebuild_dir" ] || return 0
 

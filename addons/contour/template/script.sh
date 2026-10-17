@@ -3,6 +3,33 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$CONTOUR_VERSION"
+    [ "$(printf '%s\n' "1.33.7" "$CONTOUR_VERSION" | sort -V | head -n 1)" = "1.33.7" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])ghcr\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+s~(^|[[:space:]"'=])docker\.io/envoyproxy/envoy:distroless-(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])docker\.io/envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])envoyproxy/envoy:distroless-(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])envoyproxy/envoy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/envoy:\2~g
+s~(^|[[:space:]"'=])docker\.io/projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+s~(^|[[:space:]"'=])projectcontour/contour:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/contour:\2~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+}
+
 # get the upstream url that the contour yaml can be found at permanently
 UPSTREAM_URL=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://projectcontour.io/quickstart/contour.yaml) # https://raw.githubusercontent.com/projectcontour/contour/release-1.11/examples/render/contour.yaml
 echo "upstream URL: $UPSTREAM_URL"
@@ -58,8 +85,11 @@ sed -i "s/__releasever_dash__/$CONTOUR_VERSION_DASH/g" "../$CONTOUR_VERSION/patc
 # insert upstream URL into contour.yaml header
 sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"
 
-# remove docker.io from all image name (supports docker ee)
-sed -i "s|docker.io/||g" $tmpdir/contour.yaml
+# Preserve the historical Docker EE workaround only for pre-SecureBuild releases.
+# Newer releases deliberately retain canonical docker.io/ prefixes, matching their Manifests.
+if [ "$(printf '%s\n' "1.33.7" "$CONTOUR_VERSION" | sort -V | head -n 1)" != "1.33.7" ]; then
+    sed -i "s|docker.io/||g" "$tmpdir/contour.yaml"
+fi
 
 # remove namespace and config from contour.yaml
 
@@ -79,6 +109,8 @@ sed -i 's/# minimum-protocol-version: "1.."/  minimum-protocol-version: "$CONTOU
 # edit contour.yaml to remove `hostPort: 80` and `hostPort: 443`
 sed -i '/hostPort: 80/d' "../$CONTOUR_VERSION/contour.yaml"
 sed -i '/hostPort: 443/d' "../$CONTOUR_VERSION/contour.yaml"
+
+use_securebuild_images
 
 # get the current list of versions
 versions="$(ls .. | grep -e '[0-9]\+\.[0-9]\+\.[0-9]\+' | sort -r -V)"

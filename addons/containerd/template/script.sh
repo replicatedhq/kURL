@@ -2,6 +2,27 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$version"
+    [ "$(printf '%s\n' "2.3.6" "$version" | sort -V | head -n 1)" = "2.3.6" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])registry\.k8s\.io/pause:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/pause:\2~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+}
+
 function contains() {
     local value=$1
     shift
@@ -372,6 +393,7 @@ function generate_version() {
     copy_generated_files $version
 
     echo "image pause $(find_pause_image)" >> "../$version/Manifest"
+    use_securebuild_images
 }
 
 function update_available_versions() {

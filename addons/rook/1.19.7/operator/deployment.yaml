@@ -34,7 +34,7 @@ spec:
           tolerationSeconds: 5
       containers:
         - name: rook-ceph-operator
-          image: "docker.io/rook/ceph:v1.19.7"
+          image: "docker.io/kurlsh/rook-ceph:v1.19.7"
           imagePullPolicy: IfNotPresent
           args: ["ceph", "operator"]
           securityContext:
@@ -132,7 +132,7 @@ spec:
           value: ""
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: "cluster.local"
-        image: quay.io/cephcsi/ceph-csi-operator:v0.6.0
+        image: docker.io/kurlsh/ceph-csi-operator:v0.6.0
         livenessProbe:
           httpGet:
             path: /healthz

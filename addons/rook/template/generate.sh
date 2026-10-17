@@ -2,6 +2,36 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$VERSION"
+    [ "$(printf '%s\n' "1.19.7" "$VERSION" | sort -V | head -n 1)" = "1.19.7" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])docker\.io/rook/ceph:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/rook-ceph:\2~g
+s~(^|[[:space:]"'=])quay\.io/ceph/ceph:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/ceph:\2~g
+s~(^|[[:space:]"'=])quay\.io/cephcsi/cephcsi:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cephcsi:\2~g
+s~(^|[[:space:]"'=])quay\.io/cephcsi/ceph-csi-operator:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/ceph-csi-operator:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-node-driver-registrar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-node-driver-registrar:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-resizer:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-resizer:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-provisioner:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-provisioner:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-snapshotter:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-snapshotter:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-attacher:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-attacher:\2~g
+s~(^|[[:space:]"'=])quay\.io/csiaddons/k8s-sidecar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csiaddons-k8s-sidecar:\2~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+}
+
 function get_latest_version() {
     helm search repo rook-release/rook-ceph 2>/dev/null | \
         grep -F 'rook-release/rook-ceph ' | \
@@ -70,6 +100,7 @@ function generate() {
         # image reference so both formats work.
         curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep -oE '"[^"]+/[^"]+:[^"]+"' | sed -E 's/"([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+)"/image \2-\3 \1\2\/\3:\4/' ; \
     } >> "${dir}/Manifest"
+    use_securebuild_images
 }
 
 function split_resources() {

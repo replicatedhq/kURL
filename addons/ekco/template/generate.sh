@@ -2,6 +2,28 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$VERSION"
+    [ "$(printf '%s\n' "0.28.17" "$VERSION" | sort -V | head -n 1)" = "0.28.17" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])haproxy:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/haproxy:\2~g
+s~(docker\.io/kurlsh/haproxy:[0-9][[:alnum:]._-]*)-alpine[0-9]+\.[0-9]+~\1~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+}
+
 function get_latest_version() {
     docker run quay.io/skopeo/stable --override-os linux \
         list-tags "docker://replicated/ekco" | \
@@ -39,6 +61,7 @@ function generate() {
     sed -i "s/__EKCO_VERSION__/$VERSION/g" "$dir/deployment.tmpl.yaml"
     sed -i "s/__HAPROXY_VERSION__/$HAPROXY_VERSION/g" "$dir/Manifest"
     sed -i "s/__HAPROXY_VERSION__/$HAPROXY_VERSION/g" "$dir/install.sh"
+    use_securebuild_images
 }
 
 function add_as_only_version() {

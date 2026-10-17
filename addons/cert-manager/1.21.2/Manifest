@@ -1,3 +1,4 @@
-image cainjector quay.io/jetstack/cert-manager-cainjector:v1.21.2
-image cert-manager-controller quay.io/jetstack/cert-manager-controller:v1.21.2
-image cert-manager-webhook quay.io/jetstack/cert-manager-webhook:v1.21.2
+image cainjector docker.io/kurlsh/cert-manager-cainjector:v1.21.2
+image cert-manager-controller docker.io/kurlsh/cert-manager-controller:v1.21.2
+image cert-manager-webhook docker.io/kurlsh/cert-manager-webhook:v1.21.2
+image cert-manager-acmesolver docker.io/kurlsh/cert-manager-acmesolver:v1.21.2

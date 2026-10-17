@@ -2,6 +2,31 @@
 
 set -euo pipefail
 
+# Keep older releases on upstream images; use SecureBuild from this release onward.
+function use_securebuild_images() {
+    local dir="../$CERT_MANAGER_VERSION"
+    [ "$(printf '%s\n' "1.21.2" "$CERT_MANAGER_VERSION" | sort -V | head -n 1)" = "1.21.2" ] || return 0
+
+    # Preserve component versions while translating repositories and packaging suffixes.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-controller:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-controller:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-cainjector:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-cainjector:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-webhook:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-webhook:\2~g
+s~(^|[[:space:]"'=])quay\.io/jetstack/cert-manager-acmesolver:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/cert-manager-acmesolver:\2~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    # Leave the legacy v1.0.3 upgrade detection in install.sh on its original image.
+    sed_i -E "$replacements" "${files[@]}"
+}
+
 # Portable sed -i function that works on both macOS and Linux
 function sed_i() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -51,6 +76,7 @@ function generate() {
 
     # Download the cert-manager.yaml from GitHub releases
     download_cert_manager_yaml
+    use_securebuild_images
 }
 
 function add_as_latest() {
