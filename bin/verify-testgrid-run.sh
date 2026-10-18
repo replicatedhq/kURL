@@ -41,6 +41,7 @@ function main() {
   local total_runs
   local unsupported_count
   local skipped_count
+  local cancelled_count
   run_id=$(echo "${testgrid_run_json}" | jq -r '.runs[].id')
   success_count=$(echo "${testgrid_run_json}" | jq -r '.runs[].success_count')
   failure_count=$(echo "${testgrid_run_json}" | jq -r '.runs[].failure_count')
@@ -50,11 +51,15 @@ function main() {
   log "Testgrid run details:"
   echo "${testgrid_run_json}" | jq
 
-  # determine the number of test instances that were unsupported and skipped for the test run
+  # determine the number of test instances that were unsupported, skipped and cancelled for the test run
+  # cancelled instances are excluded from the run's failure_count by the api (cancelled_at is set),
+  # so count them here via cancelledAt. exclude skipped/unsupported instances, which may also be
+  # cancelled (pending cancel sets is_skipped) and are already counted above.
   unsupported_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true || true)
   skipped_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isSkipped' | grep -c true || true)
+  cancelled_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[] | select(.isSkipped != true and .isUnsupported != true) | .cancelledAt != null' | grep -c true || true)
 
-  if [[ $((success_count + failure_count + unsupported_count + skipped_count)) -ne ${total_runs} ]]; then
+  if [[ $((success_count + failure_count + unsupported_count + skipped_count + cancelled_count)) -ne ${total_runs} ]]; then
     bail "Testgrid run ${run_id} seems to have pending runs"
   fi
 }
