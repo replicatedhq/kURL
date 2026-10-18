@@ -1,0 +1,20 @@
+bin/verify-testgrid-run.sh
+  s_d2c4f67282c2de::t_50c3f45ffd45ad 54-57,60,62
+  s_d2c4f67282c2de::t_07d63dc82a77a1 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1815a29da57b1137964620e1e59cbbadbe069a6a",
+  "prompts": {},
+  "sessions": {
+    "s_d2c4f67282c2de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eaf0f556fffen3eerejTMbj1cx",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
