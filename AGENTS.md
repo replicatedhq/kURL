@@ -28,7 +28,8 @@ Key directories in this repo:
 | `packages/` | Host-package definitions (e.g., `kubernetes`, `host/openssl`, `host/fio`). |
 | `pkg/` | Go library code for the `kurl` CLI. |
 | `scripts/` | The bash installer source (`install.sh`, `join.sh`, `upgrade.sh`, `tasks.sh`, `common/`). |
-| `testgrid/specs/` | Testgrid YAML specs for OS images and test scenarios. |
+| `testgrid/specs/` | Testgrid YAML specs for OS images and test scenarios. The `os-*.yaml` pools are **generated** — see `os-matrix.yaml`. |
+| `os-matrix.yaml` | Single source of truth for supported OSes (images, preinit scripts, capabilities). Renders every OS-keyed artifact via `make generate-os-matrix`. |
 | `tools/` | Additional tooling. |
 | `web/src/installers/` | Frontend version registry; `versions.js` lists available add-on versions. |
 | `.github/workflows/` | CI/CD workflows. |
@@ -48,7 +49,7 @@ Important documents:
 ### General workflow
 
 1. **Identify the scope.** Is this a core installer change, an add-on change, a Testgrid-only change, or a version bump? Core scripts live in `scripts/`. Add-ons live in `addons/<name>/<version>/`. Testgrid specs live in `testgrid/specs/` and in add-on `template/testgrid/` directories.
-2. **Make the minimal change.** Edit only the source files. Generated files (e.g., `build/`, `dist/`, `addons-gen.json`, `supported-versions-gen.json`) are produced by `make` targets and should not be hand-edited.
+2. **Make the minimal change.** Edit only the source files. Generated files (e.g., `build/`, `dist/`, `addons-gen.json`, `supported-versions-gen.json`) are produced by `make` targets and should not be hand-edited. The same applies to anything derived from `os-matrix.yaml` (see section 7): never hand-edit `testgrid/specs/os-*.yaml`, a `BEGIN/END GENERATED os-matrix` region, or a generated `bundles/k8s-ubuntu*/Dockerfile` — edit `os-matrix.yaml` and regenerate.
 3. **Keep `scripts/Manifest` in sync with `hack/testdata/manifest/clean`.** `make test` compares these two files and fails if they differ. If you modify `scripts/Manifest`, update the test data copy as well.
 4. **Run local tests.** See the Testing section below.
 5. **Let CI run Testgrid for add-on changes.** The `test-addon-pr.yaml` workflow detects modified add-ons and queues Testgrid runs automatically.
@@ -253,6 +254,7 @@ make kurl-util-image       # replicated/kurl-util:alpha
 - **Version directories** use the upstream version string (`1.7.29`, `2.8.1`).
 - **All shell functions in an add-on** should be prefixed with the add-on name to avoid collisions (e.g., `containerd_configure`).
 - **`versions.js`** is the source of truth for selectable add-on versions. The generated `addons-gen.json` and `supported-versions-gen.json` are produced by `make generate-addons`.
+- **`os-matrix.yaml`** is the source of truth for supported OSes. To add or change an OS (including a `vmimageuri`), edit `os-matrix.yaml` only, then run `make generate-os-matrix` and commit both. It fully renders the `testgrid/specs/os-*.yaml` pools (pool membership is the `pools:` list in the same file) and the `bundles/k8s-ubuntu<NNNN>/Dockerfile` host-package images for OSes flagged `bundleDockerfile: true` (currently ubuntu-2404 and ubuntu-2604; the older `k8s-ubuntu{1604,1804,2004,2204}` Dockerfiles are hand-authored). It also rewrites every `# BEGIN/END GENERATED os-matrix` region in place — found in `Makefile`, `scripts/common/host-packages.sh`, `scripts/common/containerd-test.sh`, `scripts/common/preflights.sh`, `bin/save-manifest-assets.sh`, `pkg/preflight/assets/host-preflights.yaml`, `addons/containerd/template/script.sh` (+ some containerd `install.sh` guards), `testgrid/specs/{deploy,full}.yaml`, and several `addons/*/template/testgrid/*.yaml`. `make verify-generated` (part of `make test` and CI) fails the build if committed artifacts drift from the registry.
 - **`scripts/Manifest`** must stay in sync with `hack/testdata/manifest/clean`; `make test` enforces this.
 - **Generated version directories** should not be hand-edited for templated add-ons; edit the template and regenerate.
 - **Testgrid OS filtering is opt-out** via `unsupportedOSIDs`; there is no `supportedOSIDs`.
@@ -274,6 +276,12 @@ make dist/<addon>-<version>.tar.gz
 
 # Generate add-on metadata
 make generate-addons
+
+# Re-render OS-derived artifacts after editing os-matrix.yaml
+make generate-os-matrix
+
+# Fail if generated OS-matrix artifacts are stale (also runs in make test / CI)
+make verify-generated
 
 # Watch and sync builds to a remote Linux test VM
 export GOOS=linux GOARCH=amd64 DOCKER_DEFAULT_PLATFORM=linux/amd64 REMOTES="USER@IP"
