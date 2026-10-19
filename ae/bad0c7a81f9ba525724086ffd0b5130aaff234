@@ -1,0 +1,23 @@
+testgrid/specs/os-firstlast.yaml
+  s_7dd8a753b84ee6::t_ac0b251685a204 41
+testgrid/specs/os-full.yaml
+  s_7dd8a753b84ee6::t_ac0b251685a204 55
+testgrid/specs/os-latest.yaml
+  s_7dd8a753b84ee6::t_ac0b251685a204 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aebad0c7a81f9ba525724086ffd0b5130aaff234",
+  "prompts": {},
+  "sessions": {
+    "s_7dd8a753b84ee6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eae5d732affePCUnDnWKzzdaaE",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
