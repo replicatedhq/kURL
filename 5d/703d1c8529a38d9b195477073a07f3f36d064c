@@ -1,0 +1,19 @@
+.github/workflows/test-addon.yaml
+  s_7dd8a753b84ee6::t_ffb046b4bb94e3 55-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5d703d1c8529a38d9b195477073a07f3f36d064c",
+  "prompts": {},
+  "sessions": {
+    "s_7dd8a753b84ee6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eae5d732affePCUnDnWKzzdaaE",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
