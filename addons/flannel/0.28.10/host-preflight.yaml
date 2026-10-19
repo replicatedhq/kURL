@@ -1,0 +1,27 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: flannel
+spec:
+  collectors:
+    - udpPortStatus:
+        collectorName: Flannel UDP port 8472
+        port: 8472
+        exclude: '{{kurl .IsUpgrade }}'
+  analyzers:
+    - udpPortStatus:
+        checkName: "Flannel UDP port 8472 status"
+        collectorName: Flannel UDP port 8472
+        exclude: '{{kurl .IsUpgrade }}'
+        outcomes:
+          - warn:
+              when: "address-in-use"
+              message: Another process is already listening on port
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port is open
+          - warn:
+              message: Unexpected port status
