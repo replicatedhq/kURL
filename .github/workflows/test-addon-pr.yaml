@@ -45,5 +45,4 @@ jobs:
       addon: ${{ matrix.addon }}
       version: ${{ matrix.version }}
       prefix: ${{ matrix.prefix }}
-      update-supported-versions: true
     secrets: inherit

@@ -14,10 +14,6 @@ on:
       prefix:
         description: Prefix for s3 asset and ref. For identification.
         type: string
-      update-supported-versions:
-        description: 'Update supported-versions-gen.json on staging before running tests.'
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       addon:
@@ -31,16 +27,11 @@ on:
       prefix:
         description: Prefix for s3 asset and ref. For identification.
         type: string
-      update-supported-versions:
-        description: 'Update supported-versions-gen.json on staging before running tests.'
-        type: boolean
-        default: false
 
 env:
   addon: ${{ inputs.addon }}
   version: ${{ inputs.version }}
   prefix: ${{ inputs.prefix }}
-  update_supported_versions: ${{ inputs.update-supported-versions }}
 
 jobs:
   test-addon:
@@ -61,20 +52,15 @@ jobs:
             "addons/${{ env.addon }}/${{ env.version }}" \
             "${{ env.prefix }}"
 
-      - name: update supported versions
-        if: env.update_supported_versions == 'true'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          S3_BUCKET: "kurl-sh"
-          DIST_FOLDER: "staging"
-        run: |
-          npm install
-          export VERSION_TAG=$(curl -s https://kurl-sh.s3.amazonaws.com/staging/VERSION)
-          make generate-addons
-          echo "Waiting 60s for kURL-api cache to expire..."
-          sleep 60
+      # NOTE: Do NOT regenerate supported-versions-gen.json here. That file is
+      # the live staging release's metadata (staging/<VERSION_TAG>/), shared by
+      # every concurrent staging install and add-on test run; overwriting it
+      # from a PR branch advertises versions whose packages only exist under
+      # s3://kurl-sh/pr/ and breaks all other installs that resolve them via
+      # "latest" (observed as S3 403s on package download). It is also
+      # unnecessary: every add-on testgrid spec pairs the version under test
+      # with s3Override, and the kURL API skips version validation for add-ons
+      # with s3Override, so the new version need not exist in staging metadata.
 
       - name: tgrun queue
         id: queue
