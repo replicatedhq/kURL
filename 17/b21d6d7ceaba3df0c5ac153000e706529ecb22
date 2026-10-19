@@ -1,0 +1,25 @@
+testgrid/specs/os-full.yaml
+  s_7dd8a753b84ee6::t_6a4b8f32731676 55
+testgrid/specs/os-latest.yaml
+  s_7dd8a753b84ee6::t_6a4b8f32731676 41
+testgrid/specs/os-firstlast.yaml
+  s_7dd8a753b84ee6::t_6a4b8f32731676 41
+os-matrix.yaml
+  s_7dd8a753b84ee6::t_8840dc7cbd6c8b 104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17b21d6d7ceaba3df0c5ac153000e706529ecb22",
+  "prompts": {},
+  "sessions": {
+    "s_7dd8a753b84ee6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eae5d732affePCUnDnWKzzdaaE",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": null
+    }
+  }
+}
