@@ -1,0 +1,10 @@
+- op: remove
+  path: /spec/selector/matchLabels/app.kubernetes.io~1instance
+- op: remove
+  path: /spec/selector/matchLabels/app.kubernetes.io~1name
+- op: add
+  path: /spec/selector/matchLabels/app
+  value: prometheus-node-exporter
+- op: add
+  path: /spec/template/metadata/labels/app
+  value: prometheus-node-exporter

@@ -1,0 +1,9 @@
+image alertmanager docker.io/kurlsh/alertmanager:v0.34.1
+image grafana docker.io/kurlsh/grafana:13.2.4
+image k8s-sidecar docker.io/kurlsh/kiwigrid-k8s-sidecar:2.14.1
+image kube-state-metrics docker.io/kurlsh/kube-state-metrics:v2.20.0
+image node-exporter docker.io/kurlsh/node-exporter:v1.12.1
+image prometheus docker.io/kurlsh/prometheus:v3.15.0
+image prometheus-adapter docker.io/kurlsh/prometheus-adapter:v0.12.0
+image prometheus-config-reloader docker.io/kurlsh/prometheus-config-reloader:v0.94.1
+image prometheus-operator docker.io/kurlsh/prometheus-operator:v0.94.1
