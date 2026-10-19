@@ -1,0 +1,20 @@
+AGENTS.md
+  s_7dd8a753b84ee6::t_89b84c9988ddb8 52
+  s_7dd8a753b84ee6::t_55b144f523dfb2 257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a024b23c81c9a2f9a4a830fc3e29da13db2e1808",
+  "prompts": {},
+  "sessions": {
+    "s_7dd8a753b84ee6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eae5d732affePCUnDnWKzzdaaE",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
