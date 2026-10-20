@@ -15,7 +15,7 @@ function get_s3cmd_tag() {
 
 # Keep older releases on upstream images; use SecureBuild from release 3.1.2 onward.
 function use_securebuild_images() {
-    local dir="../$VERSION"
+    local dir="$1"
     [ "$(printf '%s\n' "3.1.2" "$VERSION" | sort -V | head -n 1)" = "3.1.2" ] || return 0
 
     # Preserve the component version while translating the repository.
@@ -46,25 +46,37 @@ SED
 
 # A rebuilt tag must invalidate the cached addon package as well.
 function record_s3cmd_image_build() {
+    local dir="$1"
     [ "$S3CMD_TAG" = "20260825-a9ea1c6" ] || return 0
-    echo "# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5" >> "../$VERSION/Manifest"
+    echo "# SecureBuild s3cmd image build: sha256:adbe3dfc5da8713de6eba48b10472c38b07bf1c3500dd023d17aa63ea5e0d7f5" >> "$dir/Manifest"
 }
 
 function generate() {
+    local final_dir="../$VERSION"
+    # Generate and verify into a staging directory and move it into place only
+    # after every step (including SecureBuild verification) succeeds, so a failed
+    # run never leaves a half-generated version directory behind and keeps any
+    # existing released version intact.
+    local dir="../.${VERSION}.tmp"
+    rm -rf "$dir"
+
     # make the base set of files
-    mkdir -p "../${VERSION}"
-    cp -r ./base/* "../${VERSION}"
+    mkdir -p "$dir"
+    cp -r ./base/* "$dir"
 
     # update version in files
-    sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/Manifest"
-    sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/install.sh"
-    sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/deployment-pvc.yaml"
-    sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/tmpl-deployment-objectstore.yaml"
-    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/Manifest"
-    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-migrate-s3.yaml"
-    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-velero.yaml"
-    use_securebuild_images
-    record_s3cmd_image_build
+    sed -i "s/__registry_version__/$VERSION/g" "$dir/Manifest"
+    sed -i "s/__registry_version__/$VERSION/g" "$dir/install.sh"
+    sed -i "s/__registry_version__/$VERSION/g" "$dir/deployment-pvc.yaml"
+    sed -i "s/__registry_version__/$VERSION/g" "$dir/tmpl-deployment-objectstore.yaml"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "$dir/Manifest"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "$dir/patch-deployment-migrate-s3.yaml"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "$dir/patch-deployment-velero.yaml"
+    use_securebuild_images "$dir"
+    record_s3cmd_image_build "$dir"
+
+    rm -rf "$final_dir"
+    mv "$dir" "$final_dir"
 }
 
 function add_as_latest() {
@@ -84,7 +96,6 @@ function main() {
 
     local IS_NEW_VERSION=1
     if [ -d "../${VERSION}" ]; then
-        rm -rf "../${VERSION}"
         IS_NEW_VERSION=0
     fi
 

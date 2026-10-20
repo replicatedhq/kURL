@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Keep older releases on upstream images; use SecureBuild from release 4.6.0 onward.
 function use_securebuild_images() {
-    local dir="../$version"
+    local dir="$1"
     [ "$(printf '%s\n' "4.6.0" "$app_version" | sort -V | head -n 1)" = "4.6.0" ] || return 0
 
     # Preserve component versions while translating repositories.
@@ -25,7 +25,13 @@ SED
 }
 
 function generate() {
-    local dir="../$version"
+    local final_dir="../$version"
+    # Generate and verify into a staging directory and move it into place only
+    # after every step (including SecureBuild verification) succeeds, so a failed
+    # run never leaves a half-generated version directory that later runs would
+    # skip as already existing.
+    local dir="../.${version}.tmp"
+    rm -rf "$dir"
 
     mkdir -p "$dir"
 
@@ -62,7 +68,9 @@ function generate() {
     sort "$tmpdir/Manifest" | uniq >> "$dir/Manifest"
     rm -rf "$tmpdir"
 
-    use_securebuild_images
+    use_securebuild_images "$dir"
+
+    mv "$dir" "$final_dir"
 }
 
 function get_ksplit() {
