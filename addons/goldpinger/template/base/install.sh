@@ -4,7 +4,7 @@ function goldpinger() {
     local dst="$DIR/kustomize/goldpinger"
     
     # Check if upgrading from old okgolove chart
-    if is_old_chart; then
+    if goldpinger_is_old_chart; then
         logStep "Migrating goldpinger from okgolove to Bloomberg chart..."
         
         # Clean uninstall of old okgolove chart resources
@@ -35,13 +35,23 @@ function goldpinger() {
     kubectl apply -k "$dst/"
 
     logStep "Waiting for the Goldpinger Daemonset to be ready"
-    spinner_until 180 goldpinger_daemonset
+    if ! spinner_until 180 goldpinger_daemonset; then
+        kubectl get daemonset -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
+        kubectl logs -n kurl -l app.kubernetes.io/name=goldpinger --all-containers --tail 10 || true
+        bail "The Goldpinger DaemonSet failed to become ready"
+    fi
     logStep "Waiting for the Goldpinger service to be ready"
-    spinner_until 120 kubernetes_service_healthy kurl goldpinger
+    if ! spinner_until 120 kubernetes_service_healthy kurl goldpinger; then
+        kubectl get service -n kurl goldpinger || true
+        kubectl get endpoints -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
+        bail "The Goldpinger service failed to become healthy"
+    fi
     logSuccess "Goldpinger __GOLDPINGER_VERSION__ is ready"
 }
 
-function is_old_chart() {
+function goldpinger_is_old_chart() {
     # Check if the existing goldpinger pods are missing our Bloomberg chart label
     # All Bloomberg chart pods will have kurl.sh/goldpinger-chart=bloomberg in podLabels
     # Old okgolove chart pods will not have this label
@@ -60,9 +70,20 @@ function is_old_chart() {
 }
 
 function goldpinger_daemonset() {
-    local desired=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f2)
-    local ready=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f4)
-    local uptodate=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f5)
+    local status
+    status=$(kubectl get daemonsets -n kurl goldpinger --no-headers 2>/dev/null) || return 1
+    if [ -z "$status" ]; then
+        return 1
+    fi
+
+    local desired ready uptodate
+    desired=$(echo "$status" | tr -s ' ' | cut -d ' ' -f2)
+    ready=$(echo "$status" | tr -s ' ' | cut -d ' ' -f4)
+    uptodate=$(echo "$status" | tr -s ' ' | cut -d ' ' -f5)
+
+    if [ -z "$desired" ] || [ -z "$ready" ] || [ -z "$uptodate" ]; then
+        return 1
+    fi
 
     if [ "$desired" = "$ready" ] ; then
         if [ "$desired" = "$uptodate" ] ; then

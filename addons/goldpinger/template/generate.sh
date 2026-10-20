@@ -30,27 +30,52 @@ function get_latest_bloomberg_version() {
         grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 }
 
+# Keep older releases on upstream images; use SecureBuild from release 3.11.3 onward.
 function use_securebuild_images() {
-    [ "$VERSION" = "3.11.3" ] || return 0
-    sed_i 's|bloomberg/goldpinger:3.11.3|kurlsh/goldpinger:3.11.3|g' "../$VERSION-$CHARTVERSION/goldpinger.yaml"
+    local dir="$1"
+    [ "$(printf '%s\n' "3.11.3" "$VERSION" | sort -V | head -n 1)" = "3.11.3" ] || return 0
+
+    # Preserve the component version while translating the repository.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])(docker\.io/)?bloomberg/goldpinger:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/goldpinger:\3~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed_i -E "$replacements" "${files[@]}"
 }
 
 function generate_bloomberg_dynamic() {
+    local final_dir="../$VERSION-$CHARTVERSION"
+    # Generate and verify into a staging directory and move it into place only
+    # after every step succeeds, so a failed run never leaves a half-generated
+    # version directory that later runs would skip as already existing.
+    local dir="../.${VERSION}-${CHARTVERSION}.tmp"
+    rm -rf "$dir"
+
     # Make the base set of files
-    mkdir -p "../${VERSION}-${CHARTVERSION}"
-    cp -r ./base/* "../${VERSION}-${CHARTVERSION}"
-    
+    mkdir -p "$dir"
+    cp -r ./base/* "$dir"
+
     # Get a copy of the stack using Bloomberg chart
-    helm template goldpinger goldpinger/goldpinger --version "$CHARTVERSION" --values ./values-bloomberg.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
-    
+    helm template goldpinger goldpinger/goldpinger --version "$CHARTVERSION" --values ./values-bloomberg.yaml -n kurl --include-crds > "$dir/goldpinger.yaml"
+
     # Update version placeholders in install.sh (always use canonical template)
-    sed_i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
-    
-    use_securebuild_images
+    sed_i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "$dir/install.sh"
 
     # Generate manifest from the rendered image
-    grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "../$VERSION-$CHARTVERSION/Manifest"
-    
+    grep 'image: '  "$dir/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "$dir/Manifest"
+
+    use_securebuild_images "$dir"
+
+    mv "$dir" "$final_dir"
+
     echo "Generated Bloomberg goldpinger version: $VERSION-$CHARTVERSION"
 }
 
@@ -100,11 +125,13 @@ function main() {
             echo "not updating existing version of goldpinger"
             return
         fi
-    else
-        add_as_latest
     fi
 
     generate_bloomberg_dynamic
+
+    # Register the version only after it has been generated and verified, so a
+    # failed run cannot leave a stale version registered in versions.js.
+    add_as_latest
 
     if [ -n "${GITHUB_OUTPUT:-}" ]; then
         echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
