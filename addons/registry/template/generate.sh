@@ -13,16 +13,34 @@ function get_s3cmd_tag() {
     S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
 }
 
+# Keep older releases on upstream images; use SecureBuild from release 3.1.2 onward.
 function use_securebuild_images() {
-    [ "$VERSION" = "3.1.2" ] || return 0
-    sed -i 's|image registry registry:3.1.2|image registry docker.io/kurlsh/registry:3.1.2|' "../$VERSION/Manifest"
+    local dir="../$VERSION"
+    [ "$(printf '%s\n' "3.1.2" "$VERSION" | sort -V | head -n 1)" = "3.1.2" ] || return 0
+
+    # Preserve the component version while translating the repository.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])(docker\.io/library/)?registry:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/registry:\3~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
+
     local file=
     for file in deployment-pvc.yaml tmpl-deployment-objectstore.yaml; do
-        sed -i 's|image: registry:3.1.2|image: docker.io/kurlsh/registry:3.1.2|; s|/bin/registry|/usr/bin/registry|' "../$VERSION/$file"
+        # The SecureBuild image runs the registry binary at /usr/bin/registry.
+        sed -i 's|/bin/registry|/usr/bin/registry|' "$dir/$file"
         # Preserve access to existing root-owned PVCs and the HTTPS listener.
         sed -i '/        imagePullPolicy: IfNotPresent/a\
         securityContext:\
-          runAsUser: 0' "../$VERSION/$file"
+          runAsUser: 0' "$dir/$file"
     done
 }
 

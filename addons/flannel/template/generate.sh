@@ -2,10 +2,26 @@
 
 set -euo pipefail
 
-# Use only published SecureBuild versions; future upstream versions retain their images.
+# Keep older releases on upstream images; use SecureBuild from release 0.28.9 onward.
 function use_securebuild_images() {
-    [ "$version" = "0.28.9" ] || return 0
-    sed -i 's|ghcr.io/flannel-io/flannel:v0.28.9|docker.io/kurlsh/flannel:v0.28.9|g; s|ghcr.io/flannel-io/flannel-cni-plugin:v1.9.1-flannel3|docker.io/kurlsh/flannel-cni-plugin:v1.9.1-flannel3|g' "$dir/yaml/kube-flannel.yml"
+    local dir="../$version"
+    [ "$(printf '%s\n' "0.28.9" "$version" | sort -V | head -n 1)" = "0.28.9" ] || return 0
+
+    # Preserve component versions while translating repositories.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])(ghcr\.io/flannel-io|docker\.io/flannel|flannel)/flannel-cni-plugin:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/flannel-cni-plugin:\3~g
+s~(^|[[:space:]"'=])(ghcr\.io/flannel-io|docker\.io/flannel|flannel)/flannel:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/flannel:\3~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.yml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
 }
 
 function generate() {
@@ -17,8 +33,8 @@ function generate() {
 
     download_yaml
     replace_flannel_image_with_version
-    use_securebuild_images
     find_images_in_yaml
+    use_securebuild_images
 }
 
 function replace_flannel_image_with_version() {

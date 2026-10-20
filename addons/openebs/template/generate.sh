@@ -2,10 +2,26 @@
 
 set -euo pipefail
 
-# Keep the helper image and provisioner on the same verified SecureBuild release.
+# Keep older releases on upstream images; use SecureBuild from release 4.6.0 onward.
 function use_securebuild_images() {
-    [ "$app_version" = "4.6.0" ] || return 0
-    sed -i 's|docker.io/openebs/provisioner-localpv:4.6.0|docker.io/kurlsh/openebs-provisioner-localpv:4.6.0|g; s|docker.io/openebs/linux-utils:4.6.0|docker.io/kurlsh/openebs-linux-utils:4.6.0|g' "$dir/spec/openebs.tmpl.yaml"
+    local dir="../$version"
+    [ "$(printf '%s\n' "4.6.0" "$app_version" | sort -V | head -n 1)" = "4.6.0" ] || return 0
+
+    # Preserve component versions while translating repositories.
+    local replacements=
+    replacements="$(cat <<'SED'
+/^[[:space:]]*#/b
+s~(^|[[:space:]"'=])(docker\.io/)?openebs/provisioner-localpv:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/openebs-provisioner-localpv:\3~g
+s~(^|[[:space:]"'=])(docker\.io/)?openebs/linux-utils:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/openebs-linux-utils:\3~g
+SED
+)"
+    # Use the same file list for verification and rewriting to keep them aligned.
+    local files=() file=
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find "$dir" -type f \( -name Manifest -o -name '*.yaml' -o -name '*.sh' \) -print0)
+    bash ../../../bin/verify-securebuild-images.sh "$dir/Manifest" "$replacements" "${files[@]}" || return 1
+    sed -i -E "$replacements" "${files[@]}"
 }
 
 function generate() {
@@ -39,14 +55,14 @@ function generate() {
 #    mv "$tmpdir/CustomResourceDefinitions.yaml" "$dir/spec/crds/crds.yaml"
     rm -rf "$tmpdir"
 
-    use_securebuild_images
-
     # get images in files
     mkdir -p "$tmpdir"
     grep 'image: ' "$dir/spec/openebs.tmpl.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
     sed -e '/ name: .*_IMAGE$/,/ value: .*$/!d' "$dir/spec/openebs.tmpl.yaml" | grep ' value: ' | sed -n 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/p' >> "$tmpdir/Manifest"
     sort "$tmpdir/Manifest" | uniq >> "$dir/Manifest"
     rm -rf "$tmpdir"
+
+    use_securebuild_images
 }
 
 function get_ksplit() {
