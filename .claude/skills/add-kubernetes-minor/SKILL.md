@@ -150,7 +150,7 @@ Adding 1.N to kURL is not done when the kURL PR merges. Two external PRs must ac
 1. **Support Lifecycle Policy page** (`replicatedhq/replicated-docs`). The "Supported Replicated Installer Versions" section of https://docs.replicated.com/vendor/policies-support-lifecycle#supported-replicated-installer-versions lists which Kubernetes versions each kURL release supports and for how long. Open a PR to `replicatedhq/replicated-docs` updating that section so it matches the new support matrix. Precedent: replicatedhq/replicated-docs#4679.
 2. **CNCF conformance submission** (`cncf/k8s-conformance`). Submit 1.N's Sonobuoy conformance results under Replicated's product entry. Upstream review usually takes a few days, so open it as soon as the Testgrid conformance runs pass.
 
-The docs page must never advertise a version kURL does not ship yet, nor keep listing one that has been retired.
+The docs page must never advertise a version kURL does not ship yet.
 
 ### Companion PRs (only when needed)
 
