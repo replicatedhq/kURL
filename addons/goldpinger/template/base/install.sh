@@ -36,10 +36,16 @@ function goldpinger() {
 
     logStep "Waiting for the Goldpinger Daemonset to be ready"
     if ! spinner_until 180 goldpinger_daemonset; then
+        kubectl get daemonset -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
+        kubectl logs -n kurl -l app.kubernetes.io/name=goldpinger --all-containers --tail 10 || true
         bail "The Goldpinger DaemonSet failed to become ready"
     fi
     logStep "Waiting for the Goldpinger service to be ready"
     if ! spinner_until 120 kubernetes_service_healthy kurl goldpinger; then
+        kubectl get service -n kurl goldpinger || true
+        kubectl get endpoints -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
         bail "The Goldpinger service failed to become healthy"
     fi
     logSuccess "Goldpinger __GOLDPINGER_VERSION__ is ready"

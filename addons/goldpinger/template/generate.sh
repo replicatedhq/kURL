@@ -32,7 +32,7 @@ function get_latest_bloomberg_version() {
 
 # Keep older releases on upstream images; use SecureBuild from release 3.11.3 onward.
 function use_securebuild_images() {
-    local dir="../$VERSION-$CHARTVERSION"
+    local dir="$1"
     [ "$(printf '%s\n' "3.11.3" "$VERSION" | sort -V | head -n 1)" = "3.11.3" ] || return 0
 
     # Preserve the component version while translating the repository.
@@ -52,7 +52,12 @@ SED
 }
 
 function generate_bloomberg_dynamic() {
-    local dir="../$VERSION-$CHARTVERSION"
+    local final_dir="../$VERSION-$CHARTVERSION"
+    # Generate and verify into a staging directory and move it into place only
+    # after every step succeeds, so a failed run never leaves a half-generated
+    # version directory that later runs would skip as already existing.
+    local dir="../.${VERSION}-${CHARTVERSION}.tmp"
+    rm -rf "$dir"
 
     # Make the base set of files
     mkdir -p "$dir"
@@ -67,7 +72,9 @@ function generate_bloomberg_dynamic() {
     # Generate manifest from the rendered image
     grep 'image: '  "$dir/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' > "$dir/Manifest"
 
-    use_securebuild_images
+    use_securebuild_images "$dir"
+
+    mv "$dir" "$final_dir"
 
     echo "Generated Bloomberg goldpinger version: $VERSION-$CHARTVERSION"
 }
@@ -118,11 +125,13 @@ function main() {
             echo "not updating existing version of goldpinger"
             return
         fi
-    else
-        add_as_latest
     fi
 
     generate_bloomberg_dynamic
+
+    # Register the version only after it has been generated and verified, so a
+    # failed run cannot leave a stale version registered in versions.js.
+    add_as_latest
 
     if [ -n "${GITHUB_OUTPUT:-}" ]; then
         echo "goldpinger_version=$VERSION-$CHARTVERSION" >> "$GITHUB_OUTPUT"
