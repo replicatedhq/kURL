@@ -1,0 +1,24 @@
+addons/goldpinger/template/generate.sh
+  s_bfad5b674f4f0c::t_cf23f916dc6367 55-60,75-77
+  s_bfad5b674f4f0c::t_6531d800f3d4ff 35
+  s_bfad5b674f4f0c::t_89fd1061c28e73 132-134
+  s_bfad5b674f4f0c::t_7cbeec0bffd77b 135
+addons/goldpinger/template/base/install.sh
+  s_bfad5b674f4f0c::t_b766fd2f375c46 39-41,46-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93282c64bc3ac4954354bbb92627e64ed61f73e1",
+  "prompts": {},
+  "sessions": {
+    "s_bfad5b674f4f0c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea98ad790ffe9bOWHdP2LjMh6U",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
