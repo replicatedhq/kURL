@@ -145,12 +145,14 @@ gh workflow run testgrid-pr.yaml -f branch=<branch> -f testgrid-spec=testgrid/sp
 
 ### Required for every minor (lock-step)
 
-Adding 1.N to kURL is not done when the kURL PR merges. Two external PRs must accompany it, opened at the same time as — or immediately after — the kURL PR. Remind the operator about both and offer to open them before considering the work finished. The unattended workflow cannot open them, so they land on the human checklist:
+Adding 1.N to kURL is not done when the kURL PR merges. Two external PRs must accompany it, opened at the same time as — or immediately after — the kURL PR. Remind the operator about both, point them at the internal wiki's CNCF certification runbook for the conformance PR, and offer to open them before considering the work finished. The unattended workflow cannot open them, so they land on the human checklist:
 
 1. **Support Lifecycle Policy page** (`replicatedhq/replicated-docs`). The "Supported Replicated Installer Versions" section of https://docs.replicated.com/vendor/policies-support-lifecycle#supported-replicated-installer-versions lists which Kubernetes versions each kURL release supports and for how long. Open a PR to `replicatedhq/replicated-docs` updating that section so it matches the new support matrix. Precedent: replicatedhq/replicated-docs#4679.
-2. **CNCF conformance submission** (`cncf/k8s-conformance`). Submit 1.N's Sonobuoy conformance results under Replicated's product entry. Upstream review usually takes a few days, so open it as soon as the Testgrid conformance runs pass.
+2. **CNCF conformance submission** (`cncf/k8s-conformance`). Submit 1.N's Sonobuoy conformance results under Replicated's product entry. Upstream review usually takes a few days, so open it as soon as the Testgrid conformance runs pass. The internal wiki documents the full certification process; if the `wiki-search` skill is available, pull the runbook from there rather than guessing at the steps.
 
 The docs page must never advertise a version kURL does not ship yet, nor keep listing one that has been retired.
+
+If the operator asks you to open the conformance PR, prepare the branch and PR body first and hand them over for review. Do not push the branch or open the PR until the operator approves, and open it as a draft when they do.
 
 ### Companion PRs (only when needed)
 
