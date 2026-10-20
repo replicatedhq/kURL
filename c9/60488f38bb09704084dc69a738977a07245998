@@ -1,0 +1,24 @@
+addons/openebs/template/generate.sh
+  s_bfad5b674f4f0c::t_2da33a879e871a 5,7-24
+  s_bfad5b674f4f0c::t_de825836b3c5b2 64-65
+addons/flannel/template/generate.sh
+  s_bfad5b674f4f0c::t_4c6d53569fc015 5,7-24,37
+addons/registry/template/generate.sh
+  s_bfad5b674f4f0c::t_deea6cf35f6cf5 16,18-35,38-39,43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c960488f38bb09704084dc69a738977a07245998",
+  "prompts": {},
+  "sessions": {
+    "s_bfad5b674f4f0c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea98ad790ffe9bOWHdP2LjMh6U",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
