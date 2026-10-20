@@ -1,0 +1,94 @@
+
+function goldpinger() {
+    local src="$DIR/addons/goldpinger/3.11.5-1.2.0"
+    local dst="$DIR/kustomize/goldpinger"
+    
+    # Check if upgrading from old okgolove chart
+    if goldpinger_is_old_chart; then
+        logStep "Migrating goldpinger from okgolove to Bloomberg chart..."
+        
+        # Clean uninstall of old okgolove chart resources
+        kubectl delete daemonset -n kurl goldpinger --ignore-not-found=true
+        kubectl delete configmap -n kurl goldpinger-zap --ignore-not-found=true
+        kubectl delete service -n kurl goldpinger --ignore-not-found=true
+        kubectl delete serviceaccount -n kurl goldpinger --ignore-not-found=true
+        kubectl delete clusterrole goldpinger-clusterrole --ignore-not-found=true
+        kubectl delete clusterrolebinding goldpinger-clusterrolebinding --ignore-not-found=true
+        
+        # Wait for old pods to terminate
+        kubectl wait --for=delete pod -l app.kubernetes.io/name=goldpinger -n kurl --timeout=30s || true
+        
+        logStep "Installing Bloomberg goldpinger chart..."
+    else
+        logStep "Installing goldpinger 3.11.5-1.2.0..."
+    fi
+
+    cp "$src/kustomization.yaml" "$dst/"
+    cp "$src/goldpinger.yaml" "$dst/"
+    cp "$src/servicemonitor.yaml" "$dst/"
+    cp "$src/troubleshoot.yaml" "$dst/"
+
+    if [ -n "${PROMETHEUS_VERSION}" ]; then
+        insert_resources "$dst/kustomization.yaml" servicemonitor.yaml
+    fi
+
+    kubectl apply -k "$dst/"
+
+    logStep "Waiting for the Goldpinger Daemonset to be ready"
+    if ! spinner_until 180 goldpinger_daemonset; then
+        kubectl get daemonset -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
+        kubectl logs -n kurl -l app.kubernetes.io/name=goldpinger --all-containers --tail 10 || true
+        bail "The Goldpinger DaemonSet failed to become ready"
+    fi
+    logStep "Waiting for the Goldpinger service to be ready"
+    if ! spinner_until 120 kubernetes_service_healthy kurl goldpinger; then
+        kubectl get service -n kurl goldpinger || true
+        kubectl get endpoints -n kurl goldpinger || true
+        kubectl get pods -n kurl -l app.kubernetes.io/name=goldpinger -o wide || true
+        bail "The Goldpinger service failed to become healthy"
+    fi
+    logSuccess "Goldpinger 3.11.5-1.2.0 is ready"
+}
+
+function goldpinger_is_old_chart() {
+    # Check if the existing goldpinger pods are missing our Bloomberg chart label
+    # All Bloomberg chart pods will have kurl.sh/goldpinger-chart=bloomberg in podLabels
+    # Old okgolove chart pods will not have this label
+    if kubectl get daemonset -n kurl goldpinger >/dev/null 2>&1; then
+        local chart_source
+        chart_source=$(kubectl get daemonset -n kurl goldpinger \
+            -o jsonpath="{.spec.template.metadata.labels['kurl\.sh/goldpinger-chart']}" 2>/dev/null || echo "")
+        
+        # If the label is missing or not "bloomberg", it's an old chart
+        if [[ "$chart_source" != "bloomberg" ]]; then
+            return 0  # Old chart (okgolove)
+        fi
+    fi
+    
+    return 1  # New chart (bloomberg) or no existing deployment
+}
+
+function goldpinger_daemonset() {
+    local status
+    status=$(kubectl get daemonsets -n kurl goldpinger --no-headers 2>/dev/null) || return 1
+    if [ -z "$status" ]; then
+        return 1
+    fi
+
+    local desired ready uptodate
+    desired=$(echo "$status" | tr -s ' ' | cut -d ' ' -f2)
+    ready=$(echo "$status" | tr -s ' ' | cut -d ' ' -f4)
+    uptodate=$(echo "$status" | tr -s ' ' | cut -d ' ' -f5)
+
+    if [ -z "$desired" ] || [ -z "$ready" ] || [ -z "$uptodate" ]; then
+        return 1
+    fi
+
+    if [ "$desired" = "$ready" ] ; then
+        if [ "$desired" = "$uptodate" ] ; then
+            return 0
+        fi
+    fi
+    return 1
+}
