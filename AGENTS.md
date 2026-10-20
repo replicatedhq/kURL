@@ -127,7 +127,17 @@ dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.7.29
 
 ### Adding a new Kubernetes minor
 
-Follow `.claude/skills/add-kubernetes-minor/SKILL.md` (scaffold with `packages/kubernetes/template/add-minor.sh <N>`, then `script.sh 1.N.P`). New patches of existing minors come from the `update-kubernetes.yaml` cron.
+Follow `.claude/skills/add-kubernetes-minor/SKILL.md` (scaffold with `packages/kubernetes/template/add-minor.sh <N>`, then `script.sh 1.N.P`). New patches of existing minors come from the `update-kubernetes.yaml` cron. Then complete the lock-step external PRs described below.
+
+### Lock-step external PRs for Kubernetes version changes
+
+Adding support for a new Kubernetes version — or retiring an EoL one — is not done when the kURL PR merges. Two external PRs must accompany the change, in lock-step. **If you are working on a Kubernetes version change, remind the operator about both (and offer to open them) before you consider the work finished:**
+
+1. **Support Lifecycle Policy page** (`replicatedhq/replicated-docs`). The "Supported Replicated Installer Versions" section of https://docs.replicated.com/vendor/policies-support-lifecycle#supported-replicated-installer-versions lists which Kubernetes versions each kURL release supports and for how long. Open a PR to `replicatedhq/replicated-docs` updating that section so it matches the new kURL support matrix (see example PR replicatedhq/replicated-docs#4679).
+
+2. **CNCF conformance submission** (`cncf/k8s-conformance`). Each new Kubernetes minor kURL ships needs a conformance PR submitting the version's Sonobuoy results under Replicated's product entry. Upstream review usually takes a few days, so open it as soon as the Testgrid conformance runs pass.
+
+Both PRs should be opened at the same time as, or immediately after, the kURL change. The docs page must never advertise a version kURL does not ship yet, nor keep listing one that has been retired.
 
 ### Templated add-ons
 
@@ -256,6 +266,7 @@ make kurl-util-image       # replicated/kurl-util:alpha
 - **`versions.js`** is the source of truth for selectable add-on versions. The generated `addons-gen.json` and `supported-versions-gen.json` are produced by `make generate-addons`.
 - **`os-matrix.yaml`** is the source of truth for supported OSes. To add or change an OS (including a `vmimageuri`), edit `os-matrix.yaml` only, then run `make generate-os-matrix` and commit both. It fully renders the `testgrid/specs/os-*.yaml` pools (pool membership is the `pools:` list in the same file) and the `bundles/k8s-ubuntu<NNNN>/Dockerfile` host-package images for OSes flagged `bundleDockerfile: true` (currently ubuntu-2404 and ubuntu-2604; the older `k8s-ubuntu{1604,1804,2004,2204}` Dockerfiles are hand-authored). It also rewrites every `# BEGIN/END GENERATED os-matrix` region in place — found in `Makefile`, `scripts/common/host-packages.sh`, `scripts/common/containerd-test.sh`, `scripts/common/preflights.sh`, `bin/save-manifest-assets.sh`, `pkg/preflight/assets/host-preflights.yaml`, `addons/containerd/template/script.sh` (+ some containerd `install.sh` guards), `testgrid/specs/{deploy,full}.yaml`, and several `addons/*/template/testgrid/*.yaml`. `make verify-generated` (part of `make test` and CI) fails the build if committed artifacts drift from the registry.
 - **`scripts/Manifest`** must stay in sync with `hack/testdata/manifest/clean`; `make test` enforces this.
+- **Kubernetes version changes have external dependencies.** Adding or retiring a k8s version requires a Support Lifecycle Policy PR to `replicatedhq/replicated-docs` and a CNCF conformance PR to `cncf/k8s-conformance` — see "Lock-step external PRs for Kubernetes version changes" in section 4.
 - **Generated version directories** should not be hand-edited for templated add-ons; edit the template and regenerate.
 - **Testgrid OS filtering is opt-out** via `unsupportedOSIDs`; there is no `supportedOSIDs`.
 - **Linux/amd64 required** for runtime testing. The scripts are not macOS-compatible; use a remote Linux VM or Docker.
@@ -304,3 +315,14 @@ make docker-test-shell
 - `.github/workflows/test-addon-pr.yaml` — PR add-on testing.
 - `bin/test-addon.sh` — submits add-on Testgrid runs.
 - `pkg/cli/commands.go` — `kurl` CLI command tree.
+
+## 10. Skills index
+
+Repo-local skills live in `.claude/skills/<name>/SKILL.md`. **Every skill's frontmatter `description` must begin with a relevant "Use when ..." statement** naming the task and its trigger phrases, so agents can match work to skills without reading the body. Current skills:
+
+| Skill | Use when |
+|---|---|
+| [`add-kubernetes-minor`](.claude/skills/add-kubernetes-minor/SKILL.md) | Adding a new upstream Kubernetes minor (1.N) to kURL: scaffolding, package generation, judgment review, Testgrid specs, PR body, and the lock-step external PRs. Triggers: "add kubernetes 1.N", "new kubernetes minor". |
+| [`testgrid-failure-analysis`](.claude/skills/testgrid-failure-analysis/SKILL.md) | Analyzing a failed Testgrid run: fetching run results, failure logs, and encrypted support bundles from the Testgrid API; also cancelling stuck runs and cleaning up Testgrid hosts. Triggers: "testgrid failure analysis", "fetch testgrid logs". |
+
+When you create a new skill, add a row here and make sure its description starts with a "Use when ..." statement.
