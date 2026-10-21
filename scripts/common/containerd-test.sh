@@ -411,7 +411,8 @@ function test_join_tolerates_missing_137_guard() {
 
 # Runs containerd_install_runc against a fake /usr/bin/containerd printing $1 (no binary when
 # empty) and an add-on src dir holding runc and, unless $2 is "no-asset", runc-1.3.6. Prints the
-# installed runc content and stores the exit code in RUNC_RC.
+# installed runc content, stores the exit code in RUNC_RC and the function's output in RUNC_LOG.
+RUNC_LOG="$(mktemp)"
 function run_install_runc() {
     local version_output="$1" asset="$2"
     local src dest
@@ -431,7 +432,7 @@ function run_install_runc() {
         which() { echo "$dest"; }
         try_1m_stderr() { "$@"; }
         containerd_install_runc "$src"
-    ) >/dev/null 2>&1
+    ) >"$RUNC_LOG" 2>&1
     RUNC_RC=$?
     rm -f /usr/bin/containerd
     cat "$dest" 2>/dev/null || true
@@ -462,6 +463,9 @@ function test_install_runc_unknown_version() {
     local installed
     installed="$(run_install_runc "")"
     assertEquals "unknown containerd version installs the add-on runc" "runc-1.5.1" "$installed"
+    run_install_runc "" >/dev/null
+    grep -q "/usr/bin/containerd --version: .*No such file or directory" "$RUNC_LOG"
+    assertEquals "unknown containerd version warning includes the version check error" "0" "$?"
 }
 
 function test_install_runc_1x_addon() {

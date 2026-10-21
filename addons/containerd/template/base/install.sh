@@ -139,16 +139,21 @@ function containerd_install_runc() {
     local src="$1"
     local runc="$src/assets/runc"
 
-    local installed_version=
-    installed_version="$(/usr/bin/containerd --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    local version_output= installed_version=
+    version_output="$(/usr/bin/containerd --version 2>&1 || true)"
+    installed_version="$(echo "$version_output" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
     if [ -z "$installed_version" ]; then
-        logWarn "Could not determine the installed containerd version, installing the add-on's runc"
-    elif [[ "$CONTAINERD_VERSION" == 2.* ]] && [[ "$installed_version" == 1.* ]]; then
-        if [ ! -f "$src/assets/runc-1.3.6" ]; then
-            bail "containerd $installed_version requires runc 1.3.6 but $src/assets/runc-1.3.6 is missing"
-        fi
-        log "Installing runc 1.3.6 for containerd $installed_version"
-        runc="$src/assets/runc-1.3.6"
+        logWarn "Could not determine the installed containerd version, installing the add-on's runc. /usr/bin/containerd --version: ${version_output:-no output}"
+    else
+        case "$CONTAINERD_VERSION/$installed_version" in
+            2.*/1.*)
+                if [ ! -f "$src/assets/runc-1.3.6" ]; then
+                    bail "containerd $installed_version requires runc 1.3.6 but $src/assets/runc-1.3.6 is missing"
+                fi
+                log "Installing runc 1.3.6 for containerd $installed_version"
+                runc="$src/assets/runc-1.3.6"
+                ;;
+        esac
     fi
 
     chmod +x "$runc"
@@ -156,6 +161,7 @@ function containerd_install_runc() {
     # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
     # as soon as the container starts
     try_1m_stderr cp "$runc" "$(which runc)"
+    log "Installed $(runc --version 2>&1 | head -n 1 || true)"
 }
 
 function containerd_host_init() {

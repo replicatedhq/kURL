@@ -353,8 +353,7 @@
       containerd --version | grep "__testver__"
     fi
   unsupportedOSIDs:
-    # containerd 2.3.3 fails on these older kernels, and they get a containerd 1.6 package that
-    # can't be upgraded to 2.x
+    # these get a containerd 1.6 package, and containerd 1.6 to 2.x upgrades are not supported
     - amzn-20
     - centos-74
     - centos-79
