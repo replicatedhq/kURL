@@ -19,12 +19,18 @@
     kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
     kubectl -n monitoring rollout status deployment/grafana --timeout=180s
     kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
+  unsupportedOSIDs:
+  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
+  - ol-79
+  - ol-8x
+  - amzn-20
+  - ubuntu-1804
 - name: "prometheus upgrade from 0.33.0"
   cpu: 5
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
     - rocky-9 # Pinned installer version v2024.07.02-0 does not support rocky 9.
+    - rocky-10 # Pinned installer version v2024.07.02-0 does not support rocky 10.
     - ubuntu-2404 # Pinned installer version v2024.07.02-0 does not support ubuntu 24.04.
     - ubuntu-2604 # Pinned installer version v2024.07.02-0 does not support ubuntu 26.04.
     - centos-9 # Pinned installer version v2024.07.02-0 does not support centos 9.
@@ -52,7 +58,7 @@
       version: "1.10.x"
       isBlockStorageEnabled: true
     containerd:
-      version: "latest"
+      version: "1.7.x"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -83,13 +89,14 @@
       isLocalPVEnabled: true
       localPVStorageClassName: localpv
     containerd:
-      version: "latest"
+      version: "1.7.x"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
   - rocky-9 # Pinned installer version v2024.07.02-0 does not support rocky 9.
+  - rocky-10 # Pinned installer version v2024.07.02-0 does not support rocky 10.
   - ubuntu-2404 # Pinned installer version v2024.07.02-0 does not support ubuntu 24.04.
   - ubuntu-2604 # Pinned installer version v2024.07.02-0 does not support ubuntu 26.04.
   - centos-9 # Pinned installer version v2024.07.02-0 does not support centos 9.
@@ -128,19 +135,12 @@
     kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=300s
     kubectl -n monitoring rollout status deployment/grafana --timeout=180s
     kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
-- name: "prometheus with longhorn and containerd"
-  installerSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    longhorn:
-      version: "latest"
-    containerd:
-      version: "latest"
-    prometheus:
-      version: "__testver__"
-      s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
+  - ol-79
+  - ol-8x
+  - amzn-20
+  - ubuntu-1804
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
@@ -159,3 +159,9 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+  unsupportedOSIDs:
+  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
+  - ol-79
+  - ol-8x
+  - amzn-20
+  - ubuntu-1804
