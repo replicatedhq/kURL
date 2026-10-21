@@ -47,7 +47,7 @@ function containerd_join() {
 
 function containerd_install() {
     if use_os_containerd; then
-        require_os_containerd
+        containerd_require_os_containerd
         log "Using containerd version provided by the Operating System."
         if ! systemctl is-active --quiet containerd; then
             systemctl start containerd
@@ -64,11 +64,11 @@ function containerd_install() {
         containerd_migrate_from_docker
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
-        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
+        chmod +x "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc"
         # If the runc binary is executing the cp command will fail with "text file busy" error.
         # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
         # as soon as the container starts
-        try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+        try_1m_stderr cp "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc" "$(which runc)"
     fi
 
     logStep "Containerd configuration"
@@ -137,8 +137,8 @@ function containerd_install() {
 }
 
 function containerd_host_init() {
-    require_centos8_containerd
-    require_os_containerd
+    containerd_require_centos8_containerd
+    containerd_require_os_containerd
     containerd_install_libzstd_if_missing
 }
 
@@ -295,9 +295,15 @@ function containerd_backup_config_on_schema_migration() {
     fi
 
     # Schema version the about-to-be-configured containerd binary will emit.
+    # `|| true`: a failed probe must not abort the install here (set -e + pipefail);
+    # it is handled explicitly below.
     local new_schema_version=
-    new_schema_version=$(containerd config default 2>/dev/null | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
-    if [ "${new_schema_version:-2}" -lt "3" ]; then
+    new_schema_version=$(containerd config default 2>/dev/null | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}') || true
+    if [ -z "$new_schema_version" ]; then
+        # Probe failed: we cannot rule out a 1.x -> 2.x schema crossing, so fall through
+        # and take the backup rather than risk regenerating config.toml without one.
+        logWarn "Unable to determine the containerd config schema version; backing up the existing config before it is regenerated"
+    elif [ "$new_schema_version" -lt "3" ]; then
         # staying on the 1.x schema — config.toml is regenerated in place as before
         return
     fi
@@ -354,7 +360,8 @@ function containerd_configure() {
         else
             # 1.x: unchanged — leaf-merge the user TOML into the single config.toml via bin/toml.
             log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
-            local tmp=$(mktemp)
+            local tmp=
+            tmp=$(mktemp)
             echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
             "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
         fi
@@ -428,13 +435,16 @@ function containerd_configure_limitnofile() {
 
 function containerd_configure_proxy() {
     log "Configuring containerd proxy"
-    local previous_http_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'http_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
-    local previous_https_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'https_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
-    local previous_no_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'no_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    local previous_http_proxy=
+    previous_http_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'http_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    local previous_https_proxy=
+    previous_https_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'https_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    local previous_no_proxy=
+    previous_no_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'no_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
     log "Previous http proxy: ($previous_http_proxy)"
     log "Previous https proxy: ($previous_https_proxy)"
     log "Previous no proxy: ($previous_no_proxy)"
-    if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$PROXY_HTTPS_ADDRESS" = "$previous_https_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
+    if [ "$PROXY_ADDRESS" = "$previous_http_proxy" ] && [ "$PROXY_HTTPS_ADDRESS" = "$previous_https_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
         log "No changes were found. Proxy configuration still the same"
         return
     fi
@@ -592,7 +602,7 @@ function _containerd_migrate_images_from_docker() {
 # and earlier return the empty string as they can be overridden to use a
 # different image. for amazon 2023 we always patch the pause image.
 function containerd_kubernetes_pause_image() {
-    if [ is_amazon_2023 ] ; then
+    if is_amazon_2023; then
         cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
         return
     fi
@@ -607,15 +617,15 @@ function containerd_kubernetes_pause_image() {
     fi
 }
 
-# require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
-function require_os_containerd() {
+# containerd_require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
+function containerd_require_os_containerd() {
     if use_os_containerd ; then
         ensure_host_package containerd containerd
         return
     fi
 }
 
-function require_centos8_containerd() {
+function containerd_require_centos8_containerd() {
     if [ "$LSB_DIST" == "centos" ] && [ "$DIST_VERSION_MAJOR" == "8" ]; then
         # if this is not centos 8 Stream, require preinstallation of containerd on 1.6.31+
 
