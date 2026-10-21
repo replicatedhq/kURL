@@ -1,0 +1,34 @@
+addons/containerd/2.4.1/install.sh
+  s_8f1bf05a12c6de::t_9cc6f2e11bf2b5 50,67,71,140-141,298-299,301-306,363-364,447,605,620-621,628
+  s_8f1bf05a12c6de::t_139a699dec8404 438-443
+addons/containerd/2.4.2/install.sh
+  s_8f1bf05a12c6de::t_139a699dec8404 438-443
+  s_8f1bf05a12c6de::t_9cc6f2e11bf2b5 50,67,71,140-141,298-299,301-306,363-364,447,605,620-621,628
+addons/containerd/template/base/install.sh
+  s_8f1bf05a12c6de::t_98641de10a5c05 628
+  s_8f1bf05a12c6de::t_bb00e96ffeafc0 447
+  s_8f1bf05a12c6de::t_ff0c736fe0cfd2 50
+  s_8f1bf05a12c6de::t_f973013decd4c2 298-299,301-306
+  s_8f1bf05a12c6de::t_175d86778aef2d 140-141
+  s_8f1bf05a12c6de::t_af6ada583fe37a 438-443
+  s_8f1bf05a12c6de::t_899f923400f5a9 67,71
+  s_8f1bf05a12c6de::t_04e41dc46d5298 605
+  s_8f1bf05a12c6de::t_3dab915b272814 363-364
+  s_8f1bf05a12c6de::t_6d51345f5d9b23 620-621
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf0413d2a0f244a9fff0ba205b4e5be771d20fae",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
