@@ -1,0 +1,29 @@
+addons/containerd/template/base/install.sh
+  s_8f1bf05a12c6de::t_aaa2f71b048f4e 299-301,303,308
+  s_8f1bf05a12c6de::t_d3bf6ef34f5477 441-442,444,446,448
+  s_8f1bf05a12c6de::t_364f52f8527571 523-524
+  s_8f1bf05a12c6de::t_f0b067769b4af7 528-529,533-536
+  s_8f1bf05a12c6de::t_a8ce2fe0fdad25 94,96
+addons/containerd/2.4.1/install.sh
+  s_8f1bf05a12c6de::t_d4cc7074015950 94,96,299-301,303,308,441-442,444,446,448,523-524
+  s_8f1bf05a12c6de::t_dcd2a98201c655 528-529,533-536
+addons/containerd/2.4.2/install.sh
+  s_8f1bf05a12c6de::t_d4cc7074015950 94,96,299-301,303,308,441-442,444,446,448,523-524
+  s_8f1bf05a12c6de::t_dcd2a98201c655 528-529,533-536
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6d5652d9b511c0322df28af6e47ac96c44983f20",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
