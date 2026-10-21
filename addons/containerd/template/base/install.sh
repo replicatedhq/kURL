@@ -91,9 +91,9 @@ function containerd_install() {
     fi
 
     log "Checking registry configuration for the distro ${K8S_DISTRO} and if Docker registry IP is set"
-    if commandExists ${K8S_DISTRO}_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
+    if commandExists "${K8S_DISTRO}"_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
         log "Docker registry IP is set with the value: ($DOCKER_REGISTRY_IP)"
-        ${K8S_DISTRO}_registry_containerd_configure "$DOCKER_REGISTRY_IP"
+        "${K8S_DISTRO}"_registry_containerd_configure "$DOCKER_REGISTRY_IP"
         CONTAINERD_NEEDS_RESTART=1
     fi
 
@@ -296,13 +296,16 @@ function containerd_backup_config_on_schema_migration() {
 
     # Schema version the about-to-be-configured containerd binary will emit.
     # `|| true`: a failed probe must not abort the install here (set -e + pipefail);
-    # it is handled explicitly below.
+    # it is handled explicitly below. stderr is captured so the warning can say why.
+    local probe_output=
+    probe_output=$(containerd config default 2>&1) || true
     local new_schema_version=
-    new_schema_version=$(containerd config default 2>/dev/null | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}') || true
+    new_schema_version=$(echo "$probe_output" | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
     if [ -z "$new_schema_version" ]; then
         # Probe failed: we cannot rule out a 1.x -> 2.x schema crossing, so fall through
         # and take the backup rather than risk regenerating config.toml without one.
         logWarn "Unable to determine the containerd config schema version; backing up the existing config before it is regenerated"
+        logWarn "containerd config default output: $(echo "$probe_output" | head -1)"
     elif [ "$new_schema_version" -lt "3" ]; then
         # staying on the 1.x schema — config.toml is regenerated in place as before
         return
@@ -435,12 +438,14 @@ function containerd_configure_limitnofile() {
 
 function containerd_configure_proxy() {
     log "Configuring containerd proxy"
+    # `|| true`: the proxy file does not exist on a first-time proxy configuration;
+    # a failed probe must yield an empty value, not abort the install (set -e/pipefail).
     local previous_http_proxy=
-    previous_http_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'http_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    previous_http_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'http_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')" || true
     local previous_https_proxy=
-    previous_https_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'https_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    previous_https_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'https_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')" || true
     local previous_no_proxy=
-    previous_no_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'no_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    previous_no_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'no_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')" || true
     log "Previous http proxy: ($previous_http_proxy)"
     log "Previous https proxy: ($previous_https_proxy)"
     log "Previous no proxy: ($previous_no_proxy)"
@@ -515,16 +520,20 @@ function containerd_migrate_from_docker() {
     kubectl "$kubeconfigFlag" cordon "$node"
 
     log "Deleting pods"
-    local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
+    local allPodUIDs=
+    allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
 
     # Drain remaining pods using only the permissions available to kubelet
     while read -r uid; do
-        local pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
+        local pod=
+        pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
         if [ -z "$pod" ]; then
             continue
         fi
-        local podName=$(echo "$pod" | awk '{ print $1 }')
-        local podNamespace=$(echo "$pod" | awk '{ print $3 }')
+        local podName=
+        podName=$(echo "$pod" | awk '{ print $1 }')
+        local podNamespace=
+        podNamespace=$(echo "$pod" | awk '{ print $3 }')
         # some may timeout but proceed anyway
         kubectl "$kubeconfigFlag" delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
     done < <(ls /var/lib/kubelet/pods)
