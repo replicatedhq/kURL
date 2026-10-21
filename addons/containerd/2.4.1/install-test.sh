@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# shellcheck disable=SC2317 # test_* functions are invoked dynamically by shunit2 discovery
+# shellcheck disable=SC2317,SC2329 # test_* functions and mocks are invoked dynamically by shunit2 discovery
 
 set -e
 
@@ -74,8 +74,7 @@ function test_containerd_pre_init_bails_on_sub_2x_containerd_with_kubernetes_137
 
     local result exit_code=0
     result="$( (containerd_pre_init) 2>&1 || true)"
-    echo "$result" | grep -q "containerd 2.x"
-    assertEquals "bails mentioning containerd 2.x requirement" "0" "$?"
+    assertContains "bails mentioning containerd 2.x requirement" "$result" "containerd 2.x"
 
     (containerd_pre_init) >/dev/null 2>&1 || exit_code=$?
     assertEquals "exits non-zero" "1" "$exit_code"

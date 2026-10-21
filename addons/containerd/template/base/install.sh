@@ -560,8 +560,12 @@ function containerd_migrate_from_docker() {
 }
 
 function containerd_can_migrate_images_from_docker() {
-    local images_kb="$(du -sc /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
-    local available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')"
+    # `|| true`: a failed probe must yield an empty value, which is handled below,
+    # not abort the install (set -e/pipefail).
+    local images_kb=
+    images_kb="$(du -sc /var/lib/docker/overlay2 | grep total | awk '{print $1}')" || true
+    local available_kb=
+    available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')" || true
 
     if [ -z "$images_kb" ]; then
         logWarn "Unable to determine size of Docker images"
@@ -570,10 +574,12 @@ function containerd_can_migrate_images_from_docker() {
         logWarn "Unable to determine available disk space in /var/lib/containerd/"
         return 0
     else
-        local images_kb_x2="$(expr $images_kb + $images_kb)"
+        local images_kb_x2=$((images_kb + images_kb))
         if [ "$available_kb" -lt "$images_kb_x2" ]; then
-            local images_human="$(echo "$images_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
-            local available_human="$(echo "$available_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
+            local images_human=
+            images_human="$(echo "$images_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
+            local available_human=
+            available_human="$(echo "$available_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
             logFail "There is not enough available disk space (${available_human}) to migrate images (${images_human}) from Docker to Containerd."
             logFail "Please make sure there is at least 2 x size of Docker images available disk space."
             return 1
@@ -589,7 +595,8 @@ function containerd_migrate_images_from_docker() {
 
     # we must always clean up $tmpdir since it can take up a lot of space
     local errcode=0
-    local tmpdir="$(mktemp -d -p /var/lib/containerd)"
+    local tmpdir=
+    tmpdir="$(mktemp -d -p /var/lib/containerd)"
     _containerd_migrate_images_from_docker "$tmpdir" || errcode="$?"
     rm -rf "$tmpdir"
     return "$errcode"
@@ -607,23 +614,13 @@ function _containerd_migrate_images_from_docker() {
     done
 }
 
-# return the pause image for the current version of kubernetes.versions 1.26
-# and earlier return the empty string as they can be overridden to use a
-# different image. for amazon 2023 we always patch the pause image.
+# return the pause image for the current version of kubernetes. it is always
+# pinned so containerd uses the pause image kURL loads (airgap) instead of its
+# own default. kURL has pinned unconditionally since the amazon 2023 fix
+# (#5371), whose always-true `[ is_amazon_2023 ]` test bypassed the old
+# 1.26-and-earlier exception.
 function containerd_kubernetes_pause_image() {
-    if is_amazon_2023; then
-        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
-        return
-    fi
-
-    local minor_version=
-    minor_version="$(kubernetes_version_minor "$KUBERNETES_VERSION")"
-
-    if [ "$minor_version" -ge "27" ]; then
-        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
-    else
-        echo ""
-    fi
+    grep "pause" "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | awk '{ print $3 }'
 }
 
 # containerd_require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
