@@ -1,0 +1,20 @@
+addons/prometheus/template/testgrid/k8s-docker.yaml
+  s_dc69d7b325cf41::t_6f3a295227ac0f 167
+  s_dc69d7b325cf41::t_b49b6d5ca32a5e 23-27,139-143,163-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41941a8339d1479ed5d1396add7b934448d95f78",
+  "prompts": {},
+  "sessions": {
+    "s_dc69d7b325cf41": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea4b04496ffe917pcXaVktASNn",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
