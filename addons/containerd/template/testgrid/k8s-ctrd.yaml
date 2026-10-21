@@ -89,7 +89,6 @@
     mkdir -p /var/lib/kurl/assets
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
-    - centos-74
     - centos-79
     - ol-79
     # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
@@ -313,7 +312,6 @@
       containerd --version | grep "__testver__"
     fi
   unsupportedOSIDs:
-    - centos-74
     - centos-79
     - ol-79
     # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these

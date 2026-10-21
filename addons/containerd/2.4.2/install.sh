@@ -146,10 +146,16 @@ function containerd_host_init() {
 # EL7/amzn2/ubuntu-18.04 — so the overwrite is skipped and the package's bundled
 # runc is kept. The version comparison is exact to avoid 2.4.2 matching 2.4.20.
 function containerd_install_runc() {
+    # `|| true`: a failed probe must yield an empty version, not abort the install
+    # (set -e/pipefail) — the same convention as the proxy and schema probes.
     local installed_version=
-    installed_version="$(containerd --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+    installed_version="$(containerd --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)" || true
+    if [ -z "$installed_version" ]; then
+        log "Unable to determine the installed containerd version; keeping the packaged runc"
+        return
+    fi
     if [ "$installed_version" != "$CONTAINERD_VERSION" ]; then
-        log "Installed containerd ${installed_version:-unknown} does not match requested $CONTAINERD_VERSION (OS package override); keeping the packaged runc"
+        log "Installed containerd $installed_version does not match requested $CONTAINERD_VERSION (OS package override); keeping the packaged runc"
         return
     fi
 

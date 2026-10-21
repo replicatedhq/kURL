@@ -187,6 +187,18 @@ function test_containerd_install_runc_skips_overwrite_on_os_override() {
     fi
 }
 
+function test_containerd_install_runc_skips_overwrite_when_version_undetermined() {
+    containerd() { return 1; } # broken/missing binary
+
+    local result=
+    result="$(containerd_install_runc 2>&1)"
+    unset -f containerd
+
+    if ! echo "$result" | grep -q "Unable to determine the installed containerd version"; then
+        fail "expected the unknown-version skip message, got: $result"
+    fi
+}
+
 function test_containerd_install_runc_overwrites_when_version_matches() {
     containerd() { echo "containerd github.com/containerd/containerd 9.9.9 abc123"; }
     mkdir -p "$DIR/addons/containerd/$CONTAINERD_VERSION/assets"
