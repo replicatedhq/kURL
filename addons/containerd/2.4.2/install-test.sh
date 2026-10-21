@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# shellcheck disable=SC2317 # test_* functions are invoked dynamically by shunit2 discovery
+
 set -e
 
 # shellcheck disable=SC1091

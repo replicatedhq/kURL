@@ -117,7 +117,7 @@ function containerd_install() {
     fi
 
     logStep "Loading images into containerd"
-    load_images $src/images
+    load_images "$src"/images
     logSuccess "Images loaded successfully"
 
     log "Checking if the kubelet service is enabled"
