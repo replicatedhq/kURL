@@ -1,0 +1,29 @@
+addons/containerd/2.4.1/install-test.sh
+  s_8f1bf05a12c6de::t_9481706e0bd7e8 3-4
+addons/containerd/2.4.2/install-test.sh
+  s_8f1bf05a12c6de::t_9481706e0bd7e8 3-4
+addons/containerd/template/base/install.sh
+  s_8f1bf05a12c6de::t_a0852b45a2e7e6 120
+addons/containerd/template/base/install-test.sh
+  s_8f1bf05a12c6de::t_1aa371a092228d 3-4
+addons/containerd/2.4.2/install.sh
+  s_8f1bf05a12c6de::t_9a304eba6aaea5 120
+addons/containerd/2.4.1/install.sh
+  s_8f1bf05a12c6de::t_9a304eba6aaea5 120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4edaadde5d4b542d4f3897c20ff20ed0fe05c0b2",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
