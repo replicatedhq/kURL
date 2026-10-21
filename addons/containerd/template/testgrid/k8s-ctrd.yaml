@@ -35,6 +35,14 @@
     echo "checking /var/lib/kubelet/kubeadm-flags.env"
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.10, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.10
+    # containerd 2.x add-ons install runc 1.3.6 on OSes that only get a containerd 1.x package
+    . /etc/os-release
+    case "__testver__-$ID-$VERSION_ID" in
+      2.*-amzn-2|2.*-centos-7*|2.*-rhel-7*|2.*-ol-7*|2.*-ubuntu-18.04)
+        runc --version
+        runc --version | grep -q 'runc version 1.3.6'
+        ;;
+    esac
 
 - name: basic containerd and flannel, internal LB, airgap, 1.33 to 1.35, airgap
   airgap: true
@@ -291,6 +299,8 @@
     - centos-74
     - centos-79
     - ol-79
+    - amzn-20 # gets a containerd 1.6 package, and containerd 1.6 to 2.x upgrades are not supported
+    - ubuntu-1804 # gets a containerd 1.6 package, and containerd 1.6 to 2.x upgrades are not supported
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
@@ -342,6 +352,14 @@
     if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
       containerd --version | grep "__testver__"
     fi
+  unsupportedOSIDs:
+    # containerd 2.3.3 fails on these older kernels, and they get a containerd 1.6 package that
+    # can't be upgraded to 2.x
+    - amzn-20
+    - centos-74
+    - centos-79
+    - ol-79
+    - ubuntu-1804
 
 - name: "flannel latest multinode"
   installerSpec:
@@ -356,4 +374,12 @@
       version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
-
+  postInstallScript: |
+    # containerd 2.x add-ons install runc 1.3.6 on OSes that only get a containerd 1.x package
+    . /etc/os-release
+    case "__testver__-$ID-$VERSION_ID" in
+      2.*-amzn-2|2.*-centos-7*|2.*-rhel-7*|2.*-ol-7*|2.*-ubuntu-18.04)
+        runc --version
+        runc --version | grep -q 'runc version 1.3.6'
+        ;;
+    esac

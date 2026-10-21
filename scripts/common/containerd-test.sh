@@ -407,6 +407,70 @@ function test_join_tolerates_missing_137_guard() {
     assertEquals "containerd_join does not error with 'command not found'" "1" "$?"
 }
 
+# --- runc selection tests ---
+
+# Runs containerd_install_runc against a fake /usr/bin/containerd printing $1 (no binary when
+# empty) and an add-on src dir holding runc and, unless $2 is "no-asset", runc-1.3.6. Prints the
+# installed runc content and stores the exit code in RUNC_RC.
+function run_install_runc() {
+    local version_output="$1" asset="$2"
+    local src dest
+    src="$(mktemp -d)"
+    dest="$(mktemp -d)/runc"
+    mkdir -p "$src/assets"
+    echo "runc-1.5.1" > "$src/assets/runc"
+    if [ "$asset" != "no-asset" ]; then
+        echo "runc-1.3.6" > "$src/assets/runc-1.3.6"
+    fi
+    rm -f /usr/bin/containerd
+    if [ -n "$version_output" ]; then
+        printf '#!/bin/sh\necho "%s"\n' "$version_output" > /usr/bin/containerd
+        chmod +x /usr/bin/containerd
+    fi
+    (
+        which() { echo "$dest"; }
+        try_1m_stderr() { "$@"; }
+        containerd_install_runc "$src"
+    ) >/dev/null 2>&1
+    RUNC_RC=$?
+    rm -f /usr/bin/containerd
+    cat "$dest" 2>/dev/null || true
+}
+
+function test_install_runc_containerd_1x() {
+    CONTAINERD_VERSION="2.3.6"
+    local installed
+    installed="$(run_install_runc "containerd containerd.io 1.6.33 d2d58213f83a351ca8f528a95fbd145f5654e957")"
+    assertEquals "2.x add-on on containerd 1.x installs runc 1.3.6" "runc-1.3.6" "$installed"
+}
+
+function test_install_runc_containerd_2x() {
+    CONTAINERD_VERSION="2.3.6"
+    local installed
+    installed="$(run_install_runc "containerd github.com/containerd/containerd/v2 v2.3.6 fcd43222d6b07379a4be9786bda52438f0dd16a1")"
+    assertEquals "2.x add-on on containerd 2.x installs the add-on runc" "runc-1.5.1" "$installed"
+}
+
+function test_install_runc_missing_asset_bails() {
+    CONTAINERD_VERSION="2.3.6"
+    run_install_runc "containerd containerd.io 1.6.33 d2d58213f83a351ca8f528a95fbd145f5654e957" "no-asset" >/dev/null
+    assertEquals "2.x add-on on containerd 1.x bails without runc-1.3.6" "1" "$RUNC_RC"
+}
+
+function test_install_runc_unknown_version() {
+    CONTAINERD_VERSION="2.3.6"
+    local installed
+    installed="$(run_install_runc "")"
+    assertEquals "unknown containerd version installs the add-on runc" "runc-1.5.1" "$installed"
+}
+
+function test_install_runc_1x_addon() {
+    CONTAINERD_VERSION="1.7.30"
+    local installed
+    installed="$(run_install_runc "containerd containerd.io 1.7.30 abc" "no-asset")"
+    assertEquals "1.x add-on installs the add-on runc" "runc-1.5.1" "$installed"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -440,6 +504,11 @@ test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 test_pre_init_tolerates_missing_137_guard
 test_join_tolerates_missing_137_guard
+test_install_runc_containerd_1x
+test_install_runc_containerd_2x
+test_install_runc_missing_asset_bails
+test_install_runc_unknown_version
+test_install_runc_1x_addon
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."

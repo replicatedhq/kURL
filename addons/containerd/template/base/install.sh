@@ -133,17 +133,22 @@ function containerd_install() {
 }
 
 # OSes without a containerd 2.x package (rhel 7, amazon linux 2, ubuntu 18.04) get a containerd 1.x
-# package instead. runc 1.5+ fails to create containers on their older kernels, so those hosts get
-# the runc-legacy asset, the runc version used with containerd 1.x, when the add-on ships one.
+# package from 2.x add-ons. runc 1.5+ fails to create containers on their older kernels, so those
+# hosts get the runc-1.3.6 asset, the runc version containerd 1.7 is tested with.
 function containerd_install_runc() {
     local src="$1"
     local runc="$src/assets/runc"
 
     local installed_version=
-    installed_version="$(containerd --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
-    if [ -f "$src/assets/runc-legacy" ] && [[ "$installed_version" == 1.* ]]; then
-        log "Installing runc-legacy for containerd $installed_version"
-        runc="$src/assets/runc-legacy"
+    installed_version="$(/usr/bin/containerd --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    if [ -z "$installed_version" ]; then
+        logWarn "Could not determine the installed containerd version, installing the add-on's runc"
+    elif [[ "$CONTAINERD_VERSION" == 2.* ]] && [[ "$installed_version" == 1.* ]]; then
+        if [ ! -f "$src/assets/runc-1.3.6" ]; then
+            bail "containerd $installed_version requires runc 1.3.6 but $src/assets/runc-1.3.6 is missing"
+        fi
+        log "Installing runc 1.3.6 for containerd $installed_version"
+        runc="$src/assets/runc-1.3.6"
     fi
 
     chmod +x "$runc"
