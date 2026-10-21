@@ -64,11 +64,7 @@ function containerd_install() {
         containerd_migrate_from_docker
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
-        chmod +x "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc"
-        # If the runc binary is executing the cp command will fail with "text file busy" error.
-        # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
-        # as soon as the container starts
-        try_1m_stderr cp "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc" "$(which runc)"
+        containerd_install_runc
     fi
 
     logStep "Containerd configuration"
@@ -140,6 +136,28 @@ function containerd_host_init() {
     containerd_require_centos8_containerd
     containerd_require_os_containerd
     containerd_install_libzstd_if_missing
+}
+
+# containerd_install_runc replaces the runc binary from the containerd.io package
+# with the runc release that upstream containerd tested against this version (the
+# assets/runc entry in the Manifest). On distros where the Manifest ships an
+# override containerd (EOL distros fall back to containerd 1.6.x), the pinned runc
+# may not support the old kernel — e.g. runc 1.5.x masked-path tmpfs mounts fail on
+# EL7/amzn2/ubuntu-18.04 — so the overwrite is skipped and the package's bundled
+# runc is kept. The version comparison is exact to avoid 2.4.2 matching 2.4.20.
+function containerd_install_runc() {
+    local installed_version=
+    installed_version="$(containerd --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+    if [ "$installed_version" != "$CONTAINERD_VERSION" ]; then
+        log "Installed containerd ${installed_version:-unknown} does not match requested $CONTAINERD_VERSION (OS package override); keeping the packaged runc"
+        return
+    fi
+
+    chmod +x "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc"
+    # If the runc binary is executing the cp command will fail with "text file busy" error.
+    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+    # as soon as the container starts
+    try_1m_stderr cp "${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc" "$(which runc)"
 }
 
 function containerd_install_libzstd_if_missing() {
@@ -302,10 +320,17 @@ function containerd_backup_config_on_schema_migration() {
     local new_schema_version=
     new_schema_version=$(echo "$probe_output" | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
     if [ -z "$new_schema_version" ]; then
-        # Probe failed: we cannot rule out a 1.x -> 2.x schema crossing, so fall through
-        # and take the backup rather than risk regenerating config.toml without one.
+        # Probe failed: we cannot rule out a 1.x -> 2.x schema crossing, so take the
+        # backup rather than risk regenerating config.toml without one. Unlike the
+        # one-time schema crossing below, a failing probe recurs on every run, so
+        # only back up when no backup exists — do not accumulate timestamped copies
+        # of an unchanged config.
         logWarn "Unable to determine the containerd config schema version; backing up the existing config before it is regenerated"
         logWarn "containerd config default output: $(echo "$probe_output" | head -1)"
+        if [ ! -e "${existing}.bak" ]; then
+            cp -a "$existing" "${existing}.bak"
+        fi
+        return
     elif [ "$new_schema_version" -lt "3" ]; then
         # staying on the 1.x schema — config.toml is regenerated in place as before
         return
@@ -525,8 +550,10 @@ function containerd_migrate_from_docker() {
 
     # Drain remaining pods using only the permissions available to kubelet
     while read -r uid; do
+        # `|| true`: a uid with no matching pod is routine (pods are deleted as the
+        # loop progresses) and must not abort the migration under set -e.
         local pod=
-        pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
+        pod=$(echo "${allPodUIDs[*]}" | grep "$uid") || true
         if [ -z "$pod" ]; then
             continue
         fi
