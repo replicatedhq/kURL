@@ -68,6 +68,11 @@ EOT
         fi
         echo "asset runc https://github.com/opencontainers/runc/releases/download/$runc_version/runc.amd64" >> $file
     fi
+    # OSes without a containerd 2.x package get a containerd 1.x package instead, and runc 1.5+ fails
+    # on their older kernels. install.sh uses runc-legacy, the runc used with containerd 1.7, for them.
+    if echo "$version" | grep -qE '^2\.'; then
+        echo "asset runc-legacy https://github.com/opencontainers/runc/releases/download/v1.3.5/runc.amd64" >> $file
+    fi
 }
 
 function add_supported_os_to_manifest_file() {

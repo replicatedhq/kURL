@@ -64,11 +64,7 @@ function containerd_install() {
         containerd_migrate_from_docker
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
-        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
-        # If the runc binary is executing the cp command will fail with "text file busy" error.
-        # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
-        # as soon as the container starts
-        try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+        containerd_install_runc "$src"
     fi
 
     logStep "Containerd configuration"
@@ -134,6 +130,27 @@ function containerd_install() {
             try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1. "$(get_local_node_name)"
         fi
     fi
+}
+
+# OSes without a containerd 2.x package (rhel 7, amazon linux 2, ubuntu 18.04) get a containerd 1.x
+# package instead. runc 1.5+ fails to create containers on their older kernels, so those hosts get
+# the runc-legacy asset, the runc version used with containerd 1.x, when the add-on ships one.
+function containerd_install_runc() {
+    local src="$1"
+    local runc="$src/assets/runc"
+
+    local installed_version=
+    installed_version="$(containerd --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    if [ -f "$src/assets/runc-legacy" ] && [[ "$installed_version" == 1.* ]]; then
+        log "Installing runc-legacy for containerd $installed_version"
+        runc="$src/assets/runc-legacy"
+    fi
+
+    chmod +x "$runc"
+    # If the runc binary is executing the cp command will fail with "text file busy" error.
+    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+    # as soon as the container starts
+    try_1m_stderr cp "$runc" "$(which runc)"
 }
 
 function containerd_host_init() {
