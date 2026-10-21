@@ -35,6 +35,13 @@
     echo "checking /var/lib/kubelet/kubeadm-flags.env"
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.10, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.10
+  unsupportedOSIDs:
+    # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
+    # EOL kernels (unsupported tmpfs nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - centos-79
+    - ol-79
+    - ubuntu-1804
 
 - name: basic containerd and flannel, internal LB, airgap, 1.33 to 1.35, airgap
   airgap: true
@@ -85,6 +92,10 @@
     - centos-74
     - centos-79
     - ol-79
+    # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
+    # EOL kernels (unsupported tmpfs nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - ubuntu-1804
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   flags: "yes"
@@ -154,6 +165,13 @@
     - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    # the upgrade targets containerd latest (>= 2.3.6), which pins runc 1.5.x —
+    # it cannot create containers on these EOL kernels (unsupported tmpfs
+    # nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - centos-79
+    - ol-79
+    - ubuntu-1804
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
@@ -226,6 +244,13 @@
     - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
+    # the upgrade targets containerd latest (>= 2.3.6), which pins runc 1.5.x —
+    # it cannot create containers on these EOL kernels (unsupported tmpfs
+    # nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - centos-79
+    - ol-79
+    - ubuntu-1804
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
@@ -291,6 +316,10 @@
     - centos-74
     - centos-79
     - ol-79
+    # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
+    # EOL kernels (unsupported tmpfs nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - ubuntu-1804
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
@@ -342,6 +371,13 @@
     if ! is_ubuntu_2404 && ! is_ubuntu_2604 && ! is_amazon_2023; then
       containerd --version | grep "__testver__"
     fi
+  unsupportedOSIDs:
+    # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
+    # EOL kernels (unsupported tmpfs nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - centos-79
+    - ol-79
+    - ubuntu-1804
 
 - name: "flannel latest multinode"
   installerSpec:
@@ -356,4 +392,11 @@
       version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+  unsupportedOSIDs:
+    # containerd >= 2.4 pins runc 1.5.x, which cannot create containers on these
+    # EOL kernels (unsupported tmpfs nr_blocks/nr_inodes masked-path mount options)
+    - amzn-20
+    - centos-79
+    - ol-79
+    - ubuntu-1804
 
