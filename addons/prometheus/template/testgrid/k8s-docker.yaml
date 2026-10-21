@@ -20,11 +20,11 @@
     kubectl -n monitoring rollout status deployment/grafana --timeout=180s
     kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
   unsupportedOSIDs:
-  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
-  - ol-79
-  - ol-8x
-  - amzn-20
-  - ubuntu-1804
+  - centos-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-8x # containerd 2.x runc cannot create containers on the 4.18 kernel
+  - amzn-20 # containerd 2.x runc cannot create containers on the 4.14 kernel
+  - ubuntu-1804 # containerd 2.x runc cannot create containers on the 4.15 kernel
 - name: "prometheus upgrade from 0.33.0"
   cpu: 5
   unsupportedOSIDs:
@@ -136,11 +136,11 @@
     kubectl -n monitoring rollout status deployment/grafana --timeout=180s
     kubectl get --raw /api/v1/namespaces/monitoring/services/prometheus-k8s:9090/proxy/-/ready
   unsupportedOSIDs:
-  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
-  - ol-79
-  - ol-8x
-  - amzn-20
-  - ubuntu-1804
+  - centos-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-8x # containerd 2.x runc cannot create containers on the 4.18 kernel
+  - amzn-20 # containerd 2.x runc cannot create containers on the 4.14 kernel
+  - ubuntu-1804 # containerd 2.x runc cannot create containers on the 4.15 kernel
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
@@ -160,8 +160,8 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
-  - centos-79 # old-kernel OSes (3.10 / 4.14) can't run the current runc
-  - ol-79
-  - ol-8x
-  - amzn-20
-  - ubuntu-1804
+  - centos-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-79 # containerd 2.x runc cannot create containers on the 3.10 kernel
+  - ol-8x # containerd 2.x runc cannot create containers on the 4.18 kernel
+  - amzn-20 # containerd 2.x runc cannot create containers on the 4.14 kernel
+  - ubuntu-1804 # containerd 2.x runc cannot create containers on the 4.15 kernel
