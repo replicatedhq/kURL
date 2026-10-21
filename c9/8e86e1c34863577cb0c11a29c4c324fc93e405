@@ -1,0 +1,25 @@
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  s_8f1bf05a12c6de::t_084f8360338b6d 38-44
+  s_8f1bf05a12c6de::t_6ac96f3a33553d 319-322
+  s_8f1bf05a12c6de::t_b437e46a92a2f3 247-253
+  s_8f1bf05a12c6de::t_547e490b15cbf1 168-174
+  s_8f1bf05a12c6de::t_77ccc40686704e 95-98
+  s_8f1bf05a12c6de::t_f3e5096fef352f 374-380
+  s_8f1bf05a12c6de::t_edd186a1283c94 395-401
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c98e86e1c34863577cb0c11a29c4c324fc93e405",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
