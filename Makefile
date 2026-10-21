@@ -710,6 +710,9 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh
 	./scripts/common/upgrade-test.sh
+	./scripts/install-test.sh
+	./scripts/upgrade-test.sh
+	./scripts/join-test.sh
 	./packages/kubernetes/template/script-test.sh
 	./packages/kubernetes/template/add-minor-test.sh
 	./scripts/distro/kubeadm/distro-test.sh

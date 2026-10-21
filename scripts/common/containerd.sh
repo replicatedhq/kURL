@@ -152,6 +152,150 @@ function containerd_evaluate_upgrade() {
     done
 }
 
+# containerd_find_pause_image_line lists containerd's imported images and prints (on stdout)
+# the `ctr images list` line matching the given sandbox_image ref, falling back to matching by
+# repo+tag or by digest when sandbox_image records a ref that containerd imported the image
+# under a different name for (an airgap mirror rewrite, or sandbox_image itself pinned to a
+# digest while the image was imported by tag). Prints nothing -- not an error -- when the image
+# is simply not imported. Returns non-zero (already logWarn'd) when the list itself failed or
+# the repo+tag fallback matched more than one image ambiguously; callers must stop in that case.
+function containerd_find_pause_image_line() {
+    local sock="$1" pause_image="$2"
+
+    local list_output=
+    if ! list_output="$(ctr -a "$sock" -n=k8s.io images list 2>&1)"; then
+        logWarn "Failed to list containerd images while checking pause-image pin ($list_output); will retry on next install/upgrade run"
+        return 1
+    fi
+
+    local image_line=
+    image_line="$(echo "$list_output" | awk -v img="$pause_image" '$1 == img { print; exit }')"
+    if [ -z "$image_line" ]; then
+        case "$pause_image" in
+            *@sha256:*)
+                local pause_digest="${pause_image##*@}"
+                image_line="$(echo "$list_output" | awk -v d="$pause_digest" '$3 == d { print; exit }')"
+                ;;
+            *)
+                local pause_repo_tag="${pause_image##*/}"
+                local repo_tag_matches
+                repo_tag_matches="$(echo "$list_output" | awk -v rt="$pause_repo_tag" '
+                    $1 == rt { print; next }
+                    {
+                        suffix = "/" rt
+                        n = length($1) - length(suffix)
+                        if (n >= 0 && substr($1, n + 1) == suffix) print
+                    }
+                ')"
+                if [ -n "$repo_tag_matches" ] && [ "$(echo "$repo_tag_matches" | wc -l)" -gt 1 ]; then
+                    logWarn "Multiple containerd images match pause image repo+tag $pause_repo_tag ambiguously; skipping pin, will retry on next install/upgrade run"
+                    return 1
+                fi
+                image_line="$repo_tag_matches"
+                ;;
+        esac
+    fi
+
+    echo "$image_line"
+}
+
+# containerd_ensure_pause_image_pinned guards against a containerd 1.x gap: it only marks an
+# image io.cri-containerd.pinned=pinned the first time it observes an image matching the
+# running process's sandbox_image (pkg/cri/server/image_pull.go). A kURL upgrade imports the
+# new pause image into containerd while the OLD daemon (with the OLD sandbox_image) is still
+# running, then restarts containerd with the new sandbox_image already written to config.toml
+# -- so the new pause image is never pinned. Kubelet GC (Kubernetes >= 1.29) or
+# `crictl rmi --prune` can then remove it; on an airgapped host that cannot re-pull it, the next
+# reboot takes the control plane down. containerd 2.x re-checks the pin on every image event and
+# does not expose sandbox_image in config.toml at all, so kubernetes_containerd_pause_image
+# already returns empty there and this is a no-op. Safe to call on every kURL run -- it also
+# heals clusters that already upgraded before this fix existed, including a node where kubelet
+# GC already removed the unpinned image: when kubeadm has previously configured this node
+# (KUBELET_FLAGS_FILE exists) but the image is absent, that is not a fresh install -- it is the
+# exact end-state this function exists to heal -- so it re-imports the kubernetes package
+# images and retries the pin.
+function containerd_ensure_pause_image_pinned() {
+    if [ -z "$CONTAINERD_VERSION" ] || [ ! -f /etc/containerd/config.toml ]; then
+        return
+    fi
+
+    local active_status=
+    if ! active_status="$(systemctl is-active containerd 2>&1)"; then
+        case "$active_status" in
+            inactive|failed|unknown|activating|deactivating)
+                return
+                ;;
+            *)
+                logWarn "systemctl is-active containerd returned an unexpected result ($active_status); skipping pause-image pin check, will retry on next install/upgrade run"
+                return
+                ;;
+        esac
+    fi
+
+    local pause_image=
+    pause_image="$(kubernetes_containerd_pause_image)"
+    if [ -z "$pause_image" ]; then
+        return
+    fi
+
+    local sock=
+    sock="$("${K8S_DISTRO}"_get_containerd_sock)"
+
+    local image_line=
+    image_line="$(containerd_find_pause_image_line "$sock" "$pause_image")" || return 0
+
+    if [ -z "$image_line" ]; then
+        if [ ! -f "$KUBELET_FLAGS_FILE" ]; then
+            # kubeadm has never configured this node -- a fresh install before images are
+            # loaded. Nothing has used this pause image yet, so there is nothing to heal.
+            return
+        fi
+
+        local running_pause_image=
+        running_pause_image="$(grep -o '\--pod-infra-container-image=[^" ]*' "$KUBELET_FLAGS_FILE" | awk -F'=' '{ print $2 }')"
+        if [ -n "$running_pause_image" ] && [ "$running_pause_image" != "$pause_image" ]; then
+            # sandbox_image was already rewritten to this target version ahead of the actual
+            # image import step (maybe_upgrade / kubernetes_configure_pause_image_upgrade), but
+            # kubelet is still running the OLD pause image. The new image simply has not been
+            # imported yet -- that is not kubelet GC removing an image that was in use, so there
+            # is nothing to heal on this call; the next containerd_ensure_pause_image_pinned call
+            # (after the real import) will pin it.
+            return
+        fi
+
+        # kubeadm already configured this node with this sandbox_image, so containerd should
+        # already have the image -- its absence means kubelet GC (or `crictl rmi --prune`)
+        # removed it while it was unpinned. Re-import the kubernetes package images and retry
+        # so a future sandbox create does not try, and on an airgapped host fail, to pull it.
+        logWarn "Pause image $pause_image expected but missing from containerd; re-importing kubernetes package images to heal"
+        local reimport_rc=0
+        load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images" || reimport_rc=$?
+        if [ "$reimport_rc" -ne 0 ]; then
+            logWarn "Failed to re-import kubernetes package images while healing pause image $pause_image (exit $reimport_rc); will retry on next install/upgrade run"
+        fi
+        image_line="$(containerd_find_pause_image_line "$sock" "$pause_image")" || return 0
+        if [ -z "$image_line" ]; then
+            logWarn "Pause image $pause_image still missing from containerd after re-importing kubernetes images; will retry on next install/upgrade run"
+            return
+        fi
+    fi
+
+    if echo "$image_line" | grep -q 'io.cri-containerd.pinned=pinned'; then
+        return
+    fi
+
+    local matched_ref=
+    matched_ref="$(echo "$image_line" | awk '{ print $1 }')"
+
+    log "Pinning containerd pause image $matched_ref"
+    local label_output=
+    if ! label_output="$(ctr -a "$sock" -n=k8s.io images label -- "$matched_ref" io.cri-containerd.pinned=pinned 2>&1)"; then
+        logWarn "Failed to pin containerd pause image $matched_ref ($label_output); will retry on next install/upgrade run"
+    elif [ -n "$label_output" ]; then
+        echo "$label_output"
+    fi
+}
+
 function use_os_containerd() {
     if ! host_packages_shipped && ! is_rhel_9_variant ; then
         # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
