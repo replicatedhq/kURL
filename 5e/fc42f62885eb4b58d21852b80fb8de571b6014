@@ -1,0 +1,32 @@
+addons/containerd/template/script.sh
+  s_8f1bf05a12c6de::t_d2fb60ec702694 304-323
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  s_8f1bf05a12c6de::t_c106453a96e49e 309
+addons/containerd/template/base/install-test.sh
+  s_8f1bf05a12c6de::t_170de54d129f4d 47
+  s_8f1bf05a12c6de::t_05b784ea983ae1 8-14
+  s_8f1bf05a12c6de::t_179103175e6f6a 198,206-222
+  s_8f1bf05a12c6de::t_7cc59334e37acc 117,119,125-129,131-132,142-160,168-170
+addons/containerd/template/base/install.sh
+  s_8f1bf05a12c6de::t_1352606a1bd17c 494-500,506,508,510,515-524,531-532,534
+  s_8f1bf05a12c6de::t_fca66e8c7a8977 346-348,351-352
+  s_8f1bf05a12c6de::t_994110fcab24d2 593-595,597
+  s_8f1bf05a12c6de::t_586fc40026dd7a 141-145
+  s_8f1bf05a12c6de::t_e28277eb3a3e6b 375-384
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5efc42f62885eb4b58d21852b80fb8de571b6014",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
