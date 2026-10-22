@@ -1,7 +1,7 @@
 # Upstream Dockerfile: https://github.com/minio/minio/blob/master/Dockerfile.release
 # Go build flags: https://github.com/minio/minio/blob/master/Makefile
 
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS builder
 
 ARG TARGETARCH
 ARG RELEASE
