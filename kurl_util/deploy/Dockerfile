@@ -1,4 +1,4 @@
-FROM golang:1.27.2 AS build
+FROM golang:1.27.3 AS build
 
 WORKDIR /go/src/github.com/replicatedhq/kurl
 COPY kurl_util/cmd kurl_util/cmd
@@ -11,7 +11,7 @@ COPY Makefile Makefile
 
 RUN make build/bin
 
-FROM golang:1.27.2 AS cri-tools-build
+FROM golang:1.27.3 AS cri-tools-build
 
 ARG CRITOOLS_VERSION=v1.37.0
 ARG CRITOOLS_COMMIT=13496db06e3f6636a0855977dd86344698dfc501

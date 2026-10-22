@@ -1,6 +1,6 @@
 module github.com/replicatedhq/kurl
 
-go 1.27.2
+go 1.27.3
 
 require (
 	code.cloudfoundry.org/bytefmt v0.94.0
