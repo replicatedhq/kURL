@@ -36,9 +36,7 @@
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause # should be 3.10, this is for debugging
     cat /var/lib/kubelet/kubeadm-flags.env | grep pause:3.10
     # containerd 2.x add-ons install runc 1.3.6 on OSes that only get a containerd 1.x package
-    # (ubuntu-18.04 is excluded below: even runc 1.3.6 cannot create containers on
-    # its vanilla 4.15 kernel — the CVE-2026-41579 masked-path hardening needs
-    # tmpfs nr_blocks/nr_inodes mount options, which only the RHEL7/amzn2 kernels carry)
+    # (ubuntu-18.04 is excluded below: no CVE-2026-41579-fixed runc runs on its 4.15 kernel)
     . /etc/os-release
     case "__testver__-$ID-$VERSION_ID" in
       2.*-amzn-2|2.*-centos-7*|2.*-rhel-7*|2.*-ol-7*)
@@ -47,7 +45,7 @@
         ;;
     esac
   unsupportedOSIDs:
-    - ubuntu-1804 # runc >= 1.3.6 (all CVE-2026-41579-fixed releases) cannot create containers on its kernel
+    - ubuntu-1804 # no CVE-2026-41579-fixed runc (>= 1.3.6) runs on its 4.15 kernel
 
 - name: basic containerd and flannel, internal LB, airgap, 1.33 to 1.35, airgap
   airgap: true
@@ -97,7 +95,7 @@
   unsupportedOSIDs:
     - centos-79
     - ol-79
-    - ubuntu-1804 # runc >= 1.3.6 (all CVE-2026-41579-fixed releases) cannot create containers on its kernel
+    - ubuntu-1804 # no CVE-2026-41579-fixed runc (>= 1.3.6) runs on its 4.15 kernel
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   flags: "yes"
@@ -167,7 +165,7 @@
     - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
-    - ubuntu-1804 # runc >= 1.3.6 (all CVE-2026-41579-fixed releases) cannot create containers on its kernel
+    - ubuntu-1804 # no CVE-2026-41579-fixed runc (>= 1.3.6) runs on its 4.15 kernel
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
@@ -240,7 +238,7 @@
     - rocky-10 # docker is not supported on rhel 9 variants
     - rocky-9 # docker is not supported on rhel 9 variants
     - centos-9 # docker is not supported on rhel 9 variants
-    - ubuntu-1804 # runc >= 1.3.6 (all CVE-2026-41579-fixed releases) cannot create containers on its kernel
+    - ubuntu-1804 # no CVE-2026-41579-fixed runc (>= 1.3.6) runs on its 4.15 kernel
     # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
     - amazon-2023 # docker is not supported on amazon 2023
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 2404.
@@ -306,7 +304,7 @@
     - centos-79
     - ol-79
     - amzn-20 # gets a containerd 1.6 package, and containerd 1.6 to 2.x upgrades are not supported
-    - ubuntu-1804 # gets a containerd 1.6 package, and containerd 1.6 to 2.x upgrades are not supported
+    - ubuntu-1804 # 2.x blocked on 18.04 by preflight; 1.6-to-2.x upgrades unsupported regardless
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
@@ -380,9 +378,7 @@
   numSecondaryNodes: 2
   postInstallScript: |
     # containerd 2.x add-ons install runc 1.3.6 on OSes that only get a containerd 1.x package
-    # (ubuntu-18.04 is excluded below: even runc 1.3.6 cannot create containers on
-    # its vanilla 4.15 kernel — the CVE-2026-41579 masked-path hardening needs
-    # tmpfs nr_blocks/nr_inodes mount options, which only the RHEL7/amzn2 kernels carry)
+    # (ubuntu-18.04 is excluded below: no CVE-2026-41579-fixed runc runs on its 4.15 kernel)
     . /etc/os-release
     case "__testver__-$ID-$VERSION_ID" in
       2.*-amzn-2|2.*-centos-7*|2.*-rhel-7*|2.*-ol-7*)
@@ -391,4 +387,4 @@
         ;;
     esac
   unsupportedOSIDs:
-    - ubuntu-1804 # runc >= 1.3.6 (all CVE-2026-41579-fixed releases) cannot create containers on its kernel
+    - ubuntu-1804 # no CVE-2026-41579-fixed runc (>= 1.3.6) runs on its 4.15 kernel
