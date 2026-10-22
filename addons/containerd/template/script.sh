@@ -301,25 +301,26 @@ function find_common_versions() {
             add_supported_os_to_manifest_file "$version" "ubuntu-16.04" "Dockerfile.ubuntu16"
         fi
 
-        if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
-            echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
-            case "$version" in
-                2.*)
-                    # ubuntu 18.04's vanilla 4.15 kernel lacks the tmpfs nr_blocks/nr_inodes
-                    # mount options that every CVE-2026-41579-fixed runc (>= 1.3.6, shipped
-                    # with all 2.x add-ons) needs to create containers, so fail the preflight
-                    # instead of warning and installing a known-broken containerd+runc pair.
-                    add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
-                    ;;
-                *)
+        case "$version" in
+            2.*)
+                # ubuntu 18.04's vanilla 4.15 kernel lacks the tmpfs nr_blocks/nr_inodes
+                # mount options that every CVE-2026-41579-fixed runc (>= 1.3.6, shipped
+                # with all 2.x add-ons) needs to create containers. Fail the preflight
+                # unconditionally — even if the ubuntu-18.04 repo ever offers a 2.x
+                # package — and ship no package for a platform we block.
+                add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
+                ;;
+            *)
+                if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
+                    echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
                     add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
-                    ;;
-            esac
-            add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
-        else
-            add_supported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
-            add_supported_os_to_manifest_file "$version" "ubuntu-18.04" "Dockerfile.ubuntu18"
-        fi
+                    add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
+                else
+                    add_supported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
+                    add_supported_os_to_manifest_file "$version" "ubuntu-18.04" "Dockerfile.ubuntu18"
+                fi
+                ;;
+        esac
 
         if ! contains "$version" ${UBUNTU20_VERSIONS[*]}; then
             echo "Ubuntu 20 lacks version $version"
