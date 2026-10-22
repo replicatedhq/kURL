@@ -1,0 +1,46 @@
+addons/containerd/template/base/install.sh
+  s_8f1bf05a12c6de::t_fca66e8c7a8977 342-343
+  s_8f1bf05a12c6de::t_e0fee1e049bba3 492
+  s_8f1bf05a12c6de::t_9fe9d7bc8c1b04 503-505
+  s_8f1bf05a12c6de::t_7662bf7f61af3e 579,585
+  s_8f1bf05a12c6de::t_0744c407bf16cf 366
+  s_8f1bf05a12c6de::t_5a03934e10154a 326,332-335,337
+  s_8f1bf05a12c6de::t_e28277eb3a3e6b 367-373
+  s_8f1bf05a12c6de::t_460033c73d2261 167-172
+  s_8f1bf05a12c6de::t_7b9d69e7a64834 135-137
+  s_8f1bf05a12c6de::t_994110fcab24d2 581
+  s_8f1bf05a12c6de::t_1352606a1bd17c 483-489,494,496,498,506-510,517-518,520
+  s_8f1bf05a12c6de::t_be8fc9fb38c30f 675
+  s_8f1bf05a12c6de::t_94201135e4cf6a 621
+addons/containerd/template/script.sh
+  s_8f1bf05a12c6de::t_d2fb60ec702694 308-319
+  s_8f1bf05a12c6de::t_2d2954de02fa23 304-307
+addons/containerd/template/testgrid/k8s-ctrd.yaml
+  s_8f1bf05a12c6de::t_1011b73b10ca39 39,48
+  s_8f1bf05a12c6de::t_a1f7c4b9bd346f 381,390
+  s_8f1bf05a12c6de::t_11e3be873821b8 307
+  s_8f1bf05a12c6de::t_41f94d73a52bef 98,168,241
+addons/containerd/template/base/install-test.sh
+  s_8f1bf05a12c6de::t_05b784ea983ae1 10,12
+  s_8f1bf05a12c6de::t_7d9ab12bc20a82 7-9,11
+  s_8f1bf05a12c6de::t_179103175e6f6a 167,169-170,176,178-180
+  s_8f1bf05a12c6de::t_ce6350eef1f508 123,131,138-139
+  s_8f1bf05a12c6de::t_7cc59334e37acc 115,117,124-125,127-128,137,140-141,143-144,147-148,151-153
+  s_8f1bf05a12c6de::t_170de54d129f4d 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6ff8c56dc6846525f00d62f609bd655f4d8082d0",
+  "prompts": {},
+  "sessions": {
+    "s_8f1bf05a12c6de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ea2e5e399ffeOF37SDiihQ2hur",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": null
+    }
+  }
+}
