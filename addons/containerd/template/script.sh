@@ -303,7 +303,18 @@ function find_common_versions() {
 
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
             echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
-            add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
+            case "$version" in
+                2.*)
+                    # ubuntu 18.04's vanilla 4.15 kernel lacks the tmpfs nr_blocks/nr_inodes
+                    # mount options that every CVE-2026-41579-fixed runc (>= 1.3.6, shipped
+                    # with all 2.x add-ons) needs to create containers, so fail the preflight
+                    # instead of warning and installing a known-broken containerd+runc pair.
+                    add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
+                    ;;
+                *)
+                    add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
+                    ;;
+            esac
             add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
         else
             add_supported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"

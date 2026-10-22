@@ -336,9 +336,11 @@ function containerd_backup_config_on_schema_migration() {
         # only back up when no backup exists — do not accumulate timestamped copies
         # of an unchanged config.
         logWarn "Unable to determine the containerd config schema version; backing up the existing config before it is regenerated"
-        # Log the full probe output, not just the first line: the actual error is
-        # often not line one.
-        logWarn "containerd config default output: $probe_output"
+        # Log the full probe output, not just the first line: the actual error is often
+        # not line one. logWarn's message doubles as a printf format string, so the
+        # probe output (which may contain %) is printed separately and literally.
+        logWarn "containerd config default output:"
+        printf '%s\n' "$probe_output" 1>&2
         if [ ! -e "${existing}.bak" ]; then
             cp -a "$existing" "${existing}.bak"
         fi

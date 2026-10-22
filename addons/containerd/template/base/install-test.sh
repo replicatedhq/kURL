@@ -4,6 +4,14 @@
 
 set -e
 
+# These tests stub system tools and write to (and tearDown removes) the real
+# /etc/containerd and /etc/systemd/system/containerd.service.d paths, so they must
+# only ever run in a disposable container — never on a host.
+if [ ! -f /.dockerenv ]; then
+    echo "install-test.sh writes to and removes /etc/containerd and /etc/systemd paths; run it in a container (make docker-test-shell)" >&2
+    exit 1
+fi
+
 # shellcheck disable=SC1091
 . ./scripts/common/common.sh
 # shellcheck disable=SC1091
