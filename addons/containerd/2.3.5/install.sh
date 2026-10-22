@@ -64,11 +64,7 @@ function containerd_install() {
         containerd_migrate_from_docker
         containerd_install_container_selinux_if_missing
         install_host_packages "$src" containerd.io
-        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
-        # If the runc binary is executing the cp command will fail with "text file busy" error.
-        # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
-        # as soon as the container starts
-        try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+        containerd_install_runc "$src"
     fi
 
     logStep "Containerd configuration"
@@ -134,6 +130,38 @@ function containerd_install() {
             try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1. "$(get_local_node_name)"
         fi
     fi
+}
+
+# OSes without a containerd 2.x package (rhel 7, amazon linux 2, ubuntu 18.04) get a containerd 1.x
+# package from 2.x add-ons. runc 1.5+ fails to create containers on their older kernels, so those
+# hosts get the runc-1.3.6 asset, the runc version containerd 1.7 is tested with.
+function containerd_install_runc() {
+    local src="$1"
+    local runc="$src/assets/runc"
+
+    local version_output= installed_version=
+    version_output="$(/usr/bin/containerd --version 2>&1 || true)"
+    installed_version="$(echo "$version_output" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    if [ -z "$installed_version" ]; then
+        logWarn "Could not determine the installed containerd version, installing the add-on's runc. /usr/bin/containerd --version: ${version_output:-no output}"
+    else
+        case "$CONTAINERD_VERSION/$installed_version" in
+            2.*/1.*)
+                if [ ! -f "$src/assets/runc-1.3.6" ]; then
+                    bail "containerd $installed_version requires runc 1.3.6 but $src/assets/runc-1.3.6 is missing"
+                fi
+                log "Installing runc 1.3.6 for containerd $installed_version"
+                runc="$src/assets/runc-1.3.6"
+                ;;
+        esac
+    fi
+
+    chmod +x "$runc"
+    # If the runc binary is executing the cp command will fail with "text file busy" error.
+    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+    # as soon as the container starts
+    try_1m_stderr cp "$runc" "$(which runc)"
+    log "Installed $(runc --version 2>&1 | head -n 1 || true)"
 }
 
 function containerd_host_init() {
