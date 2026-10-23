@@ -1,0 +1,14 @@
+yum lvm2
+yumol lvm2
+apt lvm2
+
+image rook-ceph docker.io/kurlsh/rook-ceph:v1.20.9
+image cephcsi-ceph-csi-operator docker.io/kurlsh/ceph-csi-operator:v1.0.4
+image ceph-ceph docker.io/kurlsh/ceph:v20.2.4
+image sig-storage-csi-provisioner docker.io/kurlsh/csi-provisioner:v6.2.0
+image sig-storage-csi-attacher docker.io/kurlsh/csi-attacher:v4.12.0
+image sig-storage-csi-resizer docker.io/kurlsh/csi-resizer:v2.1.0
+image sig-storage-csi-snapshotter docker.io/kurlsh/csi-snapshotter:v8.5.0
+image sig-storage-csi-node-driver-registrar docker.io/kurlsh/csi-node-driver-registrar:v2.17.0
+image cephcsi-cephcsi docker.io/kurlsh/cephcsi:v3.17.1
+image csiaddons-k8s-sidecar docker.io/kurlsh/csiaddons-k8s-sidecar:v0.14.0
