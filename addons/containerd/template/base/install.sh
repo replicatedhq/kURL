@@ -47,7 +47,7 @@ function containerd_join() {
 
 function containerd_install() {
     if use_os_containerd; then
-        require_os_containerd
+        containerd_require_os_containerd
         log "Using containerd version provided by the Operating System."
         if ! systemctl is-active --quiet containerd; then
             systemctl start containerd
@@ -87,9 +87,9 @@ function containerd_install() {
     fi
 
     log "Checking registry configuration for the distro ${K8S_DISTRO} and if Docker registry IP is set"
-    if commandExists ${K8S_DISTRO}_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
+    if commandExists "${K8S_DISTRO}"_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
         log "Docker registry IP is set with the value: ($DOCKER_REGISTRY_IP)"
-        ${K8S_DISTRO}_registry_containerd_configure "$DOCKER_REGISTRY_IP"
+        "${K8S_DISTRO}"_registry_containerd_configure "$DOCKER_REGISTRY_IP"
         CONTAINERD_NEEDS_RESTART=1
     fi
 
@@ -113,7 +113,7 @@ function containerd_install() {
     fi
 
     logStep "Loading images into containerd"
-    load_images $src/images
+    load_images "$src"/images
     logSuccess "Images loaded successfully"
 
     log "Checking if the kubelet service is enabled"
@@ -132,9 +132,9 @@ function containerd_install() {
     fi
 }
 
-# OSes without a containerd 2.x package (rhel 7, amazon linux 2, ubuntu 18.04) get a containerd 1.x
-# package from 2.x add-ons. runc 1.5+ fails to create containers on their older kernels, so those
-# hosts get the runc-1.3.6 asset, the runc version containerd 1.7 is tested with.
+# OSes without a containerd 2.x package (rhel 7, amazon linux 2) get a containerd 1.x
+# package from 2.x add-ons. runc 1.5+ fails to create containers on their older kernels,
+# so those hosts get the runc-1.3.6 asset, the runc version containerd 1.7 is tested with.
 function containerd_install_runc() {
     local src="$1"
     local runc="$src/assets/runc"
@@ -165,8 +165,8 @@ function containerd_install_runc() {
 }
 
 function containerd_host_init() {
-    require_centos8_containerd
-    require_os_containerd
+    containerd_require_centos8_containerd
+    containerd_require_os_containerd
     containerd_install_libzstd_if_missing
 }
 
@@ -323,9 +323,27 @@ function containerd_backup_config_on_schema_migration() {
     fi
 
     # Schema version the about-to-be-configured containerd binary will emit.
+    # A failed probe must not abort the install (set -e); handled below.
+    local probe_output=
+    probe_output=$(containerd config default 2>&1) || true
     local new_schema_version=
-    new_schema_version=$(containerd config default 2>/dev/null | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
-    if [ "${new_schema_version:-2}" -lt "3" ]; then
+    new_schema_version=$(echo "$probe_output" | awk -F'=' '/^[[:space:]]*version[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}')
+    if [ -z "$new_schema_version" ]; then
+        # Probe failed: we cannot rule out a 1.x -> 2.x schema crossing, so back up
+        # before config.toml is regenerated. A failing probe recurs on every run, so
+        # skip when the existing backup already matches; only a changed config gets a
+        # new (timestamped) copy.
+        logWarn "Unable to determine the containerd config schema version; backing up the existing config before it is regenerated"
+        # logWarn's message is a printf format string, so print the probe output literally
+        logWarn "containerd config default output:"
+        printf '%s\n' "$probe_output" 1>&2
+        if [ ! -e "${existing}.bak" ]; then
+            cp -a "$existing" "${existing}.bak"
+        elif ! cmp -s "$existing" "${existing}.bak"; then
+            cp -a "$existing" "${existing}.bak.$(date +%s)"
+        fi
+        return
+    elif [ "$new_schema_version" -lt "3" ]; then
         # staying on the 1.x schema — config.toml is regenerated in place as before
         return
     fi
@@ -345,7 +363,14 @@ function containerd_configure() {
     fi
     mkdir -p /etc/containerd
     containerd_backup_config_on_schema_migration
-    containerd config default > /etc/containerd/config.toml
+    # Write via temp file + mv: a bare redirect truncates config.toml even when the command fails
+    local config_tmp=
+    config_tmp=$(mktemp /etc/containerd/config.toml.XXXXXX)
+    if ! containerd config default > "$config_tmp"; then
+        rm -f "$config_tmp"
+        bail "containerd config default failed; /etc/containerd/config.toml left untouched"
+    fi
+    mv "$config_tmp" /etc/containerd/config.toml
 
     # Read the config schema version from the generated file.
     # version = 2 → containerd 1.x; version = 3 → containerd 2.x.
@@ -382,7 +407,8 @@ function containerd_configure() {
         else
             # 1.x: unchanged — leaf-merge the user TOML into the single config.toml via bin/toml.
             log "Found Containerd TomlConfig set. Installer will patch the value $CONTAINERD_TOML_CONFIG"
-            local tmp=$(mktemp)
+            local tmp=
+            tmp=$(mktemp)
             echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
             "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
         fi
@@ -454,27 +480,44 @@ function containerd_configure_limitnofile() {
     echo "LimitNOFILE=1048576" >> "$file"
 }
 
+# containerd_proxy_conf_value reads one proxy key from the containerd proxy drop-in.
+# Missing file or missing key yields an empty value.
+function containerd_proxy_conf_value() {
+    local key="$1"
+    cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io "$key=[^\" ]*" | awk 'BEGIN { FS="=" }; { print $2 }'
+}
+
 function containerd_configure_proxy() {
     log "Configuring containerd proxy"
-    local previous_http_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'http_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
-    local previous_https_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'https_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
-    local previous_no_proxy="$(cat /etc/systemd/system/containerd.service.d/http-proxy.conf 2>/dev/null | grep -io 'no_proxy=[^\" ]*' | awk 'BEGIN { FS="=" }; { print $2 }')"
+    # `|| true`: the proxy file does not exist on a first-time proxy configuration
+    local previous_http_proxy=
+    previous_http_proxy="$(containerd_proxy_conf_value http_proxy)" || true
+    local previous_https_proxy=
+    previous_https_proxy="$(containerd_proxy_conf_value https_proxy)" || true
+    local previous_no_proxy=
+    previous_no_proxy="$(containerd_proxy_conf_value no_proxy)" || true
     log "Previous http proxy: ($previous_http_proxy)"
     log "Previous https proxy: ($previous_https_proxy)"
     log "Previous no proxy: ($previous_no_proxy)"
-    if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$PROXY_HTTPS_ADDRESS" = "$previous_https_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
-        log "No changes were found. Proxy configuration still the same"
-        return
+    if [ "$PROXY_ADDRESS" = "$previous_http_proxy" ] && [ "$PROXY_HTTPS_ADDRESS" = "$previous_https_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
+        # skip only when the running daemon already carries the env — a previous run may
+        # have died between writing the drop-in and the restart; if the check is
+        # unavailable (no systemd), proceed: writing again is the safe direction
+        if systemctl show containerd -p Environment 2>/dev/null | grep -qF "HTTP_PROXY=$PROXY_ADDRESS"; then
+            log "No changes were found. Proxy configuration still the same"
+            return
+        fi
+        log "Proxy file unchanged but the running containerd lacks the env; re-applying"
     fi
 
     log "Updating proxy configuration: HTTP_PROXY=${PROXY_ADDRESS} NO_PROXY=${NO_PROXY_ADDRESSES}"
     mkdir -p /etc/systemd/system/containerd.service.d
     local file=/etc/systemd/system/containerd.service.d/http-proxy.conf
 
-    echo "# Generated by kURL" > $file
-    echo "[Service]" >> $file
+    echo "# Generated by kURL" > "$file"
+    echo "[Service]" >> "$file"
 
-    echo "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"HTTPS_PROXY=${PROXY_HTTPS_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> $file
+    echo "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"HTTPS_PROXY=${PROXY_HTTPS_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> "$file"
 
 
     CONTAINERD_NEEDS_RESTART=1
@@ -533,16 +576,22 @@ function containerd_migrate_from_docker() {
     kubectl "$kubeconfigFlag" cordon "$node"
 
     log "Deleting pods"
-    local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
+    # `|| true`: a transient kubectl failure must not abort the migration with the node cordoned
+    local allPodUIDs=
+    allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}') || true
 
     # Drain remaining pods using only the permissions available to kubelet
     while read -r uid; do
-        local pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
+        # `|| true`: a uid with no matching pod is routine as the loop deletes pods
+        local pod=
+        pod=$(echo "${allPodUIDs[*]}" | grep "$uid") || true
         if [ -z "$pod" ]; then
             continue
         fi
-        local podName=$(echo "$pod" | awk '{ print $1 }')
-        local podNamespace=$(echo "$pod" | awk '{ print $3 }')
+        local podName=
+        podName=$(echo "$pod" | awk '{ print $1 }')
+        local podNamespace=
+        podNamespace=$(echo "$pod" | awk '{ print $3 }')
         # some may timeout but proceed anyway
         kubectl "$kubeconfigFlag" delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
     done < <(ls /var/lib/kubelet/pods)
@@ -569,8 +618,11 @@ function containerd_migrate_from_docker() {
 }
 
 function containerd_can_migrate_images_from_docker() {
-    local images_kb="$(du -sc /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
-    local available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')"
+    # `|| true`: a failed probe must yield an empty value, handled below
+    local images_kb=
+    images_kb="$(du -sc /var/lib/docker/overlay2 | grep total | awk '{print $1}')" || true
+    local available_kb=
+    available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')" || true
 
     if [ -z "$images_kb" ]; then
         logWarn "Unable to determine size of Docker images"
@@ -579,10 +631,12 @@ function containerd_can_migrate_images_from_docker() {
         logWarn "Unable to determine available disk space in /var/lib/containerd/"
         return 0
     else
-        local images_kb_x2="$(expr $images_kb + $images_kb)"
+        local images_kb_x2=$((images_kb + images_kb))
         if [ "$available_kb" -lt "$images_kb_x2" ]; then
-            local images_human="$(echo "$images_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
-            local available_human="$(echo "$available_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
+            local images_human=
+            images_human="$(echo "$images_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
+            local available_human=
+            available_human="$(echo "$available_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
             logFail "There is not enough available disk space (${available_human}) to migrate images (${images_human}) from Docker to Containerd."
             logFail "Please make sure there is at least 2 x size of Docker images available disk space."
             return 1
@@ -598,7 +652,8 @@ function containerd_migrate_images_from_docker() {
 
     # we must always clean up $tmpdir since it can take up a lot of space
     local errcode=0
-    local tmpdir="$(mktemp -d -p /var/lib/containerd)"
+    local tmpdir=
+    tmpdir="$(mktemp -d -p /var/lib/containerd)"
     _containerd_migrate_images_from_docker "$tmpdir" || errcode="$?"
     rm -rf "$tmpdir"
     return "$errcode"
@@ -616,34 +671,21 @@ function _containerd_migrate_images_from_docker() {
     done
 }
 
-# return the pause image for the current version of kubernetes.versions 1.26
-# and earlier return the empty string as they can be overridden to use a
-# different image. for amazon 2023 we always patch the pause image.
+# return the pause image for the current version of kubernetes. it is always
+# pinned (since #5371) so containerd uses the pause image kURL loads (airgap).
 function containerd_kubernetes_pause_image() {
-    if [ is_amazon_2023 ] ; then
-        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
-        return
-    fi
-
-    local minor_version=
-    minor_version="$(kubernetes_version_minor "$KUBERNETES_VERSION")"
-
-    if [ "$minor_version" -ge "27" ]; then
-        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | grep "pause" | awk '{ print $3 }'
-    else
-        echo ""
-    fi
+    grep "pause" "$DIR/packages/kubernetes/$KUBERNETES_VERSION/Manifest" | awk '{ print $3 }'
 }
 
-# require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
-function require_os_containerd() {
+# containerd_require_os_containerd ensures that the host package for containerd is installed if the OS is one we do not ship containerd packages for.
+function containerd_require_os_containerd() {
     if use_os_containerd ; then
         ensure_host_package containerd containerd
         return
     fi
 }
 
-function require_centos8_containerd() {
+function containerd_require_centos8_containerd() {
     if [ "$LSB_DIST" == "centos" ] && [ "$DIST_VERSION_MAJOR" == "8" ]; then
         # if this is not centos 8 Stream, require preinstallation of containerd on 1.6.31+
 

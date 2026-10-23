@@ -301,7 +301,15 @@ function find_common_versions() {
             add_supported_os_to_manifest_file "$version" "ubuntu-16.04" "Dockerfile.ubuntu16"
         fi
 
-        if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
+        # Fail ubuntu 18.04 when the add-on pins a CVE-2026-41579-fixed runc (>= 1.3.6):
+        # its 4.15 kernel lacks the tmpfs mount options that hardening requires. Keyed
+        # on the runc version because upstream bumps the release-branch runc-version
+        # file, so future 1.7.x/1.6.x add-ons can cross the threshold too.
+        local runc_asset_version=
+        runc_asset_version=$(grep '^asset runc ' "/tmp/containerd/$version/Manifest" | grep -oE 'download/v[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+$')
+        if [ -n "$runc_asset_version" ] && [ "$(printf '1.3.6\n%s\n' "$runc_asset_version" | sort -V | head -n 1)" = "1.3.6" ]; then
+            add_unsupported_os_to_preflight_file "$version" "ubuntu" "=" "18.04"
+        elif ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
             echo "Ubuntu 18 lacks version $version, using ${UBUNTU18_VERSIONS[0]} instead"
             add_override_os_to_preflight_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu" "18.04"
             add_override_os_to_manifest_file "$version" "${UBUNTU18_VERSIONS[0]}" "ubuntu-18.04" "Dockerfile.ubuntu18"
