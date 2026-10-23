@@ -141,7 +141,20 @@ gh workflow run testgrid-pr.yaml -f branch=<branch> -f testgrid-spec=testgrid/sp
   -f extra-packages="kubernetes-1.N.P.tar.gz kubernetes-conformance-1.N.P.tar.gz"
 ```
 
-## 5. Companion PRs (only when needed)
+## 5. External PRs
+
+### Required for every minor (lock-step)
+
+Adding 1.N to kURL is not done when the kURL PR merges. Two external PRs must accompany it, opened at the same time as — or immediately after — the kURL PR. Remind the operator about both, point them at the internal wiki's CNCF certification runbook for the conformance PR, and offer to open them before considering the work finished. The unattended workflow cannot open them, so they land on the human checklist:
+
+1. **Support Lifecycle Policy page** (`replicatedhq/replicated-docs`). The "Supported Replicated Installer Versions" section of https://docs.replicated.com/vendor/policies-support-lifecycle#supported-replicated-installer-versions lists which Kubernetes versions each kURL release supports and for how long. Open a PR to `replicatedhq/replicated-docs` updating that section so it matches the new support matrix. Precedent: replicatedhq/replicated-docs#4679.
+2. **CNCF conformance submission** (`cncf/k8s-conformance`). Submit 1.N's Sonobuoy conformance results under Replicated's product entry. Upstream review usually takes a few days, so open it as soon as the Testgrid conformance runs pass. The internal wiki documents the full certification process; if the `wiki-search` skill is available, pull the runbook from there rather than guessing at the steps.
+
+The docs page must never advertise a version kURL does not ship yet, nor keep listing one that has been retired.
+
+If the operator asks you to open the conformance PR, prepare the branch and PR body first and hand them over for review. Do not push the branch or open the PR until the operator approves, and open it as a draft when they do.
+
+### Companion PRs (only when needed)
 
 - **kURL-api** (`replicatedhq/kURL-api`, `./kurl-api` in the factory workspace): only if 1.N needs a
   compatibility rule (e.g. a runtime floor). Add it in `src/installers/index.ts` following the existing
@@ -150,7 +163,7 @@ gh workflow run testgrid-pr.yaml -f branch=<branch> -f testgrid-spec=testgrid/sp
 - **kurl.sh docs** (`replicatedhq/kurl.sh`, `src/markdown-pages/add-ons/*.md`): only for a new
   user-facing caveat. Precedent: kurl.sh#1406.
 
-Link companion PRs from the kURL PR body and vice versa.
+Link all of these from the kURL PR body and vice versa.
 
 ## 6. Local validation
 
@@ -268,6 +281,8 @@ Adds Kubernetes 1.N (1.N.P) as a new supported minor. Generated with `packages/k
 - [ ] cri-tools: confirm crictl version in the Manifest
 - [ ] Decide when to promote 1.N to latest (versions.js order + `latest` Testgrid specs)
 - [ ] Companion PRs: <kURL-api PR url | not needed>, <kurl.sh PR url | not needed>
+- [ ] Support Lifecycle Policy PR to replicatedhq/replicated-docs (policies-support-lifecycle): <PR url>
+- [ ] CNCF conformance PR to cncf/k8s-conformance (after Testgrid conformance passes): <PR url>
 
 ```release-note
 Adds [Kubernetes](https://kurl.sh/docs/add-ons/kubernetes) version(s) 1.N.P.
