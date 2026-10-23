@@ -575,6 +575,7 @@ jobs:
           TESTGRID_SPEC: ${{ github.event_name == 'workflow_dispatch' && inputs.testgrid-spec || 'testgrid/specs/deploy.yaml' }}
           TESTGRID_OS_SPEC: ${{ needs.get-tag.outputs.testgrid_os_spec }}
           PRIORITY: ${{ github.event_name == 'workflow_dispatch' && inputs.priority || '0' }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           docker run --rm -e TESTGRID_API_TOKEN -v "$(pwd)":/wrk -w /wrk \
@@ -585,7 +586,7 @@ jobs:
               --os-spec "${TESTGRID_OS_SPEC}" \
               --priority "${PRIORITY}"
 
-          MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
+          MSG="Testgrid Run(s) Executing for commit ${PR_HEAD_SHA:0:7} @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
           echo "msg=$MSG" >> "$GITHUB_OUTPUT"
           echo "::notice ::${MSG}"
 
@@ -602,5 +603,25 @@ jobs:
         with:
           message: ${{ needs.testgrid-run.outputs.msg }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          message-id: testgrid-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          # Deliberately stable per PR (no head sha): every run for this PR
+          # upserts the same sticky comment instead of piling up a new one per
+          # push. The current commit is stated in the message body itself.
+          message-id: testgrid-pr-${{ github.event.pull_request.number }}
           allow-repeats: false
+          # Edit-in-place buries the summary under newer conversation; float
+          # it back to the bottom on every update.
+          refresh-message-position: true
+
+      - name: Post minimized run-trail comment
+        # One-line per-run entry, minimized on creation. Comment *creation*
+        # still fires PR notifications (edits of the sticky comment above do
+        # not), and the collapse keeps the thread clean. Deliberately not
+        # sticky: each run appends a new collapsed entry to the trail. The
+        # message includes the ref timestamp so it is unique per run.
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
+        with:
+          message: ${{ needs.testgrid-run.outputs.msg }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allow-repeats: true
+          create-minimized: true
+          minimize-reason: outdated
