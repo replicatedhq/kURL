@@ -194,15 +194,21 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v7
 
+    - name: Set up Depot CLI
+      uses: depot/setup-action@v1
+
     - name: Generate kURL Release Notes PR
-      env:
-        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
-        curl -H "Authorization: token $GH_PAT" \
-          -H 'Accept: application/json' \
-          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
-          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
+        depot ci dispatch \
+          --repo replicatedhq/replicated-docs \
+          --workflow release-notes.yml \
+          --ref main \
+          --input event_type=kubernetes-installer-release-notes \
+          --input version="$GITHUB_REF_NAME" \
+          --input dry_run=false \
+          --token "$DEPOT_CI_DISPATCH_TOKEN"
+      env:
+        DEPOT_CI_DISPATCH_TOKEN: ${{ secrets.DEPOT_CI_DISPATCH_TOKEN }}
 
 
   github-release:
