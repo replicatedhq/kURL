@@ -27,10 +27,21 @@ Please provide minimum instructions for how someone can view/test/verify your ch
 
 #### Does this PR introduce a user-facing change?
 <!--
-If no, just write "NONE" in the release-note block below.
+Write "NONE" in any release-note block below that does not apply.
 If yes, a release note is required:
 -->
-```release-note
+New features:
+```release-notes-features
+
+```
+
+Bug fixes:
+```release-notes-fixes
+
+```
+
+Improvements:
+```release-notes-improvements
 
 ```
 
