@@ -121,9 +121,14 @@ function generate() {
     helm repo add rook-release https://charts.rook.io/release
     helm repo update
 
+    local search=
+    if ! search="$(helm search repo rook-release/rook-ceph --versions)"; then
+        echo "failed to list rook-ceph chart versions" >&2
+        return 1
+    fi
     # charts up to 1.20 are published with a "v" prefix, later ones without
     local chart_version="${VERSION}"
-    if helm search repo rook-release/rook-ceph --versions | awk '{ print $2 }' | grep -Fxq "v${VERSION}"; then
+    if awk -v want="v${VERSION}" '$2 == want { found = 1 } END { exit !found }' <<< "$search"; then
         chart_version="v${VERSION}"
     fi
 
