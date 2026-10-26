@@ -20,6 +20,7 @@ s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-resizer:(v?[0-9][[:alnum:]
 s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-provisioner:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-provisioner:\2~g
 s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-snapshotter:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-snapshotter:\2~g
 s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-attacher:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-attacher:\2~g
+s~(^|[[:space:]"'=])registry\.k8s\.io/sig-storage/csi-snapshot-metadata:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csi-snapshot-metadata:\2~g
 s~(^|[[:space:]"'=])quay\.io/csiaddons/k8s-sidecar:(v?[0-9][[:alnum:]._-]*)(@sha256:[[:xdigit:]]+)?~\1docker.io/kurlsh/csiaddons-k8s-sidecar:\2~g
 SED
 )"
