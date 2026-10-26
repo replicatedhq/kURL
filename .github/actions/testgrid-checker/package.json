@@ -21,6 +21,6 @@
     "@vercel/ncc": "^0.38.4"
   },
   "overrides": {
-    "undici": "^6.28.0"
+    "undici": "^6.29.1"
   }
 }
