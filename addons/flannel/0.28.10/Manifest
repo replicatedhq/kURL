@@ -1,0 +1,2 @@
+image flannel-io-flannel docker.io/kurlsh/flannel:v0.28.10
+image flannel-io-flannel-cni-plugin docker.io/kurlsh/flannel-cni-plugin:v1.9.1-flannel3
