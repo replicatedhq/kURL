@@ -32,11 +32,39 @@ SED
     sed -i -E "$replacements" "${files[@]}"
 }
 
+# get_latest_version prints the newest patch of the minor after the newest Rook
+# version in kURL, since Rook upgrades cannot skip minors. If that minor has no
+# release yet, it prints the newest patch of the current minor.
 function get_latest_version() {
-    helm search repo rook-release/rook-ceph 2>/dev/null | \
-        grep -F 'rook-release/rook-ceph ' | \
-        awk '{ print $2 }' | \
-        sed 's/v//'
+    local current=
+    current="$(find ../ -maxdepth 1 -type d -printf '%P\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+    if [ -z "$current" ]; then
+        echo "failed to find an existing Rook version in addons/rook" >&2
+        return 1
+    fi
+    local major=
+    major="$(echo "$current" | cut -d. -f1)"
+    local minor=
+    minor="$(echo "$current" | cut -d. -f2)"
+
+    local search=
+    if ! search="$(helm search repo rook-release/rook-ceph --versions)"; then
+        echo "failed to list rook-ceph chart versions" >&2
+        return 1
+    fi
+    local versions=
+    versions="$(echo "$search" | grep -F 'rook-release/rook-ceph ' | awk '{ print $2 }' | sed 's/^v//' || true)"
+
+    local latest=
+    latest="$(echo "$versions" | grep -E "^${major}\.$((minor + 1))\.[0-9]+$" | sort -V | tail -n 1 || true)"
+    if [ -z "$latest" ]; then
+        latest="$(echo "$versions" | grep -E "^${major}\.${minor}\.[0-9]+$" | sort -V | tail -n 1 || true)"
+    fi
+    if [ -z "$latest" ]; then
+        echo "failed to find a rook-ceph chart for ${major}.$((minor + 1)) or ${major}.${minor}" >&2
+        return 1
+    fi
+    echo "$latest"
 }
 
 # rook_csi_images prints the CSI sidecar images for the Rook version being
@@ -93,8 +121,14 @@ function generate() {
     helm repo add rook-release https://charts.rook.io/release
     helm repo update
 
+    # charts up to 1.20 are published with a "v" prefix, later ones without
+    local chart_version="${VERSION}"
+    if helm search repo rook-release/rook-ceph --versions | awk '{ print $2 }' | grep -Fxq "v${VERSION}"; then
+        chart_version="v${VERSION}"
+    fi
+
     # split operator files
-    helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
+    helm template replaceme rook-release/rook-ceph --version "${chart_version}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
     # remove non-utf8 characters
     sed -i 's/–/-/g' "${dir}/operator/combined.yaml"
     sed -i 's/[“”]/"/g' "${dir}/operator/combined.yaml"
