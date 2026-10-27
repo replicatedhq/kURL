@@ -1,0 +1,35 @@
+packages/kubernetes/template/script-test.sh
+  s_e627426ed4fb1d::t_f8ce40eee2948a 91-104,124-141
+  s_e627426ed4fb1d::t_c8f78d7163b216 105-123
+packages/kubernetes/1.36.5/kubeadm-image-overrides
+  s_e627426ed4fb1d::t_2372ddb0f490c1 5
+scripts/common/kubernetes-test.sh
+  s_e627426ed4fb1d::t_645104bca9ebdb 142-145
+  s_e627426ed4fb1d::t_2a73543c7e8242 166-169
+  s_e627426ed4fb1d::t_88ab5ef26a5356 49,51-52,64
+.claude/skills/add-kubernetes-minor/SKILL.md
+  s_e627426ed4fb1d::t_e9d89a1d8e367c 109-113
+packages/kubernetes/template/script.sh
+  s_e627426ed4fb1d::t_4bc53df1303125 182,204-207,212-225,227-232
+  s_e627426ed4fb1d::t_db09eff7214efc 190-195
+scripts/common/kubernetes.sh
+  s_e627426ed4fb1d::t_7c895e11608e58 149-154
+packages/kubernetes/1.37.1/kubeadm-image-overrides
+  s_e627426ed4fb1d::t_2372ddb0f490c1 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6631880275a3836eea7f1cf372e3aa9bcf37bce8",
+  "prompts": {},
+  "sessions": {
+    "s_e627426ed4fb1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e85eaf7afffeujoxBukdsktwEY",
+        "model": "accounts/fireworks/routers/glm-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
