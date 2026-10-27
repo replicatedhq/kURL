@@ -60,7 +60,7 @@ function write_kubeadm_image_overrides_fixture() {
 kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5 registry.k8s.io/kube-apiserver:v1.36.5
 kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5 registry.k8s.io/kube-controller-manager:v1.36.5
 kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5 registry.k8s.io/kube-scheduler:v1.36.5
-etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+etcd docker.io/kurlsh/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
 pause docker.io/kurlsh/pause:3.10.2 registry.k8s.io/pause:3.10.2
 EOF
     elif [ "$shape" = "no-etcd" ]; then
