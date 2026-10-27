@@ -106,9 +106,11 @@ anything uncertain follow the unattended rule (section 7).
    1.N (API removals). Record a "Needs human decision" item if unsure.
 9. **SecureBuild images.** `packages/kubernetes/template/securebuild-<exact patch>/` holds
    `kubeadm-image-overrides` and `image-overrides`, keyed per exact patch. Never create one unless the
-   `docker.io/kurlsh/*` images for that exact patch are published and every tag (including coredns and
-   etcd, see 21bc6f9c5) matches. A new minor normally ships on upstream images; SecureBuild follows later.
-   Related history: f4d7fd760 (etcd override must only apply on first kubeadm init).
+    `docker.io/kurlsh/*` images for that exact patch are published and every tag (including coredns and
+    etcd, see 21bc6f9c5) matches. A new minor normally ships on upstream images; SecureBuild follows later.
+    The `pause` alias in `kubeadm-image-overrides` is emitted by `script.sh` (`use_securebuild_images`)
+    whenever pause is rewritten to the kurlsh repo — do not add pause lines to `securebuild-*` files
+    (sc-140326). Related history: f4d7fd760 (etcd override must only apply on first kubeadm init).
 10. **Upgrade path.** Upgrades from the previous minor restart kubelet with static pods; e2c46edf3 quiesces
     control plane static pods around the restart. Make sure the prev→1.N upgrade spec exercises it.
 11. **Host packages.** Host packages are built from `bundles/` per OS; kubernetes tarballs are rebuilt only

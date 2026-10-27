@@ -146,6 +146,12 @@ function kubernetes_configure_kubeadm_images() {
     local is_first_kubeadm_init=0
     local is_first_kubeadm_init_computed=0
     while read -r component image upstream_image; do
+        if [ "$component" = "pause" ]; then
+            # pause is not a kubeadm-managed static pod, so there is nothing to patch; the
+            # line exists so kubernetes_load_images aliases the SecureBuild pause image to
+            # the canonical name kubeadm's upgrade-health-check Job expects (sc-140326).
+            continue
+        fi
         if [ "$component" = "etcd" ]; then
             # Computed at most once per invocation, and only once there is an etcd line
             # to gate: calling kubernetes_is_first_kubeadm_init runs the bounded control-

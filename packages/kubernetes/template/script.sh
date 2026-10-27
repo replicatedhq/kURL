@@ -179,6 +179,7 @@ function use_securebuild_images() {
     local dest="${3:-../$version}"
 
     # Keep old Kubernetes packages unchanged; future releases require a published SB pause tag.
+    local pause_alias_target=
     if [ "$(printf '%s\n' "1.36.5" "$version" | sort -V | head -n 1)" = "1.36.5" ]; then
         local upstream_pause= pause_image=
         upstream_pause="$(awk '$1 == "image" && $2 == "pause" {print $3; exit}' "$manifest")"
@@ -186,6 +187,12 @@ function use_securebuild_images() {
             registry.k8s.io/pause:*) pause_image="docker.io/kurlsh/pause:${upstream_pause#registry.k8s.io/pause:}" ;;
             docker.io/kurlsh/pause:*) pause_image="$upstream_pause" ;;
         esac
+        if [ -z "$pause_image" ] && [ -n "$upstream_pause" ]; then
+            # e.g. a digest-only reference (registry.k8s.io/pause@sha256:...) matches neither
+            # pattern above and gives no tag to derive the canonical alias from
+            echo "Unrecognized pause image reference $upstream_pause; expected a tagged image so the canonical pause alias can be derived." >&2
+            return 1
+        fi
         if [ -n "$pause_image" ]; then
             # Upstream image digests cannot identify a rebuilt SecureBuild image.
             pause_image="${pause_image%%@*}"
@@ -194,24 +201,35 @@ function use_securebuild_images() {
                 return 1
             fi
             sed -i "s|^image pause .*|image pause $pause_image|" "$manifest"
+            # kubeadm's upgrade-health-check Job (and `kubeadm config images`) reference the
+            # canonical pause image, not the SecureBuild one; without this alias the Job cannot
+            # start in airgap and `kubeadm upgrade plan` fails its CreateJob preflight (sc-140326).
+            pause_alias_target="registry.k8s.io/pause:${pause_image##*:}"
         fi
     fi
 
     local securebuild_dir="./securebuild-${version}"
-    [ -d "$securebuild_dir" ] || return 0
+    if [ -d "$securebuild_dir" ]; then
+        # explicit returns: callers check the status, which turns errexit off in here
+        local name= image= upstream_image=
+        while read -r name image upstream_image; do
+            sed -i "s|$upstream_image|$image|" "$manifest" || return 1
+        done < "$securebuild_dir/kubeadm-image-overrides" || return 1
 
-    # explicit returns: callers check the status, which turns errexit off in here
-    local name= image= upstream_image=
-    while read -r name image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "$manifest" || return 1
-    done < "$securebuild_dir/kubeadm-image-overrides" || return 1
+        local workload= container=
+        while read -r workload container image upstream_image; do
+            sed -i "s|$upstream_image|$image|" "$manifest" || return 1
+        done < "$securebuild_dir/image-overrides" || return 1
 
-    local workload= container=
-    while read -r workload container image upstream_image; do
-        sed -i "s|$upstream_image|$image|" "$manifest" || return 1
-    done < "$securebuild_dir/image-overrides" || return 1
+        cp -r "$securebuild_dir"/* "$dest/"
+    fi
 
-    cp -r "$securebuild_dir"/* "$dest/"
+    if [ -n "$pause_alias_target" ]; then
+        # append after the securebuild dir copy so a stale template file cannot drop the line
+        if ! grep -qxF "pause $pause_image $pause_alias_target" "$dest/kubeadm-image-overrides" 2>/dev/null; then
+            echo "pause $pause_image $pause_alias_target" >> "$dest/kubeadm-image-overrides"
+        fi
+    fi
 }
 
 # install_files installs "<src> <dest>" pairs as 0644 files in two passes: every source is first

@@ -88,6 +88,57 @@ EOF
     assertEquals "image-overrides should be copied into the version dir" "0" "$result"
     [ -f "$TEST_DIR/$version/kubeadm-image-overrides" ] && result=0 || result=1
     assertEquals "kubeadm-image-overrides should be copied into the version dir" "0" "$result"
+
+    # kubeadm's upgrade-health-check Job uses the canonical pause image; the SecureBuild
+    # pause rewrite must come with a canonical alias or airgap upgrades fail (sc-140326)
+    assertEquals "pause alias should be appended to kubeadm-image-overrides" "1" \
+        "$(grep -cxF 'pause docker.io/kurlsh/pause:3.10.2 registry.k8s.io/pause:3.10.2' "$TEST_DIR/$version/kubeadm-image-overrides")"
+
+    # regenerating an already-rewritten package must not duplicate the alias
+    must_cd "$TEST_DIR/template" || return 1
+    use_securebuild_images "$version"
+    must_cd "$ORIG_DIR" || return 1
+    assertEquals "pause alias should not be duplicated on regeneration" "1" \
+        "$(grep -cxF 'pause docker.io/kurlsh/pause:3.10.2 registry.k8s.io/pause:3.10.2' "$TEST_DIR/$version/kubeadm-image-overrides")"
+}
+
+function test_use_securebuild_images_fails_on_tagless_pause() {
+    # a digest-only pause reference has no tag to derive the canonical alias from
+    local version="1.36.6"
+    mkdir -p "$TEST_DIR/$version"
+    cat > "$TEST_DIR/$version/Manifest" <<EOF
+image kube-apiserver registry.k8s.io/kube-apiserver:v1.36.6
+image pause registry.k8s.io/pause@sha256:deadbeef
+EOF
+
+    must_cd "$TEST_DIR/template" || return 1
+    use_securebuild_images "$version"
+    assertEquals "tagless pause should fail generation" "1" "$?"
+    must_cd "$ORIG_DIR" || return 1
+    assertEquals "Manifest should be unchanged" "1" \
+        "$(grep -c 'registry.k8s.io/pause@sha256:deadbeef' "$TEST_DIR/$version/Manifest")"
+    assertEquals "no kubeadm-image-overrides should be written" "1" \
+        "$([ -f "$TEST_DIR/$version/kubeadm-image-overrides" ]; echo $?)"
+}
+
+function test_use_securebuild_images_writes_pause_alias_without_a_securebuild_dir() {
+    # future patch versions may have no securebuild-<version> dir yet; the pause rewrite
+    # still happens, and the canonical alias must still be emitted (sc-140326)
+    local version="1.36.6"
+    mkdir -p "$TEST_DIR/$version"
+    cat > "$TEST_DIR/$version/Manifest" <<EOF
+image kube-apiserver registry.k8s.io/kube-apiserver:v1.36.6
+image pause registry.k8s.io/pause:3.10.2
+EOF
+
+    must_cd "$TEST_DIR/template" || return 1
+    use_securebuild_images "$version"
+    must_cd "$ORIG_DIR" || return 1
+    assertEquals "1" "$(grep -c 'docker.io/kurlsh/pause:3.10.2' "$TEST_DIR/$version/Manifest")"
+    assertEquals "pause alias should be written even without a securebuild dir" "1" \
+        "$(grep -cxF 'pause docker.io/kurlsh/pause:3.10.2 registry.k8s.io/pause:3.10.2' "$TEST_DIR/$version/kubeadm-image-overrides")"
+    assertEquals "control plane image should stay upstream without a securebuild dir" "1" \
+        "$(grep -c 'registry.k8s.io/kube-apiserver:v1.36.6' "$TEST_DIR/$version/Manifest")"
 }
 
 # same_content succeeds when two files are byte-identical (cmp is not installed on every test image)
