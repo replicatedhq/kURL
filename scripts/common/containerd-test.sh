@@ -711,6 +711,26 @@ function test_ensure_pause_image_pinned_warns_on_list_failure() {
     assertEquals "does not abort the caller when ctr images list fails" "0" "$exit_code"
 }
 
+function test_ensure_pause_image_pinned_survives_sock_resolution_failure_under_set_e() {
+    local result
+    local exit_code
+    result="$( (
+        set -e # install.sh runs with set -e; resolving the containerd socket must not be exempt from it
+        systemctl() { [ "$1" = "is-active" ]; }
+        kubeadm_get_containerd_sock() { return 1; } # e.g. an unimplemented distro shim
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to resolve the containerd socket"
+    assertEquals "logs a warning when containerd sock resolution fails" "0" "$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not call ctr when containerd sock resolution fails" "1" "$?"
+    assertEquals "does not abort the caller when containerd sock resolution fails" "0" "$exit_code"
+}
+
 function test_ensure_pause_image_pinned_warns_on_label_failure() {
     local result
     local exit_code
@@ -981,6 +1001,7 @@ test_ensure_pause_image_pinned_noop_when_containerd_inactive
 test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 test_ensure_pause_image_pinned_warns_on_list_failure
+test_ensure_pause_image_pinned_survives_sock_resolution_failure_under_set_e
 test_ensure_pause_image_pinned_warns_on_label_failure
 test_ensure_pause_image_pinned_noop_when_containerd_version_unset
 test_ensure_pause_image_pinned_noop_when_config_toml_missing
