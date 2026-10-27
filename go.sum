@@ -73,8 +73,8 @@ cloud.google.com/go/storage v1.69.0 h1:jAAMC1411HEh78nKsU0Zns+eFj3TnhjAWIhg5Ud/X
 cloud.google.com/go/storage v1.69.0/go.mod h1:PELYsxTYm2peE4mwLEC1+mS1dA/kUSRUxNv56rOy44g=
 cloud.google.com/go/trace v1.17.0 h1:7+RAkTVGq3rmO2G74BdhpP1Bvbk3rFWzGt1MfMfHBt8=
 cloud.google.com/go/trace v1.17.0/go.mod h1:GTuZUt8sliPaEYVumjlXAjc4ClYld/nxWBALepV7Mx4=
-code.cloudfoundry.org/bytefmt v0.95.0 h1:kvNsgNynDcyfilMkcCYlsX5auJCZ7jaJNCgPbMTwWyU=
-code.cloudfoundry.org/bytefmt v0.95.0/go.mod h1:r9knDHdLE4JX4gE2ySV4oMu2SIByYwuTD+8DcxhIHOI=
+code.cloudfoundry.org/bytefmt v0.96.0 h1:5N1q+e5OI3tbKE69jqDTBNQx4HqeO6YQtLtIVaoCsKU=
+code.cloudfoundry.org/bytefmt v0.96.0/go.mod h1:3han47dKyNfal3tzzrMYWtJM9HULc+XKSfPEC9PkvLI=
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -669,8 +669,8 @@ github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20210601050228-01bbb1931b22/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
-github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 h1:PlNWJRxu5APSV0pWqfIsZ0qt9OOGHSWfZQ4zvx+WgWs=
-github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
+github.com/google/pprof v0.0.0-20261026192309-dbd0ed30aa88 h1:BnzMe/RUfFezpFwXsOWHmSMNO8qt7755OL25C+AezGQ=
+github.com/google/pprof v0.0.0-20261026192309-dbd0ed30aa88/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/s2a-go v0.1.11 h1:7v1V1TraNGP63WptsAkNqr2w8jgm4vM6A6qx6Lsw9iM=
 github.com/google/s2a-go v0.1.11/go.mod h1:pz4tyvwXvJLLbyrkh6FW1eS2zPUXMaTmyNhYtyP2tNw=
@@ -1129,10 +1129,10 @@ github.com/rogpeppe/go-internal v1.8.1/go.mod h1:JeRgkft04UBgHMgCIwADu4Pn6Mtm5d4
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
 github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
-github.com/rook/rook v1.21.0 h1:w+VM5ERffuuNm6KjDqyoaLGMnfX7fdzD8tCmpSg1mYA=
-github.com/rook/rook v1.21.0/go.mod h1:Cjj1sK3S8PN5xMID4jLwny8cFDKvDC3Y//RDPeJrdvg=
-github.com/rook/rook/pkg/apis v0.0.0-20261022223044-d4548cbb5834 h1:O2c7e7ozOBhsGDYv6TsHz9cwEd7d07hZFJJ1RSa0eO4=
-github.com/rook/rook/pkg/apis v0.0.0-20261022223044-d4548cbb5834/go.mod h1:G6ksSVAnogY0XH9yvy14ucQ8OK6utsZtgs4qDc5laLM=
+github.com/rook/rook v1.21.1 h1:EVM4lN/1td8x3wixn3biRFKHOLL4ABMaR7UGigFKNBo=
+github.com/rook/rook v1.21.1/go.mod h1:koh8G6Uf4xJ9Z6vhayWq/2GjnLqXjDQJ1mXpGG6xUCI=
+github.com/rook/rook/pkg/apis v0.0.0-20261027125818-d0d8797721ad h1:sSwMNpSzoEU9BFKQg8usKln44QFMzYOLygqRDEpLV24=
+github.com/rook/rook/pkg/apis v0.0.0-20261027125818-d0d8797721ad/go.mod h1:G6ksSVAnogY0XH9yvy14ucQ8OK6utsZtgs4qDc5laLM=
 github.com/rubenv/sql-migrate v1.8.1 h1:EPNwCvjAowHI3TnZ+4fQu3a915OpnQoPAjTXCGOy2U0=
 github.com/rubenv/sql-migrate v1.8.1/go.mod h1:BTIKBORjzyxZDS6dzoiw6eAFYJ1iNlGAtjn4LGeVjS8=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
