@@ -50,7 +50,7 @@ function run_testgrid_test() {
       --os-spec /wrk/os-spec \
       --priority "$priority" )
   echo "Submitted TestGrid Ref $ref"
-  MSG="$MSG https://testgrid.kurl.sh/run/$ref"
+  RUN_URLS="$RUN_URLS https://testgrid.kurl.sh/run/$ref"
 }
 
 function main() {
@@ -73,7 +73,10 @@ function main() {
 
   echo "Test Addon $addon-$version"
 
-  local MSG="Testgrid Run(s) Executing @ "
+  # Space-separated Testgrid run URLs accumulated across specs. Exposed as the
+  # machine-readable `links` output so callers never have to parse the display
+  # message (and so a reworded message can't corrupt their output).
+  local RUN_URLS=""
 
   # Run for each template (if available)
   shopt -s nullglob
@@ -84,8 +87,15 @@ function main() {
     run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority" "$staging"
   done
   shopt -u nullglob
+  RUN_URLS="${RUN_URLS# }"
+
+  local MSG="Testgrid Run(s) Executing @"
+  if [ -n "$RUN_URLS" ]; then
+    MSG="$MSG $RUN_URLS"
+  fi
 
   echo "message=$MSG" >> "$GITHUB_OUTPUT"
+  echo "links=$RUN_URLS" >> "$GITHUB_OUTPUT"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }

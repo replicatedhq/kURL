@@ -80,19 +80,41 @@ jobs:
       # Instead, record this leg's Testgrid run links as a run-scoped artifact
       # and let the caller's aggregation job post ONE sticky comment for the
       # whole matrix (see testgrid-comment in test-addon-pr.yaml).
+      # Only workflow_call runs have that consumer; on a manual workflow_dispatch
+      # the links already surface via the step notice, so skip both steps.
       - name: Record Testgrid run links
+        id: record
+        if: github.event_name == 'workflow_call'
         env:
-          QUEUED_MESSAGE: ${{ steps.queue.outputs.message }}
+          QUEUED_LINKS: ${{ steps.queue.outputs.links }}
         run: |
           set -euo pipefail
+          # A leg that queued no runs (e.g. no testgrid specs matched) is
+          # flagged here and omitted from the aggregated table, not recorded
+          # as an empty row.
+          if [ -z "${QUEUED_LINKS// /}" ]; then
+            echo "::warning ::${{ env.addon }}-${{ env.version }} queued no Testgrid runs; it will be absent from the aggregated PR comment"
+            echo "queued=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Fail loudly on message-contract drift rather than writing a
+          # malformed cell into the aggregated table.
+          if ! echo "$QUEUED_LINKS" | grep -qE '^https://testgrid\.kurl\.sh/run/\S+( https://testgrid\.kurl\.sh/run/\S+)*$'; then
+            echo "::error ::unexpected links output for ${{ env.addon }}-${{ env.version }}: ${QUEUED_LINKS}"
+            exit 1
+          fi
+          echo "queued=true" >> "$GITHUB_OUTPUT"
           mkdir -p testgrid-comment
-          LINKS="${QUEUED_MESSAGE#Testgrid Run(s) Executing @ }"
-          echo "| \`${{ env.addon }}-${{ env.version }}\` | ${LINKS} |" \
+          echo "| \`${{ env.addon }}-${{ env.version }}\` | ${QUEUED_LINKS} |" \
             > "testgrid-comment/${{ env.addon }}-${{ env.version }}.md"
 
       - name: Upload Testgrid run links
-        uses: actions/upload-artifact@v7
+        if: github.event_name == 'workflow_call' && steps.record.outputs.queued == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: testgrid-runs-${{ env.addon }}-${{ env.version }}
           path: testgrid-comment/${{ env.addon }}-${{ env.version }}.md
           if-no-files-found: error
+          # "Re-run all jobs" reuses the same run id, so the artifact name is
+          # already taken; replace it or the retried leg's links are dropped.
+          overwrite: true

@@ -40,6 +40,9 @@ outputs:
   message:
     description: 'Message to the end-user including links to the Testgrid runs.'
     value: "${{ steps.test-addon.outputs.message }}"
+  links:
+    description: 'Space-separated Testgrid run URLs, machine-readable (no display prefix).'
+    value: "${{ steps.test-addon.outputs.links }}"
 runs:
   using: composite
   steps:
