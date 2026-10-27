@@ -1,0 +1,19 @@
+scripts/common/kubernetes-test.sh
+  s_e627426ed4fb1d::t_afdbdd16633e94 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3dd08e3c4c6afffee63837dcb7584d945ff6fb7b",
+  "prompts": {},
+  "sessions": {
+    "s_e627426ed4fb1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e85eaf7afffeujoxBukdsktwEY",
+        "model": "accounts/fireworks/routers/glm-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
