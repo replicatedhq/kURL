@@ -239,7 +239,10 @@ function containerd_ensure_pause_image_pinned() {
     fi
 
     local sock=
-    sock="$("${K8S_DISTRO}"_get_containerd_sock)"
+    if ! sock="$("${K8S_DISTRO}"_get_containerd_sock)"; then
+        logWarn "Failed to resolve the containerd socket via ${K8S_DISTRO}_get_containerd_sock; skipping pause-image pin check, will retry on next install/upgrade run"
+        return 0
+    fi
 
     local image_line=
     image_line="$(containerd_find_pause_image_line "$sock" "$pause_image")" || return 0
