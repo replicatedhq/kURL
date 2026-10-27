@@ -91,8 +91,9 @@ jobs:
             # no-runs case) or the artifact download itself failed while legs
             # did queue runs. The step outcome alone can't tell them apart;
             # the artifacts API can.
-            if ! MATCHING="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-                --jq '[.artifacts[] | select(.expired == false) | select(.name | startswith("testgrid-runs-"))] | length')"; then
+            if ! MATCHING="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+                --jq '.artifacts[] | select(.expired == false) | select(.name | startswith("testgrid-runs-")) | .name' \
+                | wc -l | tr -d ' ')"; then
               MATCHING=1 # can't tell; assume the worst so the failure surfaces
             fi
             if [ "${MATCHING}" -gt 0 ]; then
