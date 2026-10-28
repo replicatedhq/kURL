@@ -1,0 +1,27 @@
+scripts/common/kubernetes-test.sh
+  s_e627426ed4fb1d::t_f250643e30b4aa 47-126
+  s_e627426ed4fb1d::t_66e6c06b1f2177 129,131
+packages/kubernetes/template/script.sh
+  s_e627426ed4fb1d::t_f22c54cc3f3e12 201,203-214
+scripts/common/kubernetes.sh
+  s_e627426ed4fb1d::t_41e14deaf617cf 80
+  s_e627426ed4fb1d::t_b2a4d11ff61dfe 30-69
+.claude/skills/add-kubernetes-minor/SKILL.md
+  s_e627426ed4fb1d::t_f046dea12a2330 109-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b384a909005af5de0bf423d578c9a632efe49479",
+  "prompts": {},
+  "sessions": {
+    "s_e627426ed4fb1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e85eaf7afffeujoxBukdsktwEY",
+        "model": "accounts/fireworks/routers/glm-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
