@@ -1,0 +1,21 @@
+addons/flannel/0.28.10/install.sh
+  s_6d858bd0de4669::t_aa9a8ef3897b16 285
+addons/flannel/template/base/install.sh
+  s_6d858bd0de4669::t_dfe86ba5dfd43c 285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41497f1fcaf36f488eee83497e3bc3d9f110a328",
+  "prompts": {},
+  "sessions": {
+    "s_6d858bd0de4669": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e7f4fd87bffef0nM66X4ha9RZ1",
+        "model": "accounts/fireworks/routers/kimi-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
