@@ -600,6 +600,9 @@ jobs:
 
   comment-pr:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read # actions/checkout
+      issues: write # the sticky-comment step posts via the issues API
     needs:
       - get-tag
       - testgrid-run

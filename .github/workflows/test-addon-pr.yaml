@@ -22,6 +22,9 @@ jobs:
          github.actor != 'dependabot' &&
          !contains(github.event.pull_request.labels.*.name, 'skip-testgrid') }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read # actions/checkout
+      issues: write # the ensure-sticky step posts via the issues API
     outputs:
       addons: ${{ steps.check.outputs.addons }}
     steps:
@@ -53,6 +56,11 @@ jobs:
       matrix: ${{ fromJSON(needs.check-addons.outputs.addons) }}
       fail-fast: false
       max-parallel: 5
+    # A called workflow's token is capped by this job's permissions, so the
+    # legs' sticky-comment writes need issues: write granted here.
+    permissions:
+      contents: read
+      issues: write
     uses: ./.github/workflows/test-addon.yaml
     with:
       addon: ${{ matrix.addon }}

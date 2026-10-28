@@ -53,6 +53,18 @@ function run_testgrid_test() {
   RUN_URLS="$RUN_URLS https://testgrid.kurl.sh/run/$ref"
 }
 
+# Publishes the step outputs from RUN_URLS. Runs on EXIT (not just success) so
+# links queued before a mid-loop failure still reach the caller.
+function write_outputs() {
+  local urls="${RUN_URLS# }"
+  local msg="Testgrid Run(s) Executing @"
+  if [ -n "$urls" ]; then
+    msg="$msg $urls"
+  fi
+  echo "message=$msg" >> "$GITHUB_OUTPUT"
+  echo "links=$urls" >> "$GITHUB_OUTPUT"
+}
+
 function main() {
   local addon="$1"
   local version="$2"
@@ -75,8 +87,11 @@ function main() {
 
   # Space-separated Testgrid run URLs accumulated across specs. Exposed as the
   # machine-readable `links` output so callers never have to parse the display
-  # message (and so a reworded message can't corrupt their output).
-  local RUN_URLS=""
+  # message (and so a reworded message can't corrupt their output). Deliberately
+  # NOT local: the EXIT trap publishes whatever was queued even when set -e
+  # kills us mid-loop, so a spec that did queue is never stranded.
+  RUN_URLS=""
+  trap write_outputs EXIT
 
   # Run for each template (if available)
   shopt -s nullglob
@@ -87,15 +102,13 @@ function main() {
     run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority" "$staging"
   done
   shopt -u nullglob
-  RUN_URLS="${RUN_URLS# }"
 
+  local urls="${RUN_URLS# }"
   local MSG="Testgrid Run(s) Executing @"
-  if [ -n "$RUN_URLS" ]; then
-    MSG="$MSG $RUN_URLS"
+  if [ -n "$urls" ]; then
+    MSG="$MSG $urls"
   fi
 
-  echo "message=$MSG" >> "$GITHUB_OUTPUT"
-  echo "links=$RUN_URLS" >> "$GITHUB_OUTPUT"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }

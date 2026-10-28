@@ -36,6 +36,9 @@ env:
 jobs:
   test-addon:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read # actions/checkout
+      issues: write # the sticky-comment step posts via the issues API
 
     steps:
       - uses: actions/checkout@v7
@@ -82,6 +85,10 @@ jobs:
       # Runs on every outcome so failures are reported too. Only PR-triggered
       # runs have a PR to comment on; manual dispatch runs still surface the
       # links via the step notice above.
+      #
+      # Note: inside this called workflow github.event_name is the CALLER's
+      # event (the legs run inside the caller's workflow run), so
+      # 'pull_request' here means "called from a PR", not workflow_call.
       - name: Update Testgrid sticky comment
         if: always() && github.event_name == 'pull_request'
         env:
@@ -95,15 +102,21 @@ jobs:
           set -euo pipefail
           SHORT_SHA="${HEAD_SHA:0:7}"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          KEY="- \`${{ env.addon }}-${{ env.version }}\` @ \`${SHORT_SHA}\`:"
-          if [ "${QUEUE_OUTCOME}" = "success" ] && [ -n "${QUEUED_LINKS// /}" ]; then
+          KEY="- \`${addon}-${version}\` @ \`${SHORT_SHA}\`:"
+          if [ -n "${QUEUED_LINKS// /}" ]; then
             # Fail loudly on message-contract drift rather than posting a
             # malformed line.
             if ! echo "$QUEUED_LINKS" | grep -qE '^https://testgrid\.kurl\.sh/run/\S+( https://testgrid\.kurl\.sh/run/\S+)*$'; then
-              echo "::error ::unexpected links output for ${{ env.addon }}-${{ env.version }}: ${QUEUED_LINKS}"
+              echo "::error ::unexpected links output for ${addon}-${version}: ${QUEUED_LINKS}"
               exit 1
             fi
-            LINE="${KEY} ${QUEUED_LINKS}"
+            if [ "${QUEUE_OUTCOME}" = "success" ]; then
+              LINE="${KEY} ${QUEUED_LINKS}"
+            else
+              # test-addon.sh publishes whatever it queued via an EXIT trap,
+              # so a spec that landed before a later one failed still shows up.
+              LINE="${KEY} ${QUEUED_LINKS} (queued before this leg failed -- [workflow run](${RUN_URL}))"
+            fi
           elif [ "${QUEUE_OUTCOME}" = "success" ]; then
             LINE="${KEY} no Testgrid specs matched, nothing was queued"
           elif [ "${BUILD_OUTCOME}" != "success" ]; then
