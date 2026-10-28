@@ -74,47 +74,43 @@ jobs:
           testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
           staging: true
 
-      # Do NOT comment from this job: the caller fans this workflow out into
-      # one invocation per (addon, version) matrix leg, so per-leg comments
-      # flood the PR (each leg posts its own comment for every pushed commit).
-      # Instead, record this leg's Testgrid run links as a run-scoped artifact
-      # and let the caller's aggregation job post ONE sticky comment for the
-      # whole matrix (see testgrid-comment in test-addon-pr.yaml).
-      # Only workflow_call runs have that consumer; on a manual workflow_dispatch
-      # the links already surface via the step notice, so skip both steps.
-      - name: Record Testgrid run links
-        id: record
-        if: github.event_name == 'workflow_call'
+      # The caller fans this workflow out into one invocation per
+      # (addon, version) matrix leg. Every leg appends ONE line to the PR's
+      # single sticky comment as it finishes (never rebuilding or replacing
+      # the body), so links show up per leg instead of waiting for the
+      # slowest one, and a leg that fails leaves a row instead of vanishing.
+      # Runs on every outcome so failures are reported too. Only PR-triggered
+      # runs have a PR to comment on; manual dispatch runs still surface the
+      # links via the step notice above.
+      - name: Update Testgrid sticky comment
+        if: always() && github.event_name == 'pull_request'
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           QUEUED_LINKS: ${{ steps.queue.outputs.links }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          QUEUE_OUTCOME: ${{ steps.queue.outcome }}
         run: |
           set -euo pipefail
-          # A leg that queued no runs (e.g. no testgrid specs matched) is
-          # flagged here and omitted from the aggregated table, not recorded
-          # as an empty row.
-          if [ -z "${QUEUED_LINKS// /}" ]; then
-            echo "::warning ::${{ env.addon }}-${{ env.version }} queued no Testgrid runs; it will be absent from the aggregated PR comment"
-            echo "queued=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          SHORT_SHA="${HEAD_SHA:0:7}"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          KEY="- \`${{ env.addon }}-${{ env.version }}\` @ \`${SHORT_SHA}\`:"
+          if [ "${QUEUE_OUTCOME}" = "success" ] && [ -n "${QUEUED_LINKS// /}" ]; then
+            # Fail loudly on message-contract drift rather than posting a
+            # malformed line.
+            if ! echo "$QUEUED_LINKS" | grep -qE '^https://testgrid\.kurl\.sh/run/\S+( https://testgrid\.kurl\.sh/run/\S+)*$'; then
+              echo "::error ::unexpected links output for ${{ env.addon }}-${{ env.version }}: ${QUEUED_LINKS}"
+              exit 1
+            fi
+            LINE="${KEY} ${QUEUED_LINKS}"
+          elif [ "${QUEUE_OUTCOME}" = "success" ]; then
+            LINE="${KEY} no Testgrid specs matched, nothing was queued"
+          elif [ "${BUILD_OUTCOME}" != "success" ]; then
+            LINE="${KEY} add-on build failed -- [workflow run](${RUN_URL})"
+          else
+            LINE="${KEY} failed before queueing a Testgrid run -- [workflow run](${RUN_URL})"
           fi
-          # Fail loudly on message-contract drift rather than writing a
-          # malformed cell into the aggregated table.
-          if ! echo "$QUEUED_LINKS" | grep -qE '^https://testgrid\.kurl\.sh/run/\S+( https://testgrid\.kurl\.sh/run/\S+)*$'; then
-            echo "::error ::unexpected links output for ${{ env.addon }}-${{ env.version }}: ${QUEUED_LINKS}"
-            exit 1
-          fi
-          echo "queued=true" >> "$GITHUB_OUTPUT"
-          mkdir -p testgrid-comment
-          echo "| \`${{ env.addon }}-${{ env.version }}\` | ${QUEUED_LINKS} |" \
-            > "testgrid-comment/${{ env.addon }}-${{ env.version }}.md"
-
-      - name: Upload Testgrid run links
-        if: github.event_name == 'workflow_call' && steps.record.outputs.queued == 'true'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: testgrid-runs-${{ env.addon }}-${{ env.version }}
-          path: testgrid-comment/${{ env.addon }}-${{ env.version }}.md
-          if-no-files-found: error
-          # "Re-run all jobs" reuses the same run id, so the artifact name is
-          # already taken; replace it or the retried leg's links are dropped.
-          overwrite: true
+          ./bin/pr-sticky-upsert.sh "${PR_NUMBER}" "<!-- kurl-testgrid-addon-runs -->" \
+            "**Testgrid runs** (updated per add-on version as each matrix leg finishes):" \
+            "${KEY}" "${LINE}"

@@ -543,7 +543,7 @@ jobs:
       - get-tag
       - generate-addons
     outputs:
-      msg: ${{ steps.queue.outputs.msg }}
+      run-url: ${{ steps.queue.outputs.run-url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -595,6 +595,7 @@ jobs:
           fi
           MSG="Testgrid Run(s) Executing for commit ${SHORT_SHA} @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
           echo "msg=$MSG" >> "$GITHUB_OUTPUT"
+          echo "run-url=https://testgrid.kurl.sh/run/${TESTGRID_REF}" >> "$GITHUB_OUTPUT"
           echo "::notice ::${MSG}"
 
   comment-pr:
@@ -602,24 +603,36 @@ jobs:
     needs:
       - get-tag
       - testgrid-run
-    # Only PR-triggered runs have a PR to comment on.
-    if: github.event_name == 'pull_request'
+    # Only PR-triggered runs have a PR to comment on. always(): a failed run
+    # appends a line to the sticky too, not silence.
+    if: always() && github.event_name == 'pull_request'
+    # Serialize comment updates for a given PR across concurrent runs of this
+    # workflow so appends to the sticky don't race.
+    concurrency:
+      group: testgrid-pr-comment-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     steps:
-      - name: Post Testgrid run URL
-        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
-        with:
-          message: ${{ needs.testgrid-run.outputs.msg }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          # Deliberately stable per PR (no head sha): every run for this PR
-          # upserts the same sticky comment instead of piling up a new one per
-          # push. The current commit is stated in the message body itself.
-          # The "-sticky-" prefix is fresh on purpose: the search is a
-          # substring match, and "testgrid-pr-<N>" would also match the old
-          # per-push "testgrid-pr-<N>-<sha>" comments on already-open PRs.
-          message-id: testgrid-pr-sticky-${{ github.event.pull_request.number }}
-          allow-repeats: false
-          # Deletes and recreates the sticky so it floats to the bottom of the
-          # thread on every update; that recreation is also what fires the
-          # per-update notification, so there is deliberately no separate
-          # run-trail comment.
-          refresh-message-position: true
+      - uses: actions/checkout@v7
+
+      # One sticky per PR, append-only: each run adds a line and earlier
+      # pushes' links stay in the thread instead of being overwritten.
+      - name: Append the Testgrid run to the sticky comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TESTGRID_RESULT: ${{ needs.testgrid-run.result }}
+          RUN_LINK: ${{ needs.testgrid-run.outputs.run-url }}
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${HEAD_SHA:0:7}"
+          KEY="- \`${SHORT_SHA}\`:"
+          if [ "${TESTGRID_RESULT}" = "success" ] && [ -n "${RUN_LINK}" ]; then
+            LINE="${KEY} ${RUN_LINK}"
+          else
+            LINE="${KEY} failed to queue a Testgrid run -- [workflow run](${RUN_URL})"
+          fi
+          ./bin/pr-sticky-upsert.sh "${PR_NUMBER}" "<!-- kurl-testgrid-pr-runs -->" \
+            "**Testgrid runs** (one line per run, newest at the bottom):" \
+            "${KEY}" "${LINE}"
