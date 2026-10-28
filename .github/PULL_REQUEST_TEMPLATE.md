@@ -50,3 +50,11 @@ Improvements:
 If no, just write "NONE" below.
 If yes, link to the related https://github.com/replicatedhq/kurl.sh documentation PR:
 -->
+
+#### Does this PR add a Kubernetes or add-on version?
+<!--
+If yes, does this version need a compatibility rule in kURL-api? Rules live in `validate()` in
+https://github.com/replicatedhq/kURL-api/blob/main/src/installers/index.ts. Add one when the version
+cannot be installed with some Kubernetes or add-on versions (for example, when an install script
+`bail`s on the combination). Link the kURL-api PR, or write "NONE".
+-->
