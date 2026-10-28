@@ -282,7 +282,7 @@ function flannel_scale_up_ekco() {
 
     logSubstep "Scaling up Ecko Operator"
     if ! timeout 120 kubectl -n kurl scale deployment ekc-operator --replicas=1 1>/dev/null; then
-        logWarn "Failed to scale down Ecko Operator within the timeout period."
+        logWarn "Failed to scale up Ecko Operator within the timeout period."
         return
     fi
 
