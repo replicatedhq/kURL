@@ -4,7 +4,10 @@ image kube-scheduler docker.io/kurlsh/kube-scheduler:v1.37.1
 image kube-proxy docker.io/kurlsh/kube-proxy:v1.37.1
 image coredns docker.io/kurlsh/coredns:1.14.6
 image pause docker.io/kurlsh/pause:3.10.2
-image etcd docker.io/kurlsh/etcd:v3.7.0
+# etcd pinned to 3.6.15, aliased to the kubeadm-canonical 3.7.0-0 tag: etcd 3.7.x panics
+# replaying v2-format WAL entries written by etcd 3.5 (upstream: etcd-io/etcd#22633).
+# Revert to v3.7.x once kubeadm adopts an etcd release with the fix.
+image etcd docker.io/kurlsh/etcd:v3.6.15
 
 asset kubeadm https://dl.k8s.io/v1.37.1/bin/linux/amd64/kubeadm
 asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.37.0/crictl-v1.37.0-linux-amd64.tar.gz
