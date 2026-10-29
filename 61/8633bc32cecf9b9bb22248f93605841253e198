@@ -1,0 +1,19 @@
+packages/kubernetes/1.37.1/Manifest
+  s_e627426ed4fb1d::t_804c94f2b9c643 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "618633bc32cecf9b9bb22248f93605841253e198",
+  "prompts": {},
+  "sessions": {
+    "s_e627426ed4fb1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e85eaf7afffeujoxBukdsktwEY",
+        "model": "accounts/fireworks/routers/glm-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
