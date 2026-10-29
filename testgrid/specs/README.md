@@ -149,7 +149,15 @@ without touching the shared `staging/VERSION` pointer.
   `extra-packages` / `build-kurl-util-image` inputs.
 - **OS pool:** defaults to the `os-firstlast.yaml` subset; add the **`testgrid-full`**
   label to run the full `os-full.yaml` matrix.
-- **Report:** comments the Testgrid run URL back on the PR.
+- **Report:** all runs of a PR append into **one sticky comment** (via
+  `marocchino/sticky-pull-request-comment`, header `testgrid-pr`) instead of
+  posting a new comment per run. The **`testgrid-checker`** cron
+  (`test-testgrid-results.yaml`, every 15 min) then appends per-leg results
+  (scenario × OS, pass/fail + failure reason) into that same comment as they
+  finish, and posts a **separate new comment** when the run completes so
+  watchers get notified (comment edits don't notify). A build failure before
+  queueing is appended to the sticky as well; a cancelled (superseded) run
+  stays silent.
 - **Security:** plain `pull_request` (never `pull_request_target`), so fork code
   never runs with secrets (fork PRs are skipped — use `workflow_dispatch`).
 - **Required before enabling (hard prerequisites):**

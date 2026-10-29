@@ -29612,7 +29612,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(722);
 /* harmony import */ var _octokit_auth_app__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6479);
 /* harmony import */ var _octokit_rest__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1267);
-/* harmony import */ var _pullrequests_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(6137);
+/* harmony import */ var _pullrequests_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(4393);
 
 
 
@@ -39456,7 +39456,7 @@ function getUserAgent() {
 
 /***/ }),
 
-/***/ 6137:
+/***/ 4393:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -39494,38 +39494,162 @@ const handleError = (error, prefix) => {
   }
 }
 
+;// CONCATENATED MODULE: ./rcrun.js
+// RC-run (testgrid-pr label workflow) result tracking for the testgrid-checker.
+//
+// The testgrid-pr workflow appends one queue entry per run into a single
+// sticky PR comment (marocchino/sticky-pull-request-comment, header
+// `testgrid-pr`). This module lets the 15-min checker cron:
+//   * find that sticky comment and the latest queued run entry in it,
+//   * append one line per finished leg (scenario x OS instance) as they
+//     complete, deduped via hidden <!--leg:<instanceId>--> markers, and
+//   * when the run completes, produce a final summary line plus the body for
+//     a NEW PR comment (comment edits don't notify; completions should).
+// Legacy addon runs keep their own comment/check-run flow in pullrequests.js.
+
+const STICKY_HEADER = 'testgrid-pr';
+
+// marocchino/sticky-pull-request-comment hides this marker at the end of the
+// comment body and uses it to find the comment again on later appends. Our
+// writes must preserve it, so new content is inserted just before it.
+const stickyMarker = (header = STICKY_HEADER) =>
+  `<!-- Sticky Pull Request Comment${header} -->`;
+
+// Matches every run-entry line the testgrid-pr workflow appends to the sticky
+// comment (and the legacy per-comment lines the test-addon flow posts), e.g.
+//   Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-3b80852-...
+// capturing the FULL ref after /run/.
+const RUN_LINE_RE = /Testgrid Run\(s\) Executing @\W+https:\/\/testgrid\.kurl\.sh\/run\/([^\s)]+)/g;
+
+// RC runs queue with an uppercase PR- prefixed ref (get-tag in
+// testgrid-pr.yaml); addon runs use lowercase pr-<number>-<sha>.
+const isRCRef = (ref) => ref.startsWith('PR-');
+
+// The testgrid API stores run refs lowercased and matches searchRef
+// case-sensitively against them (verified live: searchRef=PR-... finds
+// nothing, searchRef=pr-... finds the run), so RC refs must be lowercased
+// before lookup. Display-case ids keep working on the /run/{id} endpoint.
+const rcSearchRef = (ref) => ref.toLowerCase();
+
+// The addon flow watches a ref PREFIX so one queued batch (multiple runs
+// sharing the prefix) resolves together; identical to the extraction the old
+// per-comment regex performed.
+const addonRefPrefix = (ref) => (ref.match(/^pr-\d+-\w+/) || [])[0] || '';
+
+// Latest run entry wins (same "last comment wins" semantics the addon flow
+// always had): comments in ascending id order, then line order within a body.
+const findLastRunEntry = (comments) => {
+  let last = null;
+  for (const comment of comments) {
+    if (!comment.body) continue;
+    for (const match of comment.body.matchAll(RUN_LINE_RE)) {
+      last = { ref: match[1], comment };
+    }
+  }
+  return last;
+};
+
+const extractReportedLegIds = (body) =>
+  new Set([...body.matchAll(/<!--leg:([^>]+)-->/g)].map((m) => m[1]));
+
+const legFinished = (instance) =>
+  instance.finishedAt || instance.isSkipped || instance.isUnsupported || instance.cancelledAt;
+
+const legFailed = (instance) =>
+  !instance.isSuccess && !instance.isSkipped && !instance.isUnsupported && !instance.cancelledAt;
+
+// One status line per leg (a scenario x OS instance from the testgrid API),
+// tagged with a hidden marker the next tick dedupes against.
+const buildLegLine = (instance) => {
+  const os = [instance.osName, instance.osVersion].filter(Boolean).join(' ') || 'unknown OS';
+  let status = '❌';
+  if (instance.isSuccess && !instance.isSkipped && !instance.isUnsupported && !instance.cancelledAt) {
+    status = '✅';
+  } else if (instance.cancelledAt) {
+    status = '✂️ cancelled';
+  } else if (instance.isUnsupported) {
+    status = '⏭️ unsupported';
+  } else if (instance.isSkipped) {
+    status = '⏭️ skipped';
+  }
+  const reason = instance.failureReason ? ` — \`${instance.failureReason}\`` : '';
+  return `- ${status} **${instance.testName}** — ${os}${reason} <!--leg:${instance.id}-->`;
+};
+
+// Final line appended to the sticky once every run under the ref is done; the
+// hidden done marker makes later ticks skip the PR.
+const buildSummaryLine = (ref, { passed, failed, skipped }) =>
+  `- 🏁 Run \`${ref}\` completed — ${passed} ✅ · ${failed} ❌ · ${skipped} skipped/unsupported/cancelled <!--done:${ref}-->`;
+
+// Insert new content just before the sticky marker (which the sticky action
+// keeps at the very end of the comment body). Falls back to plain append if
+// the marker is missing (e.g. a hand-crafted comment).
+const appendToSticky = (body, addition) => {
+  const marker = stickyMarker();
+  const idx = body.lastIndexOf(marker);
+  if (idx === -1) {
+    return `${body}\n${addition}`;
+  }
+  return `${body.slice(0, idx)}${addition}\n${body.slice(idx)}`;
+};
+
+const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs) => {
+  const headline = failed > 0 ? '❌ failed' : '✅ passed';
+  const lines = [
+    `### 🏁 Testgrid RC run ${headline}`,
+    `- Result: **${passed} passed, ${failed} failed, ${skipped} skipped/unsupported/cancelled** — [run details](https://testgrid.kurl.sh/run/${ref})`,
+  ];
+  if (failedLegs && failedLegs.length > 0) {
+    lines.push('', 'Failed legs (full details in the sticky testgrid comment):');
+    for (const line of failedLegs.slice(0, 10)) {
+      lines.push(line.replace(/ <!--leg:[^>]+-->$/, ''));
+    }
+    if (failedLegs.length > 10) {
+      lines.push(`… and ${failedLegs.length - 10} more`);
+    }
+  }
+  return lines.join('\n');
+};
+
 ;// CONCATENATED MODULE: ./pullrequests.js
 
 
 
 
 
+
 const httpClient = new lib/* HttpClient */.Qq();
+const TESTGRID_API = 'https://api.testgrid.kurl.sh/api/v1';
 
 const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
   console.log(`PR "${prTitle}" #${prNumber}: checking`);
 
-  const thisPrComments = await octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber });
+  // Paginate: noisy PRs (the very thing the sticky comment fixes) can hold
+  // hundreds of comments, and the sticky must be findable regardless.
+  const thisPrComments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: prNumber,
+  });
 
-  let lastTestgridCommentID = 0;
-  let lastTestgridCommentPrefix = "";
-  for (const comment of thisPrComments.data) {
-    if (comment.id > lastTestgridCommentID) {
-      // matches comments like "Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-3569-3eb59f9-rook-1.9.12-k8s-docker-2022-10-12T23:30:47Z"
-      const matches = comment.body.match('Testgrid Run\\(s\\) Executing @\\W+https:\\/\\/testgrid.kurl.sh\\/run\\/(pr-\\d+-\\w+)')
-      if (matches) {
-        lastTestgridCommentID = comment.id;
-        lastTestgridCommentPrefix = matches[1];
-      }
-    }
-  }
-
-  if (lastTestgridCommentID === 0) {
+  // The run entry to watch is the LATEST in document order: either a
+  // standalone comment (legacy test-addon flow) or a line inside the single
+  // sticky comment the testgrid-pr workflow appends to. Same "last wins"
+  // semantics the addon flow always had, now across both sources.
+  const lastEntry = findLastRunEntry(thisPrComments);
+  if (!lastEntry) {
     console.log(`PR "${prTitle}" #${prNumber}: no testgrid run found`);
     return;
   }
+
+  if (isRCRef(lastEntry.ref)) {
+    await checkRCRun(octokit, owner, repo, pullRequest, lastEntry);
+    return;
+  }
+
+  const lastTestgridCommentPrefix = addonRefPrefix(lastEntry.ref) || lastEntry.ref;
 
   const response = await httpClient.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${lastTestgridCommentPrefix}`);
   const responseBody = JSON.parse(await response.readBody());
@@ -39580,6 +39704,110 @@ const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
     core/* warning */.$e(
       `WARNING: PR "${prTitle}" #${prNumber}: no testgrid run found despite finding comment`
     );
+  }
+};
+
+// RC runs (testgrid-pr label workflow, refs like PR-v2026.10.13-0-rc-pr123-abc1234-<ts>)
+// get progress reported INTO the sticky comment instead of a check run: every
+// tick appends lines for legs that finished since the last tick, and on
+// completion appends a final summary line and posts a NEW comment so
+// watchers get notified (comment edits don't notify). Deliberately no
+// check-run and no automerge here — that machinery stays addon-only.
+const checkRCRun = async (octokit, owner, repo, pullRequest, entry) => {
+  const prNumber = pullRequest.number;
+  const prTitle = pullRequest.title;
+  const ref = entry.ref;
+  const stickyRef = entry.comment;
+
+  if (!stickyRef.body.includes(stickyMarker())) {
+    console.log(`PR "${prTitle}" #${prNumber}: RC entry ${ref} found outside the sticky comment, skipping`);
+    return;
+  }
+  if (stickyRef.body.includes(`<!--done:${ref}-->`)) {
+    console.log(`PR "${prTitle}" #${prNumber}: RC run ${ref} already completed, nothing to do`);
+    return;
+  }
+
+  // Re-read the sticky body right before read-modify-write so a queue entry
+  // the workflow appended since listComments isn't clobbered below.
+  const { data: sticky } = await octokit.rest.issues.getComment({ owner, repo, comment_id: stickyRef.id });
+  if (sticky.body.includes(`<!--done:${ref}-->`)) {
+    console.log(`PR "${prTitle}" #${prNumber}: RC run ${ref} already completed (fresh read), nothing to do`);
+    return;
+  }
+
+  const response = await httpClient.get(`${TESTGRID_API}/runs?searchRef=${encodeURIComponent(rcSearchRef(ref))}`);
+  const responseBody = JSON.parse(await response.readBody());
+  const runs = responseBody.runs || [];
+  if (runs.length === 0) {
+    core/* warning */.$e(
+      `WARNING: PR "${prTitle}" #${prNumber}: no testgrid run found despite finding RC entry ${ref}`
+    );
+    return;
+  }
+
+  let pending = 0;
+  let running = 0;
+  for (const run of runs) {
+    pending += run.pending_runs || 0;
+    running += run.running_runs || 0;
+  }
+  const done = pending === 0 && running === 0;
+
+  const reportedIds = extractReportedLegIds(sticky.body);
+  const newLines = [];
+  const failedLegs = [];
+
+  for (const run of runs) {
+    // POST only: the run detail endpoint returns 405 on GET (mirrors
+    // bin/verify-testgrid-run.sh, which curls it with a `{}` body).
+    const detail = await httpClient.post(`${TESTGRID_API}/run/${encodeURIComponent(run.id)}`, '{}');
+    const instances = JSON.parse(await detail.readBody()).instances || [];
+    for (const instance of instances) {
+      if (!legFinished(instance) || reportedIds.has(instance.id)) continue;
+      const line = buildLegLine(instance);
+      newLines.push(line);
+      if (legFailed(instance)) {
+        failedLegs.push(line);
+      }
+    }
+  }
+
+  let passed = 0;
+  let failed = 0;
+  let skipped = 0;
+  if (done) {
+    for (const run of runs) {
+      passed += run.success_count || 0;
+      failed += run.failure_count || 0;
+      skipped += Math.max((run.total_runs || 0) - (run.success_count || 0) - (run.failure_count || 0), 0);
+    }
+  }
+
+  const additions = [...newLines];
+  if (done) {
+    additions.push(buildSummaryLine(ref, { passed, failed, skipped }));
+  }
+  if (additions.length === 0) {
+    console.log(`PR "${prTitle}" #${prNumber}: RC run ${ref} still executing, no new legs to report`);
+    return;
+  }
+
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: sticky.id,
+    body: appendToSticky(sticky.body, additions.join('\n')),
+  });
+  console.log(`PR "${prTitle}" #${prNumber}: RC run ${ref}: appended ${newLines.length} leg(s), done=${done}`);
+
+  if (done) {
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: buildCompletionCommentBody(ref, { passed, failed, skipped }, failedLegs),
+    });
   }
 };
 

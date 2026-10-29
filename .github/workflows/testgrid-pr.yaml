@@ -17,6 +17,13 @@ name: testgrid-pr
 #     OS matrix instead of the default first/last subset.
 #   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
 #
+# ── PR comment behavior ─────────────────────────────────────────────────────
+#   * All runs of a PR append into ONE sticky comment (header `testgrid-pr`)
+#     instead of posting a new comment per run. The testgrid-checker cron
+#     (test-testgrid-results.yaml) then appends per-leg results into that same
+#     comment as the queued run executes, and posts a separate NEW comment when
+#     the run completes (edits don't notify; completions should).
+#
 # ── What a label run builds ─────────────────────────────────────────────────
 #   * A LABEL run reuses the existing replicated/kurl-util:alpha image
 #     (retagged and pushed under this run's own versioned tag, since the
@@ -542,8 +549,6 @@ jobs:
     needs:
       - get-tag
       - generate-addons
-    outputs:
-      msg: ${{ steps.queue.outputs.msg }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -586,21 +591,83 @@ jobs:
               --priority "${PRIORITY}"
 
           MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
-          echo "msg=$MSG" >> "$GITHUB_OUTPUT"
           echo "::notice ::${MSG}"
 
   comment-pr:
     runs-on: ubuntu-24.04
+    # Every upstream job is a DIRECT need so a failure anywhere surfaces here
+    # as `failure` (transitively it would only show up as testgrid-run being
+    # skipped, and the failure note below would never fire).
     needs:
       - get-tag
+      - kurl-util-image
+      - build-matrix
+      - copy-packages-from-staging
+      - copy-packages
+      - build-and-upload
+      - generate-addons
       - testgrid-run
-    # Only PR-triggered runs have a PR to comment on.
-    if: github.event_name == 'pull_request'
+    # Only PR-triggered runs have a PR to comment on. always() so a build
+    # failure is still recorded on the PR. A CANCELLED run (superseded by a
+    # newer label/push via the concurrency group) stays silent: nothing of it
+    # will execute, and reporting it would just be noise.
+    if: >-
+      ${{ always() && github.event_name == 'pull_request' &&
+          !contains(needs.*.result, 'cancelled') }}
+    permissions:
+      pull-requests: write
     steps:
-      - name: Post Testgrid run URL
-        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3
+      # One sticky comment per PR (header `testgrid-pr`): every run APPENDS its
+      # entry instead of posting a new comment, so reruns/relabels don't stack
+      # comments. The testgrid-checker cron later appends per-leg results to
+      # this same comment as the queued run executes, and posts a separate NEW
+      # comment when the run completes (comment edits don't notify).
+      - name: Append queued Testgrid run to the sticky comment
+        if: needs.testgrid-run.result == 'success'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
-          message: ${{ needs.testgrid-run.outputs.msg }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          message-id: testgrid-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
-          allow-repeats: false
+          header: testgrid-pr
+          append: true
+          message: |
+            ### 🧪 Testgrid RC run — `${{ needs.get-tag.outputs.version_tag }}`
+            - Spec: `${{ github.event_name == 'workflow_dispatch' && inputs.testgrid-spec || 'testgrid/specs/deploy.yaml' }}` · OS spec: `${{ needs.get-tag.outputs.testgrid_os_spec }}`
+            - Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${{ needs.get-tag.outputs.testgrid_ref }}
+
+      # The queue entry line above ("Testgrid Run(s) Executing @ ...") is what
+      # the checker greps the sticky for; the failure note deliberately carries
+      # no such line so it can never be picked up as a runnable ref.
+      - name: Compose RC build failure note
+        if: contains(needs.*.result, 'failure')
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+        run: |
+          jobs=(get-tag kurl-util-image build-matrix copy-packages-from-staging copy-packages build-and-upload generate-addons testgrid-run)
+          results=("${{ needs.get-tag.result }}" "${{ needs.kurl-util-image.result }}" "${{ needs.build-matrix.result }}" "${{ needs.copy-packages-from-staging.result }}" "${{ needs.copy-packages.result }}" "${{ needs.build-and-upload.result }}" "${{ needs.generate-addons.result }}" "${{ needs.testgrid-run.result }}")
+
+          failed=""
+          for i in "${!jobs[@]}"; do
+            if [ "${results[$i]}" = "failure" ]; then
+              failed="${failed:+${failed}, }${jobs[$i]}"
+            fi
+          done
+          if [ -z "${failed}" ]; then
+            echo "no failed jobs to report (upstream skipped?)"
+            exit 0
+          fi
+          {
+            echo "### ❌ Testgrid RC build failed"
+            echo "- Failed jobs: ${failed}"
+            if [ -n "${VERSION_TAG}" ]; then
+              echo "- Version: \`${VERSION_TAG}\`"
+            fi
+            echo "- Logs: ${RUN_URL}"
+          } > rc-failure-note.md
+
+      - name: Append RC build failure to the sticky comment
+        if: contains(needs.*.result, 'failure')
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: testgrid-pr
+          append: true
+          path: rc-failure-note.md
