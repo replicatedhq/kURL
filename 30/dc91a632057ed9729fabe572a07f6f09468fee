@@ -1,0 +1,23 @@
+packages/kubernetes/1.37.1/kubeadm-image-overrides
+  s_e627426ed4fb1d::t_0fdef7ea5830f6 4
+packages/kubernetes/1.37.1/Manifest
+  s_e627426ed4fb1d::t_c644826acd2130 7-10
+packages/kubernetes/template/securebuild-1.37.1/kubeadm-image-overrides
+  s_e627426ed4fb1d::t_5f64803d1901d9 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30dc91a632057ed9729fabe572a07f6f09468fee",
+  "prompts": {},
+  "sessions": {
+    "s_e627426ed4fb1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_e85eaf7afffeujoxBukdsktwEY",
+        "model": "accounts/fireworks/routers/glm-latest"
+      },
+      "human_author": "Xav Paice <xav@replicated.com>"
+    }
+  }
+}
