@@ -27,6 +27,46 @@ function kubernetes_host() {
     install_kustomize
 }
 
+# kubernetes_alias_canonical_pause_image aliases the package's pause image to the canonical
+# registry.k8s.io name when the package ships it under a different repository (e.g. the
+# SecureBuild kurlsh/pause since 1.36.5). kubeadm's upgrade-health-check Job references the
+# canonical pause image; without a local alias the Job cannot start in airgap and
+# `kubeadm upgrade plan` fails its CreateJob preflight (sc-140326).
+function kubernetes_alias_canonical_pause_image() {
+    local version="$1"
+    local manifest="$DIR/packages/kubernetes/$version/Manifest"
+    if [ ! -f "$manifest" ]; then
+        return 0
+    fi
+
+    local pause_image=
+    pause_image="$(awk '$1 == "image" && $2 == "pause" {print $3; exit}' "$manifest")"
+    if [ -z "$pause_image" ]; then
+        return 0
+    fi
+
+    case "$pause_image" in
+        registry.k8s.io/pause:* | k8s.gcr.io/pause:*)
+            # already canonical
+            return 0
+            ;;
+        *:*)
+            ;;
+        *)
+            logWarn "Cannot alias pause image $pause_image to the canonical name: reference has no tag"
+            return 0
+            ;;
+    esac
+
+    local tag="${pause_image%%@*}" # a digest suffix cannot identify a rebuilt image
+    local canonical="registry.k8s.io/pause:${tag##*:}"
+    if [ -n "$DOCKER_VERSION" ]; then
+        docker tag "$pause_image" "$canonical"
+    else
+        ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$pause_image" "$canonical"
+    fi
+}
+
 function kubernetes_load_images() {
     local version="$1"
 
@@ -37,6 +77,7 @@ function kubernetes_load_images() {
     fi
 
     load_images "$DIR/packages/kubernetes/$version/images"
+    kubernetes_alias_canonical_pause_image "$version"
     # kubeadm uses upstream references until the workload image overrides are applied.
     # Provide local aliases so air-gapped installs do not need those upstream images.
     local overrides="$DIR/packages/kubernetes/$version/image-overrides"

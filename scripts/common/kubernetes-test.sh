@@ -44,6 +44,86 @@ quay.io/org/image-6"
     assertEquals "quay.io/org/image-5:2.0" "1" "$(kubernetes_node_has_image "node-1" "quay.io/org/image-5:2.0"; echo $?)"
 }
 
+# kubernetes_alias_canonical_pause_image tests. K8S_DISTRO is empty so the ctr invocation
+# resolves to the _get_containerd_sock stub; ctr itself is stubbed to record its args.
+function test_kubernetes_alias_canonical_pause_image_aliases_kurlsh_pause() {
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    mkdir -p "$DIR/packages/kubernetes/1.36.5"
+    cat > "$DIR/packages/kubernetes/1.36.5/Manifest" <<EOF
+image pause docker.io/kurlsh/pause:3.10.2
+EOF
+
+    local ctr_calls=
+    function ctr() {
+        #shellcheck disable=SC2317
+        ctr_calls="$ctr_calls$*;"
+    }
+    function _get_containerd_sock() {
+        #shellcheck disable=SC2317
+        echo /run/containerd/containerd.sock
+    }
+
+    kubernetes_alias_canonical_pause_image "1.36.5"
+    assertEquals "kurlsh pause should be tagged to the canonical name" \
+        "-a /run/containerd/containerd.sock -n k8s.io images tag --force docker.io/kurlsh/pause:3.10.2 registry.k8s.io/pause:3.10.2;" \
+        "$ctr_calls"
+
+    rm -rf "$tmpdir"
+    unset -f ctr _get_containerd_sock
+}
+
+function test_kubernetes_alias_canonical_pause_image_strips_digest() {
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    mkdir -p "$DIR/packages/kubernetes/1.36.5"
+    cat > "$DIR/packages/kubernetes/1.36.5/Manifest" <<EOF
+image pause docker.io/kurlsh/pause:3.10.2@sha256:deadbeef
+EOF
+
+    local ctr_calls=
+    function ctr() {
+        #shellcheck disable=SC2317
+        ctr_calls="$ctr_calls$*;"
+    }
+    function _get_containerd_sock() {
+        #shellcheck disable=SC2317
+        echo /run/containerd/containerd.sock
+    }
+
+    kubernetes_alias_canonical_pause_image "1.36.5"
+    assertEquals "digest-pinned kurlsh pause should be tagged to the canonical tag" \
+        "-a /run/containerd/containerd.sock -n k8s.io images tag --force docker.io/kurlsh/pause:3.10.2@sha256:deadbeef registry.k8s.io/pause:3.10.2;" \
+        "$ctr_calls"
+
+    rm -rf "$tmpdir"
+    unset -f ctr _get_containerd_sock
+}
+
+function test_kubernetes_alias_canonical_pause_image_skips_canonical_pause() {
+    local tmpdir=
+    tmpdir=$(mktemp -d)
+    DIR="$tmpdir"
+    mkdir -p "$DIR/packages/kubernetes/1.36.4"
+    cat > "$DIR/packages/kubernetes/1.36.4/Manifest" <<EOF
+image pause registry.k8s.io/pause:3.10.2
+EOF
+
+    local ctr_calls=
+    function ctr() {
+        #shellcheck disable=SC2317
+        ctr_calls="$ctr_calls$*;"
+    }
+
+    kubernetes_alias_canonical_pause_image "1.36.4"
+    assertEquals "canonical pause needs no alias" "" "$ctr_calls"
+
+    rm -rf "$tmpdir"
+    unset -f ctr
+}
+
 # write_kubeadm_image_overrides_fixture writes a kubeadm-image-overrides file for
 # $KUBERNETES_VERSION under $DIR. With no args it writes the etcd-only line used by most
 # tests; "multi" writes the real four-component shape shipped in
@@ -59,7 +139,7 @@ function write_kubeadm_image_overrides_fixture() {
 kube-apiserver docker.io/kurlsh/kube-apiserver:v1.36.5 registry.k8s.io/kube-apiserver:v1.36.5
 kube-controller-manager docker.io/kurlsh/kube-controller-manager:v1.36.5 registry.k8s.io/kube-controller-manager:v1.36.5
 kube-scheduler docker.io/kurlsh/kube-scheduler:v1.36.5 registry.k8s.io/kube-scheduler:v1.36.5
-etcd proxy.replicated.com/anonymous/registry.k8s.io/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
+etcd docker.io/kurlsh/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
 EOF
     elif [ "$shape" = "no-etcd" ]; then
         cat > "$DIR/packages/kubernetes/$KUBERNETES_VERSION/kubeadm-image-overrides" <<EOF
