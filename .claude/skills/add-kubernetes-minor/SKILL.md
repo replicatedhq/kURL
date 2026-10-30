@@ -144,9 +144,10 @@ gh workflow run testgrid-pr.yaml -f branch=<branch> -f testgrid-spec=testgrid/sp
 ## 5. Companion PRs (only when needed)
 
 - **kURL-api** (`replicatedhq/kURL-api`, `./kurl-api` in the factory workspace): only if 1.N needs a
-  compatibility rule (e.g. a runtime floor). Add it in `src/installers/index.ts` following the existing
-  `semver.gte(spec.kubernetes.version, "1.X.0")` + add-on check pattern, with tests in
-  `src/test/controllers/installers.ts`. Precedent: kURL-api PR #989 (k8s 1.37 rejects containerd < 2).
+  compatibility rule (e.g. a runtime floor). In `src/installers/index.ts`, add a Kubernetes and
+  add-on version pair as a row in `Installer.addonKubernetesRules`, and any other combination in
+  `validateCompatibility()`, with tests in `src/test/installers/compatibility-test.ts`. Precedents:
+  kURL-api PR #989 (k8s 1.37 rejects containerd < 2), kURL-api PR #1010 (the rules table).
 - **kurl.sh docs** (`replicatedhq/kurl.sh`, `src/markdown-pages/add-ons/*.md`): only for a new
   user-facing caveat. Precedent: kurl.sh#1406.
 
