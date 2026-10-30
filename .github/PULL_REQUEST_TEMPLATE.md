@@ -51,10 +51,15 @@ If no, just write "NONE" below.
 If yes, link to the related https://github.com/replicatedhq/kurl.sh documentation PR:
 -->
 
-#### Does this PR add a Kubernetes or add-on version?
+#### Does this PR need a kURL-api compatibility rule?
 <!--
-If yes, does this version need a compatibility rule in kURL-api? Rules live in `validate()` in
-https://github.com/replicatedhq/kURL-api/blob/main/src/installers/index.ts. Add one when the version
-cannot be installed with some Kubernetes or add-on versions (for example, when an install script
-`bail`s on the combination). Link the kURL-api PR, or write "NONE".
+kURL-api rejects installer specs that kURL cannot install. A rule is needed when this PR adds a
+Kubernetes or add-on version that cannot be installed with some Kubernetes or add-on versions, or adds
+a `bail` or preflight failure for a combination of versions or settings.
+Kubernetes and add-on version pairs go in `Installer.addonKubernetesRules` in kURL-api
+`src/installers/index.ts`, and other combinations in `validateCompatibility()`, with tests in
+`src/test/installers/compatibility-test.ts`.
+kURL-api is private. If you cannot open it, describe the combination here and a maintainer will add
+the rule.
 -->
+- [ ] kURL-api rule: (link the kURL-api PR, describe the combination to reject, or write NONE)

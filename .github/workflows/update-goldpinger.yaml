@@ -50,6 +50,8 @@ jobs:
           ```release-note
           Adds [Goldpinger add-on](https://kurl.sh/docs/add-ons/goldpinger) version ${{ steps.update.outputs.goldpinger_version }}.
           ```
+
+          - [ ] kURL-api compatibility rule: (link the kURL-api PR, or write NONE). Needed when this version cannot be installed with some Kubernetes or add-on versions, for example when an install script `bail`s on the combination. See `Installer.addonKubernetesRules` in kURL-api `src/installers/index.ts`.
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
