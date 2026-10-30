@@ -108,6 +108,7 @@ def main():
         if not i.get("isSuccess")
         and not i.get("isUnsupported")
         and not i.get("isSkipped")
+        and not i.get("cancelledAt")  # cancelled instances are not failures
         and i.get("finishedAt")
     ]
 
