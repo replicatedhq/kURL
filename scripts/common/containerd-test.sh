@@ -352,24 +352,24 @@ function test_migration_steps_1_7_to_2x() {
     assertEquals "migration steps 1.7->2.0" "2.0.5" "$steps"
 }
 
-function test_kubernetes_137_blocked_on_sub_2x_containerd() {
-    kubeadm_conf_api_version() { echo "v1beta4"; }
+function test_kubernetes_136_blocked_on_sub_2x_containerd() {
+    local KUBERNETES_TARGET_VERSION_MINOR=36
     local result
     result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29") 2>&1 || true)"
     echo "$result" | grep -q "containerd 2.x"
-    assertEquals "Kubernetes 1.37+ blocked on containerd 1.7.29" "0" "$?"
+    assertEquals "Kubernetes 1.36+ blocked on containerd 1.7.29" "0" "$?"
 }
 
-function test_kubernetes_137_allowed_on_2x_containerd() {
-    kubeadm_conf_api_version() { echo "v1beta4"; }
+function test_kubernetes_136_allowed_on_2x_containerd() {
+    local KUBERNETES_TARGET_VERSION_MINOR=36
     (containerd_verify_kubernetes_1_37_compatibility "2.0.5")
-    assertEquals "Kubernetes 1.37+ allowed on containerd 2.0.5" "0" "$?"
+    assertEquals "Kubernetes 1.36+ allowed on containerd 2.0.5" "0" "$?"
 }
 
-function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
+function test_pre_136_kubernetes_allowed_on_sub_2x_containerd() {
+    local KUBERNETES_TARGET_VERSION_MINOR=35
     (containerd_verify_kubernetes_1_37_compatibility "1.7.29")
-    assertEquals "Kubernetes <1.37 allowed on containerd 1.7.29" "0" "$?"
+    assertEquals "Kubernetes <1.36 allowed on containerd 1.7.29" "0" "$?"
 }
 
 # test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
@@ -503,9 +503,9 @@ test_upgrade_k8s_too_old_blocked
 test_downgrade_2x_to_1x_blocked
 test_same_major_minor_span_blocked
 test_migration_steps_1_7_to_2x
-test_kubernetes_137_blocked_on_sub_2x_containerd
-test_kubernetes_137_allowed_on_2x_containerd
-test_pre_137_kubernetes_allowed_on_sub_2x_containerd
+test_kubernetes_136_blocked_on_sub_2x_containerd
+test_kubernetes_136_allowed_on_2x_containerd
+test_pre_136_kubernetes_allowed_on_sub_2x_containerd
 test_pre_init_tolerates_missing_137_guard
 test_join_tolerates_missing_137_guard
 test_install_runc_containerd_1x

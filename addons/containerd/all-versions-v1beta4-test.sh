@@ -39,9 +39,8 @@ function test_every_v1beta4_yaml_sibling_is_selected_by_install_sh() {
 }
 
 # containerd_version_lt_2_0_0 reports whether $1 is a containerd version older than
-# 2.0.0. Kubernetes 1.37+ dropped upstream support for containerd 1.x (matching
-# containerd's own CRI v1alpha2 removal), so kURL only pairs Kubernetes 1.37+ with
-# containerd 2.x. containerd 1.x versions (including 1.6.x/1.7.x) never need the
+# 2.0.0. Kubernetes 1.36+ dropped upstream support for containerd 1.x, so kURL only
+# pairs Kubernetes 1.36+ (and so 1.37+) with containerd 2.x. containerd 1.x versions (including 1.6.x/1.7.x) never need the
 # v1beta4 kubeadm config patch siblings.
 function containerd_version_lt_2_0_0() {
     local major="${1%%.*}"
