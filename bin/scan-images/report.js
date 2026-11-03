@@ -2,8 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const yargs = require('yargs');
-const { hideBin } = require('yargs/helpers');
 
 // reportSeverities matches the --fail-on high threshold in the scan workflow.
 const reportSeverities = ['Critical', 'High'];
@@ -85,19 +83,22 @@ const buildMessage = (images, runUrl) => {
     return lines.join('\n');
 };
 
+// No third-party deps on purpose: this runs in the job that holds the Slack
+// webhook secret, so it doesn't install anything from npm.
 if (require.main === module) {
-    yargs(hideBin(process.argv))
-        .command('$0 <dir>', 'build a Slack webhook payload from scan results', (y) => {
-            y.positional('dir', { describe: 'directory of downloaded scan artifacts', type: 'string' });
-            y.option('run-url', { describe: 'link to the workflow run', type: 'string', demandOption: true });
-        }, (argv) => {
-            const images = summarize(loadResults(argv.dir));
-            if (images.length === 0) {
-                return;
-            }
-            console.log(JSON.stringify({ text: buildMessage(images, argv.runUrl) }));
-        })
-        .argv;
+    const usage = 'usage: report.js <dir> --run-url <url>';
+    const args = process.argv.slice(2);
+    const flag = args.indexOf('--run-url');
+    const runUrl = flag >= 0 ? args[flag + 1] : undefined;
+    const dir = args.find((arg, i) => !arg.startsWith('--') && i !== flag + 1);
+    if (!dir || !runUrl) {
+        console.error(usage);
+        process.exit(1);
+    }
+    const images = summarize(loadResults(dir));
+    if (images.length > 0) {
+        console.log(JSON.stringify({ text: buildMessage(images, runUrl) }));
+    }
 }
 
 module.exports = { loadResults, summarize, buildMessage };
