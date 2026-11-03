@@ -3,7 +3,12 @@ name: cron-scan-images-daily
 on:
   schedule:
     - cron: "0 16 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      notify:
+        description: Post the report to Slack even if it isn't Monday
+        type: boolean
+        default: false
 
 jobs:
   build-matrix:
@@ -47,7 +52,10 @@ jobs:
       - name: "Scan image (OS vulnerabilities only)"
         id: scan
         continue-on-error: ${{ ! matrix.alert }}
+        env:
+          MATRIX: ${{ toJSON(matrix) }}
         run: |
+          echo "$MATRIX" > meta.json
           syft ${{ matrix.image }} -o syft-json --select-catalogers "os" > sbom.json
           grype sbom:./sbom.json -c .grype.yaml --fail-on high --only-fixed -o json > grype.json
 
@@ -56,7 +64,9 @@ jobs:
         if: ${{ always() && steps.scan.outcome == 'failure' }}
         with:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
-          path: grype.json
+          path: |
+            grype.json
+            meta.json
 
       - name: "Display results"
         if: ${{ always() && steps.scan.outcome == 'failure' }}
@@ -68,6 +78,11 @@ jobs:
     runs-on: ubuntu-24.04
     if: ${{ failure() }}
     steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+      - name: Install dependencies
+        working-directory: ./bin/scan-images/
+        run: npm install
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -80,3 +95,23 @@ jobs:
         with:
           name: grype results
           path: grype.json
+
+      # The scan runs daily, but we only ping Slack on Mondays so the findings
+      # land ahead of the weekly release. A manual run can force it.
+      - name: Post report to Slack
+        if: ${{ (github.event_name == 'schedule' || inputs.notify) && !cancelled() }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.KURL_CVE_ALERTS_SLACK_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FORCE: ${{ inputs.notify }}
+        run: |
+          if [ "$FORCE" != "true" ] && [ "$(date -u +%u)" != "1" ]; then
+            echo "Not Monday, skipping Slack report"
+            exit 0
+          fi
+          ./bin/scan-images/report.js scan-results/ --run-url "$RUN_URL" > payload.json
+          if [ ! -s payload.json ]; then
+            echo "No findings to report"
+            exit 0
+          fi
+          curl -sSf -X POST -H 'Content-Type: application/json' --data @payload.json "$SLACK_WEBHOOK"
