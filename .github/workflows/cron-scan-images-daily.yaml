@@ -2,7 +2,10 @@ name: cron-scan-images-daily
 
 on:
   schedule:
-    - cron: "0 16 * * *"
+    # 05:17 UTC so the Monday report lands before 08:00 UK time year-round
+    # (07:00 UTC during BST). A full run takes ~25m; the odd minute dodges
+    # the top-of-hour scheduler backlog that delays cron starts.
+    - cron: "17 5 * * *"
   workflow_dispatch:
     inputs:
       notify:
