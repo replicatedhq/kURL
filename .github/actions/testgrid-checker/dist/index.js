@@ -29636,7 +29636,7 @@ const pullRequests = await octokit.rest.pulls.list({
   state: 'open',
 });
 
-const pullRequestPromises = pullRequests.data.map((0,_pullrequests_js__WEBPACK_IMPORTED_MODULE_2__/* .checkPullRequest */ .f)(octokit, owner, repo));
+const pullRequestPromises = pullRequests.data.map((0,_pullrequests_js__WEBPACK_IMPORTED_MODULE_2__/* .checkPullRequest */ .fb)(octokit, owner, repo));
 
 try {
   await Promise.all(pullRequestPromises);
@@ -39462,10 +39462,10 @@ function getUserAgent() {
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  f: () => (/* binding */ checkPullRequest)
+  fb: () => (/* binding */ checkPullRequest)
 });
 
-// UNUSED EXPORTS: enablePullRequestAutomerge
+// UNUSED EXPORTS: allAddonRunsDone, enablePullRequestAutomerge, reportAddonCompletion
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js + 16 modules
 var core = __nccwpck_require__(3340);
@@ -39521,6 +39521,13 @@ const stickyMarker = (header = STICKY_HEADER) =>
 // capturing the FULL ref after /run/.
 const RUN_LINE_RE = /Testgrid Run\(s\) Executing @\W+https:\/\/testgrid\.kurl\.sh\/run\/([^\s)]+)/g;
 
+// Run lines are only ever posted by our own workflows via the default
+// GITHUB_TOKEN (marocchino/sticky-pull-request-comment with no custom
+// token), never by the testgrid-checker's own GitHub App. Any other
+// commenter's "Testgrid Run(s) Executing" text is untrusted and must not be
+// able to steer a check-run or auto-merge.
+const TRUSTED_RUN_LINE_LOGIN = 'github-actions[bot]';
+
 // RC runs queue with an uppercase PR- prefixed ref (get-tag in
 // testgrid-pr.yaml); addon runs use lowercase pr-<number>-<sha>.
 const isRCRef = (ref) => ref.startsWith('PR-');
@@ -39538,15 +39545,27 @@ const addonRefPrefix = (ref) => (ref.match(/^pr-\d+-\w+/) || [])[0] || '';
 
 // Latest run entry wins (same "last comment wins" semantics the addon flow
 // always had): comments in ascending id order, then line order within a body.
-const findLastRunEntry = (comments) => {
+// When headSha is given, the addon entry for that sha beats document order.
+const findLastRunEntry = (comments, headSha) => {
+  const shortSha = headSha ? headSha.slice(0, 7) : null;
   let last = null;
+  let lastForHeadAddon = null;
+  let lastForHeadAny = null;
   for (const comment of comments) {
     if (!comment.body) continue;
+    if (comment.user?.login !== TRUSTED_RUN_LINE_LOGIN) continue;
     for (const match of comment.body.matchAll(RUN_LINE_RE)) {
-      last = { ref: match[1], comment };
+      const entry = { ref: match[1], comment };
+      last = entry;
+      if (shortSha && entry.ref.includes(shortSha)) {
+        lastForHeadAny = entry;
+        if (!isRCRef(entry.ref)) {
+          lastForHeadAddon = entry;
+        }
+      }
     }
   }
-  return last;
+  return lastForHeadAddon || lastForHeadAny || last;
 };
 
 const extractReportedLegIds = (body) =>
@@ -39584,13 +39603,30 @@ const buildSummaryLine = (ref, { passed, failed, skipped }) =>
 // Insert new content just before the sticky marker (which the sticky action
 // keeps at the very end of the comment body). Falls back to plain append if
 // the marker is missing (e.g. a hand-crafted comment).
-const appendToSticky = (body, addition) => {
-  const marker = stickyMarker();
+const appendToSticky = (body, addition, header = STICKY_HEADER) => {
+  const marker = stickyMarker(header);
   const idx = body.lastIndexOf(marker);
   if (idx === -1) {
     return `${body}\n${addition}`;
   }
   return `${body.slice(0, idx)}${addition}\n${body.slice(idx)}`;
+};
+
+const ADDON_STICKY_HEADER = 'addon-testgrid';
+
+const addonDoneMarker = (prefix) => `<!--addon-done:${prefix}-->`;
+
+const isAddonDone = (body, prefix) => body.includes(addonDoneMarker(prefix));
+
+const addonCompletionCommentMarker = (prefix) => `<!--addon-completed:${prefix}-->`;
+
+const buildAddonCompletionCommentBody = (prefix, { passed, failed, skipped }) => {
+  const headline = failed > 0 ? '❌ failed' : '✅ passed';
+  return [
+    `### 🏁 Testgrid add-on run ${headline} — \`${prefix}\``,
+    `- Result: **${passed} passed, ${failed} failed, ${skipped} skipped**`,
+    addonCompletionCommentMarker(prefix),
+  ].join('\n');
 };
 
 const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs) => {
@@ -39621,7 +39657,10 @@ const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs
 const httpClient = new lib/* HttpClient */.Qq();
 const TESTGRID_API = 'https://api.testgrid.kurl.sh/api/v1';
 
-const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
+const allAddonRunsDone = runs =>
+  runs.every(run => !(run.pending_runs > 0) && !(run.running_runs > 0));
+
+const checkPullRequest = (octokit, owner, repo, client = httpClient) => async pullRequest => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
   console.log(`PR "${prTitle}" #${prNumber}: checking`);
@@ -39634,47 +39673,42 @@ const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
     issue_number: prNumber,
   });
 
-  // The run entry to watch is the LATEST in document order: either a
+  // The run entry to watch is the one matching this tick's current head sha
+  // where possible, falling back to the LATEST in document order: either a
   // standalone comment (legacy test-addon flow) or a line inside the single
-  // sticky comment the testgrid-pr workflow appends to. Same "last wins"
-  // semantics the addon flow always had, now across both sources.
-  const lastEntry = findLastRunEntry(thisPrComments);
+  // sticky comment the testgrid-pr workflow appends to.
+  const lastEntry = findLastRunEntry(thisPrComments, pullRequest.head.sha);
   if (!lastEntry) {
     console.log(`PR "${prTitle}" #${prNumber}: no testgrid run found`);
     return;
   }
 
   if (isRCRef(lastEntry.ref)) {
-    await checkRCRun(octokit, owner, repo, pullRequest, lastEntry);
+    await checkRCRun(octokit, owner, repo, pullRequest, lastEntry, client);
     return;
   }
 
-  const lastTestgridCommentPrefix = addonRefPrefix(lastEntry.ref) || lastEntry.ref;
+  const lastTestgridCommentPrefix = addonRefPrefix(lastEntry.ref);
+  if (!lastTestgridCommentPrefix) {
+    console.log(`PR "${prTitle}" #${prNumber}: entry ref "${lastEntry.ref}" is not a recognized addon prefix, skipping`);
+    return;
+  }
+  if (!lastTestgridCommentPrefix.startsWith(`pr-${prNumber}-`)) {
+    console.log(`PR "${prTitle}" #${prNumber}: entry ref prefix "${lastTestgridCommentPrefix}" does not belong to this PR, skipping`);
+    return;
+  }
 
-  const response = await httpClient.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${lastTestgridCommentPrefix}`);
+  const response = await client.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${encodeURIComponent(lastTestgridCommentPrefix)}`);
   const responseBody = JSON.parse(await response.readBody());
 
-  let passing = true;
   if (responseBody.total !== 0) {
-    for (const run of responseBody.runs) {
-      if (run.pending_runs > 0) {
-        console.log(`PR "${prTitle}" #${prNumber}: has pending runs`);
-        return;
-      }
-      if (run.running_runs > 0) {
-        console.log(`PR "${pullRequest.title}" #${prNumber} has running runs`);
-        return;
-      }
-      if (run.failure_count > 0) {
-        console.log(`PR "${prTitle}" #${prNumber}: has failed runs`);
-        passing = false;
-        break;
-      }
-      if (run.success_count > 0) {
-        console.log(`PR "${prTitle}" #${prNumber}: is passing`);
-        break;
-      }
+    if (!allAddonRunsDone(responseBody.runs)) {
+      console.log(`PR "${prTitle}" #${prNumber}: has pending or running runs`);
+      return;
     }
+    const passing = !responseBody.runs.some(run => run.failure_count > 0);
+    console.log(`PR "${prTitle}" #${prNumber}: ${passing ? 'is passing' : 'has failed runs'}`);
+
     await octokit.rest.checks.create({
       owner,
       repo,
@@ -39700,6 +39734,11 @@ const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
       }
     }
     console.log(`PR "${prTitle}" #${prNumber}: is done`);
+
+    const isSticky = lastEntry.comment.body.includes(stickyMarker(ADDON_STICKY_HEADER));
+    if (isSticky) {
+      await reportAddonCompletion(octokit, owner, repo, pullRequest, lastEntry.comment.id, lastTestgridCommentPrefix, responseBody.runs);
+    }
   } else {
     core/* warning */.$e(
       `WARNING: PR "${prTitle}" #${prNumber}: no testgrid run found despite finding comment`
@@ -39713,7 +39752,7 @@ const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
 // completion appends a final summary line and posts a NEW comment so
 // watchers get notified (comment edits don't notify). Deliberately no
 // check-run and no automerge here — that machinery stays addon-only.
-const checkRCRun = async (octokit, owner, repo, pullRequest, entry) => {
+const checkRCRun = async (octokit, owner, repo, pullRequest, entry, client = httpClient) => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
   const ref = entry.ref;
@@ -39736,7 +39775,7 @@ const checkRCRun = async (octokit, owner, repo, pullRequest, entry) => {
     return;
   }
 
-  const response = await httpClient.get(`${TESTGRID_API}/runs?searchRef=${encodeURIComponent(rcSearchRef(ref))}`);
+  const response = await client.get(`${TESTGRID_API}/runs?searchRef=${encodeURIComponent(rcSearchRef(ref))}`);
   const responseBody = JSON.parse(await response.readBody());
   const runs = responseBody.runs || [];
   if (runs.length === 0) {
@@ -39761,7 +39800,7 @@ const checkRCRun = async (octokit, owner, repo, pullRequest, entry) => {
   for (const run of runs) {
     // POST only: the run detail endpoint returns 405 on GET (mirrors
     // bin/verify-testgrid-run.sh, which curls it with a `{}` body).
-    const detail = await httpClient.post(`${TESTGRID_API}/run/${encodeURIComponent(run.id)}`, '{}');
+    const detail = await client.post(`${TESTGRID_API}/run/${encodeURIComponent(run.id)}`, "{}");
     const instances = JSON.parse(await detail.readBody()).instances || [];
     for (const instance of instances) {
       if (!legFinished(instance) || reportedIds.has(instance.id)) continue;
@@ -39809,6 +39848,53 @@ const checkRCRun = async (octokit, owner, repo, pullRequest, entry) => {
       body: buildCompletionCommentBody(ref, { passed, failed, skipped }, failedLegs),
     });
   }
+};
+
+const reportAddonCompletion = async (octokit, owner, repo, pullRequest, commentId, prefix, runs) => {
+  const prNumber = pullRequest.number;
+  const prTitle = pullRequest.title;
+
+  const { data: sticky } = await octokit.rest.issues.getComment({ owner, repo, comment_id: commentId });
+  if (isAddonDone(sticky.body, prefix)) {
+    console.log(`PR "${prTitle}" #${prNumber}: addon run ${prefix} already reported, nothing to do`);
+    return;
+  }
+
+  const existingComments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: prNumber,
+  });
+  const marker = addonCompletionCommentMarker(prefix);
+  const alreadyPosted = existingComments.some((comment) => comment.body?.includes(marker));
+
+  if (!alreadyPosted) {
+    let passed = 0;
+    let failed = 0;
+    let skipped = 0;
+    for (const run of runs) {
+      passed += run.success_count || 0;
+      failed += run.failure_count || 0;
+      skipped += Math.max((run.total_runs || 0) - (run.success_count || 0) - (run.failure_count || 0), 0);
+    }
+
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: buildAddonCompletionCommentBody(prefix, { passed, failed, skipped }),
+    });
+  } else {
+    console.log(`PR "${prTitle}" #${prNumber}: addon run ${prefix} completion comment already posted, retrying sticky marker only`);
+  }
+
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: sticky.id,
+    body: appendToSticky(sticky.body, addonDoneMarker(prefix), ADDON_STICKY_HEADER),
+  });
+  console.log(`PR "${prTitle}" #${prNumber}: addon run ${prefix}: reported completion`);
 };
 
 const approvePullRequest = async (octokit, owner, repo, pullRequest, reviewMessage) => {

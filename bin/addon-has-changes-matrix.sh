@@ -28,6 +28,17 @@ function modified_versions() {
   echo "$versions"
 }
 
+function addon_run_prefix() {
+  local short_sha=
+  if [ -n "${PR_HEAD_SHA:-}" ]; then
+    short_sha="${PR_HEAD_SHA:0:7}"
+  else
+    short_sha="${GITHUB_SHA:0:7}"
+  fi
+
+  echo "pr-$(echo "$GITHUB_REF" | cut -d"/" -f3)-${short_sha}"
+}
+
 function check_addon() {
   local addon=$1
 
@@ -36,7 +47,7 @@ function check_addon() {
   versions=$(modified_versions "$addon")
 
   local prefix=
-  prefix="pr-$(echo "$GITHUB_REF" | cut -d"/" -f3)-${GITHUB_SHA:0:7}"
+  prefix="$(addon_run_prefix)"
 
   # check if there is a valid version (files in the root don't count) & template files
   for version in $versions
@@ -91,4 +102,6 @@ function main() {
   fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
