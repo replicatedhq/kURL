@@ -709,6 +709,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./bin/addon-has-changes-matrix-test.sh
 	./bin/combine-testgrid-messages-test.sh
 	./bin/sticky-comment-budget-test.sh
+	./bin/test-addon-pr-workflow-test.sh
 	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/kubernetes-test.sh

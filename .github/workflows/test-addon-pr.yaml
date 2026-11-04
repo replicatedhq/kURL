@@ -88,7 +88,7 @@ jobs:
         run: |
           source ./bin/sticky-comment-budget.sh
           body="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate \
-            --jq '[.[] | select(.body | contains("<!-- Sticky Pull Request Commentaddon-testgrid -->"))] | last | .body // ""')"
+            --jq '[.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- Sticky Pull Request Commentaddon-testgrid -->"))] | last | .body // ""')"
           stripped="$(strip_sticky_header "$body" "addon-testgrid")"
           delim="EOF_$(openssl rand -hex 8)"
           {
@@ -100,9 +100,12 @@ jobs:
       - name: Build sticky comment body
         id: build
         if: steps.combine.outputs.message != ''
+        env:
+          EXISTING_BODY: ${{ steps.existing.outputs.body }}
+          NEW_MESSAGE: ${{ steps.combine.outputs.message }}
         run: |
           source ./bin/sticky-comment-budget.sh
-          body="$(build_sticky_body "${{ steps.existing.outputs.body }}" "${{ steps.combine.outputs.message }}" 60000)"
+          body="$(build_sticky_body "$EXISTING_BODY" "$NEW_MESSAGE" 60000)"
           delim="EOF_$(openssl rand -hex 8)"
           {
             echo "body<<${delim}"
