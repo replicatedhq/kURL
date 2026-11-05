@@ -100,7 +100,7 @@ test('reportAddonCompletion leaves the done marker unwritten when posting the co
   assert.equal(updateCalled, false);
 });
 
-const ADDON_RUN_LINE = 'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-1-abc-containerd-2.3.3-2026-10-07T17:47:28Z';
+const ADDON_RUN_LINE = 'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-1-abc1234-containerd-2.3.3-2026-10-07T17:47:28Z';
 
 const makeFakeHttpClient = (responseBody) => ({
   get: async () => ({ readBody: async () => JSON.stringify(responseBody) }),
@@ -256,4 +256,21 @@ test('checkPullRequest never creates a success check-run while a sibling run in 
 
   assert.equal(checksCreateCalls.length, 1);
   assert.equal(checksCreateCalls[0].conclusion, 'failure');
+});
+
+test('checkPullRequest never creates a success check-run for a stale sticky entry after a force-push', async () => {
+  const staleRunLine = 'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-1-old0000-containerd-2.3.3-2026-10-07T17:47:28Z';
+  const sticky = addonStickyComment(staleRunLine, 307);
+  const checksCreateCalls = [];
+  let clientCalled = false;
+  const octokit = makeCheckPullRequestOctokit({
+    prComments: [sticky],
+    checksCreate: async (params) => { checksCreateCalls.push(params); },
+  });
+  const client = { get: async () => { clientCalled = true; return { readBody: async () => '{}' }; } };
+
+  await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
+
+  assert.equal(clientCalled, false);
+  assert.deepEqual(checksCreateCalls, []);
 });

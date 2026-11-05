@@ -39565,7 +39565,10 @@ const findLastRunEntry = (comments, headSha) => {
       }
     }
   }
-  return lastForHeadAddon || lastForHeadAny || last;
+  if (shortSha) {
+    return lastForHeadAddon || lastForHeadAny || null;
+  }
+  return last;
 };
 
 const extractReportedLegIds = (body) =>

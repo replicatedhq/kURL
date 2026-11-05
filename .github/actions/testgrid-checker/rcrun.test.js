@@ -278,7 +278,7 @@ test('findLastRunEntry prefers the addon entry over an RC entry when both match 
   assert.equal(entry.comment.id, 10);
 });
 
-test('findLastRunEntry falls back to document order when no entry matches the current head sha', () => {
+test('findLastRunEntry returns null after a force-push when no entry matches the new head sha', () => {
   const comments = [
     addonStickyComment(
       'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z',
@@ -291,8 +291,7 @@ test('findLastRunEntry falls back to document order when no entry matches the cu
   ];
 
   const entry = findLastRunEntry(comments, 'ccccccc0000000000000000000000000000000');
-  assert.equal(entry.ref, 'PR-v1-rc-pr6176-bbbbbbb-2026-10-07T18:00:00Z');
-  assert.equal(entry.comment.id, 20);
+  assert.equal(entry, null);
 });
 
 test('findLastRunEntry still prefers a more recent legacy standalone comment over an older addon sticky', () => {
