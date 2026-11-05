@@ -54,7 +54,7 @@ jobs:
 
   post-comment:
     needs: [check-addons, test-addons]
-    if: always() && needs.check-addons.outputs.addons
+    if: "!cancelled() && needs.check-addons.outputs.addons && needs.test-addons.result != 'cancelled'"
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: write

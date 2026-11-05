@@ -25,7 +25,7 @@ function resolve_message() {
   local message=
   message="$(combine_testgrid_messages "$dir")"
 
-  if [ -n "$message" ] || [ "$test_addons_result" = "skipped" ]; then
+  if [ -n "$message" ] || [ "$test_addons_result" = "skipped" ] || [ "$test_addons_result" = "cancelled" ]; then
     printf '%s' "$message"
     return 0
   fi

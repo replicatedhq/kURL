@@ -28,6 +28,17 @@ testRunBlocksDoNotInterpolateStepsOrEventOutputsDirectly() {
     done
 }
 
+testPostCommentJobSkipsWhenTestAddonsIsCancelled() {
+    local if_line
+    if_line="$(awk '/^  post-comment:/{found=1} found && /^    if:/{print; exit}' ./.github/workflows/test-addon-pr.yaml)"
+
+    local excludes_cancelled=0
+    printf '%s' "${if_line}" | grep -qF "needs.test-addons.result != 'cancelled'" && excludes_cancelled=1
+
+    assertEquals "post-comment job's if: must exclude a cancelled test-addons result, got: ${if_line}" \
+        1 "${excludes_cancelled}"
+}
+
 testExistingStickyCommentFetchIsScopedToBotAuthor() {
     local jq_line
     jq_line="$(grep -A10 "Fetch existing sticky comment" ./.github/workflows/test-addon-pr.yaml | grep -- '--jq')"

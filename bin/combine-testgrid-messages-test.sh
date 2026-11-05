@@ -123,14 +123,35 @@ testResolveMessagePostsNoticeWhenFailureWithNoArtifacts() {
 }
 
 testResolveMessagePostsNoticeWithoutRunUrlWhenNotGiven() {
+  local dir="${WORK_DIR}/resolve-failure-no-url"
+  mkdir -p "${dir}"
+
+  local result
+  result="$(resolve_message "${dir}" "failure")"
+
+  assertNotEquals "" "${result}"
+  assertContains "${result}" "failure"
+}
+
+testResolveMessageReturnsEmptyWhenCancelledWithNoArtifacts() {
   local dir="${WORK_DIR}/resolve-cancelled-empty"
   mkdir -p "${dir}"
 
   local result
   result="$(resolve_message "${dir}" "cancelled")"
 
-  assertNotEquals "" "${result}"
-  assertContains "${result}" "cancelled"
+  assertEquals "" "${result}"
+}
+
+testMainWritesEmptyMessageOutputWhenCancelledWithNoArtifacts() {
+  local dir="${WORK_DIR}/main-cancelled-empty"
+  mkdir -p "${dir}"
+  GITHUB_OUTPUT="$(mktemp)"
+
+  main "${dir}" "cancelled"
+
+  assertEquals "message=" "$(cat "${GITHUB_OUTPUT}")"
+  rm -f "${GITHUB_OUTPUT}"
 }
 
 # shellcheck source=/dev/null
