@@ -41,6 +41,8 @@ jobs:
           Adds [EKCO add-on](https://kurl.sh/docs/add-ons/ekco) version ${{ steps.update.outputs.ekco_version }}, bundling HAProxy ${{ steps.update.outputs.haproxy_version }}.
           ```
 
+          - [ ] kURL-api compatibility rule: (link the kURL-api PR, or write NONE). Needed when this version cannot be installed with some Kubernetes or add-on versions, for example when an install script `bail`s on the combination. See `Installer.addonKubernetesRules` in kURL-api `src/installers/index.ts`.
+
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

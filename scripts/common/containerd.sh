@@ -122,9 +122,9 @@ function containerd_upgrade_is_possible() {
 # containerd_verify_kubernetes_1_37_compatibility bails if the containerd version being
 # installed is older than 2.x while Kubernetes is targeting kubeadm.k8s.io/v1beta4
 # (Kubernetes 1.37+). This mirrors the CRI v1 guard in containerd_upgrade_is_possible
-# above, but fires on every install/join (not just a containerd version upgrade):
-# Kubernetes 1.37+ dropped upstream support for containerd 1.x, so containerd must
-# already be 2.x by the time Kubernetes 1.37+ is installed.
+# above, but fires on every install/join (not just a containerd version upgrade).
+# Upstream Kubernetes support for containerd 1.x ends at 1.35, but kURL shipped
+# Kubernetes 1.36 with containerd 1.x, so containerd 2.x is only required from 1.37.
 function containerd_verify_kubernetes_1_37_compatibility() {
     local containerd_version="$1"
     local containerd_major="${containerd_version%%.*}"
