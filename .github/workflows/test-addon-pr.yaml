@@ -15,6 +15,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   check-addons:
     if: >-
@@ -30,6 +33,8 @@ jobs:
           fetch-depth: 0
       - name: Check for Modified Addons
         id: check
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           ./bin/addon-has-changes-matrix.sh
 
@@ -46,3 +51,72 @@ jobs:
       version: ${{ matrix.version }}
       prefix: ${{ matrix.prefix }}
     secrets: inherit
+
+  post-comment:
+    needs: [check-addons, test-addons]
+    if: "!cancelled() && needs.check-addons.outputs.addons && needs.test-addons.result != 'cancelled'"
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download testgrid messages
+        id: download
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: addon-messages/
+          pattern: addon-testgrid-message-*
+        continue-on-error: true
+
+      - name: Combine testgrid messages
+        id: combine
+        env:
+          TEST_ADDONS_RESULT: ${{ needs.test-addons.result }}
+        run: |
+          source ./bin/combine-testgrid-messages.sh
+          mkdir -p addon-messages
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          main addon-messages "$TEST_ADDONS_RESULT" "$run_url"
+
+      - name: Fetch existing sticky comment
+        id: existing
+        if: steps.combine.outputs.message != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          source ./bin/sticky-comment-budget.sh
+          body="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate \
+            --jq '[.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- Sticky Pull Request Commentaddon-testgrid -->"))] | last | .body // ""')"
+          stripped="$(strip_sticky_header "$body" "addon-testgrid")"
+          delim="EOF_$(openssl rand -hex 8)"
+          {
+            echo "body<<${delim}"
+            printf '%s\n' "$stripped"
+            echo "${delim}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build sticky comment body
+        id: build
+        if: steps.combine.outputs.message != ''
+        env:
+          EXISTING_BODY: ${{ steps.existing.outputs.body }}
+          NEW_MESSAGE: ${{ steps.combine.outputs.message }}
+        run: |
+          source ./bin/sticky-comment-budget.sh
+          body="$(build_sticky_body "$EXISTING_BODY" "$NEW_MESSAGE" 60000)"
+          delim="EOF_$(openssl rand -hex 8)"
+          {
+            echo "body<<${delim}"
+            printf '%s\n' "$body"
+            echo "${delim}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Post TG URL
+        if: steps.combine.outputs.message != ''
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: addon-testgrid
+          append: false
+          message: ${{ steps.build.outputs.body }}

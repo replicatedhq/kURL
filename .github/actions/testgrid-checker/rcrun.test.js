@@ -6,6 +6,7 @@ import {
   rcSearchRef,
   addonRefPrefix,
   findLastRunEntry,
+  TRUSTED_RUN_LINE_LOGIN,
   extractReportedLegIds,
   buildLegLine,
   buildSummaryLine,
@@ -13,12 +14,20 @@ import {
   buildCompletionCommentBody,
   legFinished,
   legFailed,
+  ADDON_STICKY_HEADER,
+  addonDoneMarker,
+  isAddonDone,
+  buildAddonCompletionCommentBody,
+  addonCompletionCommentMarker,
 } from './rcrun.js';
 
 const MARKER = stickyMarker();
+const ADDON_MARKER = stickyMarker(ADDON_STICKY_HEADER);
+const BOT_USER = { login: 'github-actions[bot]' };
 
-const stickyComment = (body, id = 100) => ({ id, body: `${body}\n${MARKER}` });
-const plainComment = (body, id = 50) => ({ id, body });
+const stickyComment = (body, id = 100, user = BOT_USER) => ({ id, body: `${body}\n${MARKER}`, user });
+const addonStickyComment = (body, id = 200, user = BOT_USER) => ({ id, body: `${body}\n${ADDON_MARKER}`, user });
+const plainComment = (body, id = 50, user = BOT_USER) => ({ id, body, user });
 
 const queueEntry = (ref) =>
   `### 🧪 Testgrid RC run — \`v2026.10.13-0-rc-pr123-abc1234\`\n- Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${ref}`;
@@ -55,6 +64,33 @@ test('findLastRunEntry returns null when nothing matches', () => {
   assert.equal(findLastRunEntry([{ id: 1, body: 'just a human comment' }]), null);
   assert.equal(findLastRunEntry([{ id: 1, body: null }]), null);
   assert.equal(findLastRunEntry([]), null);
+});
+
+test('findLastRunEntry ignores a forged run line posted by a non-bot commenter', () => {
+  const forged = plainComment(
+    'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-eeeeeee-containerd-2.3.3-2026-10-07T17:47:28Z',
+    10,
+    { login: 'some-human' }
+  );
+  assert.equal(findLastRunEntry([forged]), null);
+});
+
+test('findLastRunEntry still trusts a real run line from the bot alongside a forged one', () => {
+  const forged = plainComment(
+    'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-eeeeeee-containerd-2.3.3-2026-10-07T17:47:28Z',
+    10,
+    { login: 'some-human' }
+  );
+  const legit = plainComment(
+    'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:48:00Z',
+    20
+  );
+  const entry = findLastRunEntry([forged, legit]);
+  assert.equal(entry.ref, 'pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:48:00Z');
+});
+
+test('TRUSTED_RUN_LINE_LOGIN is the default GITHUB_TOKEN actor, not the checker app', () => {
+  assert.equal(TRUSTED_RUN_LINE_LOGIN, 'github-actions[bot]');
 });
 
 test('isRCRef distinguishes uppercase RC refs from lowercase addon refs', () => {
@@ -172,4 +208,129 @@ test('buildCompletionCommentBody truncates long failed-leg lists', () => {
   const body = buildCompletionCommentBody('ref-1', { passed: 0, failed: 12, skipped: 0 }, legs);
   assert.match(body, /… and 2 more/);
   assert.equal(body.match(/- ❌/g).length, 10);
+});
+
+test('stickyMarker distinguishes the addon-testgrid header from the RC default', () => {
+  assert.notEqual(ADDON_MARKER, MARKER);
+  assert.ok(ADDON_MARKER.includes('addon-testgrid'));
+});
+
+test('findLastRunEntry finds an addon ref living inside the addon-testgrid sticky comment', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-3b80852-containerd-2.3.3-k8s-ctrd-2026-10-07T17:47:28Z\n' +
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-3b80852-flannel-0.26.1-2026-10-07T17:48:00Z'
+    ),
+  ];
+  const entry = findLastRunEntry(comments);
+  assert.equal(entry.ref, 'pr-6176-3b80852-flannel-0.26.1-2026-10-07T17:48:00Z');
+  assert.ok(entry.comment.body.includes(ADDON_MARKER));
+});
+
+test('findLastRunEntry prefers the entry matching the current head sha over a later-created sibling sticky', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z',
+      10
+    ),
+    stickyComment(
+      queueEntry('PR-v1-rc-pr6176-bbbbbbb-2026-10-07T18:00:00Z'),
+      20
+    ),
+  ];
+
+  const entry = findLastRunEntry(comments, 'aaaaaaa0000000000000000000000000000000');
+  assert.equal(entry.ref, 'pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z');
+  assert.equal(entry.comment.id, 10);
+});
+
+test('findLastRunEntry returns the matching RC entry when no addon entry matches the head sha', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-bbbbbbb-containerd-2.3.3-2026-10-07T17:47:28Z',
+      10
+    ),
+    stickyComment(
+      queueEntry('PR-v1-rc-pr6176-aaaaaaa-2026-10-07T18:00:00Z'),
+      20
+    ),
+  ];
+
+  const entry = findLastRunEntry(comments, 'aaaaaaa0000000000000000000000000000000');
+  assert.equal(entry.ref, 'PR-v1-rc-pr6176-aaaaaaa-2026-10-07T18:00:00Z');
+  assert.equal(entry.comment.id, 20);
+});
+
+test('findLastRunEntry prefers the addon entry over an RC entry when both match the current head sha', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z',
+      10
+    ),
+    stickyComment(
+      queueEntry('PR-v1-rc-pr6176-aaaaaaa-2026-10-07T18:00:00Z'),
+      20
+    ),
+  ];
+
+  const entry = findLastRunEntry(comments, 'aaaaaaa0000000000000000000000000000000');
+  assert.equal(entry.ref, 'pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z');
+  assert.equal(entry.comment.id, 10);
+});
+
+test('findLastRunEntry returns null after a force-push when no entry matches the new head sha', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.3-2026-10-07T17:47:28Z',
+      10
+    ),
+    stickyComment(
+      queueEntry('PR-v1-rc-pr6176-bbbbbbb-2026-10-07T18:00:00Z'),
+      20
+    ),
+  ];
+
+  const entry = findLastRunEntry(comments, 'ccccccc0000000000000000000000000000000');
+  assert.equal(entry, null);
+});
+
+test('findLastRunEntry still prefers a more recent legacy standalone comment over an older addon sticky', () => {
+  const comments = [
+    addonStickyComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-3b80852-containerd-2.3.3-2026-10-07T17:47:28Z',
+      10
+    ),
+    plainComment(
+      'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/pr-6176-aaaaaaa-containerd-2.3.4-2026-10-08T00:00:00Z',
+      20
+    ),
+  ];
+  const entry = findLastRunEntry(comments);
+  assert.equal(entry.ref, 'pr-6176-aaaaaaa-containerd-2.3.4-2026-10-08T00:00:00Z');
+  assert.equal(entry.comment.id, 20);
+});
+
+test('addonDoneMarker/isAddonDone dedupe completion reporting per prefix', () => {
+  const prefix = 'pr-6176-3b80852';
+  const body = addonStickyComment('entries here').body;
+  assert.equal(isAddonDone(body, prefix), false);
+  const updated = appendToSticky(body, addonDoneMarker(prefix), ADDON_STICKY_HEADER);
+  assert.equal(isAddonDone(updated, prefix), true);
+  assert.equal(isAddonDone(updated, 'pr-6176-other'), false);
+  assert.ok(updated.endsWith(ADDON_MARKER));
+  assert.ok(updated.indexOf(addonDoneMarker(prefix)) < updated.indexOf(ADDON_MARKER));
+});
+
+test('buildAddonCompletionCommentBody announces a passing addon run', () => {
+  const body = buildAddonCompletionCommentBody('pr-6176-3b80852', { passed: 4, failed: 0, skipped: 1 });
+  assert.match(body, /✅ passed/);
+  assert.match(body, /\*\*4 passed, 0 failed, 1 skipped\*\*/);
+  assert.match(body, /`pr-6176-3b80852`/);
+  assert.ok(body.includes(addonCompletionCommentMarker('pr-6176-3b80852')));
+});
+
+test('buildAddonCompletionCommentBody announces a failing addon run', () => {
+  const body = buildAddonCompletionCommentBody('pr-6176-3b80852', { passed: 2, failed: 3, skipped: 0 });
+  assert.match(body, /❌ failed/);
+  assert.match(body, /\*\*2 passed, 3 failed, 0 skipped\*\*/);
 });

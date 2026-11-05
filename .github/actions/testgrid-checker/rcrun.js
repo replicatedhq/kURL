@@ -24,6 +24,13 @@ export const stickyMarker = (header = STICKY_HEADER) =>
 // capturing the FULL ref after /run/.
 const RUN_LINE_RE = /Testgrid Run\(s\) Executing @\W+https:\/\/testgrid\.kurl\.sh\/run\/([^\s)]+)/g;
 
+// Run lines are only ever posted by our own workflows via the default
+// GITHUB_TOKEN (marocchino/sticky-pull-request-comment with no custom
+// token), never by the testgrid-checker's own GitHub App. Any other
+// commenter's "Testgrid Run(s) Executing" text is untrusted and must not be
+// able to steer a check-run or auto-merge.
+export const TRUSTED_RUN_LINE_LOGIN = 'github-actions[bot]';
+
 // RC runs queue with an uppercase PR- prefixed ref (get-tag in
 // testgrid-pr.yaml); addon runs use lowercase pr-<number>-<sha>.
 export const isRCRef = (ref) => ref.startsWith('PR-');
@@ -41,13 +48,28 @@ export const addonRefPrefix = (ref) => (ref.match(/^pr-\d+-\w+/) || [])[0] || ''
 
 // Latest run entry wins (same "last comment wins" semantics the addon flow
 // always had): comments in ascending id order, then line order within a body.
-export const findLastRunEntry = (comments) => {
+// When headSha is given, the addon entry for that sha beats document order.
+export const findLastRunEntry = (comments, headSha) => {
+  const shortSha = headSha ? headSha.slice(0, 7) : null;
   let last = null;
+  let lastForHeadAddon = null;
+  let lastForHeadAny = null;
   for (const comment of comments) {
     if (!comment.body) continue;
+    if (comment.user?.login !== TRUSTED_RUN_LINE_LOGIN) continue;
     for (const match of comment.body.matchAll(RUN_LINE_RE)) {
-      last = { ref: match[1], comment };
+      const entry = { ref: match[1], comment };
+      last = entry;
+      if (shortSha && entry.ref.includes(shortSha)) {
+        lastForHeadAny = entry;
+        if (!isRCRef(entry.ref)) {
+          lastForHeadAddon = entry;
+        }
+      }
     }
+  }
+  if (shortSha) {
+    return lastForHeadAddon || lastForHeadAny || null;
   }
   return last;
 };
@@ -87,13 +109,30 @@ export const buildSummaryLine = (ref, { passed, failed, skipped }) =>
 // Insert new content just before the sticky marker (which the sticky action
 // keeps at the very end of the comment body). Falls back to plain append if
 // the marker is missing (e.g. a hand-crafted comment).
-export const appendToSticky = (body, addition) => {
-  const marker = stickyMarker();
+export const appendToSticky = (body, addition, header = STICKY_HEADER) => {
+  const marker = stickyMarker(header);
   const idx = body.lastIndexOf(marker);
   if (idx === -1) {
     return `${body}\n${addition}`;
   }
   return `${body.slice(0, idx)}${addition}\n${body.slice(idx)}`;
+};
+
+export const ADDON_STICKY_HEADER = 'addon-testgrid';
+
+export const addonDoneMarker = (prefix) => `<!--addon-done:${prefix}-->`;
+
+export const isAddonDone = (body, prefix) => body.includes(addonDoneMarker(prefix));
+
+export const addonCompletionCommentMarker = (prefix) => `<!--addon-completed:${prefix}-->`;
+
+export const buildAddonCompletionCommentBody = (prefix, { passed, failed, skipped }) => {
+  const headline = failed > 0 ? '❌ failed' : '✅ passed';
+  return [
+    `### 🏁 Testgrid add-on run ${headline} — \`${prefix}\``,
+    `- Result: **${passed} passed, ${failed} failed, ${skipped} skipped**`,
+    addonCompletionCommentMarker(prefix),
+  ].join('\n');
 };
 
 export const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs) => {

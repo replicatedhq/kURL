@@ -33,6 +33,9 @@ env:
   version: ${{ inputs.version }}
   prefix: ${{ inputs.prefix }}
 
+permissions:
+  contents: read
+
 jobs:
   test-addon:
     runs-on: ubuntu-24.04
@@ -74,10 +77,14 @@ jobs:
           testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
           staging: true
 
-      - name: Post TG URL
-        uses: mshick/add-pr-comment@v3
+      # Upload as an artifact; concurrent matrix legs appending to the sticky directly would race.
+      - name: Write testgrid message
+        env:
+          TG_MESSAGE: ${{ steps.queue.outputs.message }}
+        run: printf '%s\n' "$TG_MESSAGE" > addon-testgrid-message.txt
+
+      - name: Upload testgrid message
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          message: ${{ steps.queue.outputs.message }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          message-id: addon-${{ env.addon }}-${{ env.version }}-${{ github.sha }}
-          allow-repeats: false
+          name: addon-testgrid-message-${{ env.addon }}-${{ env.version }}-${{ env.prefix }}
+          path: addon-testgrid-message.txt
