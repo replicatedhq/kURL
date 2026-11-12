@@ -343,6 +343,10 @@ function force_docker() {
 
 function cri_preflights() {
     require_cri
+    # Runs before install_cri, so join and upgrade bail before containerd 1.x is installed.
+    if [ -n "$CONTAINERD_VERSION" ]; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
+    fi
 }
 
 function require_cri() {
