@@ -188,6 +188,9 @@
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
     - ubuntu-2204 # fails 11/11 release runs since 2026-09-15, see #6168
     - ol-79 # fails 11/11 release runs since 2026-09-15, see #6168
+    - centos-79 # pvmigrate pod stuck in ContainerCreating (Longhorn volume never mounts), sc-140714
+    - ubuntu-1804 # pvmigrate pod stuck in ContainerCreating (Longhorn volume never mounts), sc-140714
+    - amazon-2 # pvmigrate pod stuck in ContainerCreating (Longhorn volume never mounts), sc-140714
 - name: "Upgrade from k8s 1.31 to latest - Airgap"
   airgap: true
   installerSpec:
