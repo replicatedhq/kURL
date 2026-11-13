@@ -10,7 +10,7 @@ This skill helps an agent collect the artifacts of a failed [Testgrid](https://t
 ## What it does
 
 1. Queries the Testgrid API for a run by `refId`.
-2. Identifies every failed instance (`isSuccess == false`, not unsupported, not skipped, and finished).
+2. Identifies every failed instance (`isSuccess == false`, not unsupported, not skipped, not cancelled, and finished).
 3. For each failure, fetches:
    - The instance metadata (`instance.json`)
    - The main instance logs (populated when the VM fails to start)
@@ -89,23 +89,37 @@ Useful enumeration patterns:
 
 ## Cancelling queued or stuck work via the API
 
-Two mutation endpoints (both on the unauthenticated router in OSS; send the token as basic auth `token:<TESTGRID_API_TOKEN>` anyway in case the deployment adds auth):
+**Preferred (kURL-testgrid #1080, merged 2026-10-14): the unified cancel endpoints.** One call per run covers both queued and running work, and runner hosts delete the affected VMs themselves:
 
-- **`POST /v1/skip/ref/{refId}`** — cancels every **pending** instance of a run: sets `is_skipped=true` and `dequeued_at=now()`, which permanently removes them from the runner queue (dequeue only selects `dequeued_at is null`). UI shows them as "Skipped". This is the correct way to drain a queue. It does **not** touch already-running instances.
-- **`POST /v1/instance/{instanceId}/finish`** with body `{"success": false, "failureReason": "..."}` — marks an instance finished/failed. Semantics (`SetInstanceFinishedAndSuccess` in tgapi): once `finished_at` is set, a late *success* report from the VM is a no-op (its update has `where finished_at is null`), but a late *failure* report overwrites `failure_reason` unconditionally. So manual failure marks are sticky against success.
+- **`POST /api/v1/ref/{refId}/cancel`** (browser-facing, CORS) and **`POST /v1/ref/{refId}/cancel`** — cancels a whole run: pending instances are marked `is_skipped=true` (permanently dequeued), running instances are marked finished with `cancelled_at` set and `failure_reason='cancelled'`. Returns `{"pendingCancelled": N, "runningCancelled": M}`. Cancelled instances are excluded from success/failure counts; the UI shows them as "Cancelled" (amber).
+- **`POST /v1/instance/{instanceId}/cancel`** — same for a single instance.
+- **`GET /v1/instances/cancelled`** — runner-facing feed of instance IDs cancelled in the last 24h (skipped/pending ones excluded, since no host ever created resources for them).
 
-When cancelling a batch, do both: skip the run (drains pending), then fetch the run and `/finish` any instances that were already dequeued. Cancelling in the API does **not** stop VMs that are already running on the hosts — see the next section.
+Host-side reconciliation: each runner's existing 30s loop runs `ReconcileCancelledVMIs`, which polls that feed and deletes local VMIs matched by the `testgrid.kurl.sh/testid` annotation or `{instanceId}-` name prefix (the prefix match also covers annotation-less `-sendlogs` VMs), then reclaims the instance's PVCs (finalizers stripped first), bound PVs + `/var/openebs/local/pvc-*` paths, and `cloud-init-{id}-*` secrets — immediately instead of waiting for the ~8h age-based cleanup. It is idempotent and NotFound-tolerant.
+
+Verify a host has the new code: `strings /bin/tgrun | grep -c ReconcileCancelledVMIs` (nonzero) — the endpoints existing in tgapi is not enough; each host's tgrun must be new enough to reconcile.
+
+Caveat: cancel only touches instances that are pending or running **in the DB**. It cannot help instances that already finished — see "Cleaning up VMs" for the leftover cases.
+
+Legacy/fallback endpoints (still useful for zombies the cancel API can't see):
+
+- **`POST /v1/skip/ref/{refId}`** — cancels every **pending** instance of a run only (`is_skipped=true`, `dequeued_at=now()`).
+- **`POST /v1/instance/{instanceId}/finish`** with body `{"success": false, "failureReason": "..."}` — marks an instance finished/failed. Once `finished_at` is set, a late *success* report from the VM is a no-op, but a late *failure* report overwrites `failure_reason` unconditionally — manual failure marks are sticky against success.
+
+All are on the unauthenticated router in OSS; send the token as basic auth `token:<TESTGRID_API_TOKEN>` anyway in case the deployment adds auth.
 
 ## Cleaning up VMs on the Testgrid hosts
 
 The runners are three bare-metal hosts, `testgrid-prd-01` / `-02` / `-03`, each its own **single-node Kubernetes cluster** (`ssh testgrid-prd-0N`, then `sudo kubectl ...`). Tests run as KubeVirt VMs.
 
 - The runner creates bare **`VirtualMachineInstance`** objects (no owning `VirtualMachine` controller) in the **`default`** namespace. Deleting the VMI kills its `virt-launcher-*` pod and nothing respawns it — this is also what the runner's own cleanup loop does.
-- VMI names are `{instanceId}-{nodeName}` (e.g. `...-initialprimary`, `...-secondary-0`), plus short-lived `{...}-sendlogs` VMs that ship logs for finished tests (harmless to delete, but usually keep them).
+- VMI names are `{instanceId}-{nodeName}` (e.g. `...-initialprimary`, `...-secondary-0`), plus short-lived `{...}-sendlogs` VMs that ship logs for finished tests.
 - To kill everything: `sudo kubectl delete vmi -n default --all`. To kill one test's nodes: `kubectl get vmi -n default -o name | grep <instanceId> | xargs -r kubectl delete -n default`.
-- **Two-way zombie trap**: deleting a VMI does not update the API (instance stays "running" forever → mark it `/finish`ed), and marking an instance failed in the API does not stop its VM (it keeps running → delete the VMI). To reconcile after a mass API-side cancellation, collect the cancelled instance IDs, then on each host match them against live VMI names by `{instanceId}-` prefix and delete the matches.
+- Since kURL-testgrid #1080, the cancel API reconciles host VMs automatically, and two follow-ups closed the remaining leak paths: #1084 reaps stuck `-sendlogs` VMIs on a 30-minute leash (`shouldReapStuckSendlogs` — they are meant to live for minutes but previously rode the 8-hour timeout; Shortcut #140012), and #1087 reaps the sibling primary/secondary VMs of a finished multi-node test 10 minutes after its initialprimary completes, shipping their logs first (previously dead code due to a wrong loop variable; Shortcut #140168). **Manual VMI deletion is only needed when**: a host's tgrun predates these fixes (verify with `strings /bin/tgrun | grep -cE 'ReconcileCancelledVMIs|shouldReapStuckSendlogs'`), or an instance *finished* while its initialprimary VM kept running (cancel only touches pending/running rows and the sibling reaper only fires on a completed initialprimary, so the 8h timeout remains the backstop — verify instance state with `GET /v1/instance/{id}/status`, which returns `{}` while running and `{"isSuccess": ...}` once finished, plus `GET /v1/instance/{id}/cancelled`).
+- The reverse half of the trap is unchanged: deleting a VMI does not update the API, so mark the instance `/finish`ed or `/cancel`led as well.
 - Deleting VMIs leaves per-node **PVCs** (`{instanceId}-{node}-disk`), **PVs** (local-path under `/var/openebs/local/pvc-<uuid>`), and **`cloud-init-*` secrets**. The runner's `CleanUpData` loop reclaims them by age (PVCs after ~8h, PVs after ~8.3h, secrets after ~9h). For immediate reclamation, strip finalizers before deleting (an OpenEBS webhook bug can wedge them), delete PVC then PV, and `rm -rf` the PV's `spec.local.path` (only ever under `/var/openebs/local/pvc-*`). Test disks are 100Gi sparse images, so actual disk pressure is usually far lower than the PVC count suggests.
 - Always check `kubectl get vmi` first and skip anything still legitimately running (e.g. an active release run's instances).
+- **Dispatch gate / fleet slow-down diagnostic**: each host's dequeue loop (`canScheduleNewVM`) refuses new work while *any* `virt-launcher-*` pod is Pending, so a resource-saturated host silently stops picking up tests. Symptom: run counters show running-runs stuck at ~15-16 fleet-wide while the queue is deep. Check per host: `sudo kubectl get pods -n default | grep virt-launcher | grep Pending` and `sudo kubectl get vmi -n default | grep -c Running` (watch the Running share that is `-sendlogs` zombies). Runner status heartbeats (free CPU/RAM/active tests per hostname) go to statsd only — there is no TGAPI endpoint for host health.
 
 ## Why the queue floods (CI fan-out mechanics)
 
@@ -113,5 +127,5 @@ Understanding this helps when deciding what to cancel:
 
 - `.github/workflows/test-addon-pr.yaml` builds its matrix via `bin/addon-has-changes-matrix.sh`: **one matrix leg per changed add-on version directory**. For template-generated add-ons (containerd, flannel), a cross-cutting change rewrites every version directory, so one push = one Testgrid run per version (containerd: 42 legs × ~61 instances ≈ 2,500 VMs per push).
 - The workflow's `paths: addons/**` filter on `pull_request` events is evaluated against the **whole PR diff**, not the pushed commits — every push re-fires the full matrix regardless of what the push changed.
-- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs** — they must be cancelled via the API (`/v1/skip/ref/...`).
+- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs** — they must be cancelled via the API (`POST /api/v1/ref/{refId}/cancel`, see above).
 - The matrix is throttled (`max-parallel: 5`), so legs emit runs in waves; a cancelled workflow run may leave later waves unqueued.
