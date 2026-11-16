@@ -1,0 +1,34 @@
+resources:
+- toolbox.yaml
+- serviceaccount.yaml
+- configmap.yaml
+- cephconnection-crd.yaml
+- clientprofile-crd.yaml
+- clientprofilemapping-crd.yaml
+- driver-crd.yaml
+- operatorconfig-crd.yaml
+- cephconnection-viewer-rbac.yaml
+- cephconnections-editor-rbac.yaml
+- clientprofile-viewer-rbac.yaml
+- clientprofilemapping-editor-rbac.yaml
+- clientprofilemapping-viewer-rbac.yaml
+- clientprofiles-editor-rbac.yaml
+- driver-editor-rbac.yaml
+- driver-viewer-rbac.yaml
+- metrics-reader-rbac.yaml
+- operatorconfig-editor-rbac.yaml
+- operatorconfig-viewer-rbac.yaml
+- clusterrole.yaml
+- manager-rbac.yaml
+- metrics-auth-rbac.yaml
+- clusterrolebinding.yaml
+- role.yaml
+- leader-election-rbac.yaml
+- cluster-rbac.yaml
+- rolebinding.yaml
+- deployment.yaml
+- namespace.yaml
+- configmap-rook-config-override.yaml
+
+patchesStrategicMerge:
+- patches/deployment-tolerations.yaml
