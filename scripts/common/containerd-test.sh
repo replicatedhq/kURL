@@ -385,7 +385,7 @@ function run_136_guard() {
         CURRENT_KUBERNETES_VERSION="$2"
         KUBERNETES_REMOTE_PRIMARIES=() KUBERNETES_SECONDARIES=()
         if [ -n "$3" ]; then
-            KUBERNETES_SECONDARIES=([node2]=1) KUBERNETES_SECONDARY_VERSIONS=([node2]="$3")
+            KUBERNETES_SECONDARIES=(node2) KUBERNETES_SECONDARY_VERSIONS=("$3")
         fi
         containerd_verify_kubernetes_1_37_compatibility "$4" "$5"
     ) 2>&1
@@ -452,13 +452,17 @@ function test_kubernetes_135_allowed_on_1x() {
     assertEquals "1.35 on containerd 1.7.29 does not warn" "" "$result"
 }
 
-# Only init_preflights (install.sh) may pass is_init, or joins would bail on 1.36 clusters;
-# dropping it would turn fresh-install bails back into warnings.
+# Only init_preflights (install.sh) may pass is_init: join.sh does not source upgrade.sh, so
+# is_init there would bail every join to a 1.36 cluster. Dropping it from init_preflights
+# would turn fresh-install bails back into warnings.
 function test_only_init_preflights_passes_is_init() {
+    local callers
+    callers="$(grep -rlE --exclude='*-test.sh' 'containerd_verify_kubernetes_1_37_compatibility +"[^"]*" +[^ ]' ./scripts ./addons/containerd)"
+    assertEquals "only preflights.sh passes is_init" "./scripts/common/preflights.sh" "$callers"
     awk '/^function init_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION" "1"$'
     assertEquals "init_preflights passes is_init=1" "0" "$?"
-    awk '/^function cri_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"$'
-    assertEquals "cri_preflights does not pass is_init" "0" "$?"
+    grep -cE 'containerd_verify_kubernetes_1_37_compatibility +"[^"]*" +[^ ]' ./scripts/common/preflights.sh | grep -qx 1
+    assertEquals "preflights.sh passes is_init exactly once" "0" "$?"
 }
 
 # test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
