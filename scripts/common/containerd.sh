@@ -155,8 +155,9 @@ function containerd_bail_if_kubernetes_1_36_unsupported() {
         return 0
     fi
 
-    local next_step="Select containerd 2.x to install Kubernetes 1.36."
-    if [ -n "$min_version" ]; then
+    local next_step="Select containerd 2.x to install or upgrade to Kubernetes 1.36."
+    if [ -n "$min_version" ] && [ "$(kubernetes_version_minor "$min_version")" -lt "26" ]; then
+        # containerd 2.x needs CRI v1, which Kubernetes 1.26 is the first to require
         next_step="Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first, then select containerd 2.x together with Kubernetes 1.36."
     fi
 
@@ -164,8 +165,8 @@ function containerd_bail_if_kubernetes_1_36_unsupported() {
         bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. $next_step"
     fi
 
-    # An OS containerd that is not installed yet comes from the distro repos, which ship 2.x
-    # on the distros that use it. One installed earlier may still be 1.x.
+    # An OS containerd may not be installed yet during preflights. install.sh calls this
+    # again after install_cri so the version that was actually installed is checked.
     if use_os_containerd; then
         local os_containerd_version
         os_containerd_version="$(containerd_installed_version)"

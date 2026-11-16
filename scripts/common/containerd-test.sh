@@ -375,7 +375,7 @@ function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
 
 # Kubernetes 1.36 with containerd 1.x: install.sh bails for a new cluster or an upgrade into
 # 1.36, and leaves clusters where every node already runs 1.36 alone.
-# Usage: run_136_guard <k8s target> <local k8s> <remote node k8s> <containerd>
+# Usage: run_136_guard <k8s target> <local k8s> <secondary k8s> <containerd> [remote primary k8s]
 # _USE_OS_CONTAINERD=0 makes this node use the OS containerd, whose installed version is
 # _OS_CONTAINERD_VERSION (empty when not installed yet).
 # Runs the guard in a subshell so the globals it sets do not leak into later tests.
@@ -388,6 +388,9 @@ function run_136_guard() {
         KUBERNETES_REMOTE_PRIMARIES=() KUBERNETES_SECONDARIES=()
         if [ -n "$3" ]; then
             KUBERNETES_SECONDARIES=(node2) KUBERNETES_SECONDARY_VERSIONS=("$3")
+        fi
+        if [ -n "$5" ]; then
+            KUBERNETES_REMOTE_PRIMARIES=(node3) KUBERNETES_REMOTE_PRIMARY_VERSIONS=("$5")
         fi
         containerd_bail_if_kubernetes_1_36_unsupported "$4"
     ) 2>&1
@@ -409,13 +412,23 @@ function assert_136_guard() {
 }
 
 function test_kubernetes_136_fresh_install_blocked_on_1x() {
-    assert_136_guard "1.36 fresh install on containerd 1.7.29" "1" "Select containerd 2.x to install Kubernetes 1.36" \
+    assert_136_guard "1.36 fresh install on containerd 1.7.29" "1" "Select containerd 2.x to install or upgrade to Kubernetes 1.36" \
         "1.36.1" "" "" "1.7.29"
 }
 
 function test_kubernetes_136_upgrade_blocked_on_1x() {
-    assert_136_guard "upgrade 1.35 -> 1.36 on containerd 1.7.29" "1" "Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first" \
+    assert_136_guard "upgrade 1.35 -> 1.36 on containerd 1.7.29" "1" "Select containerd 2.x to install or upgrade to Kubernetes 1.36" \
         "1.36.1" "1.35.4" "" "1.7.29"
+}
+
+function test_kubernetes_136_upgrade_from_pre_126_blocked_on_1x() {
+    assert_136_guard "upgrade 1.25 -> 1.36 on containerd 1.7.29" "1" "Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first" \
+        "1.36.1" "1.25.14" "" "1.7.29"
+}
+
+function test_kubernetes_136_upgrade_remote_primary_blocked_on_1x() {
+    assert_136_guard "re-run on 1.36 primary with a 1.35 remote primary on containerd 1.7.29" "1" "Kubernetes 1.36 requires containerd 2.x" \
+        "1.36.2" "1.36.1" "" "1.7.29" "1.35.4"
 }
 
 function test_kubernetes_136_upgrade_remote_node_blocked_on_1x() {
@@ -595,6 +608,8 @@ test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 test_kubernetes_136_fresh_install_blocked_on_1x
 test_kubernetes_136_upgrade_blocked_on_1x
+test_kubernetes_136_upgrade_from_pre_126_blocked_on_1x
+test_kubernetes_136_upgrade_remote_primary_blocked_on_1x
 test_kubernetes_136_upgrade_remote_node_blocked_on_1x
 test_kubernetes_136_rerun_allowed_on_1x
 test_kubernetes_136_allowed_on_2x
