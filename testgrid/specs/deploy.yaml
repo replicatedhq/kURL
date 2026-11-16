@@ -44,13 +44,13 @@
     - ubuntu-2404 # docker is not supported on Ubuntu 24.04
     - ubuntu-2604 # docker is not supported on Ubuntu 26.04
     # END GENERATED os-matrix: unsupported-capability
-- name: "Upgrade to 1.25 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio"
+- name: "Upgrade to 1.26 to 1.36, Migrate from Rook 1.12.x to OpenEBS + Minio"
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     containerd:
-      version: 1.6.x
+      version: 1.7.x
     flannel:
       version: 0.21.x
     registry:
@@ -65,7 +65,7 @@
     kubernetes:
       version: 1.36.x
     containerd:
-      version: 1.7.x
+      version: latest
     flannel:
       version: latest
     registry:
@@ -115,10 +115,10 @@
     - ol-79 # Kubernetes 1.35 does not support cgroup v1
     - ubuntu-1804 # Kubernetes 1.35 does not support cgroup v1
     # kURL uses the OS-provided containerd (2.x) on these distros regardless of the requested version,
-    # and Kubernetes 1.25 with Rook 1.12 does not come up on containerd 2.x
-    - amazon-2023 # OS containerd 2.x is incompatible with Kubernetes 1.25
-    - ubuntu-2404 # OS containerd 2.x is incompatible with Kubernetes 1.25
-    - ubuntu-2604 # OS containerd 2.x is incompatible with Kubernetes 1.25
+    # so they do not exercise the containerd 1.7 -> 2.x upgrade this scenario tests
+    - amazon-2023 # OS containerd 2.x, no containerd 1.7 starting point
+    - ubuntu-2404 # OS containerd 2.x, no containerd 1.7 starting point
+    - ubuntu-2604 # OS containerd 2.x, no containerd 1.7 starting point
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6

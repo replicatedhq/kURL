@@ -27,6 +27,10 @@ function init_preflights() {
     bail_if_unsupported_migration_from_longhorn_to_openebs
     bail_if_kurl_version_is_lower_than_previous_config
     bail_if_no_object_store_or_storage_and_has_registry
+    # Bails on Kubernetes 1.36 with containerd 1.x for a new cluster or an upgrade into 1.36.
+    if [ -n "$CONTAINERD_VERSION" ]; then
+        containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION" "1"
+    fi
     return 0
 }
 
@@ -343,7 +347,8 @@ function force_docker() {
 
 function cri_preflights() {
     require_cri
-    # Runs before install_cri, so join and upgrade bail before containerd 1.x is installed.
+    # Runs before install_cri, so join and upgrade bail before containerd 1.x is installed
+    # on Kubernetes 1.37+. Kubernetes 1.36 only warns here; init_preflights bails for it.
     if [ -n "$CONTAINERD_VERSION" ]; then
         containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"
     fi
