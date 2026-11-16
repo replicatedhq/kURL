@@ -183,7 +183,7 @@
     - amazon-2023 # amazon 2023 isn't supported on installer version v2024.07.02-0.
     - ubuntu-2404 # Ubuntu 24.04 isn't supported on installer version v2024.07.02-0.
     - ubuntu-2604 # Ubuntu 26.04 isn't supported on installer version v2024.07.02-0.
-    - rocky-98 # Not supported on pinned kurl version v2024.07.02-0
+    - rocky-99 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-9 # Not supported on pinned kurl version v2024.07.02-0
     - rocky-10 # Not supported on pinned kurl version v2024.07.02-0
     - ubuntu-2204 # fails 11/11 release runs since 2026-09-15, see #6168
