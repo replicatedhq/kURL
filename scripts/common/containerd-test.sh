@@ -12,6 +12,7 @@
 
 . ./scripts/common/common.sh
 . ./scripts/common/containerd.sh
+. ./scripts/common/upgrade.sh
 . ./addons/containerd/template/base/install.sh
 
 # --- stubs: defined AFTER sourcing, same shell, so they shadow the real definitions ---
@@ -374,11 +375,25 @@ function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
 
 # Kubernetes 1.36 with containerd 1.x: install.sh (is_init=1) bails for a new cluster or an
 # upgrade into 1.36; re-runs on a 1.36 cluster and joins (no is_init) only warn.
+# Usage: run_136_guard <k8s target> <local k8s> <remote node k8s> <containerd> [is_init]
+# Runs the guard in a subshell so the globals it sets do not leak into later tests.
+function run_136_guard() {
+    (
+        kubeadm_conf_api_version() { echo "v1beta3"; }
+        use_os_containerd() { return "${_USE_OS_CONTAINERD:-1}"; }
+        KUBERNETES_VERSION="$1"
+        CURRENT_KUBERNETES_VERSION="$2"
+        KUBERNETES_REMOTE_PRIMARIES=() KUBERNETES_SECONDARIES=()
+        if [ -n "$3" ]; then
+            KUBERNETES_SECONDARIES=([node2]=1) KUBERNETES_SECONDARY_VERSIONS=([node2]="$3")
+        fi
+        containerd_verify_kubernetes_1_37_compatibility "$4" "$5"
+    ) 2>&1
+}
+
 function test_kubernetes_136_fresh_install_blocked_on_1x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.36.1" CURRENT_KUBERNETES_VERSION=""
     local result rc
-    result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29" "1") 2>&1 )"
+    result="$(run_136_guard "1.36.1" "" "" "1.7.29" "1")"
     rc=$?
     assertEquals "1.36 fresh install on containerd 1.7.29 bails" "1" "$rc"
     echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
@@ -386,17 +401,18 @@ function test_kubernetes_136_fresh_install_blocked_on_1x() {
 }
 
 function test_kubernetes_136_upgrade_blocked_on_1x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.36.1" CURRENT_KUBERNETES_VERSION="1.35.4"
-    (containerd_verify_kubernetes_1_37_compatibility "1.7.29" "1") >/dev/null 2>&1
+    run_136_guard "1.36.1" "1.35.4" "" "1.7.29" "1" >/dev/null
     assertEquals "upgrade 1.35 -> 1.36 on containerd 1.7.29 bails" "1" "$?"
 }
 
+function test_kubernetes_136_upgrade_remote_node_blocked_on_1x() {
+    run_136_guard "1.36.2" "1.36.1" "1.35.4" "1.7.29" "1" >/dev/null
+    assertEquals "re-run on 1.36 primary with a 1.35 node on containerd 1.7.29 bails" "1" "$?"
+}
+
 function test_kubernetes_136_rerun_warns_on_1x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.36.2" CURRENT_KUBERNETES_VERSION="1.36.1"
     local result rc
-    result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29" "1") 2>&1 )"
+    result="$(run_136_guard "1.36.2" "1.36.1" "1.36.1" "1.7.29" "1")"
     rc=$?
     assertEquals "re-run on 1.36 with containerd 1.7.29 passes" "0" "$rc"
     echo "$result" | grep -q "WARN: Kubernetes 1.36 is not supported"
@@ -404,10 +420,8 @@ function test_kubernetes_136_rerun_warns_on_1x() {
 }
 
 function test_kubernetes_136_join_warns_on_1x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.36.1" CURRENT_KUBERNETES_VERSION=""
     local result rc
-    result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29") 2>&1 )"
+    result="$(run_136_guard "1.36.1" "" "" "1.7.29")"
     rc=$?
     assertEquals "join to 1.36 with containerd 1.7.29 passes" "0" "$rc"
     echo "$result" | grep -q "WARN: Kubernetes 1.36 is not supported"
@@ -415,23 +429,36 @@ function test_kubernetes_136_join_warns_on_1x() {
 }
 
 function test_kubernetes_136_allowed_on_2x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.36.1" CURRENT_KUBERNETES_VERSION=""
     local result rc
-    result="$( (containerd_verify_kubernetes_1_37_compatibility "2.3.6" "1") 2>&1 )"
+    result="$(run_136_guard "1.36.1" "" "" "2.3.6" "1")"
     rc=$?
     assertEquals "1.36 fresh install on containerd 2.3.6 passes" "0" "$rc"
     assertEquals "1.36 on containerd 2.3.6 does not warn" "" "$result"
 }
 
-function test_kubernetes_135_allowed_on_1x() {
-    kubeadm_conf_api_version() { echo "v1beta3"; }
-    KUBERNETES_VERSION="1.35.4" CURRENT_KUBERNETES_VERSION=""
+function test_kubernetes_136_allowed_on_os_containerd() {
     local result rc
-    result="$( (containerd_verify_kubernetes_1_37_compatibility "1.7.29" "1") 2>&1 )"
+    result="$(_USE_OS_CONTAINERD=0 run_136_guard "1.36.1" "" "" "1.7.29" "1")"
+    rc=$?
+    assertEquals "1.36 fresh install with OS containerd passes" "0" "$rc"
+    assertEquals "1.36 with OS containerd does not warn" "" "$result"
+}
+
+function test_kubernetes_135_allowed_on_1x() {
+    local result rc
+    result="$(run_136_guard "1.35.4" "" "" "1.7.29" "1")"
     rc=$?
     assertEquals "1.35 fresh install on containerd 1.7.29 passes" "0" "$rc"
     assertEquals "1.35 on containerd 1.7.29 does not warn" "" "$result"
+}
+
+# Only init_preflights (install.sh) may pass is_init, or joins would bail on 1.36 clusters;
+# dropping it would turn fresh-install bails back into warnings.
+function test_only_init_preflights_passes_is_init() {
+    awk '/^function init_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION" "1"$'
+    assertEquals "init_preflights passes is_init=1" "0" "$?"
+    awk '/^function cri_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION"$'
+    assertEquals "cri_preflights does not pass is_init" "0" "$?"
 }
 
 # test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
@@ -570,10 +597,13 @@ test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 test_kubernetes_136_fresh_install_blocked_on_1x
 test_kubernetes_136_upgrade_blocked_on_1x
+test_kubernetes_136_upgrade_remote_node_blocked_on_1x
 test_kubernetes_136_rerun_warns_on_1x
 test_kubernetes_136_join_warns_on_1x
 test_kubernetes_136_allowed_on_2x
+test_kubernetes_136_allowed_on_os_containerd
 test_kubernetes_135_allowed_on_1x
+test_only_init_preflights_passes_is_init
 test_pre_init_tolerates_missing_137_guard
 test_join_tolerates_missing_137_guard
 test_install_runc_containerd_1x

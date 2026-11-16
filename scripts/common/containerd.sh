@@ -125,8 +125,9 @@ function containerd_upgrade_is_possible() {
 # above, but fires on every install/join (not just a containerd version upgrade).
 # Upstream Kubernetes support for containerd 1.x ends at 1.35. kURL shipped Kubernetes
 # 1.36 with containerd 1.x, so for 1.36 it only bails when is_init is "1" (install.sh)
-# and the cluster is new or being upgraded into 1.36. Re-runs on a 1.36 cluster and
+# and the cluster is new or any node is below 1.36. Re-runs on a 1.36 cluster and
 # joins to one only get a warning, so existing 1.36 + containerd 1.x clusters keep working.
+# The 1.36 check is skipped when the OS-provided containerd is used.
 function containerd_verify_kubernetes_1_37_compatibility() {
     local containerd_version="$1"
     local is_init="$2"
@@ -136,9 +137,14 @@ function containerd_verify_kubernetes_1_37_compatibility() {
         bail "Kubernetes 1.37+ requires containerd 2.x, but containerd $containerd_version was selected. Upgrade containerd to 2.x before installing or upgrading to Kubernetes 1.37+."
     fi
 
-    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" = "36" ] && [ "$containerd_major" -lt "2" ]; then
-        if [ "$is_init" = "1" ] && { [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ "$(kubernetes_version_minor "$CURRENT_KUBERNETES_VERSION")" -lt "36" ]; }; then
-            bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x to install or upgrade to Kubernetes 1.36."
+    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" = "36" ] && [ "$containerd_major" -lt "2" ] && ! use_os_containerd; then
+        if [ "$is_init" = "1" ]; then
+            # lowest Kubernetes version across the cluster's nodes, empty on a new cluster
+            local min_version
+            min_version="$(kubernetes_upgrade_discover_min_kubernetes_version)"
+            if [ -z "$min_version" ] || [ "$(kubernetes_version_minor "$min_version")" -lt "36" ]; then
+                bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x to install or upgrade to Kubernetes 1.36."
+            fi
         fi
         logWarn "Kubernetes 1.36 is not supported with containerd $containerd_version. Upgrade containerd to 2.x."
     fi
