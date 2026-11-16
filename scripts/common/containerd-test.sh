@@ -401,13 +401,21 @@ function test_kubernetes_136_fresh_install_blocked_on_1x() {
 }
 
 function test_kubernetes_136_upgrade_blocked_on_1x() {
-    run_136_guard "1.36.1" "1.35.4" "" "1.7.29" "1" >/dev/null
-    assertEquals "upgrade 1.35 -> 1.36 on containerd 1.7.29 bails" "1" "$?"
+    local result rc
+    result="$(run_136_guard "1.36.1" "1.35.4" "" "1.7.29" "1")"
+    rc=$?
+    assertEquals "upgrade 1.35 -> 1.36 on containerd 1.7.29 bails" "1" "$rc"
+    echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
+    assertEquals "upgrade 1.35 -> 1.36 bail message" "0" "$?"
 }
 
 function test_kubernetes_136_upgrade_remote_node_blocked_on_1x() {
-    run_136_guard "1.36.2" "1.36.1" "1.35.4" "1.7.29" "1" >/dev/null
-    assertEquals "re-run on 1.36 primary with a 1.35 node on containerd 1.7.29 bails" "1" "$?"
+    local result rc
+    result="$(run_136_guard "1.36.2" "1.36.1" "1.35.4" "1.7.29" "1")"
+    rc=$?
+    assertEquals "re-run on 1.36 primary with a 1.35 node on containerd 1.7.29 bails" "1" "$rc"
+    echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
+    assertEquals "re-run on 1.36 primary with a 1.35 node bail message" "0" "$?"
 }
 
 function test_kubernetes_136_rerun_warns_on_1x() {
@@ -456,13 +464,16 @@ function test_kubernetes_135_allowed_on_1x() {
 # is_init there would bail every join to a 1.36 cluster. Dropping it from init_preflights
 # would turn fresh-install bails back into warnings.
 function test_only_init_preflights_passes_is_init() {
-    local callers
-    callers="$(grep -rlE --exclude='*-test.sh' 'containerd_verify_kubernetes_1_37_compatibility +"[^"]*" +[^ ]' ./scripts ./addons/containerd)"
+    local pattern='^[^#]*containerd_verify_kubernetes_1_37_compatibility[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]'
+    local callers init_callers
+    callers="$(grep -rlE --exclude='*-test.sh' "$pattern" ./scripts ./addons)"
     assertEquals "only preflights.sh passes is_init" "./scripts/common/preflights.sh" "$callers"
     awk '/^function init_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION" "1"$'
     assertEquals "init_preflights passes is_init=1" "0" "$?"
-    grep -cE 'containerd_verify_kubernetes_1_37_compatibility +"[^"]*" +[^ ]' ./scripts/common/preflights.sh | grep -qx 1
+    grep -cE "$pattern" ./scripts/common/preflights.sh | grep -qx 1
     assertEquals "preflights.sh passes is_init exactly once" "0" "$?"
+    init_callers="$(grep -rlw --include='*.sh' --exclude='*-test.sh' init_preflights ./scripts ./addons | sort)"
+    assertEquals "init_preflights only runs from install.sh" "$(printf './scripts/common/preflights.sh\n./scripts/install.sh')" "$init_callers"
 }
 
 # test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
