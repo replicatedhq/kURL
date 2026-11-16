@@ -65,7 +65,7 @@
     kubernetes:
       version: 1.36.x
     containerd:
-      version: latest
+      version: 2.4.x
     flannel:
       version: latest
     registry:

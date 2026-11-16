@@ -373,107 +373,90 @@ function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
     assertEquals "Kubernetes <1.37 allowed on containerd 1.7.29" "0" "$?"
 }
 
-# Kubernetes 1.36 with containerd 1.x: install.sh (is_init=1) bails for a new cluster or an
-# upgrade into 1.36; re-runs on a 1.36 cluster and joins (no is_init) only warn.
-# Usage: run_136_guard <k8s target> <local k8s> <remote node k8s> <containerd> [is_init]
+# Kubernetes 1.36 with containerd 1.x: install.sh bails for a new cluster or an upgrade into
+# 1.36, and leaves clusters where every node already runs 1.36 alone.
+# Usage: run_136_guard <k8s target> <local k8s> <remote node k8s> <containerd>
+# _USE_OS_CONTAINERD=0 makes this node use the OS containerd, whose installed version is
+# _OS_CONTAINERD_VERSION (empty when not installed yet).
 # Runs the guard in a subshell so the globals it sets do not leak into later tests.
 function run_136_guard() {
     (
-        kubeadm_conf_api_version() { echo "v1beta3"; }
         use_os_containerd() { return "${_USE_OS_CONTAINERD:-1}"; }
+        containerd_installed_version() { echo "$_OS_CONTAINERD_VERSION"; }
         KUBERNETES_VERSION="$1"
         CURRENT_KUBERNETES_VERSION="$2"
         KUBERNETES_REMOTE_PRIMARIES=() KUBERNETES_SECONDARIES=()
         if [ -n "$3" ]; then
             KUBERNETES_SECONDARIES=(node2) KUBERNETES_SECONDARY_VERSIONS=("$3")
         fi
-        containerd_verify_kubernetes_1_37_compatibility "$4" "$5"
+        containerd_bail_if_kubernetes_1_36_unsupported "$4"
     ) 2>&1
 }
 
-function test_kubernetes_136_fresh_install_blocked_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.36.1" "" "" "1.7.29" "1")"
+# Usage: assert_136_guard <description> <expected rc> <expected output pattern, empty for none> <run_136_guard args...>
+function assert_136_guard() {
+    local description="$1" expected_rc="$2" pattern="$3" result rc
+    shift 3
+    result="$(run_136_guard "$@")"
     rc=$?
-    assertEquals "1.36 fresh install on containerd 1.7.29 bails" "1" "$rc"
-    echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
-    assertEquals "1.36 fresh install bail message" "0" "$?"
+    assertEquals "$description: exit code" "$expected_rc" "$rc"
+    if [ -n "$pattern" ]; then
+        echo "$result" | grep -q "$pattern"
+        assertEquals "$description: output matches '$pattern'" "0" "$?"
+    else
+        assertEquals "$description: no output" "" "$result"
+    fi
+}
+
+function test_kubernetes_136_fresh_install_blocked_on_1x() {
+    assert_136_guard "1.36 fresh install on containerd 1.7.29" "1" "Select containerd 2.x to install Kubernetes 1.36" \
+        "1.36.1" "" "" "1.7.29"
 }
 
 function test_kubernetes_136_upgrade_blocked_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.36.1" "1.35.4" "" "1.7.29" "1")"
-    rc=$?
-    assertEquals "upgrade 1.35 -> 1.36 on containerd 1.7.29 bails" "1" "$rc"
-    echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
-    assertEquals "upgrade 1.35 -> 1.36 bail message" "0" "$?"
+    assert_136_guard "upgrade 1.35 -> 1.36 on containerd 1.7.29" "1" "Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first" \
+        "1.36.1" "1.35.4" "" "1.7.29"
 }
 
 function test_kubernetes_136_upgrade_remote_node_blocked_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.36.2" "1.36.1" "1.35.4" "1.7.29" "1")"
-    rc=$?
-    assertEquals "re-run on 1.36 primary with a 1.35 node on containerd 1.7.29 bails" "1" "$rc"
-    echo "$result" | grep -q "Kubernetes 1.36 requires containerd 2.x"
-    assertEquals "re-run on 1.36 primary with a 1.35 node bail message" "0" "$?"
+    assert_136_guard "re-run on 1.36 primary with a 1.35 node on containerd 1.7.29" "1" "Kubernetes 1.36 requires containerd 2.x" \
+        "1.36.2" "1.36.1" "1.35.4" "1.7.29"
 }
 
-function test_kubernetes_136_rerun_warns_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.36.2" "1.36.1" "1.36.1" "1.7.29" "1")"
-    rc=$?
-    assertEquals "re-run on 1.36 with containerd 1.7.29 passes" "0" "$rc"
-    echo "$result" | grep -q "WARN: Kubernetes 1.36 is not supported"
-    assertEquals "re-run on 1.36 with containerd 1.7.29 warns" "0" "$?"
-}
-
-function test_kubernetes_136_join_warns_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.36.1" "" "" "1.7.29")"
-    rc=$?
-    assertEquals "join to 1.36 with containerd 1.7.29 passes" "0" "$rc"
-    echo "$result" | grep -q "WARN: Kubernetes 1.36 is not supported"
-    assertEquals "join to 1.36 with containerd 1.7.29 warns" "0" "$?"
+function test_kubernetes_136_rerun_allowed_on_1x() {
+    assert_136_guard "re-run on 1.36 with containerd 1.7.29" "0" "" \
+        "1.36.2" "1.36.1" "1.36.1" "1.7.29"
 }
 
 function test_kubernetes_136_allowed_on_2x() {
-    local result rc
-    result="$(run_136_guard "1.36.1" "" "" "2.3.6" "1")"
-    rc=$?
-    assertEquals "1.36 fresh install on containerd 2.3.6 passes" "0" "$rc"
-    assertEquals "1.36 on containerd 2.3.6 does not warn" "" "$result"
+    assert_136_guard "1.36 fresh install on containerd 2.3.6" "0" "" \
+        "1.36.1" "" "" "2.3.6"
 }
 
-function test_kubernetes_136_allowed_on_os_containerd() {
-    local result rc
-    result="$(_USE_OS_CONTAINERD=0 run_136_guard "1.36.1" "" "" "1.7.29" "1")"
-    rc=$?
-    assertEquals "1.36 fresh install with OS containerd passes" "0" "$rc"
-    assertEquals "1.36 with OS containerd does not warn" "" "$result"
+function test_kubernetes_136_os_containerd_blocked_on_selected_1x() {
+    # other nodes may get the containerd 1.7.29 that kURL ships
+    _USE_OS_CONTAINERD=0 _OS_CONTAINERD_VERSION="2.2.1" assert_136_guard "upgrade into 1.36 on OS containerd 2.2.1 with containerd 1.7.29 selected" "1" "Kubernetes 1.36 requires containerd 2.x" \
+        "1.36.1" "1.35.4" "1.35.4" "1.7.29"
+}
+
+function test_kubernetes_136_os_containerd_blocked_on_installed_1x() {
+    _USE_OS_CONTAINERD=0 _OS_CONTAINERD_VERSION="1.7.28" assert_136_guard "1.36 upgrade on OS containerd 1.7.28" "1" "Upgrade the OS containerd package to 2.x" \
+        "1.36.1" "1.35.4" "" "2.3.6"
+}
+
+function test_kubernetes_136_os_containerd_allowed_on_2x() {
+    _USE_OS_CONTAINERD=0 _OS_CONTAINERD_VERSION="2.2.1" assert_136_guard "1.36 upgrade on OS containerd 2.2.1" "0" "" \
+        "1.36.1" "1.35.4" "" "2.3.6"
+}
+
+function test_kubernetes_136_os_containerd_allowed_when_not_installed() {
+    _USE_OS_CONTAINERD=0 _OS_CONTAINERD_VERSION="" assert_136_guard "1.36 fresh install before the OS containerd is installed" "0" "" \
+        "1.36.1" "" "" "2.3.6"
 }
 
 function test_kubernetes_135_allowed_on_1x() {
-    local result rc
-    result="$(run_136_guard "1.35.4" "" "" "1.7.29" "1")"
-    rc=$?
-    assertEquals "1.35 fresh install on containerd 1.7.29 passes" "0" "$rc"
-    assertEquals "1.35 on containerd 1.7.29 does not warn" "" "$result"
-}
-
-# Only init_preflights (install.sh) may pass is_init: join.sh does not source upgrade.sh, so
-# is_init there would bail every join to a 1.36 cluster. Dropping it from init_preflights
-# would turn fresh-install bails back into warnings.
-function test_only_init_preflights_passes_is_init() {
-    local pattern='^[^#]*containerd_verify_kubernetes_1_37_compatibility[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]'
-    local callers init_callers
-    callers="$(grep -rlE --exclude='*-test.sh' "$pattern" ./scripts ./addons)"
-    assertEquals "only preflights.sh passes is_init" "./scripts/common/preflights.sh" "$callers"
-    awk '/^function init_preflights/,/^}/' ./scripts/common/preflights.sh | grep -q 'containerd_verify_kubernetes_1_37_compatibility "$CONTAINERD_VERSION" "1"$'
-    assertEquals "init_preflights passes is_init=1" "0" "$?"
-    grep -cE "$pattern" ./scripts/common/preflights.sh | grep -qx 1
-    assertEquals "preflights.sh passes is_init exactly once" "0" "$?"
-    init_callers="$(grep -rlw --include='*.sh' --exclude='*-test.sh' init_preflights ./scripts ./addons | sort)"
-    assertEquals "init_preflights only runs from install.sh" "$(printf './scripts/common/preflights.sh\n./scripts/install.sh')" "$init_callers"
+    assert_136_guard "1.35 fresh install on containerd 1.7.29" "0" "" \
+        "1.35.4" "" "" "1.7.29"
 }
 
 # test-addon CI resolves the installer base (scripts/common/containerd.sh, which defines
@@ -613,12 +596,13 @@ test_pre_137_kubernetes_allowed_on_sub_2x_containerd
 test_kubernetes_136_fresh_install_blocked_on_1x
 test_kubernetes_136_upgrade_blocked_on_1x
 test_kubernetes_136_upgrade_remote_node_blocked_on_1x
-test_kubernetes_136_rerun_warns_on_1x
-test_kubernetes_136_join_warns_on_1x
+test_kubernetes_136_rerun_allowed_on_1x
 test_kubernetes_136_allowed_on_2x
-test_kubernetes_136_allowed_on_os_containerd
+test_kubernetes_136_os_containerd_blocked_on_selected_1x
+test_kubernetes_136_os_containerd_blocked_on_installed_1x
+test_kubernetes_136_os_containerd_allowed_on_2x
+test_kubernetes_136_os_containerd_allowed_when_not_installed
 test_kubernetes_135_allowed_on_1x
-test_only_init_preflights_passes_is_init
 test_pre_init_tolerates_missing_137_guard
 test_join_tolerates_missing_137_guard
 test_install_runc_containerd_1x
