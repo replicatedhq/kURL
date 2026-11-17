@@ -143,7 +143,7 @@ function copy_from_prod() {
 
     # copy the package the current prod release serves; the unversioned dist/<package> copy is missing for most minio versions
     local prod_version=
-    prod_version="$(aws s3 cp "s3://${S3_BUCKET}/dist/VERSION" -)"
+    prod_version="$(aws s3 cp "s3://${S3_BUCKET}/dist/VERSION" - | tr -d '[:space:]')"
     require prod_version "${prod_version}"
     local src="dist/${prod_version}/${package}"
 
