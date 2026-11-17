@@ -128,7 +128,7 @@ oses:
 
   - id: rocky-9
     name: Rocky Linux
-    version: "9.8"
+    version: "9.9"
     vmimageuri: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
@@ -152,9 +152,9 @@ oses:
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
     preinitStyle: block
 
-  - id: rocky-98
+  - id: rocky-99
     name: Rocky Linux
-    version: "9.8"
+    version: "9.9"
     vmimageuri: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
     preinit: |
       yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils libcurl-minimal rrdtool yajl
@@ -264,7 +264,7 @@ pools:
 
   - name: os-full
     trailingNewline: true
-    ids: [amzn-20, centos-79, ol-79, ol-8x, rocky-91, rocky-98, rocky-10, centos-9, ubuntu-1804, ubuntu-2004, ubuntu-2204, ubuntu-2404, amazon-2023, ubuntu-2604]
+    ids: [amzn-20, centos-79, ol-79, ol-8x, rocky-91, rocky-99, rocky-10, centos-9, ubuntu-1804, ubuntu-2004, ubuntu-2204, ubuntu-2404, amazon-2023, ubuntu-2604]
 
   - name: os-removed
     trailingNewline: false
