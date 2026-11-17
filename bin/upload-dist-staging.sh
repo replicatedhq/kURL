@@ -92,7 +92,7 @@ function is_old_kubernetes() {
     return 1
 }
 
-# containerd before 1.6, rook-ceph 1.4.x, and the rook-ceph 1.0 to 1.4 migration package do not build properly today
+# containerd before 1.6, rook-ceph 1.4.x, the rook-ceph 1.0 to 1.4 migration package, and minio do not build properly today
 # as such they should be copied from prod's previous release
 function is_old_addon() {
     if echo "${package}" | grep -q "containerd-1.2" ; then
@@ -111,6 +111,10 @@ function is_old_addon() {
         return 0
     fi
     if echo "${package}" | grep -q "rookupgrade" ; then
+        return 0
+    fi
+    # minio/minio images are no longer pullable from Docker Hub
+    if echo "${package}" | grep -q "^minio-" ; then
         return 0
     fi
     return 1
@@ -136,9 +140,17 @@ function build_and_upload() {
 
 function copy_from_prod() {
     local package="$1"
+    local src="dist/${package}"
 
-    echo "downloading package ${package} from prod (s3://${S3_BUCKET}/dist/${package})"
-    retry 5 aws s3 cp "s3://${S3_BUCKET}/dist/${package}" "dist/${package}"
+    # some packages (e.g. minio) only exist under the current prod release folder
+    if ! aws s3api head-object --bucket "${S3_BUCKET}" --key "${src}" >/dev/null 2>&1 ; then
+        local prod_version=
+        prod_version="$(aws s3 cp "s3://${S3_BUCKET}/dist/VERSION" -)"
+        src="dist/${prod_version}/${package}"
+    fi
+
+    echo "downloading package ${package} from prod (s3://${S3_BUCKET}/${src})"
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/${src}" "dist/${package}"
 
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
     echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
