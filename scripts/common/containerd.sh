@@ -125,7 +125,6 @@ function containerd_upgrade_is_possible() {
 # above, but fires on every install/join (not just a containerd version upgrade).
 # Upstream Kubernetes support for containerd 1.x ends at 1.35, but kURL shipped
 # Kubernetes 1.36 with containerd 1.x, so containerd 2.x is only required from 1.37.
-# Kubernetes 1.36 is handled by containerd_bail_if_kubernetes_1_36_unsupported below.
 function containerd_verify_kubernetes_1_37_compatibility() {
     local containerd_version="$1"
     local containerd_major="${containerd_version%%.*}"
@@ -137,14 +136,11 @@ function containerd_verify_kubernetes_1_37_compatibility() {
 
 # containerd_bail_if_kubernetes_1_36_unsupported bails when install.sh would create a
 # Kubernetes 1.36 cluster, or upgrade one into 1.36, with containerd 1.x. Clusters where
-# every node already runs 1.36 are left alone, since kURL shipped 1.36 with containerd 1.x.
-# The selected containerd version is checked even when this node uses the OS-provided
-# containerd, because other nodes may get the containerd that kURL ships. Only call it
-# from install.sh: it relies on the node versions found by "discover full-cluster".
+# every node already runs 1.36 are left alone so they keep working.
 function containerd_bail_if_kubernetes_1_36_unsupported() {
     local containerd_version="$1"
 
-    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" != "36" ]; then
+    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" != "36" ] || [ "${containerd_version%%.*}" -ge "2" ]; then
         return 0
     fi
 
@@ -155,32 +151,7 @@ function containerd_bail_if_kubernetes_1_36_unsupported() {
         return 0
     fi
 
-    local next_step="Select containerd 2.x to install or upgrade to Kubernetes 1.36."
-    if [ -n "$min_version" ] && [ "$(kubernetes_version_minor "$min_version")" -lt "26" ]; then
-        # containerd 2.x needs CRI v1, which Kubernetes 1.26 is the first to require
-        next_step="Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first, then select containerd 2.x together with Kubernetes 1.36."
-    fi
-
-    if [ "${containerd_version%%.*}" -lt "2" ]; then
-        bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. $next_step"
-    fi
-
-    # An OS containerd may not be installed yet during preflights. install.sh calls this
-    # again after install_cri so the version that was actually installed is checked.
-    if use_os_containerd; then
-        local os_containerd_version
-        os_containerd_version="$(containerd_installed_version)"
-        if [ -n "$os_containerd_version" ] && [ "${os_containerd_version%%.*}" -lt "2" ]; then
-            bail "Kubernetes 1.36 requires containerd 2.x, but this node uses the containerd $os_containerd_version provided by the Operating System. Upgrade the OS containerd package to 2.x, then run the installer again."
-        fi
-    fi
-}
-
-# containerd_installed_version prints the version of /usr/bin/containerd, or nothing if it is not installed.
-function containerd_installed_version() {
-    if [ -x /usr/bin/containerd ]; then
-        /usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v'
-    fi
+    bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x. Clusters below Kubernetes 1.26 must first upgrade to containerd 1.7.x and Kubernetes 1.26 or later."
 }
 
 # containerd_evaluate_upgrade verifies if containerd upgrade between the two provided versions

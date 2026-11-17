@@ -456,7 +456,7 @@ function report_install_containerd() {
 
     # from now on we are migrating from one containerd version to another, restrictions apply.
     local current_containerd_version
-    current_containerd_version=$(containerd_installed_version)
+    current_containerd_version=$(/usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v')
     containerd_evaluate_upgrade "$current_containerd_version" "$CONTAINERD_VERSION"
     for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
         logStep "Moving containerd to version v$version."
