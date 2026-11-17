@@ -140,14 +140,12 @@ function build_and_upload() {
 
 function copy_from_prod() {
     local package="$1"
-    local src="dist/${package}"
 
-    # some packages (e.g. minio) only exist under the current prod release folder
-    if ! aws s3api head-object --bucket "${S3_BUCKET}" --key "${src}" >/dev/null 2>&1 ; then
-        local prod_version=
-        prod_version="$(aws s3 cp "s3://${S3_BUCKET}/dist/VERSION" -)"
-        src="dist/${prod_version}/${package}"
-    fi
+    # copy the package the current prod release serves; the unversioned dist/<package> copy is missing for most minio versions
+    local prod_version=
+    prod_version="$(aws s3 cp "s3://${S3_BUCKET}/dist/VERSION" -)"
+    require prod_version "${prod_version}"
+    local src="dist/${prod_version}/${package}"
 
     echo "downloading package ${package} from prod (s3://${S3_BUCKET}/${src})"
     retry 5 aws s3 cp "s3://${S3_BUCKET}/${src}" "dist/${package}"
