@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
-	github.com/itchyny/gojq v0.12.19
+	github.com/itchyny/gojq v0.12.20
 	github.com/longhorn/longhorn-manager v1.13.0
 	github.com/mattn/go-isatty v0.0.24
 	github.com/minio/minio-go v6.0.14+incompatible
@@ -24,7 +24,7 @@ require (
 	github.com/replicatedhq/kurlkinds v1.5.0
 	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.12.3
-	github.com/replicatedhq/troubleshoot v0.134.3
+	github.com/replicatedhq/troubleshoot v0.134.4
 	github.com/rook/rook v1.21.1
 	github.com/rook/rook/pkg/apis v0.0.0-20261028185834-61a8fea150f6
 	github.com/sirupsen/logrus v1.10.2
@@ -50,8 +50,8 @@ require (
 	k8s.io/utils v0.0.0-20261023123148-ca04ba58ecab
 	sigs.k8s.io/controller-runtime v0.25.2
 	sigs.k8s.io/controller-tools v0.23.0
-	sigs.k8s.io/kustomize/api v0.21.2
-	sigs.k8s.io/kustomize/kyaml v0.21.2
+	sigs.k8s.io/kustomize/api v0.21.3
+	sigs.k8s.io/kustomize/kyaml v0.21.3
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -202,7 +202,7 @@ require (
 	github.com/huandu/xstrings v1.6.3 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/itchyny/timefmt-go v0.1.8 // indirect
+	github.com/itchyny/timefmt-go v0.1.9 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.11.0 // indirect
@@ -313,7 +313,7 @@ require (
 	k8s.io/component-base v0.37.1 // indirect
 	k8s.io/gengo/v2 v2.0.0-20260408192533-25e2208e0dc3 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 // indirect
+	k8s.io/kube-openapi v0.0.0-20261001230523-97fa35140926 // indirect
 	k8s.io/kubectl v0.37.1 // indirect
 	k8s.io/kubelet v0.37.1 // indirect
 	k8s.io/metrics v0.37.1 // indirect
@@ -372,3 +372,7 @@ exclude (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/client-go v12.0.0+incompatible
 )
+
+// kustomize v0.21.3 requires a kube-openapi that uses structured-merge-diff/v7,
+// which is incompatible with k8s.io/apimachinery v0.37.x (still on v6)
+replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098
