@@ -336,7 +336,7 @@
 - name: k8s119_helm
   installerSpec:
     kubernetes:
-      version: latest
+      version: 1.19.x
     weave:
       version: latest
     containerd:
@@ -362,7 +362,7 @@
                   nodePort: 30443
   upgradeSpec:
     kubernetes:
-      version: latest
+      version: 1.21.x
     weave:
       version: latest
     containerd:
