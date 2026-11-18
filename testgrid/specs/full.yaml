@@ -362,7 +362,7 @@
                   nodePort: 30443
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.19.x
     weave:
       version: latest
     containerd:
