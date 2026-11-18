@@ -199,16 +199,31 @@ jobs:
 
     - name: Generate kURL Release Notes PR
       run: |
+        # Pass the newest GitHub Release older than this tag as the base.
+        # Without it the generator starts from the latest GitHub Release, which
+        # github-release may already have set to this tag. Skipped releases have
+        # no GitHub Release, so their changes are included in these notes.
+        prev_version="$(gh release list --exclude-drafts --exclude-pre-releases --limit 10 --json tagName \
+          --jq 'def key: ltrimstr("v") | split("-") | [.[0], (.[1] | tonumber? // 0)];
+            (env.GITHUB_REF_NAME | key) as $cur
+            | [.[].tagName | select(key < $cur)] | max_by(key) | values')"
+        if [ -z "$prev_version" ]; then
+          echo "No previous GitHub Release found" >&2
+          exit 1
+        fi
         depot ci dispatch \
           --repo replicatedhq/replicated-docs \
           --workflow release-notes.yml \
           --ref main \
           --input event_type=kubernetes-installer-release-notes \
           --input version="$GITHUB_REF_NAME" \
+          --input prev_version="$prev_version" \
           --input dry_run=false \
           --token "$DEPOT_CI_DISPATCH_TOKEN"
       env:
         DEPOT_CI_DISPATCH_TOKEN: ${{ secrets.DEPOT_CI_DISPATCH_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
 
 
   github-release:
