@@ -136,11 +136,14 @@ function containerd_verify_kubernetes_1_37_compatibility() {
 
 # containerd_bail_if_kubernetes_1_36_unsupported bails when install.sh would create a
 # Kubernetes 1.36 cluster, or upgrade one into 1.36, with containerd 1.x. Clusters where
-# every node already runs 1.36 are left alone so they keep working.
+# every node already runs 1.36 are left alone so they keep working. Nodes that use the
+# OS-provided containerd run the OS package whatever version the spec selects, so the
+# installed OS containerd is checked instead. install.sh calls this again after
+# install_cri, once that package is installed.
 function containerd_bail_if_kubernetes_1_36_unsupported() {
     local containerd_version="$1"
 
-    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" != "36" ] || [ "${containerd_version%%.*}" -ge "2" ]; then
+    if [ "$(kubernetes_version_minor "$KUBERNETES_VERSION")" != "36" ]; then
         return 0
     fi
 
@@ -151,7 +154,25 @@ function containerd_bail_if_kubernetes_1_36_unsupported() {
         return 0
     fi
 
-    bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x. Clusters below Kubernetes 1.26 must first upgrade to containerd 1.7.x and Kubernetes 1.26 or later."
+    if use_os_containerd; then
+        local os_containerd_version
+        os_containerd_version="$(containerd_installed_version)"
+        if [ -n "$os_containerd_version" ] && [ "${os_containerd_version%%.*}" -lt "2" ]; then
+            bail "Kubernetes 1.36 requires containerd 2.x, but this node uses the containerd $os_containerd_version provided by the Operating System. Upgrade the OS containerd package to 2.x, then run the installer again."
+        fi
+        return 0
+    fi
+
+    if [ "${containerd_version%%.*}" -lt "2" ]; then
+        bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x. Clusters below Kubernetes 1.26 must first upgrade to containerd 1.7.x and Kubernetes 1.26 or later."
+    fi
+}
+
+# containerd_installed_version prints the version of /usr/bin/containerd, or nothing if it is not installed.
+function containerd_installed_version() {
+    if [ -x /usr/bin/containerd ]; then
+        /usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v'
+    fi
 }
 
 # containerd_evaluate_upgrade verifies if containerd upgrade between the two provided versions
