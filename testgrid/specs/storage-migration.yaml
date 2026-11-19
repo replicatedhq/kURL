@@ -1081,7 +1081,7 @@
       version: 1.0.4
     contour:
       version: 1.7.0
-      tlsMinimumProtocolVersion: 1.2
+      tlsMinimumProtocolVersion: "1.2"
     registry:
       version: 2.7.1
     prometheus:
@@ -1215,7 +1215,7 @@
     prometheus:
       version: "0.58.0-39.4.0"
     velero:
-      version: "1.10.1"
+      version: "1.9.0"
     kotsadm:
       version: "1.57.0"
     goldpinger:
@@ -1353,7 +1353,7 @@
     registry:
       version: 2.8.1
     velero:
-      version: 1.10.1
+      version: 1.9.2
       resticTimeout: 24h0m0s
     weave:
       version: 2.6.5-20221025

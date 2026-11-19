@@ -333,14 +333,14 @@
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
   - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
   # END GENERATED os-matrix: unsupported-capability
-- name: k8s119_helm
+- name: k8s_latest_helm
   installerSpec:
     kubernetes:
       version: latest
-    weave:
+    flannel:
       version: latest
     containerd:
-      version: 1.4.6
+      version: latest
     helm:
       helmfileSpec: |-
         repositories:
@@ -349,11 +349,9 @@
         releases:
         - name: nginx-ingress
           chart: nginx-stable/nginx-ingress
-          version: ~0.8.0
+          version: 2.8.1
           values:
           - controller:
-              image:
-                tag: 1.9.1
               service:
                 type: NodePort
                 httpPort:
@@ -363,10 +361,10 @@
   upgradeSpec:
     kubernetes:
       version: latest
-    weave:
+    flannel:
       version: latest
     containerd:
-      version: 1.5.11
+      version: latest
     helm:
       helmfileSpec: |-
         repositories:
@@ -375,11 +373,9 @@
         releases:
         - name: nginx-ingress
           chart: nginx-stable/nginx-ingress
-          version: ~0.8.0
+          version: 2.9.0
           values:
           - controller:
-              image:
-                tag: 1.10.0
               service:
                 type: NodePort
                 httpPort:
@@ -387,15 +383,12 @@
                 httpsPort:
                   nodePort: 30443
   unsupportedOSIDs:
-  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
-  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
-  # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
-  - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
-  - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
-  - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
-  # END GENERATED os-matrix: unsupported-capability
+  - amzn-20 # latest Kubernetes (1.35+) does not support cgroup v1
+  - centos-74 # latest Kubernetes (1.35+) does not support cgroup v1
+  - centos-78 # latest Kubernetes (1.35+) does not support cgroup v1
+  - centos-79 # latest Kubernetes (1.35+) does not support cgroup v1
+  - ol-79 # latest Kubernetes (1.35+) does not support cgroup v1
+  - ubuntu-1804 # latest Kubernetes (1.35+) does not support cgroup v1
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
