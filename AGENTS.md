@@ -212,7 +212,7 @@ Key Testgrid API endpoints for public data:
 - `GET /api/v1/instance/{nodeId}/node-logs` — per-node logs.
 - `GET /api/v1/instance/{instanceId}/sonobuoy` — Sonobuoy results.
 
-Cancelling runs (kURL-testgrid #1080): `POST /api/v1/ref/{refId}/cancel` (or `POST /v1/...`) cancels a whole run — pending instances are skipped and running instances finish with `cancelled_at` set; runner hosts delete the affected VMs/PVCs/secrets within one 30s `ReconcileCancelledVMIs` loop. `GET /v1/instances/cancelled` is the runner-facing feed of recently cancelled instance IDs. Note the API check `testgrid-checker` on PRs evaluates the latest "Testgrid Run(s) Executing" comment's run prefix.
+Cancelling runs and cleaning up runner hosts: see the "Cancelling queued or stuck work via the API" and "Cleaning up VMs on the Testgrid hosts" sections of `.claude/skills/testgrid-failure-analysis/SKILL.md`.
 
 ## 6. Build and release
 

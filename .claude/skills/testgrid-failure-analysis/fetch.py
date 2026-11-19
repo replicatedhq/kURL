@@ -112,7 +112,9 @@ def main():
         and i.get("finishedAt")
     ]
 
-    print(f"Found {len(failures)} failed instance(s) out of {len(instances)} total.")
+    cancelled = sum(1 for i in instances if i.get("cancelledAt"))
+    print(f"Found {len(failures)} failed instance(s) out of {len(instances)} total"
+          f" ({cancelled} cancelled, excluded).")
     if not failures:
         return
 
