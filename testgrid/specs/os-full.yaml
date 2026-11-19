@@ -43,11 +43,17 @@
   preinit: |
     yum install -y --nobest nfs-utils fio container-selinux lvm2 conntrack-tools iptables-nft socat git iscsi-initiator-utils rrdtool
     systemctl disable --now cockpit.socket
-    # Try to install the kernel-modules-extra version matching the running kernel.
-    # If the repos no longer have it, install the latest kernel+modules and reboot.
+    # Install the kernel-modules-extra version matching the running kernel. Once a
+    # newer point release ships, the "latest" cloud image lags the repos, so fall back
+    # to the vault for the image's release. Do not reboot: the test script runs right
+    # after preinit and is not re-run on the next boot.
     if ! yum install -y kernel-modules-extra-"$(uname -r)"; then
-        yum install -y kernel kernel-modules-extra
-        reboot
+        . /etc/os-release
+        yum install -y \
+          --repofrompath=rocky-vault,https://dl.rockylinux.org/vault/rocky/"$VERSION_ID"/BaseOS/x86_64/os/ \
+          --setopt=rocky-vault.gpgcheck=1 \
+          --setopt=rocky-vault.gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-10 \
+          kernel-modules-extra-"$(uname -r)"
     fi
 - id: centos-9
   name: CentOS 9
