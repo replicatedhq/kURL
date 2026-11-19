@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const semverCompare = require('semver/functions/rcompare')
+const semverValid = require('semver/functions/valid')
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const installerVersions = require("../web/src/installers/versions");
 
@@ -101,14 +102,25 @@ fs.readdir(specDir, (err, files) => {
       }
 
       if (preferredVersions[file]) {
-        sv = preferredVersions[file];
+        sv = [...preferredVersions[file]];
       }
       sv.unshift("latest");
       supportedVersions[file] = sv
     }
   });
 
-  supportedVersions.kubernetes = preferredVersions.kubernetes;
+  // Unlike the other add-ons, where the first entry in versions.js is a
+  // deliberately pinned "latest" (e.g. rook, weave), the kubernetes list is
+  // not ordered (legacy versions come first and the cron workflow inserts new
+  // minors at per-minor marker comments). Sort it newest-first so "latest"
+  // resolves to the highest version. Fail the build on entries that are not
+  // bare semver rather than publishing a list the API would reject.
+  const invalidVersions = preferredVersions.kubernetes.filter((v) => semverValid(v) !== v);
+  if (invalidVersions.length > 0) {
+    console.error("Invalid kubernetes versions in web/src/installers/versions.js: " + invalidVersions.join(", "));
+    process.exit(1);
+  }
+  supportedVersions.kubernetes = [...preferredVersions.kubernetes].sort(semverCompare);
   supportedVersions.kubernetes.unshift("latest");
 
   supportedVersions.fio = ["host"]; // fio serves as a signal that the 'fio' host package should be included
