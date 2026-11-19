@@ -375,8 +375,10 @@ function test_pre_137_kubernetes_allowed_on_sub_2x_containerd() {
 
 # Usage: run_136_guard <k8s target> <local k8s> <remote node k8s> <containerd> [os containerd]
 # The optional fifth argument makes the node use the OS containerd at that version, or
-# "none" when it is not installed yet.
-# Runs the guard in a subshell so the globals it sets do not leak into later tests.
+# "none" when it is not installed yet. A remote node version prefixed with "primary:" is
+# a remote primary, otherwise a secondary.
+# Runs the guard in a subshell so the globals it sets do not leak into later tests, and
+# prints its output.
 function run_136_guard() {
     (
         use_os_containerd() { [ -n "$OS_CONTAINERD" ]; }
@@ -385,30 +387,44 @@ function run_136_guard() {
         KUBERNETES_VERSION="$1"
         CURRENT_KUBERNETES_VERSION="$2"
         KUBERNETES_REMOTE_PRIMARIES=() KUBERNETES_SECONDARIES=()
-        if [ -n "$3" ]; then
-            KUBERNETES_SECONDARIES=(node2) KUBERNETES_SECONDARY_VERSIONS=("$3")
-        fi
+        case "$3" in
+            "") ;;
+            primary:*) KUBERNETES_REMOTE_PRIMARIES=(node2) KUBERNETES_REMOTE_PRIMARY_VERSIONS=("${3#primary:}") ;;
+            *) KUBERNETES_SECONDARIES=(node2) KUBERNETES_SECONDARY_VERSIONS=("$3") ;;
+        esac
         containerd_bail_if_kubernetes_1_36_unsupported "$4"
-    ) >/dev/null 2>&1
+    ) 2>&1
 }
 
+# Rows that bail must print the given message; rows that pass must not mention containerd 2.x.
 function test_kubernetes_136_guard() {
-    local expected target local_version remote_version containerd os_containerd description
-    while IFS='|' read -r expected target local_version remote_version containerd os_containerd description; do
-        run_136_guard "$target" "$local_version" "$remote_version" "$containerd" "$os_containerd"
-        assertEquals "$description" "$expected" "$?"
+    local expected target local_version remote_version containerd os_containerd message description output rc
+    while IFS='|' read -r expected target local_version remote_version containerd os_containerd message description; do
+        output="$(run_136_guard "$target" "$local_version" "$remote_version" "$containerd" "$os_containerd")"
+        rc=$?
+        assertEquals "$description" "$expected" "$rc"
+        if [ -n "$message" ]; then
+            echo "$output" | grep -qF "$message"
+            assertEquals "$description: prints \"$message\"" "0" "$?"
+        else
+            echo "$output" | grep -qF "containerd 2.x"
+            assertEquals "$description: prints no containerd 2.x error" "1" "$?"
+        fi
     done <<'EOF'
-1|1.36.1|||1.7.29||new 1.36 cluster on containerd 1.7.29 bails
-1|1.36.1|1.35.4||1.7.29||upgrade 1.35 -> 1.36 on containerd 1.7.29 bails
-1|1.36.2|1.36.1|1.35.4|1.7.29||re-run on a 1.36 primary with a 1.35 node on containerd 1.7.29 bails
-0|1.36.2|1.36.1|1.36.1|1.7.29||re-run on a 1.36 cluster on containerd 1.7.29 passes
-0|1.36.1|||2.3.6||new 1.36 cluster on containerd 2.3.6 passes
-0|1.35.4|||1.7.29||new 1.35 cluster on containerd 1.7.29 passes
-1|1.36.1|||2.4.2|1.7.28|new 1.36 cluster on OS containerd 1.7.28 bails even with 2.4.2 selected
-1|1.36.1|1.35.4||2.4.2|1.7.28|upgrade 1.35 -> 1.36 on OS containerd 1.7.28 bails
-0|1.36.1|||1.7.29|2.2.1|new 1.36 cluster on OS containerd 2.2.1 passes with 1.7.29 selected
-0|1.36.1|||1.7.29|none|new 1.36 cluster before the OS containerd is installed passes
-0|1.36.2|1.36.1||2.4.2|1.7.28|re-run on a 1.36 cluster on OS containerd 1.7.28 passes
+1|1.36.1|||1.7.29||Select containerd 2.x to install or upgrade|new 1.36 cluster on containerd 1.7.29 bails
+1|1.36.1|1.35.4||1.7.29||Select containerd 2.x to install or upgrade|upgrade 1.35 -> 1.36 on containerd 1.7.29 bails
+1|1.36.1|1.25.16||1.7.29||Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first|upgrade 1.25 -> 1.36 on containerd 1.7.29 asks for 1.26 first
+1|1.36.2|1.36.1|1.35.4|1.7.29||Select containerd 2.x to install or upgrade|re-run on a 1.36 primary with a 1.35 secondary on containerd 1.7.29 bails
+1|1.36.2|1.36.1|primary:1.35.4|1.7.29||Select containerd 2.x to install or upgrade|re-run on a 1.36 primary with a 1.35 remote primary on containerd 1.7.29 bails
+0|1.36.2|1.36.1|1.36.1|1.7.29|||re-run on a 1.36 cluster on containerd 1.7.29 passes
+0|1.36.2|1.36.1|primary:1.36.1|1.7.29|||re-run on a 1.36 HA cluster on containerd 1.7.29 passes
+0|1.36.1|||2.3.6|||new 1.36 cluster on containerd 2.3.6 passes
+0|1.35.4|||1.7.29|||new 1.35 cluster on containerd 1.7.29 passes
+1|1.36.1|||2.4.2|1.7.28|provided by the Operating System|new 1.36 cluster on OS containerd 1.7.28 bails even with 2.4.2 selected
+1|1.36.1|1.35.4||2.4.2|1.7.28|provided by the Operating System|upgrade 1.35 -> 1.36 on OS containerd 1.7.28 bails
+0|1.36.1|||1.7.29|2.2.1||new 1.36 cluster on OS containerd 2.2.1 passes with 1.7.29 selected
+0|1.36.1|||1.7.29|none||new 1.36 cluster before the OS containerd is installed passes
+0|1.36.2|1.36.1||2.4.2|1.7.28||re-run on a 1.36 cluster on OS containerd 1.7.28 passes
 EOF
 }
 

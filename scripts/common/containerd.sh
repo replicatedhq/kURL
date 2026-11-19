@@ -123,8 +123,10 @@ function containerd_upgrade_is_possible() {
 # installed is older than 2.x while Kubernetes is targeting kubeadm.k8s.io/v1beta4
 # (Kubernetes 1.37+). This mirrors the CRI v1 guard in containerd_upgrade_is_possible
 # above, but fires on every install/join (not just a containerd version upgrade).
-# Upstream Kubernetes support for containerd 1.x ends at 1.35, but kURL shipped
-# Kubernetes 1.36 with containerd 1.x, so containerd 2.x is only required from 1.37.
+# Upstream Kubernetes support for containerd 1.x ends at 1.35. kURL shipped Kubernetes
+# 1.36 with containerd 1.x, so existing 1.36 clusters keep running on it, but new 1.36
+# installs and upgrades into 1.36 need containerd 2.x too. That is checked by
+# containerd_bail_if_kubernetes_1_36_unsupported below, from install.sh only.
 function containerd_verify_kubernetes_1_37_compatibility() {
     local containerd_version="$1"
     local containerd_major="${containerd_version%%.*}"
@@ -164,7 +166,12 @@ function containerd_bail_if_kubernetes_1_36_unsupported() {
     fi
 
     if [ "${containerd_version%%.*}" -lt "2" ]; then
-        bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. Select containerd 2.x. Clusters below Kubernetes 1.26 must first upgrade to containerd 1.7.x and Kubernetes 1.26 or later."
+        local next_step="Select containerd 2.x to install or upgrade to Kubernetes 1.36."
+        if [ -n "$min_version" ] && [ "$(kubernetes_version_minor "$min_version")" -lt "26" ]; then
+            # containerd 2.x needs CRI v1, which Kubernetes 1.26 is the first to require
+            next_step="Upgrade to containerd 1.7.x and Kubernetes 1.26 or later first, then select containerd 2.x together with Kubernetes 1.36."
+        fi
+        bail "Kubernetes 1.36 requires containerd 2.x, but containerd $containerd_version was selected. $next_step"
     fi
 }
 
