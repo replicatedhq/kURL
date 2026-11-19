@@ -1,5 +1,6 @@
 
-// first version of each is "latest"
+// first version of each is "latest", except kubernetes, which
+// bin/generate-addons.js sorts so that the highest version is "latest"
 module.exports.InstallerVersions = {
   kubernetes: [
     "1.19.16",

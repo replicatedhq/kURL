@@ -102,23 +102,25 @@ fs.readdir(specDir, (err, files) => {
       }
 
       if (preferredVersions[file]) {
-        sv = preferredVersions[file];
+        sv = [...preferredVersions[file]];
       }
       sv.unshift("latest");
       supportedVersions[file] = sv
     }
   });
 
-  // The kubernetes list in versions.js is not ordered newest-first (legacy
-  // versions are listed first and the cron workflow inserts new minors at
-  // per-minor marker comments), so sort it to honor the "first version of
-  // each is latest" contract. Filtering to valid semver also guards the
-  // sort against non-semver entries.
-  const nonSemverVersions = preferredVersions.kubernetes.filter((v) => !semverValid(v));
-  if (nonSemverVersions.length > 0) {
-    console.log("\x1b[33m%s\x1b[0m", "Warning: dropping non-semver kubernetes versions from supported-versions-gen.json: " + nonSemverVersions.join(", "));
+  // Unlike the other add-ons, where the first entry in versions.js is a
+  // deliberately pinned "latest" (e.g. rook, weave), the kubernetes list is
+  // not ordered (legacy versions come first and the cron workflow inserts new
+  // minors at per-minor marker comments). Sort it newest-first so "latest"
+  // resolves to the highest version. Fail the build on entries that are not
+  // bare semver rather than publishing a list the API would reject.
+  const invalidVersions = preferredVersions.kubernetes.filter((v) => semverValid(v) !== v);
+  if (invalidVersions.length > 0) {
+    console.error("Invalid kubernetes versions in web/src/installers/versions.js: " + invalidVersions.join(", "));
+    process.exit(1);
   }
-  supportedVersions.kubernetes = preferredVersions.kubernetes.filter((v) => semverValid(v)).sort(semverCompare);
+  supportedVersions.kubernetes = [...preferredVersions.kubernetes].sort(semverCompare);
   supportedVersions.kubernetes.unshift("latest");
 
   supportedVersions.fio = ["host"]; // fio serves as a signal that the 'fio' host package should be included
