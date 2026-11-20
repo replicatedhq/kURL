@@ -633,6 +633,10 @@ function main() {
     discover_service_subnet
     configure_no_proxy
     install_cri
+    if [ -n "$CONTAINERD_VERSION" ]; then
+        # checks the OS containerd again now that install_cri has installed it
+        containerd_bail_if_kubernetes_1_36_unsupported "$CONTAINERD_VERSION"
+    fi
     kubernetes_configure_pause_image_upgrade
     get_shared
     report_upgrade_kubernetes
