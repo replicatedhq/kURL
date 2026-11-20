@@ -47,6 +47,37 @@ EOF
     assertEquals "1" "$(grep -c 'registry.k8s.io/kube-apiserver:v1.37.1' "$TEST_DIR/$version/Manifest")"
 }
 
+function test_use_securebuild_images_fails_when_an_earlier_patch_of_the_minor_has_a_securebuild_dir() {
+    local version="1.37.2"
+    mkdir -p "$TEST_DIR/$version" "$TEST_DIR/template/securebuild-1.37.1" "$TEST_DIR/template/securebuild-1.36.5"
+    cat > "$TEST_DIR/$version/Manifest" <<EOF
+image kube-apiserver registry.k8s.io/kube-apiserver:v1.37.2
+EOF
+
+    must_cd "$TEST_DIR/template" || return 1
+    local output= rc=0
+    output="$(use_securebuild_images "$version" 2>&1)" || rc=$?
+    must_cd "$ORIG_DIR" || return 1
+    assertEquals "1" "$rc"
+    assertContains "$output" "securebuild-1.37.1 exists but ./securebuild-1.37.2 does not"
+    assertEquals "1" "$(grep -c 'registry.k8s.io/kube-apiserver:v1.37.2' "$TEST_DIR/$version/Manifest")"
+}
+
+function test_use_securebuild_images_ignores_securebuild_dirs_of_other_minors() {
+    local version="1.35.10"
+    mkdir -p "$TEST_DIR/$version" "$TEST_DIR/template/securebuild-1.36.5" "$TEST_DIR/template/securebuild-1.3.5"
+    cat > "$TEST_DIR/$version/Manifest" <<EOF
+image kube-apiserver registry.k8s.io/kube-apiserver:v1.35.10
+EOF
+
+    must_cd "$TEST_DIR/template" || return 1
+    use_securebuild_images "$version"
+    local rc=$?
+    must_cd "$ORIG_DIR" || return 1
+    assertEquals "0" "$rc"
+    assertEquals "1" "$(grep -c 'registry.k8s.io/kube-apiserver:v1.35.10' "$TEST_DIR/$version/Manifest")"
+}
+
 function test_use_securebuild_images_rewrites_manifest_for_1371() {
     local version="1.37.1"
     mkdir -p "$TEST_DIR/$version" "$TEST_DIR/template/securebuild-$version"
