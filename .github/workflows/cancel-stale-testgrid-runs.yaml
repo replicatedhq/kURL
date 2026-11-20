@@ -1,0 +1,56 @@
+name: cancel-stale-testgrid-runs
+
+# Testgrid runs a PR queued for earlier commits keep running after a push:
+# test-addon-pr.yaml's cancel-in-progress only cancels its GitHub jobs, and
+# testgrid-pr.yaml (label-triggered) doesn't run on push at all. This cancels
+# the PR's Testgrid runs for earlier commits so only the latest commit's runs
+# use Testgrid capacity. See bin/cancel-stale-testgrid-runs.sh.
+#
+# A core RC run (testgrid-pr.yaml) for an earlier commit is cancelled too; to
+# test the new commit, re-apply the `run-testgrid` label.
+#
+# A run queued after this job finishes is not cancelled until the next push:
+# an older test-addon-pr.yaml matrix leg that was mid-`tgrun queue` when it got
+# cancelled, or a testgrid-pr.yaml run for an earlier commit that was still
+# building when the push landed.
+#
+# The Testgrid cancel endpoint is unauthenticated, so this needs no secrets and
+# also works for fork PRs.
+
+on:
+  pull_request:
+    types:
+      - synchronize
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  cancel-stale-testgrid-runs:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Cancel Testgrid runs for earlier commits
+        # Housekeeping only: a Testgrid API outage should not fail the PR.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # Read the PR's head now rather than from the event payload: if
+          # another push landed after this run started, its runs must not be
+          # treated as stale.
+          PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+          export PR_HEAD_SHA
+          ./bin/cancel-stale-testgrid-runs.sh
