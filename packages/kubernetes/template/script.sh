@@ -198,7 +198,16 @@ function use_securebuild_images() {
     fi
 
     local securebuild_dir="./securebuild-${version}"
-    [ -d "$securebuild_dir" ] || return 0
+    if [ ! -d "$securebuild_dir" ]; then
+        # A minor that already uses SecureBuild images must not go back to upstream ones on a new patch
+        local previous=
+        previous="$(find . -maxdepth 1 -type d -name "securebuild-${version%.*}.*" | sort -V | tail -n 1)"
+        if [ -n "$previous" ]; then
+            echo "ERROR: ${previous#./} exists but ./securebuild-${version} does not. Publish the SecureBuild images for Kubernetes ${version} and add ./securebuild-${version} (carry over any etcd pin) before generating it." >&2
+            return 1
+        fi
+        return 0
+    fi
 
     # explicit returns: callers check the status, which turns errexit off in here
     local name= image= upstream_image=
