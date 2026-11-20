@@ -274,3 +274,22 @@ test('checkPullRequest never creates a success check-run for a stale sticky entr
   assert.equal(clientCalled, false);
   assert.deepEqual(checksCreateCalls, []);
 });
+
+test('checkPullRequest reports nothing for a batch whose instances were all cancelled', async () => {
+  const sticky = addonStickyComment(ADDON_RUN_LINE, 308);
+  const calls = [];
+  const octokit = makeCheckPullRequestOctokit({
+    prComments: [sticky],
+    createComment: async () => { calls.push('createComment'); },
+    updateComment: async () => { calls.push('updateComment'); },
+    checksCreate: async () => { calls.push('checksCreate'); },
+  });
+  const client = makeFakeHttpClient({
+    total: 1,
+    runs: [{ pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 61 }],
+  });
+
+  await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
+
+  assert.deepEqual(calls, []);
+});

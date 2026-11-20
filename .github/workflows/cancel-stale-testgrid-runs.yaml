@@ -7,15 +7,15 @@ name: cancel-stale-testgrid-runs
 # use Testgrid capacity. See bin/cancel-stale-testgrid-runs.sh.
 #
 # A core RC run (testgrid-pr.yaml) for an earlier commit is cancelled too; to
-# test the new commit, re-apply the `run-testgrid` label.
+# test the new commit, re-apply the `run-testgrid` label. An RC run that was
+# still building when the push landed is queued after this job has swept, so
+# testgrid-pr.yaml runs the same script right after queueing.
 #
-# A run queued after this job finishes is not cancelled until the next push:
-# an older test-addon-pr.yaml matrix leg that was mid-`tgrun queue` when it got
-# cancelled, or a testgrid-pr.yaml run for an earlier commit that was still
-# building when the push landed.
+# An older test-addon-pr.yaml matrix leg that was mid-`tgrun queue` when it got
+# cancelled can still land a run after this job finishes; the next push
+# cancels it.
 #
-# The Testgrid cancel endpoint is unauthenticated, so this needs no secrets and
-# also works for fork PRs.
+# The Testgrid cancel endpoint is unauthenticated, so this needs no secrets.
 
 on:
   pull_request:
@@ -36,13 +36,16 @@ jobs:
   cancel-stale-testgrid-runs:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Cancel Testgrid runs for earlier commits
-        # Housekeeping only: a Testgrid API outage should not fail the PR.
+        # Housekeeping only: a Testgrid API outage should not fail the PR. The
+        # timeout is on the step because a job timeout ends the check as
+        # cancelled, which continue-on-error doesn't absorb.
         continue-on-error: true
+        timeout-minutes: 5
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}

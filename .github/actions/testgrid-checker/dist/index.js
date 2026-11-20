@@ -39465,7 +39465,7 @@ __nccwpck_require__.d(__webpack_exports__, {
   fb: () => (/* binding */ checkPullRequest)
 });
 
-// UNUSED EXPORTS: allAddonRunsDone, enablePullRequestAutomerge, reportAddonCompletion
+// UNUSED EXPORTS: allAddonRunsDone, anyAddonRunRan, enablePullRequestAutomerge, reportAddonCompletion
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js + 16 modules
 var core = __nccwpck_require__(3340);
@@ -39633,7 +39633,8 @@ const buildAddonCompletionCommentBody = (prefix, { passed, failed, skipped }) =>
 };
 
 const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs) => {
-  const headline = failed > 0 ? '❌ failed' : '✅ passed';
+  // Nothing passed or failed: every leg was skipped, unsupported or cancelled.
+  const headline = failed > 0 ? '❌ failed' : passed > 0 ? '✅ passed' : '⚪ did not run';
   const lines = [
     `### 🏁 Testgrid RC run ${headline}`,
     `- Result: **${passed} passed, ${failed} failed, ${skipped} skipped/unsupported/cancelled** — [run details](https://testgrid.kurl.sh/run/${ref})`,
@@ -39663,7 +39664,10 @@ const TESTGRID_API = 'https://api.testgrid.kurl.sh/api/v1';
 const allAddonRunsDone = runs =>
   runs.every(run => !(run.pending_runs > 0) && !(run.running_runs > 0));
 
-const checkPullRequest = (octokit, owner, repo, client = httpClient) => async pullRequest => {
+const anyAddonRunRan = runs =>
+  runs.some(run => (run.success_count || 0) + (run.failure_count || 0) > 0);
+
+const checkPullRequest =(octokit, owner, repo, client = httpClient) => async pullRequest => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
   console.log(`PR "${prTitle}" #${prNumber}: checking`);
@@ -39707,6 +39711,14 @@ const checkPullRequest = (octokit, owner, repo, client = httpClient) => async pu
   if (responseBody.total !== 0) {
     if (!allAddonRunsDone(responseBody.runs)) {
       console.log(`PR "${prTitle}" #${prNumber}: has pending or running runs`);
+      return;
+    }
+    // A batch where nothing passed or failed was cancelled (e.g. by
+    // cancel-stale-testgrid-runs.yaml after a push, then the head was
+    // force-pushed back): it says nothing about the code, so report nothing
+    // and leave the done marker unwritten for the re-queued batch.
+    if (!anyAddonRunRan(responseBody.runs)) {
+      console.log(`PR "${prTitle}" #${prNumber}: no instance passed or failed (cancelled?), not reporting`);
       return;
     }
     const passing = !responseBody.runs.some(run => run.failure_count > 0);
