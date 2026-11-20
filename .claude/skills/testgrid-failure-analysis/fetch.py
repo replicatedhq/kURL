@@ -108,10 +108,13 @@ def main():
         if not i.get("isSuccess")
         and not i.get("isUnsupported")
         and not i.get("isSkipped")
+        and not i.get("cancelledAt")  # cancelled instances are not failures
         and i.get("finishedAt")
     ]
 
-    print(f"Found {len(failures)} failed instance(s) out of {len(instances)} total.")
+    cancelled = sum(1 for i in instances if i.get("cancelledAt"))
+    print(f"Found {len(failures)} failed instance(s) out of {len(instances)} total"
+          f" ({cancelled} cancelled, excluded).")
     if not failures:
         return
 
