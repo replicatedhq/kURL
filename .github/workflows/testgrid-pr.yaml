@@ -45,6 +45,9 @@ name: testgrid-pr
 #     Triage-level access — it is NOT a strong gate on its own. The real gate on
 #     secret exposure is the `testgrid-pr` Environment's required reviewers (see
 #     provisioning below). Do not treat the label as maintainer-only.
+#   * Jobs use the environment with `deployment: false`: they still get its
+#     secrets and required reviewers, but create no deployment, so a run does
+#     not post ~220 "deployed to testgrid-pr" entries on the PR timeline.
 #
 # ── REQUIRED provisioning before enabling this workflow ─────────────────────
 #   These are hard prerequisites — the workflow is a security risk without them:
@@ -238,7 +241,9 @@ jobs:
 
   kurl-util-image:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     needs:
       - get-tag
     steps:
@@ -345,7 +350,9 @@ jobs:
 
   copy-packages-from-staging:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     needs:
       - get-tag
     outputs:
@@ -381,7 +388,9 @@ jobs:
 
   copy-packages:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     needs:
       - get-tag
       - copy-packages-from-staging
@@ -431,7 +440,9 @@ jobs:
 
   build-and-upload:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     # Depends on copy-packages so the freshly built core packages are uploaded
     # AFTER the copies from the previous staging release. The copy set and the
     # build set overlap on the *.tmpl files (and any extra-packages), so build
@@ -510,7 +521,9 @@ jobs:
 
   generate-addons:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     needs:
       - get-tag
       - build-and-upload
@@ -545,7 +558,9 @@ jobs:
 
   testgrid-run:
     runs-on: ubuntu-24.04
-    environment: testgrid-pr
+    environment:
+      name: testgrid-pr
+      deployment: false
     needs:
       - get-tag
       - generate-addons
