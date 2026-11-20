@@ -1,0 +1,1 @@
+etcd docker.io/kurlsh/etcd:v3.6.15 registry.k8s.io/etcd:3.6.8-0
