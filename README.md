@@ -16,7 +16,7 @@ For more information please see [kurl.sh/docs/](https://kurl.sh/docs/)
 
 ## Community
 
-For questions about using kURL, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#kurl channel in Kubernetes Slack](https://kubernetes.slack.com/channels/kurl).
+For questions about using kURL, please [open an issue](https://github.com/replicatedhq/kurl/issues) in the GitHub repo.
 
 ## Notifications
 
