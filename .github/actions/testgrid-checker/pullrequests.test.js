@@ -284,12 +284,45 @@ test('checkPullRequest reports nothing for a batch whose instances were all canc
     updateComment: async () => { calls.push('updateComment'); },
     checksCreate: async () => { calls.push('checksCreate'); },
   });
-  const client = makeFakeHttpClient({
-    total: 1,
-    runs: [{ pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 61 }],
-  });
+  const client = {
+    ...makeFakeHttpClient({
+      total: 1,
+      runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 2 }],
+    }),
+    post: async () => ({ readBody: async () => JSON.stringify({
+      instances: [
+        { id: 'i1', isSkipped: true, cancelledAt: '2026-11-20T00:00:00Z' },
+        { id: 'i2', isUnsupported: true, cancelledAt: null },
+      ],
+    }) }),
+  };
 
   await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
 
   assert.deepEqual(calls, []);
+});
+
+test('checkPullRequest still reports a batch where every leg was unsupported but none was cancelled', async () => {
+  const sticky = addonStickyComment(ADDON_RUN_LINE, 309);
+  const checks = [];
+  const octokit = makeCheckPullRequestOctokit({
+    prComments: [sticky],
+    checksCreate: async ({ conclusion }) => { checks.push(conclusion); },
+  });
+  const client = {
+    ...makeFakeHttpClient({
+      total: 1,
+      runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 2 }],
+    }),
+    post: async () => ({ readBody: async () => JSON.stringify({
+      instances: [
+        { id: 'i1', isUnsupported: true, cancelledAt: null },
+        { id: 'i2', isUnsupported: true, cancelledAt: null },
+      ],
+    }) }),
+  };
+
+  await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
+
+  assert.deepEqual(checks, ['success']);
 });
