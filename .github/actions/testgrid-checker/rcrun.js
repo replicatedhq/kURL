@@ -136,7 +136,8 @@ export const buildAddonCompletionCommentBody = (prefix, { passed, failed, skippe
 };
 
 export const buildCompletionCommentBody = (ref, { passed, failed, skipped }, failedLegs) => {
-  const headline = failed > 0 ? '❌ failed' : '✅ passed';
+  // Nothing passed or failed: every leg was skipped, unsupported or cancelled.
+  const headline = failed > 0 ? '❌ failed' : passed > 0 ? '✅ passed' : '⚪ did not run';
   const lines = [
     `### 🏁 Testgrid RC run ${headline}`,
     `- Result: **${passed} passed, ${failed} failed, ${skipped} skipped/unsupported/cancelled** — [run details](https://testgrid.kurl.sh/run/${ref})`,

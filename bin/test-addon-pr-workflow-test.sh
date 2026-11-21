@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORKFLOW_FILES="./.github/workflows/test-addon-pr.yaml ./.github/workflows/test-addon.yaml"
+WORKFLOW_FILES="./.github/workflows/test-addon-pr.yaml ./.github/workflows/test-addon.yaml ./.github/workflows/cancel-stale-testgrid-runs.yaml"
 
 testRunBlocksDoNotInterpolateStepsOrEventOutputsDirectly() {
     local file

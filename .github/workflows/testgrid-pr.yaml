@@ -16,6 +16,9 @@ name: testgrid-pr
 #     labels — this is the security gate). Add `testgrid-full` to run the full
 #     OS matrix instead of the default first/last subset.
 #   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
+#   * A push to the PR cancels its queued RC run for the earlier commit
+#     (cancel-stale-testgrid-runs.yaml) and nothing re-queues it; re-apply
+#     `run-testgrid` to test the new commit.
 #
 # ── PR comment behavior ─────────────────────────────────────────────────────
 #   * All runs of a PR append into ONE sticky comment (header `testgrid-pr`)
@@ -607,6 +610,23 @@ jobs:
 
           MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${TESTGRID_REF}"
           echo "::notice ::${MSG}"
+
+      # A push while this run was building doesn't trigger this workflow, and
+      # cancel-stale-testgrid-runs.yaml swept before this run was queued, so
+      # sweep again now: if the PR has moved on, this cancels the run just
+      # queued for the old commit.
+      - name: cancel Testgrid runs for earlier commits
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+          export PR_HEAD_SHA
+          ./bin/cancel-stale-testgrid-runs.sh
 
   comment-pr:
     runs-on: ubuntu-24.04
