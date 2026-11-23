@@ -239,7 +239,9 @@ function logFail() {
 }
 
 function logWarn() {
-    printf "${YELLOW}$1${NC}\n" 1>&2
+    # %b, not the message as the format: callers embed command output (e.g. ctr errors) that
+    # can contain %, while still expanding the \n escapes some callers rely on.
+    printf "${YELLOW}%b${NC}\n" "$1" 1>&2
 }
 
 function bail() {
@@ -417,6 +419,9 @@ function install_cri() {
         export REPORTING_CONTEXT_INFO="containerd $CONTAINERD_VERSION"
         report_install_containerd
         export REPORTING_CONTEXT_INFO=""
+        # The containerd add-on imports the new pause image and restarts containerd above; on
+        # containerd 1.x that leaves it unpinned (sc-140018). Pin it, healing if it is gone.
+        containerd_ensure_pause_image_pinned
     fi
 }
 
@@ -469,10 +474,12 @@ function report_install_containerd() {
 }
 
 function load_images() {
+    # Return the import status explicitly: under `|| rc=$?` errexit is off, and the trailing
+    # retag_gcr_images would otherwise mask a failed import with its own exit status.
     if [ -n "$DOCKER_VERSION" ]; then
-        find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+        find "$1" -type f | xargs -I {} bash -c "docker load < {}" || return $?
     else
-        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
+        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -" || return $?
     fi
 
     retag_gcr_images

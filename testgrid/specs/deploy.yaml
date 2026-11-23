@@ -124,13 +124,20 @@
       echo "failed to list containerd images: $LIST_OUTPUT"
       exit 1
     fi
-    IMAGE_LINE="$(echo "$LIST_OUTPUT" | awk -v img="$PAUSE_IMAGE" '$1 == img')"
-    if [ -z "$IMAGE_LINE" ]; then
+    # Same lookup as containerd_find_pause_image_lines: exact ref first, then the repo+tag
+    # suffix in case containerd imported the image under a mirror-rewritten ref.
+    IMAGE_LINES="$(echo "$LIST_OUTPUT" | awk -v img="$PAUSE_IMAGE" '$1 == img')"
+    if [ -z "$IMAGE_LINES" ]; then
+      PAUSE_REPO_TAG="${PAUSE_IMAGE##*/}"
+      IMAGE_LINES="$(echo "$LIST_OUTPUT" | awk -v rt="$PAUSE_REPO_TAG" '{ n = length($1) - length(rt) - 1; if ($1 == rt || (n >= 0 && substr($1, n + 1) == "/" rt)) print }')"
+    fi
+    if [ -z "$IMAGE_LINES" ]; then
       echo "pause image $PAUSE_IMAGE not found in containerd's image store after upgrade"
       exit 1
     fi
-    if ! echo "$IMAGE_LINE" | grep -q 'io.cri-containerd.pinned=pinned'; then
-      echo "pause image $PAUSE_IMAGE is not pinned after upgrade: $IMAGE_LINE"
+    if echo "$IMAGE_LINES" | grep -v 'io.cri-containerd.pinned=pinned' | grep -q .; then
+      echo "pause image $PAUSE_IMAGE is not pinned after upgrade:"
+      echo "$IMAGE_LINES"
       exit 1
     fi
     echo "pause image $PAUSE_IMAGE confirmed pinned after upgrade"

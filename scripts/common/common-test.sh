@@ -208,4 +208,36 @@ function test_daemonset_fully_updated_settled_catches_second_rollout() {
     rm -f "$pollCountFile"
 }
 
+# logWarn must not treat its message as a printf format: callers embed raw command output
+# (e.g. ctr errors) that can contain %. \n escapes some callers rely on must still expand.
+function test_logWarn_does_not_use_message_as_format() {
+    local out
+    out="$(logWarn 'ctr: 100% failed %s %d' 2>&1)"
+    assertContains "logWarn prints % directives from the message literally" "$out" 'ctr: 100% failed %s %d'
+    out="$(logWarn 'line one\nline two' 2>&1)"
+    assertEquals "logWarn still expands \\n escapes" "2" "$(echo "$out" | wc -l | tr -d ' ')"
+}
+
+# sc-140018: the pause-image heal calls kubernetes_load_images under `|| rc=$?`, where errexit
+# is off. load_images must still report a failed import, not retag_gcr_images' status.
+function test_load_images_returns_failed_import_status() {
+    local dir bin rc
+    dir="$(mktemp -d)"
+    bin="$(mktemp -d)"
+    echo x | gzip > "$dir/image.tar.gz"
+    printf '#!/bin/sh\ncat >/dev/null\nexit 1\n' > "$bin/ctr"
+    chmod +x "$bin/ctr"
+    rc=0
+    (
+        K8S_DISTRO=kubeadm
+        DOCKER_VERSION=
+        kubeadm_get_containerd_sock() { echo /run/containerd/containerd.sock; }
+        retag_gcr_images() { :; }
+        PATH="$bin:$PATH"
+        load_images "$dir" 2>/dev/null
+    ) || rc=$?
+    assertNotEquals "load_images returns non-zero when ctr import fails" "0" "$rc"
+    rm -rf "$dir" "$bin"
+}
+
 . shunit2

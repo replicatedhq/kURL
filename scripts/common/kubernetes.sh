@@ -76,8 +76,11 @@ function kubernetes_load_images() {
         return 0
     fi
 
-    load_images "$DIR/packages/kubernetes/$version/images"
-    kubernetes_alias_canonical_pause_image "$version"
+    # Return explicitly on failure: callers that run this under `|| rc=$?` (the pause-image
+    # heal in containerd_ensure_pause_image_pinned) disable errexit, and falling through would
+    # set the loaded memo below and make maybe_upgrade skip the real load.
+    load_images "$DIR/packages/kubernetes/$version/images" || return $?
+    kubernetes_alias_canonical_pause_image "$version" || return $?
     # kubeadm uses upstream references until the workload image overrides are applied.
     # Provide local aliases so air-gapped installs do not need those upstream images.
     local overrides="$DIR/packages/kubernetes/$version/image-overrides"
@@ -85,9 +88,9 @@ function kubernetes_load_images() {
     if [ -f "$overrides" ]; then
         while read -r workload container source_image target_image; do
             if [ -n "$DOCKER_VERSION" ]; then
-                docker tag "$source_image" "$target_image"
+                docker tag "$source_image" "$target_image" || return $?
             else
-                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image"
+                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image" || return $?
             fi
         done < "$overrides"
     fi
@@ -96,17 +99,24 @@ function kubernetes_load_images() {
     if [ -f "$overrides" ]; then
         while read -r component source_image target_image; do
             if [ -n "$DOCKER_VERSION" ]; then
-                docker tag "$source_image" "$target_image"
+                docker tag "$source_image" "$target_image" || return $?
             else
-                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image"
+                ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n k8s.io images tag --force "$source_image" "$target_image" || return $?
             fi
         done < "$overrides"
     fi
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
-        load_images "$DIR/packages/kubernetes-conformance/$version/images"
+        load_images "$DIR/packages/kubernetes-conformance/$version/images" || return $?
     fi
 
     declare -g "$varname"=1
+
+    # containerd 1.x never pins a pause image imported while the daemon runs an older
+    # sandbox_image (sc-140018); pin it now that it is imported. no-heal: this is the import.
+    # Guarded because some entrypoints (tasks.sh) source kubernetes.sh without containerd.sh.
+    if commandExists containerd_ensure_pause_image_pinned; then
+        containerd_ensure_pause_image_pinned no-heal
+    fi
 }
 
 # kubeadm manages these workloads, so reapply the verified images after init/upgrade.
