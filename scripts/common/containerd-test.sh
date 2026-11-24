@@ -351,12 +351,50 @@ function test_upgrade_1_7_to_2x_allowed() {
     assertEquals "1.7->2.x upgrade allowed" "0" "$?"
 }
 
-function test_upgrade_1_6_to_2x_blocked() {
-    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.0.5)
-    local result
-    result="$( (containerd_upgrade_is_possible "1.6.33" "2.0.5") 2>&1 || true)"
-    echo "$result" | grep -q "1.7"
-    assertEquals "1.6->2.x blocked with 1.7 message" "0" "$?"
+function test_upgrade_1_6_to_2x_allowed() {
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.6.33" "2.4.2" >/dev/null)
+    assertEquals "1.6->2.x upgrade allowed (steps through 1.7)" "0" "$?"
+}
+
+function test_upgrade_1_5_to_2x_allowed() {
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.5.11" "2.4.2" >/dev/null)
+    assertEquals "1.5->2.x upgrade allowed (steps through 1.6 and 1.7)" "0" "$?"
+}
+
+# 1.4 -> 1.7 spans three minors, so the 1.x leg of a 1.4 -> 2.x upgrade is still blocked.
+function test_upgrade_1_4_to_2x_blocked() {
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    local result rc
+    result="$( (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.4.13" "2.4.2") 2>&1)"
+    rc=$?
+    assertEquals "1.4->2.x blocked" "1" "$rc"
+    echo "$result" | grep -qi "spanning two minor versions"
+    assertEquals "1.4->2.x blocked with the two-minor message" "0" "$?"
+}
+
+# containerd 2.x needs CRI v1 (Kubernetes 1.26+). The guard must fire for a 1.6 start too,
+# before any 1.x step is planned.
+function test_upgrade_1_6_to_2x_k8s_too_old_blocked() {
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    local result rc
+    result="$( (CURRENT_KUBERNETES_VERSION=1.25.0 containerd_upgrade_is_possible "1.6.33" "2.4.2") 2>&1)"
+    rc=$?
+    assertEquals "1.6->2.x blocked on Kubernetes < 1.26" "1" "$rc"
+    echo "$result" | grep -q "CRI v1"
+    assertEquals "1.6->2.x on Kubernetes < 1.26 prints the CRI v1 message" "0" "$?"
+}
+
+# Without a 1.7 version to step through, 1.x -> 2.x upgrades cannot be planned.
+function test_upgrade_1_6_to_2x_without_1_7_step_blocked() {
+    CONTAINERD_STEP_VERSIONS=(1.5.11 1.6.33 2.1.5 2.2.6)
+    local result rc
+    result="$( (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.6.33" "2.2.6") 2>&1)"
+    rc=$?
+    assertEquals "1.6->2.x blocked without a 1.7 step version" "1" "$rc"
+    echo "$result" | grep -q "Upgrade to containerd 1.7.x first"
+    assertEquals "1.6->2.x without a 1.7 step asks for 1.7 first" "0" "$?"
 }
 
 function test_upgrade_k8s_too_old_blocked() {
@@ -388,6 +426,102 @@ function test_migration_steps_1_7_to_2x() {
     local steps
     steps="$(containerd_migration_steps "1.7.29" "2.0.5")"
     assertEquals "migration steps 1.7->2.0" "2.0.5" "$steps"
+}
+
+# Usage: assert_migration_steps <description> <from> <to> <expected steps>
+# Checks the steps against the in-repo step array and the array the kURL API injects, which has
+# one entry per minor (latest wins across majors), 0.0.0 placeholders and is ordered by minor.
+function assert_migration_steps() {
+    local description="$1" from="$2" to="$3" expected="$4"
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    assertEquals "$description" "$expected" "$(containerd_migration_steps "$from" "$to")"
+    CONTAINERD_STEP_VERSIONS=(0.0.0 2.1.5 2.2.6 2.3.6 2.4.2 1.5.11 1.6.33 1.7.29)
+    assertEquals "$description (server step array)" "$expected" "$(containerd_migration_steps "$from" "$to")"
+}
+
+function test_migration_steps_across_majors() {
+    assert_migration_steps "migration steps 1.6->2.4" "1.6.33" "2.4.2" "1.7.29 2.4.2"
+    assert_migration_steps "migration steps 1.6->2.1" "1.6.20" "2.1.5" "1.7.29 2.1.5"
+    assert_migration_steps "migration steps 1.5->2.4" "1.5.11" "2.4.2" "1.6.33 1.7.29 2.4.2"
+    assert_migration_steps "migration steps 1.7->2.4 unchanged" "1.7.29" "2.4.2" "2.4.2"
+    assert_migration_steps "migration steps older 1.7 patch->2.4 unchanged" "1.7.25" "2.4.2" "2.4.2"
+    assert_migration_steps "migration steps 1.5->1.7 unchanged" "1.5.11" "1.7.29" "1.6.33 1.7.29"
+    assert_migration_steps "migration steps 2.2->2.4 unchanged" "2.2.6" "2.4.2" "2.3.6 2.4.2"
+}
+
+# containerd_evaluate_upgrade appends to a global, so run it in a subshell.
+function test_evaluate_upgrade_1_6_to_2x() {
+    CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.1.5 2.2.6 2.3.6 2.4.2)
+    local result
+    result="$(
+        use_os_containerd() { return 1; }
+        CURRENT_KUBERNETES_VERSION=1.29.0
+        CONTAINERD_INSTALL_VERSIONS=()
+        containerd_evaluate_upgrade "1.6.33" "2.4.2" >/dev/null
+        echo "${CONTAINERD_INSTALL_VERSIONS[*]}"
+    )"
+    assertEquals "evaluate upgrade 1.6->2.4 plans 1.7.29 then 2.4.2" "1.7.29 2.4.2" "$result"
+}
+
+# Usage: run_install_upgrade_steps <airgap> <present step versions> <install versions...>
+# Runs containerd_install_upgrade_steps with addon_fetch/addon_install/addon_fetch_multiple_airgap
+# stubbed to print what they are called with, and the given step versions already unpacked
+# under $DIR/addons/containerd.
+function run_install_upgrade_steps() {
+    local airgap="$1" present="$2"
+    shift 2
+    (
+        DIR="$(mktemp -d)"
+        local v
+        for v in $present; do
+            mkdir -p "$DIR/addons/containerd/$v"
+            touch "$DIR/addons/containerd/$v/install.sh"
+        done
+        logStep() { :; }
+        log() { :; }
+        addon_fetch() { echo "fetch $2"; }
+        addon_install() { echo "install $2 CONTAINERD_VERSION=$CONTAINERD_VERSION"; }
+        addon_fetch_multiple_airgap() { echo "airgap-fetch $*"; }
+        AIRGAP="$airgap"
+        CONTAINERD_VERSION="2.4.2"
+        CONTAINERD_INSTALL_VERSIONS=("$@")
+        containerd_install_upgrade_steps
+        echo "after CONTAINERD_VERSION=$CONTAINERD_VERSION"
+        rm -rf "$DIR"
+    )
+}
+
+function test_install_upgrade_steps_online() {
+    local expected
+    expected="$(printf '%s\n' \
+        "fetch 1.7.29" \
+        "install 1.7.29 CONTAINERD_VERSION=1.7.29" \
+        "install 2.4.2 CONTAINERD_VERSION=2.4.2" \
+        "after CONTAINERD_VERSION=2.4.2")"
+    assertEquals "online 1.6->2.4 fetches and installs 1.7.29, then 2.4.2" "$expected" \
+        "$(run_install_upgrade_steps "" "" 1.7.29 2.4.2)"
+}
+
+function test_install_upgrade_steps_airgap_missing_step() {
+    local expected
+    expected="$(printf '%s\n' \
+        "airgap-fetch containerd-1.6.33 containerd-1.7.29" \
+        "install 1.6.33 CONTAINERD_VERSION=1.6.33" \
+        "install 1.7.29 CONTAINERD_VERSION=1.7.29" \
+        "install 2.4.2 CONTAINERD_VERSION=2.4.2" \
+        "after CONTAINERD_VERSION=2.4.2")"
+    assertEquals "airgap 1.5->2.4 asks for the missing step packages before installing" "$expected" \
+        "$(run_install_upgrade_steps "1" "2.4.2" 1.6.33 1.7.29 2.4.2)"
+}
+
+function test_install_upgrade_steps_airgap_steps_present() {
+    local expected
+    expected="$(printf '%s\n' \
+        "install 1.7.29 CONTAINERD_VERSION=1.7.29" \
+        "install 2.4.2 CONTAINERD_VERSION=2.4.2" \
+        "after CONTAINERD_VERSION=2.4.2")"
+    assertEquals "airgap 1.6->2.4 with the step in the bundle fetches nothing" "$expected" \
+        "$(run_install_upgrade_steps "1" "1.7.29 2.4.2" 1.7.29 2.4.2)"
 }
 
 function test_kubernetes_137_blocked_on_sub_2x_containerd() {
@@ -588,11 +722,12 @@ function test_override_version_rerun() {
 
     result="$( (
         DIR="$dir" LSB_DIST=rocky DIST_VERSION_MAJOR=8
+        CONTAINERD_STEP_VERSIONS=(1.6.33 1.7.29 2.4.2)
         use_os_containerd() { return 1; }
         containerd_evaluate_upgrade 1.6.33 2.4.2 >/dev/null
-    ) 2>&1 || true)"
-    echo "$result" | grep -q "1.7.x first"
-    assertEquals "1.6.33 -> 2.4.2 on rocky 8 still bails" "0" "$?"
+        echo "${CONTAINERD_INSTALL_VERSIONS[*]}"
+    ) 2>&1 )"
+    assertEquals "1.6.33 -> 2.4.2 on rocky 8 steps through 1.7" "1.7.29 2.4.2" "$result"
     rm -rf "$dir"
 }
 
@@ -795,6 +930,25 @@ function test_install_cri_does_not_pin_on_docker() {
     assertEquals "install_cri on docker does not call the containerd pause pin" "INSTALL_DOCKER" "$result"
 }
 
+# 2.x add-ons that install 1.6.33 on rhel-7 do not cross a major version there, so no 1.7 step.
+function test_override_no_bridge_step_on_rhel7() {
+    local dir
+    dir="$(mktemp -d)"
+    mkdir -p "$dir/addons/containerd/2.4.2"
+    echo "dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.33" > "$dir/addons/containerd/2.4.2/Manifest"
+
+    local result
+    result="$( (
+        DIR="$dir" LSB_DIST=amzn DIST_VERSION_MAJOR=2
+        CONTAINERD_STEP_VERSIONS=(1.5.11 1.6.33 1.7.29 2.4.2)
+        use_os_containerd() { return 1; }
+        containerd_evaluate_upgrade 1.5.11 2.4.2 >/dev/null
+        echo "${CONTAINERD_INSTALL_VERSIONS[*]}"
+    ) 2>&1 )"
+    assertEquals "1.5 -> 2.4.2 add-on on amazon linux 2 adds no 1.7.29 step" "2.4.2" "$result"
+    rm -rf "$dir"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -818,11 +972,20 @@ test_tomlconfig_leafmerge_1x
 test_config_validation_bail_malformed_2x
 test_config_validation_bail_missing_systemdcgroup_2x
 test_upgrade_1_7_to_2x_allowed
-test_upgrade_1_6_to_2x_blocked
+test_upgrade_1_6_to_2x_allowed
+test_upgrade_1_5_to_2x_allowed
+test_upgrade_1_4_to_2x_blocked
+test_upgrade_1_6_to_2x_k8s_too_old_blocked
+test_upgrade_1_6_to_2x_without_1_7_step_blocked
 test_upgrade_k8s_too_old_blocked
 test_downgrade_2x_to_1x_blocked
 test_same_major_minor_span_blocked
 test_migration_steps_1_7_to_2x
+test_migration_steps_across_majors
+test_evaluate_upgrade_1_6_to_2x
+test_install_upgrade_steps_online
+test_install_upgrade_steps_airgap_missing_step
+test_install_upgrade_steps_airgap_steps_present
 test_kubernetes_137_blocked_on_sub_2x_containerd
 test_kubernetes_137_allowed_on_2x_containerd
 test_pre_137_kubernetes_allowed_on_sub_2x_containerd
@@ -848,6 +1011,7 @@ test_ensure_pause_image_pinned_noop_when_containerd_version_unset
 test_ensure_pause_image_pinned_noop_when_config_toml_missing
 test_install_cri_pins_pause_image_after_containerd_install
 test_install_cri_does_not_pin_on_docker
+test_override_no_bridge_step_on_rhel7
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."

@@ -463,14 +463,7 @@ function report_install_containerd() {
     local current_containerd_version
     current_containerd_version=$(/usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v')
     containerd_evaluate_upgrade "$current_containerd_version" "$CONTAINERD_VERSION"
-    for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
-        logStep "Moving containerd to version v$version."
-        if [ "$version" != "$CONTAINERD_VERSION" ] && [ "$AIRGAP" != "1" ] ; then
-            log "Downloading containerd v$version."
-            addon_fetch "containerd" "$version"
-        fi
-        addon_install "containerd" "$version"
-    done
+    containerd_install_upgrade_steps
 }
 
 function load_images() {
