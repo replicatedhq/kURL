@@ -43,6 +43,7 @@ Important documents:
 - `testgrid/specs/README.md` — how Testgrid specs work.
 - `docs/arch/adr-003-external-addons.md` — external add-on model (`kotsadm`).
 - `CODEOWNERS` — global owner `@replicatedhq/embedded-kubernetes`.
+- Work is tracked in Shortcut on the **Engineering** team, **kURL** project.
 
 ## 3. How to approach changes
 
