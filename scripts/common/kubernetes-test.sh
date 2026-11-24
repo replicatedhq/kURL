@@ -1200,4 +1200,23 @@ function test_kubernetes_cleanup_control_plane_backup_noop_without_backup() {
     unset -f cp rm logWarn
 }
 
+# sc-140018: kubernetes_load_images pins the pause image once it is imported.
+function test_kubernetes_load_images_pins_pause_image_after_import() {
+    local output
+    output="$(
+        #shellcheck disable=SC2317
+        load_images() { echo "LOAD $1"; }
+        #shellcheck disable=SC2317
+        kubernetes_alias_canonical_pause_image() { :; }
+        #shellcheck disable=SC2317
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
+        DIR=/nonexistent
+        # shellcheck disable=SC2034 # read by kubernetes_load_images
+        SONOBUOY_VERSION=
+        kubernetes_load_images 1.99.1
+    )"
+    assertEquals "imports, then pins the pause image" \
+        "$(printf '%s\n%s' "LOAD /nonexistent/packages/kubernetes/1.99.1/images" "PIN")" "$output"
+}
+
 . shunit2

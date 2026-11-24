@@ -239,7 +239,9 @@ function logFail() {
 }
 
 function logWarn() {
-    printf "${YELLOW}$1${NC}\n" 1>&2
+    # %b, not the message as the format: callers embed command output (e.g. ctr errors) that
+    # can contain %, while still expanding the \n escapes some callers rely on.
+    printf "${YELLOW}%b${NC}\n" "$1" 1>&2
 }
 
 function bail() {
@@ -417,6 +419,9 @@ function install_cri() {
         export REPORTING_CONTEXT_INFO="containerd $CONTAINERD_VERSION"
         report_install_containerd
         export REPORTING_CONTEXT_INFO=""
+        # The containerd add-on imports the new pause image before restarting containerd, so on
+        # containerd 1.x it is never pinned (sc-140018). Pin it now.
+        containerd_ensure_pause_image_pinned
     fi
 }
 
