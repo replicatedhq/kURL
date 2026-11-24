@@ -38,6 +38,7 @@ function generate() {
     cp -r ./base/* "$dir"
 
     download_yaml
+    pin_cni_version
     replace_flannel_image_with_version
     find_images_in_yaml
     use_securebuild_images "$dir"
@@ -51,6 +52,19 @@ function replace_flannel_image_with_version() {
 
 function download_yaml() {
     curl -Lo "$dir/yaml/kube-flannel.yml" "https://raw.githubusercontent.com/flannel-io/flannel/v$version/Documentation/kube-flannel.yml"
+}
+
+# Upstream flannel 0.28.10 moved the CNI conflist to cniVersion 1.0.0. The CNI
+# library in containerd < 1.6 cannot parse 1.0.0 results, so pods fail with
+# "unsupported CNI result version". Pin it back to 0.3.1, which every
+# supported containerd version accepts.
+function pin_cni_version() {
+    local yaml="$dir/yaml/kube-flannel.yml"
+    sed -E -i 's/"cniVersion": *"[^"]*"/"cniVersion": "0.3.1"/' "$yaml"
+    if ! grep -q '"cniVersion": "0.3.1"' "$yaml"; then
+        echo "failed to pin cniVersion to 0.3.1 in $yaml" >&2
+        return 1
+    fi
 }
 
 function find_images_in_yaml() {
