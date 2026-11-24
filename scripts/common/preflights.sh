@@ -27,6 +27,9 @@ function init_preflights() {
     bail_if_unsupported_migration_from_longhorn_to_openebs
     bail_if_kurl_version_is_lower_than_previous_config
     bail_if_no_object_store_or_storage_and_has_registry
+    if [ -n "$CONTAINERD_VERSION" ]; then
+        containerd_bail_if_kubernetes_1_36_unsupported "$CONTAINERD_VERSION"
+    fi
     return 0
 }
 
