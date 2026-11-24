@@ -6,6 +6,7 @@ from copy import deepcopy
 from hashlib import file_digest, sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 import json
 import os
@@ -235,18 +236,25 @@ def cloudflare_purger(plan):
     token = os.environ.get("CF_API_KEY")
     if not (re.fullmatch(r"[a-f0-9]{32}", zone) and email and token):
         raise ValueError("The kURL Cloudflare purge credentials are unavailable")
-    request = Request(
-        f"https://api.cloudflare.com/client/v4/zones/{zone}/purge_cache",
-        method="POST",
-        headers={"X-Auth-Email": email, "Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        data=json.dumps({"files": [cdn_url(plan)]}).encode(),
-    )
-
-    def purge():
+    def send(headers):
+        request = Request(
+            f"https://api.cloudflare.com/client/v4/zones/{zone}/purge_cache",
+            method="POST",
+            headers={**headers, "Content-Type": "application/json"},
+            data=json.dumps({"files": [cdn_url(plan)]}).encode(),
+        )
         with urlopen(request, timeout=30) as response:
             success = json.load(response).get("success")
         if success is not True:
             raise RuntimeError("Cloudflare did not accept the targeted kURL archive purge")
+
+    def purge():
+        try:
+            send({"Authorization": f"Bearer {token}"})
+        except HTTPError as exc:
+            if exc.code != 401:
+                raise
+            send({"X-Auth-Email": email, "X-Auth-Key": token})
 
     return purge
 
