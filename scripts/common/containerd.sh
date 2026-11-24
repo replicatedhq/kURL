@@ -157,11 +157,11 @@ function containerd_evaluate_upgrade() {
 # by repo+tag or by digest when sandbox_image records a ref that containerd imported the image
 # under a different name for (an airgap mirror rewrite, or sandbox_image itself pinned to a
 # digest while the image was imported by tag). An exact ref match prints that one line. A digest
-# match prints every ref sharing the digest: the pinned label is per-ref, and an alias or mirror
-# ref may be the one containerd resolves for the sandbox, so callers pin all of them. Prints
-# nothing -- not an error -- when the image is simply not imported. Returns non-zero (already
-# logWarn'd) when the list itself failed or the repo+tag fallback matched more than one image
-# ambiguously; callers must stop in that case.
+# or repo+tag match prints every matching ref: the pinned label is per-ref, and an alias or
+# mirror ref may be the one containerd resolves for the sandbox, so callers pin all of them.
+# Prints nothing -- not an error -- when the image is simply not imported. Returns non-zero
+# (already logWarn'd) when the list itself failed or the repo+tag fallback matched refs with
+# different digests; callers must stop in that case.
 function containerd_find_pause_image_lines() {
     local sock="$1" pause_image="$2"
 
@@ -190,8 +190,11 @@ function containerd_find_pause_image_lines() {
                         if (n >= 0 && substr($1, n + 1) == suffix) print
                     }
                 ')"
-                if [ -n "$repo_tag_matches" ] && [ "$(echo "$repo_tag_matches" | wc -l)" -gt 1 ]; then
-                    logWarn "Multiple containerd images match pause image repo+tag $pause_repo_tag ambiguously; skipping pin, will retry on next install/upgrade run"
+                # retag_gcr_images and kubernetes_alias_canonical_pause_image leave the same image
+                # under several registries, so several matches are normal. It is only ambiguous
+                # when they are different images (different digests).
+                if [ -n "$repo_tag_matches" ] && [ "$(echo "$repo_tag_matches" | awk '{ print $3 }' | sort -u | wc -l)" -gt 1 ]; then
+                    logWarn "Multiple different containerd images match pause image repo+tag $pause_repo_tag; skipping pin, will retry on next install/upgrade run"
                     return 1
                 fi
                 image_lines="$repo_tag_matches"
@@ -202,11 +205,11 @@ function containerd_find_pause_image_lines() {
     echo "$image_lines"
 }
 
-# containerd_wait_active_for_pause_pin prints containerd's `systemctl is-active` state once it
-# settles. activating/deactivating are transient right after install_cri restarts containerd,
-# so they are retried briefly instead of silently skipping the pin. Returns 0 only when
-# containerd is active; any other final state returns non-zero (warning only when the state
-# itself is unexpected -- inactive/failed/unknown are legitimate reasons to skip).
+# containerd_wait_active_for_pause_pin waits for containerd's `systemctl is-active` state to
+# settle and prints nothing. activating/deactivating are transient right after install_cri
+# restarts containerd, so they are retried briefly instead of silently skipping the pin. Returns
+# 0 only when containerd is active; any other final state returns non-zero (warning only when the
+# state itself is unexpected -- inactive/failed/unknown are legitimate reasons to skip).
 function containerd_wait_active_for_pause_pin() {
     local active_status=
     local attempt=0
@@ -252,7 +255,7 @@ function containerd_wait_active_for_pause_pin() {
 #     containerd (the exact gap above). This call heals: if kubeadm has already configured this
 #     node (KUBELET_FLAGS_FILE exists) but the image is absent -- kubelet GC removed it while it
 #     was unpinned, or the add-on's own import failed -- it imports the kubernetes package images
-#     via kubernetes_load_images and retries. That makes every kURL run fix clusters that
+#     via kubernetes_load_images, which pins it (no-heal). That makes every kURL run fix clusters that
 #     upgraded before this fix existed.
 #   - kubernetes_load_images, after it imports the package images (fresh install/join, and the
 #     node upgrade in maybe_upgrade). Called with "no-heal" since it is itself the import step.
@@ -301,6 +304,12 @@ function containerd_ensure_pause_image_pinned() {
         image_lines="$(containerd_find_pause_image_lines "$sock" "$pause_image")" || return 0
         if [ -z "$image_lines" ]; then
             logWarn "Pause image $pause_image still missing from containerd after importing Kubernetes package images; will retry on next install/upgrade run"
+            return 0
+        fi
+        if [ "$reimport_rc" -eq 0 ]; then
+            # A successful kubernetes_load_images already pinned what it imported (its no-heal
+            # call). On failure it may have imported the image and then stopped at the alias or
+            # tag step before that pin, so fall through and pin here.
             return 0
         fi
     fi

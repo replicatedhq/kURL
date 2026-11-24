@@ -56,7 +56,9 @@ function logWarn() { echo "WARN: $*" 1>&2; } # matches common.sh: logWarn writes
 #   `ctr ... images label` prints "LABELED: $*" (or fails with label-fail).
 # stub_reimport "<list fixture after reimport>" [exit code]
 #   kubernetes_load_images (the heal's re-import) prints "REIMPORT: $*", and from then on
-#   `ctr ... images list` prints the second fixture. It returns the given exit code (default 0).
+#   `ctr ... images list` prints the second fixture. Like the real one, a successful import then
+#   pins via containerd_ensure_pause_image_pinned no-heal. It returns the given exit code
+#   (default 0).
 _CTR_PAUSE_LIST=
 _CTR_PAUSE_LIST_FAIL=0
 _CTR_PAUSE_LABEL_FAIL=0
@@ -79,7 +81,10 @@ function stub_reimport() {
 function kubernetes_load_images() {
     echo "REIMPORT: $*"
     _REIMPORTED=1
-    return "$_REIMPORT_RC"
+    if [ "$_REIMPORT_RC" != "0" ]; then
+        return "$_REIMPORT_RC"
+    fi
+    containerd_ensure_pause_image_pinned no-heal
 }
 function ctr() {
     if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ]; then
@@ -644,8 +649,31 @@ function test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match() {
     ) 2>&1 )"
     echo "$result" | grep -q "LABELED"
     assertEquals "does not guess when two imported images share the same repo+tag suffix" "1" "$?"
-    echo "$result" | grep -qi "WARN.*[Mm]ultiple.*ambiguously"
+    echo "$result" | grep -qi "WARN.*[Mm]ultiple different"
     assertEquals "warns about the ambiguous repo+tag match instead of silently picking the first one" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_pins_every_repo_tag_match_sharing_a_digest() {
+    # retag_gcr_images / kubernetes_alias_canonical_pause_image leave the same pause image under
+    # several registries. If sandbox_image names yet another (never imported) registry, the
+    # repo+tag fallback matches all of them; same digest means same image, so pin them all.
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        _PAUSE_IMAGE="mirror.example.com/pause:3.10"
+        stub_ctr_pause_image "$(printf '%s\n%s' \
+            "k8s.gcr.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 io.cri-containerd.image=managed" \
+            "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 io.cri-containerd.image=managed")"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED: .* k8s.gcr.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    assertEquals "pins the first same-digest repo+tag match" "0" "$?"
+    echo "$result" | grep -q "LABELED: .* registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+    assertEquals "pins the second same-digest repo+tag match" "0" "$?"
+    echo "$result" | grep -qi "WARN.*[Mm]ultiple"
+    assertEquals "does not warn when every match is the same image" "1" "$?"
 }
 
 function test_ensure_pause_image_pinned_noop_when_already_pinned() {
@@ -855,6 +883,7 @@ function test_ensure_pause_image_pinned_heals_when_previously_initialized_node_m
     assertEquals "heals through kubernetes_load_images for the target version (aliases, overrides and the loaded memo included)" "0" "$?"
     echo "$result" | grep -qF "$PAUSE_310_LABELED"
     assertEquals "pins the pause image after the heal re-import restores it (kubelet GC healed, sc-140018)" "0" "$?"
+    assertEquals "pins once, through kubernetes_load_images' own no-heal pass, not a second time afterwards" "1" "$(echo "$result" | grep -c "LABELED")"
 }
 
 function test_ensure_pause_image_pinned_heals_when_kubelet_still_runs_an_older_pause_image() {
@@ -902,6 +931,24 @@ function test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set
     assertEquals "function returns normally instead of set -e killing the subshell on the failed re-import" "0" "$?"
     echo "$result" | grep -qi "still missing from containerd after importing"
     assertEquals "warns that the heal re-import did not recover the pause image" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_pins_when_heal_reimport_fails_after_importing() {
+    # kubernetes_load_images can import the package images and then fail at the alias or tag
+    # step, before its own no-heal pin. The heal must still pin the image that is now there.
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image ""
+        stub_reimport "$PAUSE_310_UNPINNED" 1
+        CONTAINERD_VERSION="1.7.29"
+        KUBELET_FLAGS_FILE="$(mktemp)"
+        KUBERNETES_VERSION="1.31.14"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qF "$PAUSE_310_LABELED"
+    assertEquals "pins the restored pause image even though the re-import returned an error after importing it" "0" "$?"
 }
 
 function test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport() {
@@ -1035,6 +1082,7 @@ test_ensure_pause_image_pinned_matches_by_digest_when_sandbox_image_is_digest_pi
 test_ensure_pause_image_pinned_pins_every_ref_sharing_the_digest
 test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag
 test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
+test_ensure_pause_image_pinned_pins_every_repo_tag_match_sharing_a_digest
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
 test_ensure_pause_image_pinned_no_heal_skips_reimport_on_initialized_node
@@ -1049,6 +1097,7 @@ test_ensure_pause_image_pinned_warns_on_label_failure
 test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image
 test_ensure_pause_image_pinned_heals_when_kubelet_still_runs_an_older_pause_image
 test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e
+test_ensure_pause_image_pinned_pins_when_heal_reimport_fails_after_importing
 test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport
 test_ensure_pause_image_pinned_warns_explicitly_when_reimport_itself_fails
 test_ensure_pause_image_pinned_noop_when_containerd_version_unset

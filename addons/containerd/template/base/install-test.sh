@@ -180,5 +180,51 @@ function test_containerd_backup_probe_failure_preserves_changed_config() {
 # edited" "$stray"
 }
 
+function test_containerd_import_pause_image_imports_then_pins() {
+    mkdir -p "$DIR/packages/kubernetes/1.34.7/images"
+    echo "pause-tarball" | gzip > "$DIR/packages/kubernetes/1.34.7/images/pause.tar.gz"
+    # shellcheck disable=SC2034 # read by containerd_import_pause_image
+    KUBERNETES_VERSION="1.34.7"
+    # record calls to a file: the label call runs inside a command substitution
+    ctr() {
+        if [ "$3" = "import" ]; then
+            echo "IMPORT $(cat)" >> "$TEST_DIR/ctr.calls"
+        else
+            echo "CTR $*" >> "$TEST_DIR/ctr.calls"
+        fi
+    }
+
+    containerd_import_pause_image "registry.k8s.io/pause:3.10.1" > /dev/null 2>&1
+    unset -f ctr
+
+    assertEquals "imports the package pause image, then pins exactly the sandbox_image ref" \
+        "$(printf '%s\n%s' "IMPORT pause-tarball" "CTR -n=k8s.io images label -- registry.k8s.io/pause:3.10.1 io.cri-containerd.pinned=pinned")" \
+        "$(cat "$TEST_DIR/ctr.calls")"
+}
+
+function test_containerd_import_pause_image_warns_when_label_fails() {
+    mkdir -p "$DIR/packages/kubernetes/1.34.7/images"
+    echo "pause-tarball" | gzip > "$DIR/packages/kubernetes/1.34.7/images/pause.tar.gz"
+    # shellcheck disable=SC2034 # read by containerd_import_pause_image
+    KUBERNETES_VERSION="1.34.7"
+    ctr() {
+        if [ "$3" = "import" ]; then
+            cat > /dev/null
+            return 0
+        fi
+        echo "ctr: permission denied" >&2
+        return 1
+    }
+
+    local rc=0
+    containerd_import_pause_image "registry.k8s.io/pause:3.10.1" > "$TEST_DIR/pause.log" 2>&1 || rc=$?
+    unset -f ctr
+
+    assertEquals "a failed label does not fail the add-on install" "0" "$rc"
+    if ! grep -q "Failed to pin containerd pause image registry.k8s.io/pause:3.10.1 (ctr: permission denied)" "$TEST_DIR/pause.log"; then
+        fail "expected a pin warning carrying the ctr error, got: $(cat "$TEST_DIR/pause.log")"
+    fi
+}
+
 # shellcheck disable=SC1091
 . shunit2
