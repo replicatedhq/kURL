@@ -2,12 +2,42 @@ name: build-test
 
 on:
   pull_request:
-    paths-ignore:
-      - '.claude/**'
 
 jobs:
 
+  detect-changes:
+    # Required checks must report on every PR, so instead of a paths-ignore
+    # trigger, skip the real jobs when a PR only touches .claude/.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/files" --jq '.[].filename')
+          if printf '%s\n' "$files" | grep -qv '^\.claude/'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only .claude/ files changed; skipping."
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   validate-go-mod:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.code == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -25,6 +55,8 @@ jobs:
       - run: go mod tidy -compat=1.17
 
   build-kurl-utils:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.code == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -42,6 +74,8 @@ jobs:
       - run: make -C kurl_util test build
 
   build-bin-kurl:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.code == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -59,6 +93,8 @@ jobs:
       - run: make test build/bin/kurl
 
   test-shell:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.code == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -66,6 +102,8 @@ jobs:
       - run: make docker-test-containerd
 
   validate-github-actions-bundles:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.code == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -116,6 +154,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs:
+      - detect-changes
       - validate-go-mod
       - build-kurl-utils
       - build-bin-kurl
@@ -123,7 +162,8 @@ jobs:
       - validate-github-actions-bundles
     steps:
       - run: |
-          if   [ "${{ needs.validate-go-mod.result }}" = "failure" ] \
+          if   [ "${{ needs.detect-changes.result }}" != "success" ] \
+            || [ "${{ needs.validate-go-mod.result }}" = "failure" ] \
             || [ "${{ needs.build-kurl-utils.result }}" = "failure" ] \
             || [ "${{ needs.build-bin-kurl.result }}" = "failure" ] \
             || [ "${{ needs.test-shell.result }}" = "failure" ] \
