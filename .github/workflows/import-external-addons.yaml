@@ -2,11 +2,25 @@ name: import-external-addons
 
 on:
   workflow_dispatch:
+    inputs:
+      backfill_phase:
+        description: 'Promote or roll back a historical add-on'
+        type: string
+      backfill_plan_b64:
+        description: 'Exact publication plan encoded as base64'
+        type: string
+      backfill_plan_sha256:
+        description: 'SHA-256 of the decoded publication plan'
+        type: string
   schedule:
     - cron: "0/15 * * * *"
 
 jobs:
   import-external-addons:
+    if: >-
+      github.event_name != 'workflow_dispatch' ||
+      (inputs.backfill_phase == '' && inputs.backfill_plan_b64 == '' &&
+       inputs.backfill_plan_sha256 == '')
     concurrency: import-external-addons
     runs-on: ubuntu-24.04
     steps:
@@ -15,3 +29,33 @@ jobs:
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+
+  backfill-kurl-addon:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.backfill_phase != '' || inputs.backfill_plan_b64 != '' ||
+       inputs.backfill_plan_sha256 != '')
+    concurrency: import-external-addons
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    env:
+      BACKFILL_PHASE: ${{ inputs.backfill_phase }}
+      BACKFILL_PLAN_B64: ${{ inputs.backfill_plan_b64 }}
+      BACKFILL_PLAN_SHA256: ${{ inputs.backfill_plan_sha256 }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Verify the publication plan
+        run: bash scripts/publish-legacy-kurl-mirror.sh verify
+      - name: Apply the kURL mirror operation
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_PAGER: ''
+          CF_EMAIL: ${{ secrets.CF_EMAIL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
+        run: bash scripts/publish-legacy-kurl-mirror.sh apply
