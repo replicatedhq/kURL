@@ -60,6 +60,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.12.x to OpenEBS + Minio
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -120,6 +122,9 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -171,6 +176,9 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
   flags: "yes"
   cpu: 6
@@ -234,6 +242,9 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -285,6 +296,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.12.x to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -334,6 +347,9 @@
       echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -386,6 +402,9 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn + Minio to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -439,6 +458,9 @@
       echo Longhorn namespace found after the upgrade.
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -494,6 +516,9 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.0.4 to Rook 1.8.x
   flags: "yes"
   cpu: 4
@@ -554,6 +579,8 @@
     # fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.8.x to Rook 1.12.x
   flags: "yes"
   cpu: 4
@@ -614,6 +641,8 @@
     # fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn + Minio to Rook 1.12.x
   flags: "yes"
   cpu: 4
@@ -673,6 +702,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
@@ -740,6 +771,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.12.x to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
@@ -803,6 +836,9 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio (multi-node)
   flags: "yes"
   cpu: 4
@@ -866,6 +902,8 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from Rook 1.12.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -888,7 +926,7 @@
     flannel:
       version: latest
     containerd:
-      version: latest
+      version: 1.7.x
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -900,6 +938,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+    - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+    - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -1000,6 +1040,7 @@
   - rocky-9 # docker is not supported on rhel 9 variants
   - ubuntu-2204 # Docker versions < 20.10.17 not supported on ubuntu 22.04
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -1055,6 +1096,9 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 
 - name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: "yes"
@@ -1160,6 +1204,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
@@ -1284,6 +1329,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2604 # kURL v2022.08.23-0 does not support ubuntu 26.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
@@ -1398,6 +1444,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - rocky-9 # docker is not supported on rhel 9 variants
   - amazon-2023 # docker is not supported on amazon 2023
+  - ubuntu-2604 # kURL v2022.11.10-1 does not support ubuntu 26.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
@@ -1494,6 +1541,7 @@
   - rocky-91 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
   - rocky-9 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - ubuntu-2604 # kURL v2023.02.23-0 does not support ubuntu 26.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     mkdir -p /var/lib/kurl/assets
