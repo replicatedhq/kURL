@@ -3,6 +3,8 @@
 from argparse import ArgumentParser
 from base64 import b64encode
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from hashlib import file_digest, sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -23,6 +25,7 @@ MEDIA = "application/x-tar"
 STAGE_PREFIX = "test/"
 OBJECT_METADATA = ("Content-Type", "Cache-Control", "Content-Encoding",
                    "Content-Disposition", "Content-Language", "Expires")
+CDN_CACHE_WINDOW = timedelta(hours=4)
 
 
 def public_url(bucket, key):
@@ -51,6 +54,7 @@ def object_head(url):
             "etag": reply.headers["ETag"],
             "version_id": reply.headers.get("x-amz-version-id"),
             "size": int(reply.headers["Content-Length"]),
+            "last_modified": reply.headers.get("Last-Modified"),
             "metadata": {},
         }
         for header in OBJECT_METADATA:
@@ -272,8 +276,7 @@ def cdn_verified(plan, wanted):
     raise RuntimeError("Origin has expected bytes, but s3.kurl.sh still serves an old ETag. Check the CDN before finalizing.")
 
 
-def promote_mirror(plan):
-    purge = cloudflare_purger(plan)
+def write_mirror_object(plan):
     old, new = plan["original"], plan["candidate"]
     live = object_head(public_url(MIRROR, plan["mirror_key"]))
     mirror_index, _ = live_json(MIRROR, REGISTRY)
@@ -289,17 +292,39 @@ def promote_mirror(plan):
             result = put(MIRROR, plan["mirror_key"], candidate, old["metadata"], if_match=old["etag"])
             if result is None:
                 raise RuntimeError("The mirror changed while uploading. Recheck live bytes and safely retry.")
-        else:
-            # A retry must already be serving the exact candidate, including a complete GitHub-tested payload.
-            expect_mirror(plan, new)
+    current = expect_mirror(plan, new)
+    if current["version_id"] in (None, "null", old["version_id"]):
+        raise ValueError("Expected a different S3 VersionId after replacing the package")
+    return current
+
+
+def promote_mirror(plan):
+    purge = cloudflare_purger(plan)
+    write_mirror_object(plan)
     reconcile_mirror(plan, purge)
 
 
-def reconcile_mirror(plan, purge=None):
+def stage_mirror(plan):
+    advertised = object_head(cdn_url(plan))["metadata"].get("cache-control", "")
+    durations = re.findall(r"(?:^|,)\s*(?:s-maxage|max-age)\s*=\s*([0-9]+)", advertised, re.I)
+    if durations and max(int(seconds) for seconds in durations) > CDN_CACHE_WINDOW.total_seconds():
+        raise ValueError("The CDN advertises a longer TTL than the backfill cache window")
+    current = write_mirror_object(plan)
+    ready_at = parsedate_to_datetime(current["last_modified"]) + CDN_CACHE_WINDOW
+    print(json.dumps({"mirror_key": plan["mirror_key"], "mirror_s3": current,
+                      "earliest_catalog_reconciliation": ready_at.isoformat(),
+                      "verified_sha256": plan["candidate"]["sha256"]}))
+
+
+def reconcile_mirror(plan, purge=None, *, wait_for_expiry=False):
     new = plan["candidate"]
     current = expect_mirror(plan, new)
     if current["version_id"] in (None, "null", plan["original"]["version_id"]):
         raise ValueError("Expected a different S3 VersionId after replacing the package")
+    if wait_for_expiry:
+        ready_at = parsedate_to_datetime(current["last_modified"]) + CDN_CACHE_WINDOW
+        if datetime.now(timezone.utc) < ready_at:
+            raise ValueError(f"Wait until {ready_at.isoformat()} before reconciling the cached package")
     if purge is not None:
         purge()
     cdn_verified(plan, new)
@@ -354,7 +379,8 @@ def restore_origin_pointer(plan):
 def main():
     parser = ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for operation in ("plan", "check-plan", "stage", "promote-mirror", "reconcile-mirror", "finalize", "restore-mirror", "restore-origin-pointer"):
+    for operation in ("plan", "check-plan", "stage", "promote-mirror", "stage-mirror", "reconcile-mirror",
+                      "reconcile-after-expiry", "finalize", "restore-mirror", "restore-origin-pointer"):
         command = commands.add_parser(operation)
         command.add_argument("--plan", type=Path, required=True)
         if operation in ("plan", "stage"):
@@ -380,8 +406,12 @@ def main():
         stage(plan, args.candidate)
     elif args.command == "promote-mirror":
         promote_mirror(plan)
+    elif args.command == "stage-mirror":
+        stage_mirror(plan)
     elif args.command == "reconcile-mirror":
         reconcile_mirror(plan)
+    elif args.command == "reconcile-after-expiry":
+        reconcile_mirror(plan, wait_for_expiry=True)
     elif args.command == "finalize":
         finalize(plan)
     elif args.command == "restore-mirror":

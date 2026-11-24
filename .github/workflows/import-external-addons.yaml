@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       backfill_phase:
-        description: 'Promote or roll back a historical add-on'
+        description: 'Stage, promote, reconcile, or roll back a historical add-on'
         type: string
       backfill_plan_b64:
         description: 'Exact publication plan encoded as base64'
@@ -55,7 +55,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_PAGER: ''
-          CF_EMAIL: ${{ secrets.CF_EMAIL }}
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
+          CF_EMAIL: ${{ (inputs.backfill_phase == 'promote-mirror' || inputs.backfill_phase == 'restore-mirror') && secrets.CF_EMAIL || '' }}
+          CF_API_KEY: ${{ (inputs.backfill_phase == 'promote-mirror' || inputs.backfill_phase == 'restore-mirror') && secrets.CF_API_KEY || '' }}
+          CF_KURL_ZONE: ${{ (inputs.backfill_phase == 'promote-mirror' || inputs.backfill_phase == 'restore-mirror') && secrets.CF_KURL_ZONE || '' }}
         run: bash scripts/publish-legacy-kurl-mirror.sh apply

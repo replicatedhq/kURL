@@ -3,8 +3,8 @@ set -euo pipefail
 
 [[ "${GITHUB_REPOSITORY,,}" == replicatedhq/kurl && "$GITHUB_EVENT_NAME" == workflow_dispatch ]]
 case "${BACKFILL_PHASE:-}" in
-  promote-mirror|reconcile-mirror|restore-mirror) ;;
-  *) echo 'Specify promote-mirror, reconcile-mirror, or restore-mirror.' >&2; exit 1 ;;
+  promote-mirror|stage-mirror|reconcile-mirror|reconcile-after-expiry|restore-mirror) ;;
+  *) echo 'Specify a supported legacy kURL mirror operation.' >&2; exit 1 ;;
 esac
 [[ "${BACKFILL_PLAN_SHA256:-}" =~ ^[a-f0-9]{64}$ ]]
 [[ "${BACKFILL_PLAN_B64:-}" =~ ^[A-Za-z0-9+/]+={0,2}$ ]]
