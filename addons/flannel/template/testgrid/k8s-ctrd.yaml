@@ -12,14 +12,14 @@
     kubernetes:
       version: "1.25.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "0.20.x"
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -28,7 +28,7 @@
     kubernetes:
       version: "1.25.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -39,7 +39,7 @@
     kubernetes:
       version: "1.25.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -81,7 +81,7 @@
     kubernetes:
       version: "1.22.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -188,7 +188,7 @@
       version: "1.25.x"
       serviceCIDR: 172.16.0.0/16
     containerd:
-      version: "latest"
+      version: "1.7.x"
     weave:
       version: "latest"
       podCIDR: 172.17.0.0/16
@@ -197,7 +197,7 @@
       version: "1.25.x"
       serviceCIDR: 172.16.0.0/16
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       podCIDR: 172.17.0.0/16
       version: "__testver__"
@@ -219,7 +219,7 @@
     kubernetes:
       version: "1.23.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     ekco:
       version: "latest"
     flannel:
@@ -237,7 +237,7 @@
     kubernetes:
       version: "1.19.x"
     containerd:
-      version: "latest"
+      version: "1.7.x"
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
