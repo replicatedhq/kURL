@@ -291,10 +291,16 @@ def promote_mirror(plan):
         else:
             # A retry must already be serving the exact candidate, including a complete GitHub-tested payload.
             expect_mirror(plan, new)
+    reconcile_mirror(plan, purge)
+
+
+def reconcile_mirror(plan, purge=None):
+    new = plan["candidate"]
     current = expect_mirror(plan, new)
-    if current["version_id"] in (None, "null", old["version_id"]):
+    if current["version_id"] in (None, "null", plan["original"]["version_id"]):
         raise ValueError("Expected a different S3 VersionId after replacing the package")
-    purge()
+    if purge is not None:
+        purge()
     cdn_verified(plan, new)
     update_row(MIRROR, REGISTRY, "kotsadm", plan["version"], plan["old_mirror_row"], plan["new_mirror_row"])
     print(json.dumps({"mirror_key": plan["mirror_key"], "mirror_s3": current, "verified_sha256": new["sha256"]}))
@@ -347,7 +353,7 @@ def restore_origin_pointer(plan):
 def main():
     parser = ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for operation in ("plan", "check-plan", "stage", "promote-mirror", "finalize", "restore-mirror", "restore-origin-pointer"):
+    for operation in ("plan", "check-plan", "stage", "promote-mirror", "reconcile-mirror", "finalize", "restore-mirror", "restore-origin-pointer"):
         command = commands.add_parser(operation)
         command.add_argument("--plan", type=Path, required=True)
         if operation in ("plan", "stage"):
@@ -373,6 +379,8 @@ def main():
         stage(plan, args.candidate)
     elif args.command == "promote-mirror":
         promote_mirror(plan)
+    elif args.command == "reconcile-mirror":
+        reconcile_mirror(plan)
     elif args.command == "finalize":
         finalize(plan)
     elif args.command == "restore-mirror":

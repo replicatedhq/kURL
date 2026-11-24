@@ -3,8 +3,8 @@ set -euo pipefail
 
 [[ "${GITHUB_REPOSITORY,,}" == replicatedhq/kurl && "$GITHUB_EVENT_NAME" == workflow_dispatch ]]
 case "${BACKFILL_PHASE:-}" in
-  promote-mirror|restore-mirror) ;;
-  *) echo 'Specify promote-mirror or restore-mirror.' >&2; exit 1 ;;
+  promote-mirror|reconcile-mirror|restore-mirror) ;;
+  *) echo 'Specify promote-mirror, reconcile-mirror, or restore-mirror.' >&2; exit 1 ;;
 esac
 [[ "${BACKFILL_PLAN_SHA256:-}" =~ ^[a-f0-9]{64}$ ]]
 [[ "${BACKFILL_PLAN_B64:-}" =~ ^[A-Za-z0-9+/]+={0,2}$ ]]
@@ -35,7 +35,7 @@ case "${1:-}" in
       aws s3api get-object --no-cli-pager --bucket kurl-sh --key "$key" --version-id "$original_version" "$original" > "$work/original-s3-receipt.json"
       python3 "$publisher" restore-mirror --plan "$plan" --original "$original"
     else
-      python3 "$publisher" promote-mirror --plan "$plan"
+      python3 "$publisher" "$BACKFILL_PHASE" --plan "$plan"
     fi
     ;;
   *)
