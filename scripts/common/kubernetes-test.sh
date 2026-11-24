@@ -1200,9 +1200,7 @@ function test_kubernetes_cleanup_control_plane_backup_noop_without_backup() {
     unset -f cp rm logWarn
 }
 
-# sc-140018: kubernetes_load_images pins the pause image once it is imported, and must not mark
-# the version loaded when the import failed -- the pause-image heal calls it under `|| rc=$?`,
-# where errexit is off and a failed load would otherwise fall through to the memo.
+# sc-140018: kubernetes_load_images pins the pause image once it is imported.
 function test_kubernetes_load_images_pins_pause_image_after_import() {
     local output
     output="$(
@@ -1211,31 +1209,14 @@ function test_kubernetes_load_images_pins_pause_image_after_import() {
         #shellcheck disable=SC2317
         kubernetes_alias_canonical_pause_image() { :; }
         #shellcheck disable=SC2317
-        containerd_ensure_pause_image_pinned() { echo "PIN $*"; }
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
         DIR=/nonexistent
+        # shellcheck disable=SC2034 # read by kubernetes_load_images
         SONOBUOY_VERSION=
         kubernetes_load_images 1.99.1
-        echo "MEMO=${KUBERNETES_IMAGES_LOADED_1_99_1:-}"
     )"
-    assertEquals "imports, pins without healing, then sets the memo" \
-        "$(printf '%s\n%s\n%s' "LOAD /nonexistent/packages/kubernetes/1.99.1/images" "PIN no-heal" "MEMO=1")" "$output"
-}
-
-function test_kubernetes_load_images_does_not_memoize_failed_import() {
-    local output
-    output="$(
-        #shellcheck disable=SC2317
-        load_images() { return 3; }
-        #shellcheck disable=SC2317
-        kubernetes_alias_canonical_pause_image() { echo "ALIAS"; }
-        #shellcheck disable=SC2317
-        containerd_ensure_pause_image_pinned() { echo "PIN $*"; }
-        DIR=/nonexistent
-        rc=0
-        kubernetes_load_images 1.99.2 || rc=$?
-        echo "RC=$rc MEMO=${KUBERNETES_IMAGES_LOADED_1_99_2:-}"
-    )"
-    assertEquals "returns the load failure without aliasing, pinning, or setting the memo" "RC=3 MEMO=" "$output"
+    assertEquals "imports, then pins the pause image" \
+        "$(printf '%s\n%s' "LOAD /nonexistent/packages/kubernetes/1.99.1/images" "PIN")" "$output"
 }
 
 . shunit2

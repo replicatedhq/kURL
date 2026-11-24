@@ -54,17 +54,9 @@ function logWarn() { echo "WARN: $*" 1>&2; } # matches common.sh: logWarn writes
 # stub_ctr_pause_image "<list fixture>" [label-fail|list-fail]
 #   `ctr ... images list` prints the fixture verbatim (or fails with list-fail), and
 #   `ctr ... images label` prints "LABELED: $*" (or fails with label-fail).
-# stub_reimport "<list fixture after reimport>" [exit code]
-#   kubernetes_load_images (the heal's re-import) prints "REIMPORT: $*", and from then on
-#   `ctr ... images list` prints the second fixture. Like the real one, a successful import then
-#   pins via containerd_ensure_pause_image_pinned no-heal. It returns the given exit code
-#   (default 0).
 _CTR_PAUSE_LIST=
 _CTR_PAUSE_LIST_FAIL=0
 _CTR_PAUSE_LABEL_FAIL=0
-_CTR_PAUSE_LIST_AFTER_REIMPORT=
-_REIMPORT_RC=0
-_REIMPORTED=0
 function stub_ctr_pause_image() {
     _CTR_PAUSE_LIST="$1"
     _CTR_PAUSE_LIST_FAIL=0
@@ -74,27 +66,13 @@ function stub_ctr_pause_image() {
         list-fail) _CTR_PAUSE_LIST_FAIL=1 ;;
     esac
 }
-function stub_reimport() {
-    _CTR_PAUSE_LIST_AFTER_REIMPORT="$1"
-    _REIMPORT_RC="${2:-0}"
-}
-function kubernetes_load_images() {
-    echo "REIMPORT: $*"
-    _REIMPORTED=1
-    if [ "$_REIMPORT_RC" != "0" ]; then
-        return "$_REIMPORT_RC"
-    fi
-    containerd_ensure_pause_image_pinned no-heal
-}
 function ctr() {
     if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ]; then
         if [ "$_CTR_PAUSE_LIST_FAIL" = "1" ]; then
             echo "ctr: failed to dial \"/run/containerd/containerd.sock\": connection refused" >&2
             return 1
         fi
-        local list="$_CTR_PAUSE_LIST"
-        [ "$_REIMPORTED" = "1" ] && list="$_CTR_PAUSE_LIST_AFTER_REIMPORT"
-        [ -n "$list" ] && printf '%s\n' "$list"
+        [ -n "$_CTR_PAUSE_LIST" ] && printf '%s\n' "$_CTR_PAUSE_LIST"
     elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
         if [ "$_CTR_PAUSE_LABEL_FAIL" = "1" ]; then
             echo "ctr: failed to label image: permission denied" >&2
@@ -104,7 +82,6 @@ function ctr() {
     fi
     return 0
 }
-CONTAINERD_PAUSE_PIN_RETRY_SLEEP=0
 
 FAILURES=0
 function assertEquals() {
@@ -570,112 +547,6 @@ function test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only()
     assertEquals "labels only the pause image" "1" "$(echo "$result" | grep -c "LABELED")"
 }
 
-function test_ensure_pause_image_pinned_matches_mirror_rewritten_ref_by_repo_and_tag() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image "airgapped-registry.example.com/registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label -- airgapped-registry.example.com/registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
-    assertEquals "falls back to matching by repo+tag when containerd imported the pause image under an airgap mirror-rewritten ref" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_matches_by_digest_when_sandbox_image_is_digest_pinned() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        _PAUSE_IMAGE="registry.k8s.io/pause@sha256:deadbeef"
-        stub_ctr_pause_image "airgapped-registry.example.com/pause-mirror:latest application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label -- airgapped-registry.example.com/pause-mirror:latest io.cri-containerd.pinned=pinned"
-    assertEquals "falls back to matching by digest when sandbox_image itself is a digest reference" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_pins_every_ref_sharing_the_digest() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        _PAUSE_IMAGE="registry.k8s.io/pause@sha256:deadbeef"
-        stub_ctr_pause_image "$(printf '%s\n%s\n%s\n%s' \
-            "airgapped-registry.example.com/pause-mirror:latest application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -" \
-            "registry.k8s.io/kube-proxy:v1.31.14 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 200.0KiB linux/amd64 -" \
-            "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 io.cri-containerd.pinned=pinned" \
-            "kurl.sh/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -")"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "images label -- airgapped-registry.example.com/pause-mirror:latest io.cri-containerd.pinned=pinned"
-    assertEquals "pins the first ref sharing the sandbox_image digest" "0" "$?"
-    echo "$result" | grep -q "images label -- kurl.sh/pause:3.10 io.cri-containerd.pinned=pinned"
-    assertEquals "pins every other unpinned ref sharing the digest too, not just the first one listed" "0" "$?"
-    assertEquals "skips the already-pinned ref and the unrelated image" "2" "$(echo "$result" | grep -c "LABELED")"
-}
-
-function test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        # "pause:3.10" as a regex would wildcard-match "pause:3X10" via the unescaped "."
-        # and the old end-anchor-only pattern would also match a ref with extra trailing
-        # characters after the tag. Neither should match a literal "/pause:3.10" suffix.
-        stub_ctr_pause_image "$(printf '%s\n%s' \
-            "registry.k8s.io/pause:3X10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 -" \
-            "registry.k8s.io/pause:3.10x application/vnd.oci.image.index.v1+json sha256:bbbbbbbb 300.0KiB linux/amd64 -")"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not treat regex metacharacters in the repo+tag as a wildcard, nor match a ref that only shares a prefix of the tag" "1" "$?"
-}
-
-function test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image "$(printf '%s\n%s' \
-            "airgap-mirror-one.example.com/registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 -" \
-            "airgap-mirror-two.example.com/registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:bbbbbbbb 300.0KiB linux/amd64 -")"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not guess when two imported images share the same repo+tag suffix" "1" "$?"
-    echo "$result" | grep -qi "WARN.*[Mm]ultiple different"
-    assertEquals "warns about the ambiguous repo+tag match instead of silently picking the first one" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_pins_every_repo_tag_match_sharing_a_digest() {
-    # retag_gcr_images / kubernetes_alias_canonical_pause_image leave the same pause image under
-    # several registries. If sandbox_image names yet another (never imported) registry, the
-    # repo+tag fallback matches all of them; same digest means same image, so pin them all.
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        _PAUSE_IMAGE="mirror.example.com/pause:3.10"
-        stub_ctr_pause_image "$(printf '%s\n%s' \
-            "k8s.gcr.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 io.cri-containerd.image=managed" \
-            "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 300.0KiB linux/amd64 io.cri-containerd.image=managed")"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED: .* k8s.gcr.io/pause:3.10 io.cri-containerd.pinned=pinned"
-    assertEquals "pins the first same-digest repo+tag match" "0" "$?"
-    echo "$result" | grep -q "LABELED: .* registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
-    assertEquals "pins the second same-digest repo+tag match" "0" "$?"
-    echo "$result" | grep -qi "WARN.*[Mm]ultiple"
-    assertEquals "does not warn when every match is the same image" "1" "$?"
-}
-
 function test_ensure_pause_image_pinned_noop_when_already_pinned() {
     local result
     result="$( (
@@ -690,8 +561,7 @@ function test_ensure_pause_image_pinned_noop_when_already_pinned() {
 }
 
 function test_ensure_pause_image_pinned_noop_when_not_imported() {
-    # KUBELET_FLAGS_FILE is unset/absent here -- a genuine fresh install before kubeadm has
-    # ever configured this node; kubernetes_load_images pins once it imports the image.
+    # e.g. a fresh install before images are loaded; kubernetes_load_images pins once it imports.
     local result
     result="$( (
         systemctl() { [ "$1" = "is-active" ]; }
@@ -700,26 +570,8 @@ function test_ensure_pause_image_pinned_noop_when_not_imported() {
         touch /etc/containerd/config.toml
         containerd_ensure_pause_image_pinned
     ) 2>&1 )"
-    echo "$result" | grep -qE "LABELED|REIMPORT"
-    assertEquals "does not pin or re-import an image containerd has not imported yet on a fresh node" "1" "$?"
-}
-
-function test_ensure_pause_image_pinned_no_heal_skips_reimport_on_initialized_node() {
-    # kubernetes_load_images calls the pin with no-heal: it is itself the import step, and
-    # re-importing from inside it would recurse.
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "$PAUSE_310_UNPINNED"
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned no-heal
-    ) 2>&1 )"
-    echo "$result" | grep -qE "LABELED|REIMPORT|WARN"
-    assertEquals "no-heal never re-imports, pins, or warns when the image is absent" "1" "$?"
+    echo "$result" | grep -qE "LABELED|WARN"
+    assertEquals "does not pin or warn about an image containerd has not imported" "1" "$?"
 }
 
 function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
@@ -735,66 +587,6 @@ function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
     assertEquals "does not call ctr when containerd is genuinely inactive" "1" "$?"
     echo "$result" | grep -qi "WARN"
     assertEquals "does not log a warning for a legitimate inactive/failed state" "1" "$?"
-}
-
-function test_ensure_pause_image_pinned_retries_while_containerd_activating() {
-    # Right after install_cri restarts containerd, is-active can briefly report activating.
-    local result
-    result="$( (
-        # is-active runs inside $(...), so count calls in a file rather than a variable
-        checks_file="$(mktemp)"
-        systemctl() {
-            echo x >> "$checks_file"
-            if [ "$(wc -l < "$checks_file")" -lt 3 ]; then echo "activating"; return 3; fi
-            echo "active"
-        }
-        stub_ctr_pause_image "$PAUSE_310_UNPINNED"
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -qF "$PAUSE_310_LABELED"
-    assertEquals "waits out a transient activating state and then pins" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_gives_up_when_containerd_stays_activating() {
-    local result exit_code
-    result="$( (
-        set -e
-        systemctl() { echo "activating"; return 3; }
-        stub_ctr_pause_image "$PAUSE_310_UNPINNED"
-        CONTAINERD_VERSION="1.7.29"
-        CONTAINERD_PAUSE_PIN_ACTIVE_RETRIES=3
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    exit_code="$?"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not pin while containerd never settles" "1" "$?"
-    echo "$result" | grep -qi "WARN.*still activating after 3 checks"
-    assertEquals "warns after the bounded retry instead of skipping silently" "0" "$?"
-    assertEquals "does not abort the caller under set -e" "0" "$exit_code"
-}
-
-function test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result() {
-    local result
-    local exit_code
-    result="$( (
-        # A failed systemctl invocation (binary missing, permission denied, timeout, ...) is
-        # not the same thing as containerd being inactive -- it must not be silently treated
-        # as "containerd is down".
-        systemctl() { echo "Failed to connect to bus: No such file or directory" >&2; return 1; }
-        ctr() { echo "LABELED: $*"; }
-        CONTAINERD_VERSION="1.7.29"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    exit_code="$?"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not try to pin when systemctl itself fails" "1" "$?"
-    echo "$result" | grep -qi "WARN.*unexpected result"
-    assertEquals "logs a warning distinguishing a failed systemctl call from a genuinely inactive unit" "0" "$?"
-    assertEquals "does not abort the caller when systemctl fails" "0" "$exit_code"
 }
 
 function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
@@ -867,124 +659,6 @@ function test_ensure_pause_image_pinned_warns_on_label_failure() {
     assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
 }
 
-function test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "$PAUSE_310_UNPINNED"
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "REIMPORT: 1.31.14"
-    assertEquals "heals through kubernetes_load_images for the target version (aliases, overrides and the loaded memo included)" "0" "$?"
-    echo "$result" | grep -qF "$PAUSE_310_LABELED"
-    assertEquals "pins the pause image after the heal re-import restores it (kubelet GC healed, sc-140018)" "0" "$?"
-    assertEquals "pins once, through kubernetes_load_images' own no-heal pass, not a second time afterwards" "1" "$(echo "$result" | grep -c "LABELED")"
-}
-
-function test_ensure_pause_image_pinned_heals_when_kubelet_still_runs_an_older_pause_image() {
-    # kubelet's --pod-infra-container-image (if kubelet still writes it) names the old pause
-    # image, and sandbox_image is already the new target's. The add-on's own import inside
-    # install_cri should have brought it in; if it is missing anyway, importing the target
-    # version's package images is the right fix, not waiting for a later call. No dependency on
-    # the kubelet flag.
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "$PAUSE_310_UNPINNED"
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)"
-        echo '--pod-infra-container-image=registry.k8s.io/pause:3.9' > "$KUBELET_FLAGS_FILE"
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -qF "$PAUSE_310_LABELED"
-    assertEquals "imports and pins the new pause image regardless of the kubelet flag" "0" "$?"
-    echo "$result" | grep -qi "kubelet GC"
-    assertEquals "the warning does not claim kubelet GC removed an image it may never have had" "1" "$?"
-}
-
-function test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e() {
-    local result
-    local exit_code
-    result="$( (
-        set -e # install.sh runs with set -e; the heal re-import must not be exempt from it
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "" 1 # the re-import itself fails (e.g. a transient ctr/disk error)
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-        echo "REACHED_END_OF_FUNCTION"
-    ) 2>&1 )"
-    exit_code="$?"
-    assertEquals "a failed heal re-import does not abort the caller under set -e" "0" "$exit_code"
-    echo "$result" | grep -q "REACHED_END_OF_FUNCTION"
-    assertEquals "function returns normally instead of set -e killing the subshell on the failed re-import" "0" "$?"
-    echo "$result" | grep -qi "still missing from containerd after importing"
-    assertEquals "warns that the heal re-import did not recover the pause image" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_pins_when_heal_reimport_fails_after_importing() {
-    # kubernetes_load_images can import the package images and then fail at the alias or tag
-    # step, before its own no-heal pin. The heal must still pin the image that is now there.
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "$PAUSE_310_UNPINNED" 1
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)"
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -qF "$PAUSE_310_LABELED"
-    assertEquals "pins the restored pause image even though the re-import returned an error after importing it" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "" # reimport does not restore the image (e.g. the local tarball is gone too)
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -q "LABELED"
-    assertEquals "does not pin when the pause image is still missing after the heal re-import" "1" "$?"
-    echo "$result" | grep -qi "still missing from containerd after importing"
-    assertEquals "warns that the heal re-import did not recover the pause image" "0" "$?"
-}
-
-function test_ensure_pause_image_pinned_warns_explicitly_when_reimport_itself_fails() {
-    local result
-    result="$( (
-        systemctl() { [ "$1" = "is-active" ]; }
-        stub_ctr_pause_image ""
-        stub_reimport "" 7 # the re-import command itself failed, distinct from a no-op
-        CONTAINERD_VERSION="1.7.29"
-        KUBELET_FLAGS_FILE="$(mktemp)" # node was already configured by kubeadm
-        KUBERNETES_VERSION="1.31.14"
-        touch /etc/containerd/config.toml
-        containerd_ensure_pause_image_pinned
-    ) 2>&1 )"
-    echo "$result" | grep -qi "failed to import kubernetes.*package images.*exit 7"
-    assertEquals "logs a distinct warning carrying the re-import's own failing exit status, not just the later still-missing warning" "0" "$?"
-}
-
 function test_ensure_pause_image_pinned_noop_when_containerd_version_unset() {
     local result
     result="$( (
@@ -1012,24 +686,24 @@ function test_ensure_pause_image_pinned_noop_when_config_toml_missing() {
 }
 
 # install_cri pins right after the containerd add-on imports the new pause image and restarts
-# containerd, so install.sh/join.sh/upgrade.sh main() ordering does not matter.
+# containerd.
 function test_install_cri_pins_pause_image_after_containerd_install() {
     local result
     result="$( (
         report_install_containerd() { echo "INSTALL_CONTAINERD"; }
-        containerd_ensure_pause_image_pinned() { echo "PIN $*"; }
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
         DOCKER_VERSION=""
         CONTAINERD_VERSION="1.7.29"
         install_cri
     ) 2>&1 )"
-    assertEquals "install_cri installs containerd, then pins (with heal)" "$(printf '%s\n%s' "INSTALL_CONTAINERD" "PIN ")" "$result"
+    assertEquals "install_cri installs containerd, then pins the pause image" "$(printf '%s\n%s' "INSTALL_CONTAINERD" "PIN")" "$result"
 }
 
 function test_install_cri_does_not_pin_on_docker() {
     local result
     result="$( (
         report_install_docker() { echo "INSTALL_DOCKER"; }
-        containerd_ensure_pause_image_pinned() { echo "PIN $*"; }
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
         DOCKER_VERSION="20.10.17"
         CONTAINERD_VERSION=""
         install_cri
@@ -1077,29 +751,13 @@ test_install_runc_unknown_version
 test_install_runc_1x_addon
 test_ensure_pause_image_pinned_pins_when_unpinned
 test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only
-test_ensure_pause_image_pinned_matches_mirror_rewritten_ref_by_repo_and_tag
-test_ensure_pause_image_pinned_matches_by_digest_when_sandbox_image_is_digest_pinned
-test_ensure_pause_image_pinned_pins_every_ref_sharing_the_digest
-test_ensure_pause_image_pinned_ignores_regex_lookalike_repo_tag
-test_ensure_pause_image_pinned_warns_on_ambiguous_repo_tag_match
-test_ensure_pause_image_pinned_pins_every_repo_tag_match_sharing_a_digest
 test_ensure_pause_image_pinned_noop_when_already_pinned
 test_ensure_pause_image_pinned_noop_when_not_imported
-test_ensure_pause_image_pinned_no_heal_skips_reimport_on_initialized_node
 test_ensure_pause_image_pinned_noop_when_containerd_inactive
-test_ensure_pause_image_pinned_retries_while_containerd_activating
-test_ensure_pause_image_pinned_gives_up_when_containerd_stays_activating
-test_ensure_pause_image_pinned_warns_on_unexpected_systemctl_result
 test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
 test_ensure_pause_image_pinned_warns_on_list_failure
 test_ensure_pause_image_pinned_survives_sock_resolution_failure_under_set_e
 test_ensure_pause_image_pinned_warns_on_label_failure
-test_ensure_pause_image_pinned_heals_when_previously_initialized_node_missing_image
-test_ensure_pause_image_pinned_heals_when_kubelet_still_runs_an_older_pause_image
-test_ensure_pause_image_pinned_survives_heal_reimport_failure_under_set_e
-test_ensure_pause_image_pinned_pins_when_heal_reimport_fails_after_importing
-test_ensure_pause_image_pinned_warns_when_still_missing_after_heal_reimport
-test_ensure_pause_image_pinned_warns_explicitly_when_reimport_itself_fails
 test_ensure_pause_image_pinned_noop_when_containerd_version_unset
 test_ensure_pause_image_pinned_noop_when_config_toml_missing
 test_install_cri_pins_pause_image_after_containerd_install
