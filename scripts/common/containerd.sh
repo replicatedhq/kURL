@@ -192,12 +192,77 @@ function containerd_evaluate_upgrade() {
     if use_os_containerd ; then
         return 0
     fi
-    echo "Evaluating if an upgrade from containerd v$from_version to v$to_version is possible."
-    containerd_upgrade_is_possible "$from_version" "$to_version"
-    echo "Containerd upgrade from v$from_version to v$to_version is possible."
-    for version in $(containerd_migration_steps "$from_version" "$to_version"); do
+
+    # on some OSes the add-on ships an older containerd than its own version (for example the
+    # 2.x add-ons install 1.6.33 on rhel-7), so compare against the version it really installs.
+    local delivered_version
+    delivered_version="$(containerd_addon_delivered_version "$to_version")"
+    if [ "$delivered_version" != "$to_version" ]; then
+        echo "The containerd v$to_version add-on installs containerd v$delivered_version on this Operating System."
+    fi
+
+    echo "Evaluating if an upgrade from containerd v$from_version to v$delivered_version is possible."
+    containerd_upgrade_is_possible "$from_version" "$delivered_version"
+    echo "Containerd upgrade from v$from_version to v$delivered_version is possible."
+
+    # steps are add-on versions, so the last one must be the selected add-on, not the
+    # containerd version it delivers.
+    local steps=()
+    read -r -a steps <<< "$(containerd_migration_steps "$from_version" "$delivered_version")"
+    steps[${#steps[@]}-1]="$to_version"
+    for version in "${steps[@]}"; do
         CONTAINERD_INSTALL_VERSIONS+=("$version")
     done
+}
+
+# containerd_addon_package_dir prints the name of the host package directory the containerd
+# add-on installs containerd.io from on this host (rhel-7, rhel-7-force, rhel-8, rhel-9 or
+# ubuntu-<version>), using the same rules as install_host_packages. prints nothing when the
+# host does not install containerd from add-on packages.
+function containerd_addon_package_dir() {
+    local addon_dir="$1"
+
+    case "$LSB_DIST" in
+        ubuntu)
+            echo "ubuntu-$DIST_VERSION"
+            ;;
+        amzn)
+            if is_amazon_2023; then
+                return 0
+            fi
+            if test -n "$(shopt -s nullglob; echo "$addon_dir"/rhel-7-force/*.rpm)" ; then
+                echo "rhel-7-force"
+            else
+                echo "rhel-7"
+            fi
+            ;;
+        centos|rhel|ol|rocky)
+            basename "$(_yum_get_host_packages_path "$addon_dir" "")"
+            ;;
+    esac
+}
+
+# containerd_addon_delivered_version prints the containerd version the given containerd add-on
+# version installs on this host. add-ons built when an OS had no package for their version carry
+# an override such as "dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.33" in
+# their Manifest. prints the add-on version itself when there is no override for this host or
+# the Manifest cannot be read.
+function containerd_addon_delivered_version() {
+    local addon_version="$1"
+    local addon_dir="$DIR/addons/containerd/$addon_version"
+    local manifest="$addon_dir/Manifest"
+
+    local package_dir="" delivered_version=""
+    if [ -d "$addon_dir" ]; then
+        package_dir="$(containerd_addon_package_dir "$addon_dir" 2>/dev/null || true)"
+    fi
+    if [ -n "$package_dir" ] && [ -f "$manifest" ]; then
+        delivered_version="$(awk -v dir="$package_dir" '$1 == "dockerout" && $2 == dir { print $4; exit }' "$manifest" 2>/dev/null || true)"
+    fi
+    if ! echo "$delivered_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+        delivered_version="$addon_version"
+    fi
+    echo "$delivered_version"
 }
 
 function use_os_containerd() {
