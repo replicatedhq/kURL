@@ -600,9 +600,6 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
   - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
-  - amzn-20 # re-running containerd 2.x on amazon linux 2 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-  - centos-79 # re-running containerd 2.x on centos 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-  - ol-79 # re-running containerd 2.x on oracle linux 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -985,9 +982,6 @@
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
   - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
   - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
-  - amzn-20 # re-running containerd 2.x on amazon linux 2 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-  - centos-79 # re-running containerd 2.x on centos 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-  - ol-79 # re-running containerd 2.x on oracle linux 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
 - name: k8s132-all-the-flags
   installerSpec:
     kubernetes:
@@ -1086,9 +1080,6 @@
     # END GENERATED os-matrix: unsupported-capability
     - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
     - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
-    - amzn-20 # re-running containerd 2.x on amazon linux 2 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - centos-79 # re-running containerd 2.x on centos 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - ol-79 # re-running containerd 2.x on oracle linux 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
 - name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
@@ -2589,9 +2580,6 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
     - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
-    - amzn-20 # re-running containerd 2.x on amazon linux 2 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - centos-79 # re-running containerd 2.x on centos 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - ol-79 # re-running containerd 2.x on oracle linux 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -2708,9 +2696,6 @@
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
     - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
     - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
-    - amzn-20 # re-running containerd 2.x on amazon linux 2 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - centos-79 # re-running containerd 2.x on centos 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
-    - ol-79 # re-running containerd 2.x on oracle linux 7 bails: it installs containerd 1.6 there and 1.6 -> 2.x is refused
 
 - name: reset and reinstall
   installerSpec:

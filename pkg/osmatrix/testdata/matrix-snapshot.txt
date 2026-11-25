@@ -23,7 +23,7 @@ full.yaml	12	k8s129_selinux	ubuntu-1804,ubuntu-2004
 full.yaml	13	k8s120	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	14	k8s120-airgap	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	15	k8s24x_rook_upgrade_17x_110x	centos-74,centos-81
-full.yaml	16	remove_all_object_storage	amazon-2023,amzn-20,centos-74,centos-79,centos-81,ol-79,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
+full.yaml	16	remove_all_object_storage	amazon-2023,centos-74,centos-81,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
 full.yaml	17	K8s 1.22x Rook	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
 full.yaml	18	K8s 1.22x Rook, disableS3	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2404,ubuntu-2604
 full.yaml	19	K8s 1.22x Airgap	amazon-2023,centos-74,centos-81,ubuntu-2404,ubuntu-2604
@@ -33,10 +33,10 @@ full.yaml	21	K8s 1.24x Rook	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rock
 full.yaml	22	K8s 1.32x Rook, disableS3	centos-74,centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	23	K8s 1.24x Airgap	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	24	Upgrade to 1.24, disable s3, weave to flannel	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
-full.yaml	25	Upgrade to 1.32 minimal airgap	amzn-20,centos-79,centos-81,ol-79,ubuntu-1804,ubuntu-2004
+full.yaml	25	Upgrade to 1.32 minimal airgap	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	26	k8s132-all-the-flags	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	27	ekco-podimageoverrides	centos-81,ubuntu-1804,ubuntu-2004
-full.yaml	28	k8s123x_124x_upgrade_cis_benchmarks_checks	amazon-2023,amzn-20,centos-79,centos-81,ol-79,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
+full.yaml	28	k8s123x_124x_upgrade_cis_benchmarks_checks	amazon-2023,centos-81,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
 full.yaml	29	k8s132x_reserved_resources	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	3	k8s119x_containerd148	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	30	less_command	centos-81,ubuntu-1804,ubuntu-2004
@@ -83,9 +83,9 @@ full.yaml	67	k8s124-airgap-rook	centos-74,centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	68	k8s_132x airgap	ubuntu-1804,ubuntu-2004
 full.yaml	69	Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-1804,ubuntu-2004,ubuntu-2404,ubuntu-2604
 full.yaml	7	k8s119_containerd_rook_block	amazon-2023,centos-74,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
-full.yaml	70	weave to flannel single node with addons and openebs	amzn-20,centos-74,centos-79,centos-81,ol-79,ubuntu-1804,ubuntu-2004
+full.yaml	70	weave to flannel single node with addons and openebs	centos-74,centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	71	k8s_132x with kurl in-cluster support bundle spec	centos-81,ubuntu-1804,ubuntu-2004
-full.yaml	72	merge-installer-hostpreflight-and-upgrade	amzn-20,centos-79,centos-81,ol-79,ubuntu-1804,ubuntu-2004
+full.yaml	72	merge-installer-hostpreflight-and-upgrade	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	73	reset and reinstall	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	8	k8s119_ctrd_longhorn	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
 full.yaml	9	k8s119_ctrd_longhorn-airgap	amazon-2023,centos-9,rocky-10,rocky-9,rocky-91,ubuntu-2204,ubuntu-2404,ubuntu-2604
