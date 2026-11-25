@@ -1728,11 +1728,14 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
+      version: latest
     flannel:
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   # add a customization to the coredns configmap
   # kubeadm upgrade will warn with CoreDNSUnsupportedPlugins
   postInstallScript: |
@@ -1761,7 +1764,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
+      version: latest
     flannel:
       version: latest
     ekco:
@@ -1772,6 +1775,9 @@
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
   postUpgradeScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132-rook-override-node-storage
   installerSpec:
     kubernetes:

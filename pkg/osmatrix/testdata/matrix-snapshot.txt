@@ -55,8 +55,8 @@ full.yaml	41	containerd upgrade from 1.6.x to 1.7.x (kubernetes 1.28.x to 1.32.x
 full.yaml	42	custom-kurl-install-directory	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	43	Upgrade Kubernetes from 1.19 to 1.32	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
 full.yaml	44	Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12	amazon-2023,centos-81,ubuntu-2404,ubuntu-2604
-full.yaml	45	Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins	
-full.yaml	46	CoreDNS preserve kurl.nameserver	
+full.yaml	45	Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins	ubuntu-1804,ubuntu-2004
+full.yaml	46	CoreDNS preserve kurl.nameserver	ubuntu-1804,ubuntu-2004
 full.yaml	47	k8s132-rook-override-node-storage	centos-74,centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	48	1.32 with all metrics and kots	centos-81,ubuntu-1804,ubuntu-2004
 full.yaml	49	(k8s 1.32) install addons not deprecated less prometheus, goldpinger	centos-74,centos-81,ubuntu-1804,ubuntu-2004
