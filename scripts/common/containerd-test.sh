@@ -463,6 +463,65 @@ function test_evaluate_upgrade_1_6_to_2x() {
     assertEquals "evaluate upgrade 1.6->2.4 plans 1.7.29 then 2.4.2" "1.7.29 2.4.2" "$result"
 }
 
+# kURL-api keeps one step version per minor, latest wins across majors, so once containerd 2.7
+# ships 1.7.29 is no longer in the array. Hosts already on 1.7 need no 1.7 step to reach 2.x.
+function test_upgrade_1_7_to_2x_without_1_7_step_allowed() {
+    CONTAINERD_STEP_VERSIONS=(0.0.0 2.1.5 2.2.6 2.3.6 2.4.2 2.5.0 2.6.0 2.7.0)
+    (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.7.29" "2.7.0" >/dev/null)
+    assertEquals "1.7->2.x allowed without a 1.7 step version" "0" "$?"
+    assertEquals "migration steps 1.7->2.7 without a 1.7 step version" "2.7.0" \
+        "$(containerd_migration_steps "1.7.29" "2.7.0")"
+}
+
+# Once containerd 2.6 ships, 1.6.33 is no longer in the array. A 1.5 -> 2.x upgrade must bail
+# with a clear message instead of skipping the 1.6 step or the whole upgrade.
+function test_upgrade_1_5_to_2x_without_1_6_step_blocked() {
+    CONTAINERD_STEP_VERSIONS=(0.0.0 2.1.5 2.2.6 2.3.6 2.4.2 1.5.11 2.6.0 1.7.29)
+    local result rc
+    result="$( (CURRENT_KUBERNETES_VERSION=1.29.0 containerd_upgrade_is_possible "1.5.11" "2.6.0") 2>&1)"
+    rc=$?
+    assertEquals "1.5->2.x blocked without a 1.6 step version" "1" "$rc"
+    echo "$result" | grep -q "could not find a version of containerd 1.6 to step through"
+    assertEquals "1.5->2.x without a 1.6 step names the missing minor" "0" "$?"
+}
+
+function test_same_major_missing_step_blocked() {
+    CONTAINERD_STEP_VERSIONS=(1.5.11 1.7.29)
+    local result rc
+    result="$( (containerd_upgrade_is_possible "1.5.11" "1.7.29") 2>&1)"
+    rc=$?
+    assertEquals "1.5->1.7 blocked without a 1.6 step version" "1" "$rc"
+    echo "$result" | grep -q "could not find a version of containerd 1.6 to step through"
+    assertEquals "1.5->1.7 without a 1.6 step names the missing minor" "0" "$?"
+}
+
+function test_migration_steps_missing_step_fails() {
+    CONTAINERD_STEP_VERSIONS=(1.5.11 1.7.29 2.4.2)
+    local steps rc
+    steps="$(containerd_migration_steps "1.5.11" "2.4.2" 2>/dev/null)"
+    rc=$?
+    assertEquals "migration steps fail when a 1.x step is missing" "1" "$rc"
+    assertEquals "migration steps print no plan when a 1.x step is missing" "" "$steps"
+}
+
+# If containerd_migration_steps cannot plan the steps, containerd_evaluate_upgrade must bail
+# rather than leave CONTAINERD_INSTALL_VERSIONS empty and skip the upgrade.
+function test_evaluate_upgrade_bails_when_steps_cannot_be_planned() {
+    CONTAINERD_STEP_VERSIONS=(1.5.11 1.7.29 2.4.2)
+    local result rc
+    result="$( (
+        use_os_containerd() { return 1; }
+        containerd_upgrade_is_possible() { :; }
+        CONTAINERD_INSTALL_VERSIONS=()
+        containerd_evaluate_upgrade "1.5.11" "2.4.2"
+        echo "INSTALL_VERSIONS=${CONTAINERD_INSTALL_VERSIONS[*]}"
+    ) 2>&1)"
+    rc=$?
+    assertEquals "evaluate upgrade bails when the steps cannot be planned" "1" "$rc"
+    echo "$result" | grep -q "Could not plan the containerd upgrade"
+    assertEquals "evaluate upgrade prints the planning error" "0" "$?"
+}
+
 # Usage: run_install_upgrade_steps <airgap> <present step versions> <install versions...>
 # Runs containerd_install_upgrade_steps with addon_fetch/addon_install/addon_fetch_multiple_airgap
 # stubbed to print what they are called with, and the given step versions already unpacked
@@ -983,6 +1042,11 @@ test_same_major_minor_span_blocked
 test_migration_steps_1_7_to_2x
 test_migration_steps_across_majors
 test_evaluate_upgrade_1_6_to_2x
+test_upgrade_1_7_to_2x_without_1_7_step_allowed
+test_upgrade_1_5_to_2x_without_1_6_step_blocked
+test_same_major_missing_step_blocked
+test_migration_steps_missing_step_fails
+test_evaluate_upgrade_bails_when_steps_cannot_be_planned
 test_install_upgrade_steps_online
 test_install_upgrade_steps_airgap_missing_step
 test_install_upgrade_steps_airgap_steps_present
