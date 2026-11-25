@@ -107,6 +107,12 @@ function kubernetes_load_images() {
     fi
 
     declare -g "$varname"=1
+
+    # Pin the pause image this import may have brought in (sc-140018). Guarded because some
+    # entrypoints (tasks.sh) source kubernetes.sh without containerd.sh.
+    if commandExists containerd_ensure_pause_image_pinned; then
+        containerd_ensure_pause_image_pinned
+    fi
 }
 
 # kubeadm manages these workloads, so reapply the verified images after init/upgrade.

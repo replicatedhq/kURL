@@ -356,6 +356,25 @@ function containerd_backup_config_on_schema_migration() {
     logStep "Backed up containerd 1.x config to $backup before migrating to the 2.x schema"
 }
 
+# containerd_import_pause_image imports the Kubernetes package's pause image during an upgrade
+# and pins it. containerd 1.x only pins an image matching the running daemon's sandbox_image,
+# and the daemon running here still has the old one (the restart that picks up the new
+# sandbox_image comes later), so without the explicit label the new pause image is left
+# unpinned and kubelet GC can delete it (sc-140018). The label is stored in containerd's
+# metadata and survives the restart. A failed label only warns: containerd_ensure_pause_image_pinned
+# in scripts/common pins it again after install_cri.
+function containerd_import_pause_image() {
+    local pause_image="$1"
+    log "Loading Kubernetes $KUBERNETES_VERSION pause image"
+    cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz" | gunzip | ctr -n=k8s.io images import -
+    log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
+
+    local label_output=
+    if ! label_output="$(ctr -n=k8s.io images label -- "$pause_image" io.cri-containerd.pinned=pinned 2>&1 < /dev/null)"; then
+        logWarn "Failed to pin containerd pause image $pause_image ($label_output); will retry after containerd restarts"
+    fi
+}
+
 function containerd_configure() {
     if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
         log "Skipping containerd configuration in order to preserve config."
@@ -389,9 +408,7 @@ function containerd_configure() {
 
     # if containerd is running, this is an upgrade and we can load the pause image
     if [ -n "$pause_image" ] && systemctl is-active --quiet containerd; then
-        log "Loading Kubernetes $KUBERNETES_VERSION pause image"
-        cat "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images/pause.tar.gz" | gunzip | ctr -n=k8s.io images import -
-        log "Loaded Kubernetes $KUBERNETES_VERSION pause image"
+        containerd_import_pause_image "$pause_image"
     fi
 
     if [ -n "$CONTAINERD_TOML_CONFIG" ]; then

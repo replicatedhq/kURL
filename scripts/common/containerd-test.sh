@@ -42,10 +42,47 @@ function is_ubuntu_2404() { return "${_IS_UBUNTU_2404:-1}"; }
 function is_ubuntu_2604() { return "${_IS_UBUNTU_2604:-1}"; }
 # END GENERATED os-matrix: ubuntu-predicate-stubs
 function containerd_kubernetes_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
+function kubernetes_containerd_pause_image() { echo "${_PAUSE_IMAGE:-registry.k8s.io/pause:3.10}"; }
 function systemctl() { return 1; }      # "not active" → skip ctr pause-image import
+K8S_DISTRO=kubeadm
+function kubeadm_get_containerd_sock() { echo "/run/containerd/containerd.sock"; }
 function kubernetes_version_minor() { echo "$1" | cut -d. -f2; }
 function log() { echo "$*"; }
-function logWarn() { echo "WARN: $*"; }
+function logWarn() { echo "WARN: $*" 1>&2; } # matches common.sh: logWarn writes to stderr
+
+# Shared stubs for the containerd_ensure_pause_image_pinned tests below.
+#
+# stub_ctr_pause_image "<list fixture>" [label-fail|list-fail]
+#   `ctr ... images list` prints the fixture verbatim (or fails with list-fail), and
+#   `ctr ... images label` prints "LABELED: $*" (or fails with label-fail).
+_CTR_PAUSE_LIST=
+_CTR_PAUSE_LIST_FAIL=0
+_CTR_PAUSE_LABEL_FAIL=0
+function stub_ctr_pause_image() {
+    _CTR_PAUSE_LIST="$1"
+    _CTR_PAUSE_LIST_FAIL=0
+    _CTR_PAUSE_LABEL_FAIL=0
+    case "${2:-}" in
+        label-fail) _CTR_PAUSE_LABEL_FAIL=1 ;;
+        list-fail) _CTR_PAUSE_LIST_FAIL=1 ;;
+    esac
+}
+function ctr() {
+    if [ "$1" = "-a" ] && [ "$2" = "/run/containerd/containerd.sock" ] && [ "$3" = "-n=k8s.io" ] && [ "$4" = "images" ] && [ "$5" = "list" ]; then
+        if [ "$_CTR_PAUSE_LIST_FAIL" = "1" ]; then
+            echo "ctr: failed to dial \"/run/containerd/containerd.sock\": connection refused" >&2
+            return 1
+        fi
+        [ -n "$_CTR_PAUSE_LIST" ] && printf '%s\n' "$_CTR_PAUSE_LIST"
+    elif [ "$4" = "images" ] && [ "$5" = "label" ]; then
+        if [ "$_CTR_PAUSE_LABEL_FAIL" = "1" ]; then
+            echo "ctr: failed to label image: permission denied" >&2
+            return 1
+        fi
+        echo "LABELED: $*"
+    fi
+    return 0
+}
 
 FAILURES=0
 function assertEquals() {
@@ -559,6 +596,205 @@ function test_override_version_rerun() {
     rm -rf "$dir"
 }
 
+# --- containerd_ensure_pause_image_pinned tests (sc-140018) ---
+
+PAUSE_310_UNPINNED="registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
+PAUSE_310_LABELED="LABELED: -a /run/containerd/containerd.sock -n=k8s.io images label -- registry.k8s.io/pause:3.10 io.cri-containerd.pinned=pinned"
+
+function test_ensure_pause_image_pinned_pins_when_unpinned() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "$PAUSE_310_UNPINNED"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qF "$PAUSE_310_LABELED"
+    assertEquals "pins an unpinned pause image already present in containerd" "0" "$?"
+}
+
+function test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "$(printf '%s\n%s\n%s' \
+            "registry.k8s.io/kube-apiserver:v1.31.14 application/vnd.oci.image.index.v1+json sha256:aaaaaaaa 200.0KiB linux/amd64 -" \
+            "$PAUSE_310_UNPINNED" \
+            "registry.k8s.io/coredns/coredns:v1.11.3 application/vnd.oci.image.index.v1+json sha256:cccccccc 400.0KiB linux/amd64 -")"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qF "$PAUSE_310_LABELED"
+    assertEquals "pins the pause image when containerd has several images imported and the pause image is neither first nor alone" "0" "$?"
+    assertEquals "labels only the pause image" "1" "$(echo "$result" | grep -c "LABELED")"
+}
+
+function test_ensure_pause_image_pinned_noop_when_already_pinned() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 io.cri-containerd.pinned=pinned"
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not re-label an already-pinned pause image" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_not_imported() {
+    # e.g. a fresh install before images are loaded; kubernetes_load_images pins once it imports.
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image ""
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qE "LABELED|WARN"
+    assertEquals "does not pin or warn about an image containerd has not imported" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_containerd_inactive() {
+    local result
+    result="$( (
+        systemctl() { echo "inactive"; return 3; }
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not call ctr when containerd is genuinely inactive" "1" "$?"
+    echo "$result" | grep -qi "WARN"
+    assertEquals "does not log a warning for a legitimate inactive/failed state" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image() {
+    local result
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        kubernetes_containerd_pause_image() { echo ""; } # 2.x: not exposed in config.toml
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="2.2.6"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "no-ops on containerd 2.x, which never exposes sandbox_image" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_warns_on_list_failure() {
+    local result
+    local exit_code
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "" list-fail
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to list containerd images"
+    assertEquals "logs a warning when ctr images list fails" "0" "$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not try to pin when ctr images list fails" "1" "$?"
+    assertEquals "does not abort the caller when ctr images list fails" "0" "$exit_code"
+}
+
+function test_ensure_pause_image_pinned_survives_sock_resolution_failure_under_set_e() {
+    local result
+    local exit_code
+    result="$( (
+        set -e # install.sh runs with set -e; resolving the containerd socket must not be exempt from it
+        systemctl() { [ "$1" = "is-active" ]; }
+        kubeadm_get_containerd_sock() { return 1; } # e.g. an unimplemented distro shim
+        ctr() { echo "LABELED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to resolve the containerd socket"
+    assertEquals "logs a warning when containerd sock resolution fails" "0" "$?"
+    echo "$result" | grep -q "LABELED"
+    assertEquals "does not call ctr when containerd sock resolution fails" "1" "$?"
+    assertEquals "does not abort the caller when containerd sock resolution fails" "0" "$exit_code"
+}
+
+function test_ensure_pause_image_pinned_warns_on_label_failure() {
+    local result
+    local exit_code
+    result="$( (
+        systemctl() { [ "$1" = "is-active" ]; }
+        stub_ctr_pause_image "$PAUSE_310_UNPINNED" label-fail
+        CONTAINERD_VERSION="1.7.29"
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    exit_code="$?"
+    echo "$result" | grep -q "Failed to pin containerd pause image"
+    assertEquals "logs a warning when ctr images label fails" "0" "$?"
+    echo "$result" | grep "Failed to pin containerd pause image" | grep -q "permission denied"
+    assertEquals "the warning itself (not just stray stderr) captures the underlying error, like the list-failure branch does" "0" "$?"
+    assertEquals "does not abort the caller when ctr images label fails" "0" "$exit_code"
+}
+
+function test_ensure_pause_image_pinned_noop_when_containerd_version_unset() {
+    local result
+    result="$( (
+        systemctl() { echo "SYSTEMCTL_CALLED"; }
+        ctr() { echo "CTR_CALLED: $*"; }
+        CONTAINERD_VERSION=""
+        touch /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qE "SYSTEMCTL_CALLED|CTR_CALLED"
+    assertEquals "no-ops when CONTAINERD_VERSION is unset (e.g. Docker-CRI host)" "1" "$?"
+}
+
+function test_ensure_pause_image_pinned_noop_when_config_toml_missing() {
+    local result
+    result="$( (
+        systemctl() { echo "SYSTEMCTL_CALLED"; }
+        ctr() { echo "CTR_CALLED: $*"; }
+        CONTAINERD_VERSION="1.7.29"
+        rm -f /etc/containerd/config.toml
+        containerd_ensure_pause_image_pinned
+    ) 2>&1 )"
+    echo "$result" | grep -qE "SYSTEMCTL_CALLED|CTR_CALLED"
+    assertEquals "no-ops when /etc/containerd/config.toml is missing" "1" "$?"
+}
+
+# install_cri pins right after the containerd add-on imports the new pause image and restarts
+# containerd.
+function test_install_cri_pins_pause_image_after_containerd_install() {
+    local result
+    result="$( (
+        report_install_containerd() { echo "INSTALL_CONTAINERD"; }
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
+        DOCKER_VERSION=""
+        CONTAINERD_VERSION="1.7.29"
+        install_cri
+    ) 2>&1 )"
+    assertEquals "install_cri installs containerd, then pins the pause image" "$(printf '%s\n%s' "INSTALL_CONTAINERD" "PIN")" "$result"
+}
+
+function test_install_cri_does_not_pin_on_docker() {
+    local result
+    result="$( (
+        report_install_docker() { echo "INSTALL_DOCKER"; }
+        containerd_ensure_pause_image_pinned() { echo "PIN"; }
+        DOCKER_VERSION="20.10.17"
+        CONTAINERD_VERSION=""
+        install_cri
+    ) 2>&1 )"
+    assertEquals "install_cri on docker does not call the containerd pause pin" "INSTALL_DOCKER" "$result"
+}
+
 # Run all tests
 test_systemd_cgroup_1x
 test_pause_image_1x
@@ -599,6 +835,19 @@ test_install_runc_missing_asset_bails
 test_install_runc_unknown_version
 test_install_runc_1x_addon
 test_override_version_rerun
+test_ensure_pause_image_pinned_pins_when_unpinned
+test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only
+test_ensure_pause_image_pinned_noop_when_already_pinned
+test_ensure_pause_image_pinned_noop_when_not_imported
+test_ensure_pause_image_pinned_noop_when_containerd_inactive
+test_ensure_pause_image_pinned_noop_on_2x_without_sandbox_image
+test_ensure_pause_image_pinned_warns_on_list_failure
+test_ensure_pause_image_pinned_survives_sock_resolution_failure_under_set_e
+test_ensure_pause_image_pinned_warns_on_label_failure
+test_ensure_pause_image_pinned_noop_when_containerd_version_unset
+test_ensure_pause_image_pinned_noop_when_config_toml_missing
+test_install_cri_pins_pause_image_after_containerd_install
+test_install_cri_does_not_pin_on_docker
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."

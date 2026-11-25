@@ -231,6 +231,55 @@ function containerd_addon_delivered_version() {
     echo "${delivered_version:-$addon_version}"
 }
 
+# containerd_ensure_pause_image_pinned labels the sandbox (pause) image
+# io.cri-containerd.pinned=pinned so kubelet GC and `crictl rmi --prune` cannot delete it.
+# containerd 1.x only pins an image the first time it sees one matching the running daemon's
+# sandbox_image, but a kURL upgrade imports the new pause image while the old daemon (with the
+# old sandbox_image) is still running, so it is never pinned (sc-140018). On an airgapped host
+# that cannot re-pull it, the next reboot takes the control plane down. containerd 2.x has no
+# sandbox_image in config.toml, so this is a no-op there. Every failure warns and returns 0.
+function containerd_ensure_pause_image_pinned() {
+    if [ -z "$CONTAINERD_VERSION" ] || [ ! -f /etc/containerd/config.toml ]; then
+        return 0
+    fi
+    if ! systemctl is-active --quiet containerd; then
+        return 0
+    fi
+
+    local pause_image=
+    pause_image="$(kubernetes_containerd_pause_image)"
+    if [ -z "$pause_image" ]; then
+        return 0
+    fi
+
+    local sock=
+    if ! sock="$("${K8S_DISTRO}"_get_containerd_sock)"; then
+        logWarn "Failed to resolve the containerd socket; skipping pause image pin"
+        return 0
+    fi
+
+    local list_output=
+    if ! list_output="$(ctr -a "$sock" -n=k8s.io images list 2>&1)"; then
+        logWarn "Failed to list containerd images to pin pause image $pause_image ($list_output)"
+        return 0
+    fi
+
+    local image_line=
+    image_line="$(echo "$list_output" | awk -v img="$pause_image" '$1 == img { print; exit }')"
+    if [ -z "$image_line" ] || echo "$image_line" | grep -q 'io.cri-containerd.pinned=pinned'; then
+        return 0
+    fi
+
+    log "Pinning containerd pause image $pause_image"
+    local label_output=
+    if ! label_output="$(ctr -a "$sock" -n=k8s.io images label -- "$pause_image" io.cri-containerd.pinned=pinned 2>&1)"; then
+        logWarn "Failed to pin containerd pause image $pause_image ($label_output)"
+    elif [ -n "$label_output" ]; then
+        echo "$label_output"
+    fi
+    return 0
+}
+
 function use_os_containerd() {
     if ! host_packages_shipped && ! is_rhel_9_variant ; then
         # we ship containerd packages for RHEL9, but not for the later no-shipped-packages distros
