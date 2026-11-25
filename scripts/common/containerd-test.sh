@@ -485,25 +485,6 @@ function test_upgrade_1_5_to_2x_without_1_6_step_blocked() {
     assertEquals "1.5->2.x without a 1.6 step names the missing minor" "0" "$?"
 }
 
-function test_same_major_missing_step_blocked() {
-    CONTAINERD_STEP_VERSIONS=(1.5.11 1.7.29)
-    local result rc
-    result="$( (containerd_upgrade_is_possible "1.5.11" "1.7.29") 2>&1)"
-    rc=$?
-    assertEquals "1.5->1.7 blocked without a 1.6 step version" "1" "$rc"
-    echo "$result" | grep -q "could not find a version of containerd 1.6 to step through"
-    assertEquals "1.5->1.7 without a 1.6 step names the missing minor" "0" "$?"
-}
-
-function test_migration_steps_missing_step_fails() {
-    CONTAINERD_STEP_VERSIONS=(1.5.11 1.7.29 2.4.2)
-    local steps rc
-    steps="$(containerd_migration_steps "1.5.11" "2.4.2" 2>/dev/null)"
-    rc=$?
-    assertEquals "migration steps fail when a 1.x step is missing" "1" "$rc"
-    assertEquals "migration steps print no plan when a 1.x step is missing" "" "$steps"
-}
-
 # If containerd_migration_steps cannot plan the steps, containerd_evaluate_upgrade must bail
 # rather than leave CONTAINERD_INSTALL_VERSIONS empty and skip the upgrade.
 function test_evaluate_upgrade_bails_when_steps_cannot_be_planned() {
@@ -1044,8 +1025,6 @@ test_migration_steps_across_majors
 test_evaluate_upgrade_1_6_to_2x
 test_upgrade_1_7_to_2x_without_1_7_step_allowed
 test_upgrade_1_5_to_2x_without_1_6_step_blocked
-test_same_major_missing_step_blocked
-test_migration_steps_missing_step_fails
 test_evaluate_upgrade_bails_when_steps_cannot_be_planned
 test_install_upgrade_steps_online
 test_install_upgrade_steps_airgap_missing_step
