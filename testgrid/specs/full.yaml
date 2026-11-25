@@ -1605,7 +1605,7 @@
     flannel:
       version: latest
     containerd:
-      version: 1.7.x
+      version: 1.7.27
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -1613,7 +1613,6 @@
     minio:
       version: latest
   unsupportedOSIDs:
-  - ubuntu-2004 # containerd 1.7.x does not install on ubuntu 20.04
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
