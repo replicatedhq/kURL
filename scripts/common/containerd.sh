@@ -14,30 +14,44 @@ function containerd_patch_for_minor_version() {
     echo ""
 }
 
-# containerd_migration_steps returns an array with all steps necessary to migrate from the current containerd
-# version to the desired version.
+# containerd_migration_steps prints the steps necessary to migrate from the current containerd
+# version to the desired version, one version per intermediate minor and then the target. an
+# upgrade from 1.x to 2.x steps through every 1.x minor up to 1.7 (the last 1.x minor, the only
+# one containerd 2.x upgrades from), then goes straight to the 2.x target.
+# this runs in a subshell, where bail cannot stop the install, so it returns non-zero when a step
+# is missing and containerd_evaluate_upgrade bails. containerd_upgrade_is_possible checks the same
+# steps first so the user gets the specific reason.
 function containerd_migration_steps() {
     local from_version=$1
     local to_version=$2
 
-    local current_minor
-    local current_major
+    # semverParse sets bare globals $major/$minor/$patch, capture them right away
+    local from_major from_minor
     semverParse "$from_version"
-    current_major="$major"
-    current_minor=$((minor + 1))
+    from_major="$major"
+    from_minor="$minor"
 
-    local install_minor
+    local install_major install_minor
     semverParse "$to_version"
-    install_minor="$minor"
     install_major="$major"
+    install_minor="$minor"
+
+    # steps stay on the starting major: up to the target minor, or through 1.7 across majors
+    local last_step_minor=$((install_minor - 1))
+    if [ "$from_major" -lt "$install_major" ]; then
+        last_step_minor=7
+    fi
 
     local steps=()
-    while [ "$current_minor" -lt "$install_minor" ]; do
-        max_patch=$(containerd_patch_for_minor_version "$current_major" "$current_minor")
+    local current_minor=$((from_minor + 1))
+    local max_patch
+    while [ "$current_minor" -le "$last_step_minor" ]; do
+        max_patch=$(containerd_patch_for_minor_version "$from_major" "$current_minor")
         if [ -z "$max_patch" ]; then
-            bail "error: could not find patch for containerd minor version v$current_major.$current_minor"
+            echo "error: could not find patch for containerd minor version v$from_major.$current_minor" >&2
+            return 1
         fi
-        steps+=("$install_major.$current_minor.$max_patch")
+        steps+=("$from_major.$current_minor.$max_patch")
         current_minor=$((current_minor + 1))
     done
     steps+=("$to_version")
@@ -62,8 +76,11 @@ function containerd_upgrade_between_majors() {
 }
 
 # containerd_upgrade_is_possible verifies if an upgrade between the provided containerd
-# versions is possible. we verify if the installed containerd is known to us, if there
-# is no major versions upgrades and if the minor version upgrade is not too big.
+# versions is possible. we verify if the installed containerd is known to us, that a major
+# version upgrade goes from 1.x to 2.x and that the minor version upgrade is not too big.
+# containerd supports 2.x upgrades only from 1.7, so older 1.x versions step through the latest
+# 1.7 version first (see containerd_migration_steps). all checks live here, not in
+# containerd_migration_steps, because that one runs in a subshell where bail cannot stop the install.
 function containerd_upgrade_is_possible() {
     local from_version=$1
     local to_version=$2
@@ -78,12 +95,16 @@ function containerd_upgrade_is_possible() {
         local to_major_local="$major"
         # $major/$minor now reflect to_version — from_major_local/from_minor_local are safe.
 
-        # Only allow 1.7 -> 2.x; earlier 1.x minors must step through 1.7 first.
-        if [ "$from_major_local" -ne "1" ] || [ "$from_minor_local" -ne "7" ] || [ "$to_major_local" -ne "2" ]; then
-            bail "Upgrade from containerd v$from_version to v$to_version is not supported. Upgrade to containerd 1.7.x first."
+        if [ "$from_major_local" -gt "$to_major_local" ]; then
+            bail "Downgrading containerd (from v$from_version to v$to_version) is not supported."
+        fi
+
+        if [ "$from_major_local" -ne "1" ] || [ "$to_major_local" -ne "2" ]; then
+            bail "Upgrade from containerd v$from_version to v$to_version is not supported."
         fi
 
         # Guard: containerd 2.x requires CRI v1; Kubernetes < 1.26 requires CRI v1alpha2.
+        # Checked before the 1.x steps so nothing is installed when it fails.
         if [ -n "$CURRENT_KUBERNETES_VERSION" ]; then
             local k8s_minor
             k8s_minor="$(kubernetes_version_minor "$CURRENT_KUBERNETES_VERSION")"
@@ -92,10 +113,21 @@ function containerd_upgrade_is_possible() {
             fi
         fi
 
-        # Cross-major upgrade is valid (1.7 -> 2.x); skip the same-major minor-span check below.
-        # Note: a 2.x -> 1.x downgrade attempt is caught above because from_major_local=2 ≠ 1,
-        # which triggers the bail with "not supported". The semverCompare downgrade check below
-        # is not reached for cross-major paths, but the cross-major guard already handles it.
+        # 1.x versions older than 1.7 step through the latest 1.7 version first. 1.7 goes
+        # straight to the 2.x target and needs no 1.7 step version.
+        if [ "$from_minor_local" -lt "7" ]; then
+            local bridge_patch bridge_version
+            bridge_patch="$(containerd_patch_for_minor_version "1" "7")"
+            if [ -z "$bridge_patch" ]; then
+                bail "Upgrade from containerd v$from_version to v$to_version is not supported. Upgrade to containerd 1.7.x first."
+            fi
+            bridge_version="1.7.$bridge_patch"
+            log "Upgrading containerd from v$from_version to v$to_version steps through containerd v$bridge_version first."
+            # the 1.x leg follows the rules of any 1.x upgrade: no downgrade, at most two minors
+            containerd_upgrade_is_possible "$from_version" "$bridge_version"
+        fi
+
+        # the same-major minor-span check below does not apply across majors.
         return 0
     fi
 
@@ -117,6 +149,16 @@ function containerd_upgrade_is_possible() {
         logFail "This installer supports only containerd upgrades spanning two minor versions."
         bail "Please consider upgrading to an older containerd version first."
     fi
+
+    # every minor in between is installed as a step, so each needs a known patch version
+    semverParse "$from_version"
+    local from_major="$major"
+    local step_minor
+    for ((step_minor = current_minor + 1; step_minor < installing_minor; step_minor++)); do
+        if [ -z "$(containerd_patch_for_minor_version "$from_major" "$step_minor")" ]; then
+            bail "Cannot upgrade containerd from v$from_version to v$to_version: could not find a version of containerd $from_major.$step_minor to step through."
+        fi
+    done
 }
 
 # containerd_verify_kubernetes_1_37_compatibility bails if the containerd version being
@@ -201,8 +243,19 @@ function containerd_evaluate_upgrade() {
     echo "Evaluating if an upgrade from containerd v$from_version to v$delivered_version is possible."
     containerd_upgrade_is_possible "$from_version" "$delivered_version"
     echo "Containerd upgrade from v$from_version to v$delivered_version is possible."
-    for version in $(containerd_migration_steps "$from_version" "$delivered_version"); do
-        # the last step is the selected add-on, not the version it installs
+
+    # steps are add-on versions: intermediate steps come from $CONTAINERD_STEP_VERSIONS (such as
+    # the 1.7 step of a 1.x to 2.x upgrade), and the last one must be the selected add-on, not the
+    # containerd version it delivers. when the add-on delivers the installed 1.x version (2.x
+    # add-ons on rhel-7), there is no cross-major upgrade and so no 1.7 step.
+    # containerd_migration_steps runs in a subshell, so bail here if it could not plan the steps
+    # rather than skip the upgrade.
+    local steps
+    if ! steps="$(containerd_migration_steps "$from_version" "$delivered_version")" || [ -z "$steps" ]; then
+        bail "Could not plan the containerd upgrade from v$from_version to v$delivered_version."
+    fi
+    local version
+    for version in $steps; do
         if [ "$version" = "$delivered_version" ]; then
             version="$to_version"
         fi
@@ -278,6 +331,40 @@ function containerd_ensure_pause_image_pinned() {
         echo "$label_output"
     fi
     return 0
+}
+
+# containerd_install_upgrade_steps installs each version in $CONTAINERD_INSTALL_VERSIONS in order.
+# online, intermediate versions are downloaded one at a time. airgap, the bundle ships the
+# target and the previous minor only, so intermediate versions missing locally (such as the 1.7
+# step of a 1.x to 2.x upgrade) are requested up front, before any containerd is touched, the
+# same way Kubernetes upgrade steps are. the add-on scripts read $CONTAINERD_VERSION, so it is set
+# to the step version while that step installs.
+function containerd_install_upgrade_steps() {
+    local target_version="$CONTAINERD_VERSION"
+    local version
+
+    if [ "$AIRGAP" = "1" ]; then
+        local missing=()
+        for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
+            if [ "$version" != "$target_version" ] && [ ! -f "$DIR/addons/containerd/$version/install.sh" ]; then
+                missing+=("containerd-$version")
+            fi
+        done
+        if [ "${#missing[@]}" -gt 0 ]; then
+            addon_fetch_multiple_airgap "${missing[@]}"
+        fi
+    fi
+
+    for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
+        logStep "Moving containerd to version v$version."
+        if [ "$version" != "$target_version" ] && [ "$AIRGAP" != "1" ] ; then
+            log "Downloading containerd v$version."
+            addon_fetch "containerd" "$version"
+        fi
+        CONTAINERD_VERSION="$version"
+        addon_install "containerd" "$version"
+    done
+    CONTAINERD_VERSION="$target_version"
 }
 
 function use_os_containerd() {
