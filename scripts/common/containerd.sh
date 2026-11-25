@@ -192,12 +192,43 @@ function containerd_evaluate_upgrade() {
     if use_os_containerd ; then
         return 0
     fi
-    echo "Evaluating if an upgrade from containerd v$from_version to v$to_version is possible."
-    containerd_upgrade_is_possible "$from_version" "$to_version"
-    echo "Containerd upgrade from v$from_version to v$to_version is possible."
-    for version in $(containerd_migration_steps "$from_version" "$to_version"); do
+
+    # some add-ons install an older containerd on some OSes (the 2.x add-ons install 1.6.33 on
+    # rhel-7), so check the upgrade against the version the add-on really installs here.
+    local delivered_version
+    delivered_version="$(containerd_addon_delivered_version "$to_version")"
+
+    echo "Evaluating if an upgrade from containerd v$from_version to v$delivered_version is possible."
+    containerd_upgrade_is_possible "$from_version" "$delivered_version"
+    echo "Containerd upgrade from v$from_version to v$delivered_version is possible."
+    for version in $(containerd_migration_steps "$from_version" "$delivered_version"); do
+        # the last step is the selected add-on, not the version it installs
+        if [ "$version" = "$delivered_version" ]; then
+            version="$to_version"
+        fi
         CONTAINERD_INSTALL_VERSIONS+=("$version")
     done
+}
+
+# containerd_addon_delivered_version prints the containerd version the given add-on installs on
+# this host, read from its Manifest "dockerout <dir> <dockerfile> <version>" line, or the add-on
+# version when there is no such line.
+function containerd_addon_delivered_version() {
+    local addon_version="$1"
+    local manifest="$DIR/addons/containerd/$addon_version/Manifest"
+
+    local package_dir
+    case "$LSB_DIST" in
+        ubuntu) package_dir="ubuntu-$DIST_VERSION" ;;
+        amzn) package_dir="rhel-7" ;;
+        *) package_dir="rhel-$DIST_VERSION_MAJOR" ;;
+    esac
+
+    local delivered_version=
+    if [ -f "$manifest" ]; then
+        delivered_version="$(awk -v dir="$package_dir" '$1 == "dockerout" && $2 == dir { print $4; exit }' "$manifest")"
+    fi
+    echo "${delivered_version:-$addon_version}"
 }
 
 # containerd_ensure_pause_image_pinned labels the sandbox (pause) image

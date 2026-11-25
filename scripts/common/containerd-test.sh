@@ -568,6 +568,34 @@ function test_install_runc_1x_addon() {
     assertEquals "1.x add-on installs the add-on runc" "runc-1.5.1" "$installed"
 }
 
+# --- add-on override version test ---
+# The 2.x add-ons install 1.6.33 on rhel-7. Re-running one there must not bail.
+
+function test_override_version_rerun() {
+    local dir
+    dir="$(mktemp -d)"
+    mkdir -p "$dir/addons/containerd/2.4.2"
+    echo "dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.33" > "$dir/addons/containerd/2.4.2/Manifest"
+
+    local result
+    result="$( (
+        DIR="$dir" LSB_DIST=centos DIST_VERSION_MAJOR=7
+        use_os_containerd() { return 1; }
+        containerd_evaluate_upgrade 1.6.33 2.4.2 >/dev/null
+        echo "${CONTAINERD_INSTALL_VERSIONS[*]}"
+    ) 2>&1 )"
+    assertEquals "re-run of 2.4.2 add-on on centos 7 with 1.6.33 installed" "2.4.2" "$result"
+
+    result="$( (
+        DIR="$dir" LSB_DIST=rocky DIST_VERSION_MAJOR=8
+        use_os_containerd() { return 1; }
+        containerd_evaluate_upgrade 1.6.33 2.4.2 >/dev/null
+    ) 2>&1 || true)"
+    echo "$result" | grep -q "1.7.x first"
+    assertEquals "1.6.33 -> 2.4.2 on rocky 8 still bails" "0" "$?"
+    rm -rf "$dir"
+}
+
 # --- containerd_ensure_pause_image_pinned tests (sc-140018) ---
 
 PAUSE_310_UNPINNED="registry.k8s.io/pause:3.10 application/vnd.oci.image.index.v1+json sha256:deadbeef 300.0KiB linux/amd64 -"
@@ -806,6 +834,7 @@ test_install_runc_containerd_2x
 test_install_runc_missing_asset_bails
 test_install_runc_unknown_version
 test_install_runc_1x_addon
+test_override_version_rerun
 test_ensure_pause_image_pinned_pins_when_unpinned
 test_ensure_pause_image_pinned_with_multiple_images_not_first_or_only
 test_ensure_pause_image_pinned_noop_when_already_pinned
