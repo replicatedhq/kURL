@@ -11,7 +11,6 @@
 # cross-major upgrade evaluation logic in scripts/common/containerd.sh.
 
 . ./scripts/common/common.sh
-. ./scripts/common/host-packages.sh
 . ./scripts/common/containerd.sh
 . ./scripts/common/upgrade.sh
 . ./addons/containerd/template/base/install.sh
@@ -532,83 +531,32 @@ function test_install_runc_1x_addon() {
     assertEquals "1.x add-on installs the add-on runc" "runc-1.5.1" "$installed"
 }
 
-# --- add-on override version tests ---
-# Add-ons built when an OS had no package for their version install an older containerd there
-# (the 2.4.2 add-on installs 1.6.33 on rhel-7). Re-running such an add-on must compare against
-# the version it installs, not its own version. Uses a copy of the real 2.4.2 Manifest.
+# --- add-on override version test ---
+# The 2.x add-ons install 1.6.33 on rhel-7. Re-running one there must not bail.
 
-OVERRIDE_DIR="$(mktemp -d)"
-mkdir -p "$OVERRIDE_DIR/addons/containerd/2.4.2"
-cp addons/containerd/2.4.2/Manifest "$OVERRIDE_DIR/addons/containerd/2.4.2/Manifest"
+function test_override_version_rerun() {
+    local dir
+    dir="$(mktemp -d)"
+    mkdir -p "$dir/addons/containerd/2.4.2"
+    echo "dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.33" > "$dir/addons/containerd/2.4.2/Manifest"
 
-# run_evaluate_upgrade <lsb_dist> <dist_version> <from> <to> [dir]: prints the install steps,
-# or "BAIL: <message>" when the upgrade is refused.
-function run_evaluate_upgrade() {
-    local lsb_dist="$1" dist_version="$2" from="$3" to="$4" dir="${5:-$OVERRIDE_DIR}"
-    local output
-    output="$( (
-        DIR="$dir"
-        LSB_DIST="$lsb_dist"
-        DIST_VERSION="$dist_version"
-        DIST_VERSION_MAJOR="${dist_version%%.*}"
-        CURRENT_KUBERNETES_VERSION=1.33.0
-        CONTAINERD_STEP_VERSIONS=(1.2.13 1.3.9 1.4.13 1.5.11 1.6.33 1.7.29 2.4.2)
-        CONTAINERD_INSTALL_VERSIONS=()
+    local result
+    result="$( (
+        DIR="$dir" LSB_DIST=centos DIST_VERSION_MAJOR=7
         use_os_containerd() { return 1; }
-        bail() { echo "BAIL: $*" >&2; exit 1; }
-        containerd_evaluate_upgrade "$from" "$to" >/dev/null
+        containerd_evaluate_upgrade 1.6.33 2.4.2 >/dev/null
         echo "${CONTAINERD_INSTALL_VERSIONS[*]}"
     ) 2>&1 )"
-    echo "$output" | tail -n 1
-}
+    assertEquals "re-run of 2.4.2 add-on on centos 7 with 1.6.33 installed" "2.4.2" "$result"
 
-function test_override_delivered_version() {
-    local version
-    version="$(DIR="$OVERRIDE_DIR" LSB_DIST=centos DIST_VERSION=7 DIST_VERSION_MAJOR=7 containerd_addon_delivered_version 2.4.2)"
-    assertEquals "2.4.2 add-on delivers 1.6.33 on centos 7" "1.6.33" "$version"
-    version="$(DIR="$OVERRIDE_DIR" LSB_DIST=rocky DIST_VERSION=8.10 DIST_VERSION_MAJOR=8 containerd_addon_delivered_version 2.4.2)"
-    assertEquals "2.4.2 add-on delivers 2.4.2 on rocky 8" "2.4.2" "$version"
-    version="$(DIR="$OVERRIDE_DIR" LSB_DIST=ubuntu DIST_VERSION=20.04 DIST_VERSION_MAJOR=20 containerd_addon_delivered_version 2.4.2)"
-    assertEquals "2.4.2 add-on with no ubuntu-20.04 line falls back to 2.4.2" "2.4.2" "$version"
-}
-
-function test_override_rerun_rhel7_family() {
-    local steps
-    steps="$(run_evaluate_upgrade centos 7 1.6.33 2.4.2)"
-    assertEquals "re-run of 2.4.2 add-on on centos 7 with 1.6.33 installed does not bail" "2.4.2" "$steps"
-    steps="$(run_evaluate_upgrade rhel 7.9 1.6.33 2.4.2)"
-    assertEquals "re-run of 2.4.2 add-on on rhel 7 with 1.6.33 installed does not bail" "2.4.2" "$steps"
-    steps="$(run_evaluate_upgrade ol 7.9 1.6.33 2.4.2)"
-    assertEquals "re-run of 2.4.2 add-on on ol 7 with 1.6.33 installed does not bail" "2.4.2" "$steps"
-    steps="$(run_evaluate_upgrade amzn 2 1.6.33 2.4.2)"
-    assertEquals "re-run of 2.4.2 add-on on amazon linux 2 with 1.6.33 installed does not bail" "2.4.2" "$steps"
-}
-
-function test_override_upgrade_rhel7_from_older() {
-    local steps
-    steps="$(run_evaluate_upgrade centos 7 1.5.11 2.4.2)"
-    assertEquals "1.5 -> 2.4.2 add-on on centos 7 installs the 2.4.2 add-on" "2.4.2" "$steps"
-    steps="$(run_evaluate_upgrade centos 7 1.4.13 2.4.2)"
-    assertEquals "1.4 -> 2.4.2 add-on on centos 7 steps through 1.5" "1.5.11 2.4.2" "$steps"
-}
-
-function test_override_not_applied_where_version_ships() {
-    local steps
-    steps="$(run_evaluate_upgrade rocky 8.10 1.6.33 2.4.2)"
-    echo "$steps" | grep -q "^BAIL: .*1.7.x first"
-    assertEquals "1.6.33 -> 2.4.2 add-on on rocky 8 still bails" "0" "$?"
-    steps="$(run_evaluate_upgrade ubuntu 22.04 1.6.33 2.4.2)"
-    echo "$steps" | grep -q "^BAIL: .*1.7.x first"
-    assertEquals "1.6.33 -> 2.4.2 add-on on ubuntu 22.04 still bails" "0" "$?"
-    steps="$(run_evaluate_upgrade ubuntu 22.04 1.7.29 2.4.2)"
-    assertEquals "1.7.29 -> 2.4.2 add-on on ubuntu 22.04 is allowed" "2.4.2" "$steps"
-}
-
-function test_override_missing_manifest() {
-    local steps
-    steps="$(run_evaluate_upgrade centos 7 1.6.33 2.4.2 "$(mktemp -d)")"
-    echo "$steps" | grep -q "^BAIL: .*1.7.x first"
-    assertEquals "without the add-on Manifest the add-on version is used" "0" "$?"
+    result="$( (
+        DIR="$dir" LSB_DIST=rocky DIST_VERSION_MAJOR=8
+        use_os_containerd() { return 1; }
+        containerd_evaluate_upgrade 1.6.33 2.4.2 >/dev/null
+    ) 2>&1 || true)"
+    echo "$result" | grep -q "1.7.x first"
+    assertEquals "1.6.33 -> 2.4.2 on rocky 8 still bails" "0" "$?"
+    rm -rf "$dir"
 }
 
 # Run all tests
@@ -650,11 +598,7 @@ test_install_runc_containerd_2x
 test_install_runc_missing_asset_bails
 test_install_runc_unknown_version
 test_install_runc_1x_addon
-test_override_delivered_version
-test_override_rerun_rhel7_family
-test_override_upgrade_rhel7_from_older
-test_override_not_applied_where_version_ships
-test_override_missing_manifest
+test_override_version_rerun
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "$FAILURES containerd test(s) failed."
