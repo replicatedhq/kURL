@@ -1659,7 +1659,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.x
+      version: 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1676,7 +1676,6 @@
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
     # END GENERATED os-matrix: unsupported-capability
-    - ubuntu-2004 # containerd 1.7.x does not install on ubuntu 20.04
 - name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
   flags: "yes"
   installerSpec:
@@ -1694,7 +1693,7 @@
     kubernetes:
       version: 1.24.x
     containerd:
-      version: 1.7.x
+      version: 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1723,7 +1722,6 @@
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
     # END GENERATED os-matrix: unsupported-capability
-    - ubuntu-2004 # containerd 1.7.x does not install on ubuntu 20.04
 - name: "Preserve CoreDNS config, kubeadm upgrade --ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   flags: "yes kubernetes-upgrade-ignore-preflight-errors=CoreDNSUnsupportedPlugins"
   installerSpec:
@@ -1739,7 +1737,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.x
+      version: 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1755,8 +1753,6 @@
   # read the coredns configmap and make sure the comment is still there
   postUpgradeScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'blah.io'
-  unsupportedOSIDs:
-  - ubuntu-2004 # containerd 1.7.x does not install on ubuntu 20.04
 - name: "CoreDNS preserve kurl.nameserver"
   flags: "yes"
   installerSpec:
@@ -1774,7 +1770,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.x
+      version: 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1785,8 +1781,6 @@
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
   postUpgradeScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
-  unsupportedOSIDs:
-  - ubuntu-2004 # containerd 1.7.x does not install on ubuntu 20.04
 - name: k8s132-rook-override-node-storage
   installerSpec:
     kubernetes:
