@@ -30,7 +30,7 @@
       version: latest
       disableS3: true
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     ekco:
       version: latest
   unsupportedOSIDs:
