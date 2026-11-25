@@ -1596,7 +1596,7 @@
     flannel:
       version: latest
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -1650,7 +1650,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1684,7 +1684,7 @@
     kubernetes:
       version: 1.24.x
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1728,7 +1728,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1761,7 +1761,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: 1.7.27
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
