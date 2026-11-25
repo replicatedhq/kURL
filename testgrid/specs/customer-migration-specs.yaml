@@ -76,6 +76,9 @@
       echo "Kubernetes was not upgraded to 1.27.x"
       exit 1
     fi
+  unsupportedOSIDs:
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 
 - name: "Cust sha1:9aed61a879834bbff0586a61784b4f56135671f7: k8s 1.23 -> 1.27, containerd 1.5.x -> 1.6.x, weave -> flannel, longhorn 1.2.x -> openebs 3.7.x"
   flags: "yes"
@@ -161,7 +164,10 @@
     fi
   unsupportedOSIDs:
   - amazon-2023 # Kubernetes < 1.24 are not supported on Amazon Linux.
+  - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+  - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -214,6 +220,8 @@
   unsupportedOSIDs:
     - ubuntu-2204 # this version of docker is too old for 22.04
     - amazon-2023 # docker is not supported on amazon 2023
+    - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
+    - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -248,6 +256,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
   flags: "yes"
   numPrimaryNodes: 3
@@ -352,6 +361,7 @@
     - rocky-9
     - ol-8x
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2604 # kURL v2023.03.28-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -378,6 +388,7 @@
     fi
 
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
@@ -472,6 +483,7 @@
     - rocky-9
     - ol-8x
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2604 # kURL v2023.03.28-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -491,6 +503,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
@@ -586,6 +599,7 @@
     - rocky-9
     - ol-8x
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2604 # kURL v2023.03.28-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -611,6 +625,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
@@ -718,6 +733,7 @@
     - rocky-9
     - ol-8x
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh
@@ -804,6 +820,7 @@
     - rocky-9
     - ol-8x
     - amazon-2023 # docker is not supported on amazon 2023
+    - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
   postInstallScript: |
     # source helper functions
     source /opt/kurl-testgrid/testhelpers.sh

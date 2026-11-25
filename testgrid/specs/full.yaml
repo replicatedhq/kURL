@@ -25,6 +25,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -61,6 +62,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -90,6 +92,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -122,6 +125,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -154,6 +158,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -186,6 +191,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -219,6 +225,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -254,6 +261,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variantsl
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -291,6 +299,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -328,6 +337,8 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -389,6 +400,7 @@
   - centos-79 # latest Kubernetes (1.35+) does not support cgroup v1
   - ol-79 # latest Kubernetes (1.35+) does not support cgroup v1
   - ubuntu-1804 # latest Kubernetes (1.35+) does not support cgroup v1
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
@@ -406,6 +418,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -431,6 +444,9 @@
         - s0-s0:c0.c1023
         - my_staff_u
       type: targeted
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -460,6 +476,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -495,6 +512,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variant4
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -580,6 +598,8 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -635,7 +655,7 @@
       version: latest
       disableS3: true
     velero:
-      version: latest
+      version: 1.15.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -643,6 +663,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # Kubernetes versions < 1.24 are not supported on Amazon Linux.
   - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
@@ -748,6 +769,9 @@
   - rocky-91 # doc:
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
+  - rocky-10 # kURL v2024.07.02-0 does not support rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on amazon 2023
@@ -785,6 +809,7 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
 - name: "K8s 1.32x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -806,13 +831,15 @@
       version: latest
       disableS3: true
     velero:
-      version: latest
+      version: 1.16.2
     ekco:
       version: latest
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -852,6 +879,7 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
 - name: "Upgrade to 1.24, disable s3, weave to flannel"
   flags: "yes"
   cpu: 7
@@ -892,6 +920,9 @@
   - rocky-91 # docker is not supported on rhel 9 variantsl
   - rocky-9 # docker is not supported on rhel 9 variants
   - centos-9 # docker is not supported on rhel 9 variants
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
+  - rocky-10 # kURL v2024.07.02-0 does not support rocky 10
   # BEGIN GENERATED os-matrix: unsupported-capability — edit os-matrix.yaml, run 'make generate-os-matrix'
   - amazon-2023 # docker is not supported on amazon 2023
   - ubuntu-2404 # docker is not supported on ubuntu 2404
@@ -949,6 +980,8 @@
     ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   unsupportedOSIDs:
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132-all-the-flags
   installerSpec:
     kubernetes:
@@ -975,6 +1008,8 @@
     kubectl get node -oyaml | grep ' pods: "200"'
   unsupportedOSIDs:
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
@@ -1010,6 +1045,8 @@
     kubectl get namespaces
   unsupportedOSIDs:
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s123x_124x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -1041,6 +1078,8 @@
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
     # END GENERATED os-matrix: unsupported-capability
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
@@ -1069,6 +1108,8 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: less_command
   installerSpec:
     kubernetes:
@@ -1086,6 +1127,8 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: "weave latest multinode"
   installerSpec:
     kubernetes:
@@ -1100,6 +1143,8 @@
   numSecondaryNodes: 2
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
@@ -1114,6 +1159,8 @@
   numSecondaryNodes: 2
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s121x_openebs_containerd
   installerSpec:
     kubernetes:
@@ -1123,7 +1170,7 @@
     contour:
       version: "1.21.x"
     containerd:
-      version: "latest"
+      version: 1.6.x
     velero:
       version: "1.10.x"
     kotsadm:
@@ -1157,7 +1204,7 @@
     kubernetes:
       version: 1.19.x
     containerd:
-      version: "latest"
+      version: 1.6.x
     flannel:
       version: latest
     rook:
@@ -1172,7 +1219,7 @@
     kubernetes:
       version: 1.20.x
     containerd:
-      version: "latest"
+      version: 1.6.x
     flannel:
       version: latest
     rook:
@@ -1227,7 +1274,7 @@
     kubernetes:
       version: 1.19.x
     containerd:
-      version: "latest"
+      version: 1.6.x
     flannel:
       version: latest
     rook:
@@ -1242,7 +1289,7 @@
     kubernetes:
       version: 1.19.x
     containerd:
-      version: "latest"
+      version: 1.6.x
     flannel:
       version: latest
     rook:
@@ -1343,6 +1390,9 @@
   - rocky-9 # containerd < 1.6 is not supported on rhel 9 variants
   - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - ubuntu-2204 # containerd is not supported by ubuntu 22.04
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
 - name: "containerd upgrade from 1.2.x to 1.4.x"
   installerSpec:
     kubernetes:
@@ -1381,6 +1431,7 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1424,6 +1475,8 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1468,6 +1521,7 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1512,6 +1566,7 @@
   - amazon-2023 # containerd < 1.5 is not supported on amazon linux 2023
   - ubuntu-2404 # containerd < 1.5 is not supported on ubuntu 24
   - ubuntu-2604 # containerd < 1.5 is not supported on ubuntu 26
+  - rocky-10 # containerd < 1.6 is not supported on rocky 10
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1541,7 +1596,7 @@
     flannel:
       version: latest
     containerd:
-      version: 1.7.x
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -1574,6 +1629,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
     touch /var/lib/kurl
@@ -1584,7 +1641,7 @@
     kubernetes:
       version: 1.19.x
     containerd:
-      version: latest
+      version: 1.6.x
     flannel:
       version: latest
     ekco:
@@ -1593,7 +1650,7 @@
     kubernetes:
       version: 1.32.x
     containerd:
-      version: latest
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1616,7 +1673,7 @@
     kubernetes:
       version: 1.19.x
     containerd:
-      version: latest
+      version: 1.6.x
     flannel:
       version: latest
     ekco:
@@ -1627,7 +1684,7 @@
     kubernetes:
       version: 1.24.x
     containerd:
-      version: latest
+      version: 1.7.27 # Ubuntu 20.04 has no containerd.io package newer than 1.7.27
     flannel:
       version: latest
     ekco:
@@ -1676,6 +1733,9 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   # add a customization to the coredns configmap
   # kubeadm upgrade will warn with CoreDNSUnsupportedPlugins
   postInstallScript: |
@@ -1715,6 +1775,9 @@
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
   postUpgradeScript: |
     kubectl -n kube-system get configmap coredns -o yaml | grep -F 'forward . 8.8.8.8'
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132-rook-override-node-storage
   installerSpec:
     kubernetes:
@@ -1762,6 +1825,8 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: "1.32 with all metrics and kots"
   flags: "yes"
   installerSpec:
@@ -1795,6 +1860,8 @@
       version: "latest"
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
@@ -1841,6 +1908,8 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
@@ -1887,6 +1956,8 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     amazon_2023_install_host_packages collectd collectd-rrdtool collectd-disk
@@ -1967,6 +2038,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -2001,6 +2074,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -2027,7 +2102,7 @@
     kotsadm:
       version: latest
     velero:
-      version: latest
+      version: 1.15.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -2038,6 +2113,8 @@
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
     # END GENERATED os-matrix: unsupported-capability
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -2058,7 +2135,7 @@
     kotsadm:
       version: latest
     velero:
-      version: latest
+      version: 1.15.x
     ekco:
       version: latest
   airgap: true
@@ -2085,6 +2162,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-125
   installerSpec:
     containerd:
@@ -2097,6 +2176,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-126
   installerSpec:
     containerd:
@@ -2112,6 +2193,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-127
   installerSpec:
     containerd:
@@ -2127,6 +2210,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-128
   installerSpec:
     containerd:
@@ -2142,6 +2227,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-129
   installerSpec:
     containerd:
@@ -2157,6 +2244,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-130
   installerSpec:
     containerd:
@@ -2172,6 +2261,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-131
   installerSpec:
     containerd:
@@ -2187,6 +2278,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: minimal-132
   installerSpec:
     containerd:
@@ -2202,6 +2295,8 @@
       enableInternalLoadBalancer: true
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -2225,6 +2320,8 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132x_reserved_resources
   installerSpec:
     kubernetes:
@@ -2255,6 +2352,8 @@
     kubectl get namespaces
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: k8s132-openebs
   installerSpec:
     kubernetes:
@@ -2283,6 +2382,8 @@
       version: latest
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -2309,13 +2410,15 @@
     kotsadm:
       version: latest
     velero:
-      version: latest
+      version: 1.15.x
     ekco:
       version: latest
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
@@ -2353,6 +2456,9 @@
     ubuntu_2404_install_host_packages containerd socat ebtables conntrack
     ubuntu_2604_install_host_packages containerd socat ebtables conntrack
     # END GENERATED os-matrix: ubuntu-host-packages
+  unsupportedOSIDs:
+  - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+  - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -2423,6 +2529,9 @@
     - ubuntu-2404 # Kubernetes versions < 1.24 are not supported on Ubuntu 24.04.
     - ubuntu-2604 # Kubernetes versions < 1.24 are not supported on Ubuntu 26.04.
     # END GENERATED os-matrix: unsupported-capability
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
+    - rocky-10 # kURL v2024.07.02-0 does not support rocky 10
 - name: "weave to flannel single node with addons and openebs"
   flags: "yes"
   cpu: 8
@@ -2475,6 +2584,8 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.11.6 will not be installed due to failed preflight checks.
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     # BEGIN GENERATED os-matrix: ubuntu-host-packages — edit os-matrix.yaml, run 'make generate-os-matrix'
@@ -2499,6 +2610,8 @@
     kubectl get secrets -n kurl kurl-supportbundle-spec -oyaml | grep 'troubleshoot.io/kind: support-bundle'
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 - name: merge-installer-hostpreflight-and-upgrade
   installerSpec:
     kubernetes:
@@ -2587,6 +2700,8 @@
     kubectl get installer -A -o yaml | grep 8888
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
 
 - name: reset and reinstall
   installerSpec:
@@ -2612,3 +2727,5 @@
     echo $k8sVersion | grep 1.27
   unsupportedOSIDs:
     - centos-81 # containerd 1.6.31+ not supported on non-stream centos 8
+    - ubuntu-1804 # containerd 2.x does not install on ubuntu 18.04
+    - ubuntu-2004 # containerd 2.x does not install on ubuntu 20.04
