@@ -959,6 +959,7 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (Docker config)
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -1100,6 +1101,7 @@
   - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
   - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: "yes"
   airgap: true
@@ -1229,6 +1231,7 @@
        exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: Cust 1 - Migrate from Rook+OpenEBS 1.6.0 to OpenEBS 3.3.0 (Kubernetes 1.19.x to 1.21.x)
   flags: "yes"
   airgap: true
@@ -1354,6 +1357,7 @@
        exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: Cust 1 - Migrate from Weave to Flannel (Kubernetes 1.21.x to 1.23.x, Docker to Containerd)
   flags: "yes"
   airgap: true

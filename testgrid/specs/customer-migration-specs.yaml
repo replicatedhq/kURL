@@ -167,6 +167,7 @@
   - rocky-9 # kURL v2024.07.02-0 does not support rocky 9.7
   - ubuntu-2604 # kURL v2024.07.02-0 does not support ubuntu 26.04
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:f78c1e8cfec1cace37d9c96e0f35481f75ffdc26: k8s 1.19 -> 1.27, docker -> containerd, weave -> flannel, rook 1.0.4 -> openebs 3.7.x"
   flags: "yes"
   installerApiEndpoint: https://kurl.sh
@@ -255,6 +256,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19 -> 1.21, rook 1.0.4 -> openebs 3.3"
   flags: "yes"
   numPrimaryNodes: 3
@@ -386,6 +388,7 @@
     fi
 
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.21->1.26, openebs 3.3 -> 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
@@ -500,6 +503,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:a272ff47a5d0163c65b97c2d2c5acfbc0396f2c4: k8s 1.19->1.26, rook 1.0.4 -> openebs 3.8.0, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3
@@ -621,6 +625,7 @@
       exit 1
     fi
 
+# NOTE: excluded from every OS in os-customer-common, so this spec never runs. See sc-140974.
 - name: "Cust sha1:52ed79b81826a130502b5df18c00d872e70c3b8e: k8s 1.17->1.26, rook 1.0.4 -> 1.12, weave->flannel, docker->containerd"
   flags: "yes"
   numPrimaryNodes: 3

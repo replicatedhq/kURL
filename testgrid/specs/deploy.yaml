@@ -152,6 +152,7 @@
     - amazon-2023 # OS containerd 2.x, no containerd 1.7 starting point
     - ubuntu-2404 # OS containerd 2.x, no containerd 1.7 starting point
     - ubuntu-2604 # OS containerd 2.x, no containerd 1.7 starting point
+# NOTE: excluded from every OS in os-latest, so this spec never runs. See sc-140974.
 - name: "Migrate from Longhorn + Minio to OpenEBS + Minio"
   flags: "yes"
   cpu: 6
