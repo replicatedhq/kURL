@@ -213,6 +213,10 @@ Key Testgrid API endpoints for public data:
 - `GET /api/v1/instance/{nodeId}/node-logs` — per-node logs.
 - `GET /api/v1/instance/{instanceId}/sonobuoy` — Sonobuoy results.
 
+Cancelling runs and cleaning up runner hosts: see the "Cancelling queued or stuck work via the API" and "Cleaning up VMs on the Testgrid hosts" sections of `.claude/skills/testgrid-failure-analysis/SKILL.md`.
+
+The `testgrid-checker` PR check (`.github/actions/testgrid-checker`) only evaluates the runs matching the `pr-<N>-<sha>` prefix from the PR's latest "Testgrid Run(s) Executing" comment: it waits while any of them has pending or running instances, fails if any has failures, and otherwise passes. Cancelling older batches therefore does not affect the check, while cancelled instances drop out of all three counts — so cancelling the entire latest batch makes the check pass (and, with the `auto-merge` label, approves and merges the PR).
+
 ## 6. Build and release
 
 ### Primary build targets
