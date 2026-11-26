@@ -1115,8 +1115,8 @@ github.com/redis/go-redis/extra/redisotel/v9 v9.23.0 h1:EBQ01zUjwarZZ4IoSTQNU9EE
 github.com/redis/go-redis/extra/redisotel/v9 v9.23.0/go.mod h1:4xBZ7QF+cd90pc58g+cXH1aLJBgOGd4Gp5BBQvNtPn0=
 github.com/redis/go-redis/v9 v9.23.0 h1:/TTVdJa8BRNsybwwGGnmiYktHNlUXtbOQxlWpHBPL3s=
 github.com/redis/go-redis/v9 v9.23.0/go.mod h1:EWP2UUk+XDaI1s5nQB5mablZN6vccXlmBQTyfnF87D0=
-github.com/replicatedhq/kurlkinds v1.5.0 h1:zZ0PKNeh4kXvSzVGkn62DKTo314GxhXg1TSB3azURMc=
-github.com/replicatedhq/kurlkinds v1.5.0/go.mod h1:rUpBMdC81IhmJNCWMU/uRsMETv9P0xFoMvdSP/TAr5A=
+github.com/replicatedhq/kurlkinds v1.6.0 h1:ZDHrm7+oqzW559yCp5YQe5Zw0NTQM0BBYhcxyouRcHk=
+github.com/replicatedhq/kurlkinds v1.6.0/go.mod h1:A0Cr8ni9OtK4FT2+TvL/ThYa0/E4RvyGvIuHGMK+Smo=
 github.com/replicatedhq/plumber/v2 v2.2.0 h1:vjG8hZKO7tvLdPzWFqLBmjfpNtpSXhWrOmYdwTNdQR0=
 github.com/replicatedhq/plumber/v2 v2.2.0/go.mod h1:seRCMUymCb8PPFw+pH1OefvKVSi5EgSo4HEMYpCW6Io=
 github.com/replicatedhq/pvmigrate v0.12.3 h1:aUV+aWfeePrkHE7hHFkAg3HvuOL1ueSnUxW/1E2dlMU=
