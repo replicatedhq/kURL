@@ -193,6 +193,12 @@ test('buildCompletionCommentBody announces success without a leg list', () => {
   assert.doesNotMatch(body, /Failed legs/);
 });
 
+test('buildCompletionCommentBody never announces success when every leg was cancelled', () => {
+  const body = buildCompletionCommentBody('ref-1', { passed: 0, failed: 0, skipped: 108 }, []);
+  assert.match(body, /### 🏁 Testgrid RC run ⚪ did not run/);
+  assert.doesNotMatch(body, /✅ passed/);
+});
+
 test('buildCompletionCommentBody lists failed legs with markers stripped', () => {
   const legs = [buildLegLine({ id: 'i1', testName: 'A', osName: 'U', osVersion: '22', isSuccess: false, failureReason: 'kurl_install' })];
   const body = buildCompletionCommentBody('ref-1', { passed: 3, failed: 1, skipped: 0 }, legs);

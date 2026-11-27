@@ -1,0 +1,87 @@
+name: cancel-stale-testgrid-runs
+
+# A push to a PR cancels the older test-addon-pr.yaml and testgrid-pr.yaml
+# workflow runs, but not the Testgrid runs they already queued. Cancel them:
+#   * on push: the PR's add-on runs (pr-<N>-<sha7>-...) for earlier commits,
+#     and, when the PR has `run-testgrid` (testgrid-pr.yaml re-queues on push),
+#     its core RC runs (PR-<tag>-rc-pr<N>-<sha7>-...) for earlier commits;
+#   * on close: all of the PR's runs.
+#
+# Runs queued after this sweep are missed: a workflow run that was
+# mid-`tgrun queue` when GitHub cancelled it, and, on close, any workflow run
+# still in progress (closing doesn't cancel it). The next push or the close
+# catches the first kind; nothing catches the second.
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - closed
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: read
+
+jobs:
+  cancel:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Cancel stale Testgrid runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          api=https://api.testgrid.kurl.sh/api/v1
+          keep=""
+          rc_label=true
+          if [ "${ACTION}" != closed ]; then
+            # Read the head and labels now, not from the event payload: a
+            # re-run of an older push's run must not cancel newer runs.
+            pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+              --jq '"\(.head.sha) \(any(.labels[]; .name == "run-testgrid"))"')" || exit 1
+            read -r head rc_label <<< "${pr}"
+            if ! [[ "${head}" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "unexpected head sha: '${head}'"
+              exit 1
+            fi
+            keep="${head:0:7}"
+          fi
+          failed=0
+
+          # cancel_matching <searchRef> <regex with a named "sha" group>
+          cancel_matching() {
+            local refs ref
+            # pageSize=0 returns every matching run.
+            if ! refs="$(curl -fsS "${api}/runs?searchRef=$1&pageSize=0" \
+                | jq -r --arg re "$2" --arg keep "${keep}" \
+                    '.runs[] | select(.pending_runs + .running_runs > 0) | .id as $id
+                     | $id | capture($re) | select(.sha != $keep) | $id')"; then
+              echo "::warning ::failed to list Testgrid runs matching $1"
+              failed=1
+              return
+            fi
+            while read -r ref; do
+              [ -n "${ref}" ] || continue
+              echo "Cancelling ${ref}"
+              if ! curl -fsS -X POST "${api}/ref/${ref}/cancel"; then
+                echo "::warning ::failed to cancel Testgrid run ${ref}"
+                failed=1
+              fi
+              echo
+            done <<< "${refs}"
+          }
+
+          cancel_matching "pr-${PR_NUMBER}-" "^pr-${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
+          if [ "${rc_label}" = true ]; then
+            cancel_matching "rc-pr${PR_NUMBER}-" "^PR-.*-rc-pr${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
+          fi
+          exit "${failed}"
