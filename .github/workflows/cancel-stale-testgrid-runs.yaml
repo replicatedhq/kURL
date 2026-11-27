@@ -1,13 +1,22 @@
 name: cancel-stale-testgrid-runs
 
-# A push cancels the older test-addon-pr.yaml run, but not the Testgrid runs
-# it already queued. Cancel the PR's add-on runs (pr-<N>-<sha7>-...) for
-# earlier commits so they stop using VMs.
+# A push to a PR cancels the older test-addon-pr.yaml and testgrid-pr.yaml
+# workflow runs, but not the Testgrid runs they already queued. Cancel them:
+#   * on push: the PR's add-on runs (pr-<N>-<sha7>-...) for earlier commits,
+#     and, when the PR has `run-testgrid` (testgrid-pr.yaml re-queues on push),
+#     its core RC runs (PR-<tag>-rc-pr<N>-<sha7>-...) for earlier commits;
+#   * on close: all of the PR's runs.
+#
+# A workflow run that was mid-`tgrun queue` when GitHub cancelled it can still
+# land a run after this sweep; the next push or the close cancels it.
 
 on:
   pull_request:
     types:
       - synchronize
+      - closed
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -21,19 +30,44 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Cancel Testgrid runs for earlier commits
+      - name: Cancel stale Testgrid runs
         env:
+          ACTION: ${{ github.event.action }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RC_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'run-testgrid') }}
         run: |
-          set -euo pipefail
-          api=https://api.testgrid.kurl.sh
-          # pageSize=0 returns every matching run.
-          curl -fsS "${api}/api/v1/runs?searchRef=pr-${PR_NUMBER}-&pageSize=0" \
-            | jq -r --arg prefix "pr-${PR_NUMBER}-" --arg head "${HEAD_SHA:0:7}" \
-                '.runs[] | select(.id | startswith($prefix)) | select(.id | startswith($prefix + $head) | not)
-                         | select(.pending_runs + .running_runs > 0) | .id' \
-            | while read -r ref; do
-                echo "Cancelling ${ref}"
-                curl -fsS -X POST "${api}/v1/ref/${ref}/cancel"; echo
-              done
+          set -uo pipefail
+          api=https://api.testgrid.kurl.sh/api/v1
+          keep="${HEAD_SHA:0:7}"
+          if [ "${ACTION}" = closed ]; then keep=""; fi
+          failed=0
+
+          # cancel_matching <searchRef> <regex with a named "sha" group>
+          cancel_matching() {
+            local refs ref
+            # pageSize=0 returns every matching run.
+            if ! refs="$(curl -fsS "${api}/runs?searchRef=$1&pageSize=0" \
+                | jq -r --arg re "$2" --arg keep "${keep}" \
+                    '.runs[] | select(.pending_runs + .running_runs > 0) | .id as $id
+                     | $id | capture($re) | select(.sha != $keep) | $id')"; then
+              echo "::warning ::failed to list Testgrid runs matching $1"
+              failed=1
+              return
+            fi
+            while read -r ref; do
+              [ -n "${ref}" ] || continue
+              echo "Cancelling ${ref}"
+              if ! curl -fsS -X POST "${api}/ref/${ref}/cancel"; then
+                echo "::warning ::failed to cancel Testgrid run ${ref}"
+                failed=1
+              fi
+              echo
+            done <<< "${refs}"
+          }
+
+          cancel_matching "pr-${PR_NUMBER}-" "^pr-${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
+          if [ "${ACTION}" = closed ] || [ "${RC_LABEL}" = true ]; then
+            cancel_matching "rc-pr${PR_NUMBER}-" "^PR-.*-rc-pr${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
+          fi
+          exit "${failed}"

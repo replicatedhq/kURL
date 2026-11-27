@@ -16,6 +16,9 @@ name: testgrid-pr
 #     labels — this is the security gate). Add `testgrid-full` to run the full
 #     OS matrix instead of the default first/last subset.
 #   * Or run it manually: Actions > testgrid-pr > Run workflow, choose a branch.
+#   * Each push to a PR that has `run-testgrid` builds and queues a new run for
+#     the new commit; cancel-stale-testgrid-runs.yaml cancels the run queued
+#     for the earlier commit. Remove the label to stop testing on push.
 #
 # ── PR comment behavior ─────────────────────────────────────────────────────
 #   * All runs of a PR append into ONE sticky comment (header `testgrid-pr`)
@@ -92,6 +95,7 @@ on:
   pull_request:
     types:
       - labeled
+      - synchronize
     branches:
       - main
   workflow_dispatch:
@@ -133,15 +137,16 @@ concurrency:
 
 jobs:
   get-tag:
-    # Only run for a manual dispatch, or for a PR that a maintainer has labeled
-    # `run-testgrid`. Fork PRs are skipped (they cannot access secrets and the
+    # Only run for a manual dispatch, when a maintainer adds `run-testgrid` to a
+    # PR, or on a push to a PR that has it. Fork PRs are skipped (they cannot access secrets and the
     # label gate would otherwise produce confusing failures).
     if: >-
       ${{ github.repository_owner == 'replicatedhq' &&
           github.actor != 'dependabot[bot]' &&
           github.actor != 'replicated-ci-kurl' &&
           (github.event_name == 'workflow_dispatch' ||
-           (github.event.label.name == 'run-testgrid' &&
+           ((github.event.action == 'labeled' && github.event.label.name == 'run-testgrid' ||
+             github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'run-testgrid')) &&
             github.event.pull_request.head.repo.full_name == github.repository)) }}
     runs-on: ubuntu-24.04
     outputs:
@@ -625,9 +630,11 @@ jobs:
     # Only PR-triggered runs have a PR to comment on. always() so a build
     # failure is still recorded on the PR. A CANCELLED run (superseded by a
     # newer label/push via the concurrency group) stays silent: nothing of it
-    # will execute, and reporting it would just be noise.
+    # will execute, and reporting it would just be noise. A push to a PR
+    # without `run-testgrid` skips get-tag and has nothing to report.
     if: >-
       ${{ always() && github.event_name == 'pull_request' &&
+          needs.get-tag.result != 'skipped' &&
           !contains(needs.*.result, 'cancelled') }}
     permissions:
       pull-requests: write

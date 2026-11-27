@@ -85,16 +85,17 @@ Useful enumeration patterns:
 
 - `GET /api/v1/runs?pageSize=100&currentPage=N` — every run includes `pending_runs` (count of `dequeuedAt == null` instances), so pending work can be counted without fetching every run's instances.
 - Stuck/running instances: fetch `POST /api/v1/run/{refId}` and filter `finishedAt == null && !isSkipped && !isUnsupported`.
-- Run names are `pr-<PR#>-<mergeCommitSha>-<addon>-<version>-<spec>-<timestamp>` (for PR-triggered runs). Because GitHub sets `GITHUB_SHA` to the PR *merge commit* for `pull_request` events, **each push to a PR produces a new batch prefix** — this is the key to "cancel everything older than the newest batch".
+- Run names are `pr-<PR#>-<headSha7>-<addon>-<version>-<spec>-<timestamp>` for add-on PR runs and `PR-<tag>-rc-pr<PR#>-<headSha7>-<timestamp>` for `testgrid-pr.yaml` core runs (older add-on runs used the PR *merge commit* sha). To find a PR's stale runs, cancel the refs whose sha is not the PR's current head sha — not "everything older than the newest batch": a head restored to an earlier sha reuses its old prefix, and one head can have both add-on and RC batches.
 
 ## Cancelling queued or stuck work via the API
 
-Two mutation endpoints (both on the unauthenticated router in OSS; send the token as basic auth `token:<TESTGRID_API_TOKEN>` anyway in case the deployment adds auth):
+Mutation endpoints (all on the unauthenticated router in OSS; send the token as basic auth `token:<TESTGRID_API_TOKEN>` anyway in case the deployment adds auth):
 
+- **`POST /api/v1/ref/{refId}/cancel`** (alias `/v1/ref/{refId}/cancel`) — preferred. Drops every pending instance of a run and marks running ones cancelled (`cancelled_at` and `finished_at` set); the runner hosts then delete their VMs. Returns `{"pendingCancelled": N, "runningCancelled": M}`. `POST /v1/instance/{instanceId}/cancel` does the same for one instance (it returns `null`, not counts).
 - **`POST /v1/skip/ref/{refId}`** — cancels every **pending** instance of a run: sets `is_skipped=true` and `dequeued_at=now()`, which permanently removes them from the runner queue (dequeue only selects `dequeued_at is null`). UI shows them as "Skipped". This is the correct way to drain a queue. It does **not** touch already-running instances.
-- **`POST /v1/instance/{instanceId}/finish`** with body `{"success": false, "failureReason": "..."}` — marks an instance finished/failed. Semantics (`SetInstanceFinishedAndSuccess` in tgapi): once `finished_at` is set, a late *success* report from the VM is a no-op (its update has `where finished_at is null`), but a late *failure* report overwrites `failure_reason` unconditionally. So manual failure marks are sticky against success.
+- **`POST /v1/instance/{instanceId}/finish`** with body `{"success": false, "failureReason": "..."}` — marks an instance finished/failed. Semantics (`SetInstanceFinishedAndSuccess` in tgapi): once `finished_at` is set, a late *success* report from the VM is a no-op (its update has `where finished_at is null`), but a late *failure* report overwrites `failure_reason` unless the instance was cancelled (both updates also have `and cancelled_at is null`). So manual failure marks are sticky against success.
 
-When cancelling a batch, do both: skip the run (drains pending), then fetch the run and `/finish` any instances that were already dequeued. Cancelling in the API does **not** stop VMs that are already running on the hosts — see the next section.
+When cancelling a batch, use `/cancel` on each ref. With only `/skip` and `/finish`, do both: skip the run (drains pending), then fetch the run and `/finish` any instances that were already dequeued; neither stops VMs that are already running on the hosts — see the next section.
 
 ## Cleaning up VMs on the Testgrid hosts
 
@@ -113,5 +114,5 @@ Understanding this helps when deciding what to cancel:
 
 - `.github/workflows/test-addon-pr.yaml` builds its matrix via `bin/addon-has-changes-matrix.sh`: **one matrix leg per changed add-on version directory**. For template-generated add-ons (containerd, flannel), a cross-cutting change rewrites every version directory, so one push = one Testgrid run per version (containerd: 42 legs × ~61 instances ≈ 2,500 VMs per push).
 - The workflow's `paths: addons/**` filter on `pull_request` events is evaluated against the **whole PR diff**, not the pushed commits — every push re-fires the full matrix regardless of what the push changed.
-- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs**; `.github/workflows/cancel-stale-testgrid-runs.yaml` cancels them on each push via `POST /v1/ref/{ref}/cancel`.
+- The workflow's `concurrency: cancel-in-progress: true` cancels outstanding *GitHub jobs* on a new push but **cannot dequeue already-queued Testgrid runs**. `.github/workflows/cancel-stale-testgrid-runs.yaml` cancels them on each push (every `pr-<N>-*` ref, plus `*-rc-pr<N>-*` refs when the PR has `run-testgrid`, whose sha is not the PR's head) and cancels all of the PR's runs when it closes; anything else must be cancelled via the API.
 - The matrix is throttled (`max-parallel: 5`), so legs emit runs in waves; a cancelled workflow run may leave later waves unqueued.

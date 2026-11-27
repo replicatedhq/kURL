@@ -139,7 +139,9 @@ workflow lets a maintainer run Testgrid against a PR's own build **before** merg
 without touching the shared `staging/VERSION` pointer.
 
 - **Trigger:** add the **`run-testgrid`** label to a PR, or run it manually via
-  Actions → **testgrid-pr** → Run workflow with a `branch` input.
+  Actions → **testgrid-pr** → Run workflow with a `branch` input. While the label
+  is on the PR, each push queues a new run for the new commit and cancels the
+  run for the earlier one (`cancel-stale-testgrid-runs.yaml`).
 - **Build:** fast **core-only** strategy — rebuilds a small core batch from the
   PR's source and copies the rest from the last staging release. Publishes under a
   unique RC tag to `s3://kurl-sh/staging/<latest-tag>-rc-pr<num>-<sha>/`. Never
