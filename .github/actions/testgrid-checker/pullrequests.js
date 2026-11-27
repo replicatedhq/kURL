@@ -28,22 +28,6 @@ const TESTGRID_API = 'https://api.testgrid.kurl.sh/api/v1';
 export const allAddonRunsDone = runs =>
   runs.every(run => !(run.pending_runs > 0) && !(run.running_runs > 0));
 
-export const anyAddonRunRan = runs =>
-  runs.some(run => (run.success_count || 0) + (run.failure_count || 0) > 0);
-
-// The runs list has no cancelled count, so read each run's instances for an
-// explicit cancelledAt. POST only, as in checkRCRun.
-const anyAddonInstanceCancelled = async (runs, client) => {
-  for (const run of runs) {
-    const detail = await client.post(`${TESTGRID_API}/run/${encodeURIComponent(run.id)}`, "{}");
-    const instances = JSON.parse(await detail.readBody()).instances || [];
-    if (instances.some(instance => instance.cancelledAt)) {
-      return true;
-    }
-  }
-  return false;
-};
-
 export const checkPullRequest = (octokit, owner, repo, client = httpClient) => async pullRequest => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
@@ -88,16 +72,6 @@ export const checkPullRequest = (octokit, owner, repo, client = httpClient) => a
   if (responseBody.total !== 0) {
     if (!allAddonRunsDone(responseBody.runs)) {
       console.log(`PR "${prTitle}" #${prNumber}: has pending or running runs`);
-      return;
-    }
-    // A batch where nothing passed or failed and an instance carries
-    // cancelledAt was cancelled (e.g. by cancel-stale-testgrid-runs.yaml after
-    // a push, then the head was force-pushed back): it says nothing about the
-    // code, so report nothing and leave the done marker unwritten for the
-    // re-queued batch. A batch with every leg unsupported is not cancelled
-    // and is still reported.
-    if (!anyAddonRunRan(responseBody.runs) && await anyAddonInstanceCancelled(responseBody.runs, client)) {
-      console.log(`PR "${prTitle}" #${prNumber}: batch was cancelled before any instance passed or failed, not reporting`);
       return;
     }
     const passing = !responseBody.runs.some(run => run.failure_count > 0);

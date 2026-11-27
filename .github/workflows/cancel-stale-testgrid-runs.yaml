@@ -1,59 +1,39 @@
 name: cancel-stale-testgrid-runs
 
-# Testgrid runs a PR queued for earlier commits keep running after a push:
-# test-addon-pr.yaml's cancel-in-progress only cancels its GitHub jobs, and
-# testgrid-pr.yaml (label-triggered) doesn't run on push at all. This cancels
-# the PR's Testgrid runs for earlier commits so only the latest commit's runs
-# use Testgrid capacity. See bin/cancel-stale-testgrid-runs.sh.
-#
-# A core RC run (testgrid-pr.yaml) for an earlier commit is cancelled too; to
-# test the new commit, re-apply the `run-testgrid` label. An RC run that was
-# still building when the push landed is queued after this job has swept, so
-# testgrid-pr.yaml runs the same script right after queueing.
-#
-# An older test-addon-pr.yaml matrix leg that was mid-`tgrun queue` when it got
-# cancelled can still land a run after this job finishes; the next push
-# cancels it.
-#
-# The Testgrid cancel endpoint is unauthenticated, so this needs no secrets.
+# A push cancels the older test-addon-pr.yaml run, but not the Testgrid runs
+# it already queued. Cancel the PR's add-on runs (pr-<N>-<sha7>-...) for
+# earlier commits so they stop using VMs.
 
 on:
   pull_request:
     types:
       - synchronize
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: read
+permissions: {}
 
 jobs:
-  cancel-stale-testgrid-runs:
+  cancel:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Cancel Testgrid runs for earlier commits
-        # Housekeeping only: a Testgrid API outage should not fail the PR. The
-        # timeout is on the step because a job timeout ends the check as
-        # cancelled, which continue-on-error doesn't absorb.
-        continue-on-error: true
-        timeout-minutes: 5
         env:
-          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          # Read the PR's head now rather than from the event payload: if
-          # another push landed after this run started, its runs must not be
-          # treated as stale.
-          PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
-          export PR_HEAD_SHA
-          ./bin/cancel-stale-testgrid-runs.sh
+          api=https://api.testgrid.kurl.sh
+          # pageSize=0 returns every matching run.
+          curl -fsS "${api}/api/v1/runs?searchRef=pr-${PR_NUMBER}-&pageSize=0" \
+            | jq -r --arg prefix "pr-${PR_NUMBER}-" --arg head "${HEAD_SHA:0:7}" \
+                '.runs[] | select(.id | startswith($prefix)) | select(.id | startswith($prefix + $head) | not)
+                         | select(.pending_runs + .running_runs > 0) | .id' \
+            | while read -r ref; do
+                echo "Cancelling ${ref}"
+                curl -fsS -X POST "${api}/v1/ref/${ref}/cancel"; echo
+              done

@@ -140,9 +140,6 @@ without touching the shared `staging/VERSION` pointer.
 
 - **Trigger:** add the **`run-testgrid`** label to a PR, or run it manually via
   Actions → **testgrid-pr** → Run workflow with a `branch` input.
-- **Pushes cancel it:** a push to the PR cancels its Testgrid runs for earlier
-  commits (`cancel-stale-testgrid-runs.yaml`), including a queued RC run, and
-  nothing re-queues it. Re-apply `run-testgrid` to test the new commit.
 - **Build:** fast **core-only** strategy — rebuilds a small core batch from the
   PR's source and copies the rest from the last staging release. Publishes under a
   unique RC tag to `s3://kurl-sh/staging/<latest-tag>-rc-pr<num>-<sha>/`. Never
