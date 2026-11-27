@@ -24,7 +24,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions: {}
+permissions:
+  pull-requests: read
 
 jobs:
   cancel:
@@ -34,15 +35,26 @@ jobs:
     steps:
       - name: Cancel stale Testgrid runs
         env:
+          GH_TOKEN: ${{ github.token }}
           ACTION: ${{ github.event.action }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          RC_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'run-testgrid') }}
         run: |
           set -uo pipefail
           api=https://api.testgrid.kurl.sh/api/v1
-          keep="${HEAD_SHA:0:7}"
-          if [ "${ACTION}" = closed ]; then keep=""; fi
+          keep=""
+          rc_label=true
+          if [ "${ACTION}" != closed ]; then
+            # Read the head and labels now, not from the event payload: a
+            # re-run of an older push's run must not cancel newer runs.
+            pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+              --jq '"\(.head.sha) \(any(.labels[]; .name == "run-testgrid"))"')" || exit 1
+            read -r head rc_label <<< "${pr}"
+            if ! [[ "${head}" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "unexpected head sha: '${head}'"
+              exit 1
+            fi
+            keep="${head:0:7}"
+          fi
           failed=0
 
           # cancel_matching <searchRef> <regex with a named "sha" group>
@@ -69,7 +81,7 @@ jobs:
           }
 
           cancel_matching "pr-${PR_NUMBER}-" "^pr-${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
-          if [ "${ACTION}" = closed ] || [ "${RC_LABEL}" = true ]; then
+          if [ "${rc_label}" = true ]; then
             cancel_matching "rc-pr${PR_NUMBER}-" "^PR-.*-rc-pr${PR_NUMBER}-(?<sha>[0-9a-f]{7})-"
           fi
           exit "${failed}"

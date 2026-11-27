@@ -104,7 +104,7 @@ const ADDON_RUN_LINE = 'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run
 
 const makeFakeHttpClient = (responseBody) => ({
   get: async () => ({ readBody: async () => JSON.stringify(responseBody) }),
-  post: async () => ({ readBody: async () => JSON.stringify({ instances: [] }) }),
+  post: async () => ({ message: { statusCode: 200 }, readBody: async () => JSON.stringify({ instances: [] }) }),
 });
 
 const makeCheckPullRequestOctokit = ({ prComments, createComment, updateComment, checksCreate }) => ({
@@ -290,7 +290,7 @@ test('checkPullRequest reports nothing for a batch with passes that was cancelle
       total: 1,
       runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 1, total_runs: 2 }],
     }),
-    post: async () => ({ readBody: async () => JSON.stringify({
+    post: async () => ({ message: { statusCode: 200 }, readBody: async () => JSON.stringify({
       instances: [
         { id: 'i1', isSkipped: true, cancelledAt: '2026-11-20T00:00:00Z' },
         { id: 'i2', isSuccess: true, finishedAt: '2026-11-20T00:00:00Z', cancelledAt: null },
@@ -315,7 +315,7 @@ test('checkPullRequest still reports a batch where every leg was unsupported but
       total: 1,
       runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 2 }],
     }),
-    post: async () => ({ readBody: async () => JSON.stringify({
+    post: async () => ({ message: { statusCode: 200 }, readBody: async () => JSON.stringify({
       instances: [
         { id: 'i1', isUnsupported: true, cancelledAt: null },
         { id: 'i2', isUnsupported: true, cancelledAt: null },
@@ -326,4 +326,32 @@ test('checkPullRequest still reports a batch where every leg was unsupported but
   await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
 
   assert.deepEqual(checks, ['success']);
+});
+
+test('checkPullRequest reports nothing for a passing batch with a skipped instance or an unreadable run detail', async () => {
+  const details = [
+    { statusCode: 200, body: JSON.stringify({ instances: [{ id: 'i1', isSkipped: true, cancelledAt: null }] }) },
+    { statusCode: 500, body: JSON.stringify({ error: 'boom' }) },
+    { statusCode: 200, body: 'not json' },
+  ];
+  for (const [i, detail] of details.entries()) {
+    const calls = [];
+    const octokit = makeCheckPullRequestOctokit({
+      prComments: [addonStickyComment(ADDON_RUN_LINE, 310 + i)],
+      createComment: async () => { calls.push('createComment'); },
+      updateComment: async () => { calls.push('updateComment'); },
+      checksCreate: async () => { calls.push('checksCreate'); },
+    });
+    const client = {
+      ...makeFakeHttpClient({
+        total: 1,
+        runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 1, total_runs: 2 }],
+      }),
+      post: async () => ({ message: { statusCode: detail.statusCode }, readBody: async () => detail.body }),
+    };
+
+    await checkPullRequest(octokit, 'owner', 'repo', client)(pullRequest);
+
+    assert.deepEqual(calls, [], `case ${i}`);
+  }
 });
