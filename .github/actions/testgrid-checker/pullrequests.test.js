@@ -104,6 +104,7 @@ const ADDON_RUN_LINE = 'Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run
 
 const makeFakeHttpClient = (responseBody) => ({
   get: async () => ({ readBody: async () => JSON.stringify(responseBody) }),
+  post: async () => ({ readBody: async () => JSON.stringify({ instances: [] }) }),
 });
 
 const makeCheckPullRequestOctokit = ({ prComments, createComment, updateComment, checksCreate }) => ({
@@ -275,7 +276,7 @@ test('checkPullRequest never creates a success check-run for a stale sticky entr
   assert.deepEqual(checksCreateCalls, []);
 });
 
-test('checkPullRequest reports nothing for a batch whose instances were all cancelled', async () => {
+test('checkPullRequest reports nothing for a batch with passes that was cancelled before it finished', async () => {
   const sticky = addonStickyComment(ADDON_RUN_LINE, 308);
   const calls = [];
   const octokit = makeCheckPullRequestOctokit({
@@ -287,12 +288,12 @@ test('checkPullRequest reports nothing for a batch whose instances were all canc
   const client = {
     ...makeFakeHttpClient({
       total: 1,
-      runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 0, total_runs: 2 }],
+      runs: [{ id: 'pr-1-abc1234-run', pending_runs: 0, running_runs: 0, failure_count: 0, success_count: 1, total_runs: 2 }],
     }),
     post: async () => ({ readBody: async () => JSON.stringify({
       instances: [
         { id: 'i1', isSkipped: true, cancelledAt: '2026-11-20T00:00:00Z' },
-        { id: 'i2', isUnsupported: true, cancelledAt: null },
+        { id: 'i2', isSuccess: true, finishedAt: '2026-11-20T00:00:00Z', cancelledAt: null },
       ],
     }) }),
   };

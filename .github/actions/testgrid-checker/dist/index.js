@@ -39465,7 +39465,7 @@ __nccwpck_require__.d(__webpack_exports__, {
   fb: () => (/* binding */ checkPullRequest)
 });
 
-// UNUSED EXPORTS: allAddonRunsDone, anyAddonRunRan, enablePullRequestAutomerge, reportAddonCompletion
+// UNUSED EXPORTS: allAddonRunsDone, enablePullRequestAutomerge, reportAddonCompletion
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js + 16 modules
 var core = __nccwpck_require__(3340);
@@ -39664,9 +39664,6 @@ const TESTGRID_API = 'https://api.testgrid.kurl.sh/api/v1';
 const allAddonRunsDone = runs =>
   runs.every(run => !(run.pending_runs > 0) && !(run.running_runs > 0));
 
-const anyAddonRunRan = runs =>
-  runs.some(run => (run.success_count || 0) + (run.failure_count || 0) > 0);
-
 // The runs list has no cancelled count, so read each run's instances for an
 // explicit cancelledAt. POST only, as in checkRCRun.
 const anyAddonInstanceCancelled = async (runs, client) => {
@@ -39726,17 +39723,17 @@ const checkPullRequest = (octokit, owner, repo, client = httpClient) => async pu
       console.log(`PR "${prTitle}" #${prNumber}: has pending or running runs`);
       return;
     }
-    // A batch where nothing passed or failed and an instance carries
-    // cancelledAt was cancelled (e.g. by cancel-stale-testgrid-runs.yaml after
-    // a push, then the head was force-pushed back): it says nothing about the
-    // code, so report nothing and leave the done marker unwritten for the
-    // re-queued batch. A batch with every leg unsupported is not cancelled
-    // and is still reported.
-    if (!anyAddonRunRan(responseBody.runs) && await anyAddonInstanceCancelled(responseBody.runs, client)) {
-      console.log(`PR "${prTitle}" #${prNumber}: batch was cancelled before any instance passed or failed, not reporting`);
+    const passing = !responseBody.runs.some(run => run.failure_count > 0);
+    // A batch with no failures where an instance carries cancelledAt was cut
+    // short (e.g. by cancel-stale-testgrid-runs.yaml on a push or close, then
+    // the head was force-pushed back or the PR reopened), so it can't pass:
+    // report nothing and leave the done marker unwritten for the re-queued
+    // batch. A batch with every leg unsupported is not cancelled and is still
+    // reported; a cancelled batch with a failure still reports the failure.
+    if (passing && await anyAddonInstanceCancelled(responseBody.runs, client)) {
+      console.log(`PR "${prTitle}" #${prNumber}: batch was cancelled before it finished, not reporting`);
       return;
     }
-    const passing = !responseBody.runs.some(run => run.failure_count > 0);
     console.log(`PR "${prTitle}" #${prNumber}: ${passing ? 'is passing' : 'has failed runs'}`);
 
     await octokit.rest.checks.create({

@@ -7,8 +7,10 @@ name: cancel-stale-testgrid-runs
 #     its core RC runs (PR-<tag>-rc-pr<N>-<sha7>-...) for earlier commits;
 #   * on close: all of the PR's runs.
 #
-# A workflow run that was mid-`tgrun queue` when GitHub cancelled it can still
-# land a run after this sweep; the next push or the close cancels it.
+# Runs queued after this sweep are missed: a workflow run that was
+# mid-`tgrun queue` when GitHub cancelled it, and, on close, any workflow run
+# still in progress (closing doesn't cancel it). The next push or the close
+# catches the first kind; nothing catches the second.
 
 on:
   pull_request:
